@@ -1,0 +1,15 @@
+{
+  "name": "交通費レシート読み取り",
+  "short_name": "交通費OCR",
+  "description": "駐車場・高速代などの領収書を撮影してまとめて読み取り、日別・月別に集計します。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#eaf2fb",
+  "theme_color": "#1f63c0",
+  "lang": "ja",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

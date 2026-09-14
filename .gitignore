@@ -1,2 +1,10 @@
 MusicLyrics/
 *.zip
+
+# 交通費レシート読み取り（サーバー側の生成物・機密）
+receipt-ocr/api/config.php
+receipt-ocr/api/data/*
+!receipt-ocr/api/data/.htaccess
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

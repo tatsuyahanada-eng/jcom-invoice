@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f63c0">
+<meta name="description" content="駐車場・高速代などの領収書を撮影してまとめて読み取り、日別・月別に集計してExcel/CSVで出力します。">
+<title>交通費レシート読み取り</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <h1>交通費レシート読み取り</h1>
+  </div>
+  <p>駐車場・高速代の領収書を写真でまとめて登録 → その日の交通費を一覧・ダウンロード → 月単位で集計</p>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="scan" aria-selected="true">1. 読み取り</button>
+  <button role="tab" data-tab="list" aria-selected="false">2. 明細一覧</button>
+  <button role="tab" data-tab="report" aria-selected="false">3. 月次集計</button>
+  <button role="tab" data-tab="settings" aria-selected="false">設定</button>
+</nav>
+
+<main>
+
+<!-- ============ 1. 読み取り ============ -->
+<section class="tabpanel" id="tab-scan">
+
+  <div class="panel">
+    <h2>領収書をまとめてアップロード<span class="sub">写真は何枚でも一度に選べます</span></h2>
+
+    <label class="drop" id="drop">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13v5H5v-5H3v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5M11 16h2V8l3.5 3.5L18 10l-6-6-6 6 1.5 1.5L11 8v8z"/></svg>
+      <strong>ここにドラッグ＆ドロップ／タップして選択</strong>
+      <span>JPG・PNG・HEIC・PDF に対応／スマホではカメラロールから複数選択できます</span>
+      <input id="files" type="file" accept="image/*,application/pdf" multiple hidden>
+    </label>
+
+    <div class="controls" style="margin-top:12px">
+      <label class="field">
+        <span>読み取りエンジン</span>
+        <select id="engineQuick">
+          <option value="local">端末内OCR（無料・オフライン）</option>
+          <option value="ai">AI解析（高精度・設定が必要）</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="optSplit" checked> 1枚に複数写っていたら自動分割</label>
+      <label class="check"><input type="checkbox" id="optDeskew" checked> 傾きを自動補正</label>
+      <label class="check"><input type="checkbox" id="optDigit" checked> 数字を再確認（精度優先）</label>
+      <label class="check"><input type="checkbox" id="optRotate" checked> 読めないとき向きを変えて再試行</label>
+    </div>
+
+    <div class="progress" id="progress">
+      <p class="status" id="status"></p>
+      <div class="bar"><i id="bar"></i></div>
+    </div>
+    <div class="notice" id="notice"></div>
+
+    <p class="hint">
+      コツ：影が入らないよう真上から撮り、レシート全体が入るようにしてください。
+      机の上に複数枚を並べて1枚で撮っても、自動で切り分けます。
+      <strong>読み取り結果は必ず下の表で確認・修正してください。</strong>
+      背景が薄い黄色の項目は「自信が低い」ため、特に確認が必要です。
+    </p>
+  </div>
+
+  <div class="panel">
+    <div class="controls spread">
+      <h2>この日の交通費<span class="sub" id="scanWeekday"></span></h2>
+      <div class="controls">
+        <label class="field"><span>対象日</span><input type="date" id="scanDate"></label>
+        <button class="btn" id="scanXlsx">この日をExcel出力</button>
+        <button class="btn secondary" id="scanCsv">CSV</button>
+      </div>
+    </div>
+    <div class="summary" id="scanSummary" style="margin-top:12px"></div>
+    <div class="table-wrap">
+      <table class="detail">
+        <thead><tr>
+          <th class="col-thumb"></th><th class="col-date">日付</th><th class="col-time">時刻</th>
+          <th class="col-type">種別</th><th>駐車場名・経路</th><th class="col-amount">金額（税込）</th>
+          <th>メモ</th><th class="col-act"></th>
+        </tr></thead>
+        <tbody id="scanRows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. 明細一覧 ============ -->
+<section class="tabpanel" id="tab-list" hidden>
+  <div class="panel">
+    <h2>保存されている明細</h2>
+    <div class="controls">
+      <label class="field"><span>絞り込み</span>
+        <select id="fMode">
+          <option value="month">月で絞る</option>
+          <option value="day">日で絞る</option>
+          <option value="range">期間で絞る</option>
+          <option value="all">すべて</option>
+        </select>
+      </label>
+      <label class="field" id="wrapMonth"><span>対象月</span><input type="month" id="fMonth"></label>
+      <label class="field" id="wrapDate" hidden><span>対象日</span><input type="date" id="fDate"></label>
+      <label class="field" id="wrapFrom" hidden><span>開始日</span><input type="date" id="fFrom"></label>
+      <label class="field" id="wrapTo" hidden><span>終了日</span><input type="date" id="fTo"></label>
+      <label class="field"><span>種別</span>
+        <select id="fType"><option value="">すべて</option></select>
+      </label>
+      <label class="check"><input type="checkbox" id="fCheck"> 要確認のみ</label>
+      <button class="btn" id="listXlsx">Excel出力</button>
+      <button class="btn secondary" id="listCsv">CSV</button>
+    </div>
+    <div class="summary" id="listSummary" style="margin-top:12px"></div>
+    <div class="table-wrap">
+      <table class="detail">
+        <thead><tr>
+          <th class="col-thumb"></th><th class="col-date">日付</th><th class="col-time">時刻</th>
+          <th class="col-type">種別</th><th>駐車場名・経路</th><th class="col-amount">金額（税込）</th>
+          <th>メモ</th><th class="col-act"></th>
+        </tr></thead>
+        <tbody id="listRows"></tbody>
+      </table>
+    </div>
+    <div class="controls" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn danger small" id="clearAll">全データを削除</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. 月次集計 ============ -->
+<section class="tabpanel" id="tab-report" hidden>
+  <div class="panel">
+    <div class="controls spread">
+      <h2>月次集計</h2>
+      <div class="controls">
+        <label class="field"><span>対象月</span><input type="month" id="repMonth"></label>
+        <button class="btn" id="repXlsx">この月をExcel出力</button>
+        <button class="btn secondary" id="repCsv">CSV</button>
+      </div>
+    </div>
+    <div class="summary" id="repSummary" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>日別の内訳<span class="sub">日付をクリックすると、その日の明細を表示します</span></h2>
+    <div class="table-wrap">
+      <table class="pivot">
+        <thead><tr>
+          <th>日付</th><th>曜</th><th class="num">駐車場</th><th class="num">高速</th>
+          <th class="num">ガソリン</th><th class="num">タクシー</th><th class="num">電車・バス</th>
+          <th class="num">その他</th><th class="num">合計</th><th class="num">件数</th><th></th>
+        </tr></thead>
+        <tbody id="repDaily"></tbody>
+        <tfoot id="repDailyFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="controls spread">
+      <h2>月別の推移<span class="sub">保存されている全期間</span></h2>
+      <button class="btn secondary small" id="repAllXlsx">全期間をExcel出力</button>
+    </div>
+    <div class="table-wrap">
+      <table class="pivot">
+        <thead><tr>
+          <th>月</th><th class="num">駐車場</th><th class="num">高速</th><th class="num">ガソリン</th>
+          <th class="num">タクシー</th><th class="num">電車・バス</th><th class="num">その他</th>
+          <th class="num">合計</th><th class="num">件数</th><th></th>
+        </tr></thead>
+        <tbody id="repMonthly"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 設定 ============ -->
+<section class="tabpanel" id="tab-settings" hidden>
+
+  <div class="panel">
+    <h2>読み取りエンジン</h2>
+    <div class="controls">
+      <label class="field"><span>使用するエンジン</span>
+        <select id="setEngine">
+          <option value="local">端末内OCR（Tesseract・無料・オフライン）</option>
+          <option value="ai">AI解析（高精度）</option>
+        </select>
+      </label>
+    </div>
+    <p class="hint">
+      端末内OCRは無料で通信も不要ですが、感熱紙のかすれた文字や複雑なレイアウトは苦手です。
+      <strong>読み取り精度を最優先する場合は「AI解析」を選んでください。</strong>
+      画像をAIに送って内容を読み取るため、駐車場名や経路まで正確に取得できます。
+    </p>
+
+    <div id="aiSettings" hidden>
+      <div class="controls" style="margin-top:10px">
+        <label class="field"><span>接続方法</span>
+          <select id="setAiMode">
+            <option value="proxy">サーバー経由（推奨・api/ai-proxy.php）</option>
+            <option value="direct">ブラウザから直接（APIキーを端末に保存）</option>
+          </select>
+        </label>
+        <label class="field" style="flex:1 1 260px"><span>モデル</span><input id="setAiModel" placeholder="claude-sonnet-5"></label>
+      </div>
+      <div class="controls" id="wrapAiKey" hidden style="margin-top:10px">
+        <label class="field" style="flex:1 1 320px"><span>APIキー</span><input id="setAiKey" type="password" placeholder="sk-ant-..." autocomplete="off"></label>
+      </div>
+      <p class="hint" id="aiKeyWarn" hidden>
+        ⚠️ ブラウザに保存したAPIキーは、その端末を使える人なら取り出せます。
+        共有PCでは使わず、<strong>できる限り「サーバー経由」を選んでください</strong>
+        （<code>api/ai-proxy.php</code> にキーを置けば、キーは端末に残りません）。
+      </p>
+      <div class="controls" style="margin-top:10px">
+        <button class="btn secondary" id="setAiTest">接続テスト</button>
+        <span class="status" id="aiTestStatus"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>PC・スマホ間の同期<span class="sub">任意</span></h2>
+    <div class="controls">
+      <label class="field" style="flex:1 1 280px"><span>共有キー（PCとスマホで同じ値）</span>
+        <input id="setWorkspace" maxlength="40" placeholder="例: wellsis-takahashi-2026">
+      </label>
+      <button class="btn" id="btnSync">今すぐ同期</button>
+    </div>
+    <p class="status" id="syncStatus"></p>
+    <p class="hint">
+      サーバーに <code>api/sync.php</code> を設置している場合のみ使えます。
+      共有キーを知っている人は同じデータを見られるため、推測されにくい文字列にしてください。
+      写真はサーバーに送られません（明細のテキストのみ）。
+    </p>
+  </div>
+
+  <div class="panel">
+    <h2>データの管理</h2>
+    <div class="controls">
+      <button class="btn secondary" id="btnBackup">バックアップを保存（JSON）</button>
+      <label class="btn secondary" style="display:inline-block">
+        バックアップから復元
+        <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+      </label>
+      <button class="btn danger" id="btnClear">全データを削除</button>
+    </div>
+    <p class="hint" id="storageInfo"></p>
+    <p class="hint">
+      データはこの端末のブラウザ内（IndexedDB）に保存されます。
+      ブラウザの「閲覧データを削除」を実行すると消えるため、月末にはバックアップの保存をおすすめします。
+    </p>
+  </div>
+
+  <div class="panel">
+    <h2>アプリ情報</h2>
+    <p class="hint" id="appInfo"></p>
+    <div class="controls">
+      <button class="btn secondary small" id="btnUpdate">最新版に更新（キャッシュ再取得）</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="modal" id="modal">
+  <button class="close" id="modalClose" aria-label="閉じる">×</button>
+  <div id="modalBody"></div>
+</div>
+
+<script>
+/* ライブラリの取得先。既定ではCDNから読み込みます。
+   社内ネットワークやCDNが使えない環境で完全に自己完結させたい場合は、
+   下記のファイルをサーバーに置いて、このパスを書き換えてください。
+     vendor/tesseract/worker.min.js            … tesseract.js の worker
+     vendor/tesseract/tesseract-core*.wasm.js  … tesseract.js-core
+     vendor/tessdata/jpn.traineddata.gz, eng.traineddata.gz
+   （空文字のままなら、tesseract.js の既定のCDNを使います） */
+window.APP_CDN = {
+  tesseractWorker: '',
+  tesseractCore: '',
+  tesseractLang: '',
+  pdfWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="assets/util.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/image.js"></script>
+<script src="assets/parse.js"></script>
+<script src="assets/ocr.js"></script>
+<script src="assets/export.js"></script>
+<script src="assets/sync.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
