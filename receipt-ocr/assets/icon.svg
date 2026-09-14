@@ -1,11 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="交通費レシート読み取り">
-  <rect width="512" height="512" rx="96" fill="#1f63c0"/>
-  <path d="M144 96h224a16 16 0 0 1 16 16v312l-40-24-40 24-40-24-40 24-40-24-40 24V112a16 16 0 0 1 16-16z" fill="#ffffff"/>
-  <g fill="#1f63c0">
-    <rect x="176" y="160" width="160" height="20" rx="10"/>
-    <rect x="176" y="208" width="160" height="20" rx="10"/>
-    <rect x="176" y="256" width="96" height="20" rx="10"/>
+  <defs>
+    <clipPath id="r"><rect width="512" height="512" rx="96"/></clipPath>
+  </defs>
+  <g clip-path="url(#r)">
+    <rect width="512" height="512" fill="#d3123a"/>
+    <path d="M232 -40 L560 -40 L340 552 L12 552 Z" fill="#ffffff"/>
+    <path d="M248 -40 L560 -40 L356 552 L44 552 Z" fill="#1069b4"/>
   </g>
-  <circle cx="352" cy="352" r="86" fill="#ffd34d" stroke="#1f63c0" stroke-width="20"/>
-  <path d="M330 352h44M352 330v44" stroke="#1f63c0" stroke-width="20" stroke-linecap="round"/>
+  <path d="M150 104h212a14 14 0 0 1 14 14v298l-38-22-38 22-38-22-38 22-38-22-38 22V118a14 14 0 0 1 14-14z" fill="#ffffff"/>
+  <g fill="#0b4f8a">
+    <rect x="180" y="166" width="152" height="20" rx="10"/>
+    <rect x="180" y="214" width="152" height="20" rx="10"/>
+    <rect x="180" y="262" width="92" height="20" rx="10"/>
+  </g>
+  <circle cx="352" cy="356" r="84" fill="#ffffff" stroke="#d3123a" stroke-width="22"/>
+  <path d="M330 356h44M352 334v44" stroke="#d3123a" stroke-width="22" stroke-linecap="round"/>
 </svg>

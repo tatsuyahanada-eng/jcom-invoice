@@ -1,10 +1,9 @@
 MusicLyrics/
 *.zip
 
-# 交通費レシート読み取り（サーバー側の生成物・機密）
+# 交通費レシート読み取り
+# MySQLの接続情報。絶対にコミットしないこと（config.sample.php を雛形として使う）
 receipt-ocr/api/config.php
-receipt-ocr/api/data/*
-!receipt-ocr/api/data/.htaccess
-*.sqlite
-*.sqlite-wal
-*.sqlite-shm
+# アップロードされたレシート画像
+receipt-ocr/api/uploads/*
+!receipt-ocr/api/uploads/.htaccess

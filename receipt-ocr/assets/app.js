@@ -15,7 +15,12 @@
     optDeskew: true,
     optDigit: true,
     optRotate: true,
-    workspace: '',
+    // サーバー共有
+    syncEnabled: false,
+    apiBase: 'api/',
+    accessToken: '',
+    staff: '',
+    shareImages: true,
   };
 
   const state = {
@@ -51,6 +56,7 @@
     $('#fDate').value = U.today();
     $('#repMonth').value = U.thisMonth();
 
+    applyApiConfig();
     applySettingsToUi();
     bindTabs();
     bindScan();
@@ -61,14 +67,43 @@
     bindSettings();
     bindModal();
 
+    App.sync.onChange(renderSyncBadge);
+    renderSyncBadge(App.sync.status());
+
     await reload();
     showStorage();
     registerServiceWorker();
+    startAutoSync();
+  }
+
+  function applyApiConfig() {
+    const s = state.settings;
+    App.api.configure({
+      enabled: !!s.syncEnabled,
+      baseUrl: s.apiBase || 'api/',
+      token: s.accessToken || '',
+      shareImages: !!s.shareImages,
+    });
   }
 
   async function reload() {
     state.records = await App.db.allRecords();
+    refreshStaffOptions();
     renderAll();
+  }
+
+  /** 登録済みの担当者名を各セレクトへ反映する */
+  function refreshStaffOptions() {
+    const names = [...new Set(state.records.map(r => r.staff).filter(Boolean))].sort();
+    if (state.settings.staff && !names.includes(state.settings.staff)) names.unshift(state.settings.staff);
+    $('#staffList').innerHTML = names.map(n => `<option value="${U.esc(n)}">`).join('');
+    for (const sel of ['#fStaff', '#repStaff']) {
+      const el = $(sel);
+      const keep = el.value;
+      el.innerHTML = '<option value="">すべて</option>' +
+        names.map(n => `<option value="${U.esc(n)}">${U.esc(n)}</option>`).join('');
+      el.value = names.includes(keep) ? keep : '';
+    }
   }
 
   function renderAll() {
@@ -100,7 +135,14 @@
     $('#setAiMode').value = s.aiMode;
     $('#setAiKey').value = s.aiKey;
     $('#setAiModel').value = s.aiModel;
-    $('#setWorkspace').value = s.workspace;
+    $('#setSyncEnabled').checked = !!s.syncEnabled;
+    $('#setApiBase').value = s.apiBase;
+    $('#setAccessToken').value = s.accessToken;
+    $('#setStaff').value = s.staff;
+    $('#scanStaff').value = s.staff;
+    $('#setShareImages').checked = !!s.shareImages;
+    $('#serverSettings').hidden = !s.syncEnabled;
+    $('#syncBadge').hidden = !s.syncEnabled;
     $('#optSplit').checked = !!s.optSplit;
     $('#optDeskew').checked = !!s.optDeskew;
     $('#optDigit').checked = !!s.optDigit;
@@ -123,13 +165,41 @@
     $('#setAiMode').addEventListener('change', e => saveSettings({ aiMode: e.target.value }));
     $('#setAiKey').addEventListener('change', e => saveSettings({ aiKey: e.target.value.trim() }));
     $('#setAiModel').addEventListener('change', e => saveSettings({ aiModel: e.target.value.trim() || DEFAULTS.aiModel }));
-    $('#setWorkspace').addEventListener('change', e => saveSettings({ workspace: e.target.value.trim() }));
     ['optSplit', 'optDeskew', 'optDigit', 'optRotate'].forEach(k => {
       $('#' + k).addEventListener('change', e => saveSettings({ [k]: e.target.checked }));
     });
 
+    // --- サーバー共有 ---
+    $('#setSyncEnabled').addEventListener('change', async (e) => {
+      await saveSettings({ syncEnabled: e.target.checked });
+      applyApiConfig();
+      if (e.target.checked) doSync();
+      else renderSyncBadge({ phase: 'off', message: 'サーバー同期はオフです', pending: 0 });
+    });
+    $('#setApiBase').addEventListener('change', async (e) => {
+      await saveSettings({ apiBase: e.target.value.trim() || 'api/' });
+      applyApiConfig();
+    });
+    $('#setAccessToken').addEventListener('change', async (e) => {
+      await saveSettings({ accessToken: e.target.value.trim() });
+      applyApiConfig();
+    });
+    $('#setShareImages').addEventListener('change', async (e) => {
+      await saveSettings({ shareImages: e.target.checked });
+      applyApiConfig();
+    });
+    const onStaffChange = async (e) => {
+      await saveSettings({ staff: e.target.value.trim() });
+      refreshStaffOptions();
+    };
+    $('#setStaff').addEventListener('change', onStaffChange);
+    $('#scanStaff').addEventListener('change', onStaffChange);
+
     $('#setAiTest').addEventListener('click', testAi);
-    $('#btnSync').addEventListener('click', doSync);
+    $('#btnSync').addEventListener('click', () => doSync(false));
+    $('#btnPing').addEventListener('click', pingServer);
+    $('#btnResync').addEventListener('click', resyncAll);
+    $('#syncBadge').addEventListener('click', () => doSync(false));
     $('#btnBackup').addEventListener('click', () => App.exporter.downloadJson(state.records));
     $('#restoreFile').addEventListener('change', restoreBackup);
     $('#btnClear').addEventListener('click', clearAll);
@@ -262,6 +332,7 @@
         },
       } : null);
     setTimeout(() => $('#progress').classList.remove('on'), 1500);
+    scheduleSync();
   }
 
   /** ファイルを1件ずつ読み取って added / failures に積む */
@@ -297,6 +368,8 @@
               : [await scanWithLocal(pre, file, fallbackDate, msg => setProgress(done + share * 0.5, msg))];
 
             for (const rec of recs) {
+              rec.localImage = 1;
+              rec.imageSynced = 0;
               await App.db.putRecord(rec);
               await App.db.putImage(rec.id, pre.thumb, pre.full);
               state.thumbs.set(rec.id, pre.thumb);
@@ -380,6 +453,7 @@
   function blankRecord(fields) {
     return Object.assign({
       id: U.uid(),
+      staff: state.settings.staff || '',
       date: '',
       time: '',
       type: 'その他',
@@ -389,9 +463,13 @@
       source: '手入力',
       confidence: {},
       rawText: '',
+      hasImage: false,     // サーバーに画像があるか
+      localImage: 0,       // この端末に画像の実体があるか
+      imageSynced: 0,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       deleted: 0,
+      dirty: 1,
     }, fields || {});
   }
 
@@ -421,6 +499,7 @@
 <td class="col-type"><select data-k="type" class="${low('type')}">${options}</select></td>
 <td><input data-k="name" class="${low('name')}" value="${U.esc(r.name)}" placeholder="駐車場名・経路"></td>
 <td class="num col-amount"><input type="number" min="0" step="1" inputmode="numeric" data-k="amount" class="${low('amount')}" value="${r.amount === '' || r.amount == null ? '' : Number(r.amount)}" placeholder="0"></td>
+<td class="col-staff"><input data-k="staff" list="staffList" value="${U.esc(r.staff)}" placeholder="担当者"></td>
 <td><input data-k="note" value="${U.esc(r.note)}" placeholder="メモ"></td>
 <td class="col-act">
 <button class="iconbtn" data-act="text" title="読み取り結果の全文">📄</button>
@@ -428,11 +507,23 @@
 </td></tr>`;
   }
 
+  // 入力中に自動同期の再描画が走るとフォーカスが飛ぶため、
+  // その表に入力中のセルがある間は描画を保留し、離れた時点で反映する。
+  const deferredRenders = new Map();
+
   function renderRows(tbody, records, emptyMessage) {
-    if (!records.length) {
-      tbody.innerHTML = `<tr><td colspan="8" class="empty">${U.esc(emptyMessage)}</td></tr>`;
+    if (tbody.contains(document.activeElement)) {
+      deferredRenders.set(tbody, [records, emptyMessage]);
       return;
     }
+    deferredRenders.delete(tbody);
+    const table = tbody.closest('table');
+    if (!records.length) {
+      if (table) table.classList.add('is-empty');
+      tbody.innerHTML = `<tr><td colspan="9" class="empty">${U.esc(emptyMessage)}</td></tr>`;
+      return;
+    }
+    if (table) table.classList.remove('is-empty');
     tbody.innerHTML = records.map(rowHtml).join('');
     loadThumbs(tbody);
   }
@@ -442,10 +533,17 @@
       const id = img.dataset.thumb;
       if (state.thumbs.has(id)) { img.src = state.thumbs.get(id); continue; }
       try {
-        const rec = await App.db.getImage(id);
-        if (rec && rec.thumb) {
-          state.thumbs.set(id, rec.thumb);
-          img.src = rec.thumb;
+        const stored = await App.db.getImage(id);
+        if (stored && stored.thumb) {
+          state.thumbs.set(id, stored.thumb);
+          img.src = stored.thumb;
+          continue;
+        }
+        // 別の端末で撮影した明細は、サーバー上の画像を参照する
+        const rec = state.records.find(r => r.id === id);
+        if (state.settings.syncEnabled && rec && rec.hasImage) {
+          img.src = App.api.imageUrl(id, 'thumb');
+          img.onerror = () => img.remove();
         } else {
           img.remove();
         }
@@ -458,9 +556,21 @@
     tbody.addEventListener('input', onCellChange);
     tbody.addEventListener('change', onCellChange);
     tbody.addEventListener('click', onRowClick);
+    tbody.addEventListener('focusout', () => {
+      // 表から離れたタイミングで、保留していた描画を反映する
+      setTimeout(() => {
+        if (tbody.contains(document.activeElement)) return;
+        const pending = deferredRenders.get(tbody);
+        if (pending) renderRows(tbody, pending[0], pending[1]);
+      }, 0);
+    });
   }
 
+  // 編集内容は「変更した項目だけ」をためて、少し間を置いてからまとめて保存する。
+  // 行ごとに保持しないと、続けて別の行を触ったときに先の編集が保存されない。
+  const pendingEdits = new Map();   // id -> { 項目名: 値 }
   let saveTimer = null;
+
   async function onCellChange(e) {
     const key = e.target.dataset && e.target.dataset.k;
     if (!key) return;
@@ -468,21 +578,47 @@
     const rec = state.records.find(r => r.id === tr.dataset.id);
     if (!rec) return;
 
-    rec[key] = key === 'amount'
+    const value = key === 'amount'
       ? (e.target.value === '' ? '' : Number(e.target.value))
       : e.target.value;
-    // 手で直した項目は確定扱いにする
-    if (rec.confidence) rec.confidence[key] = 1;
+
+    // 値が変わっていないなら何もしない。
+    // input と change の両方を拾っているため、フォーカスが外れたときに change が続けて発火する。
+    // ここで弾かないと、中身が同じまま updatedAt だけが新しくなり、
+    // 「あとで編集したほうを採用する」競合解決で、古い内容が勝ってしまう。
+    const before = rec[key] == null ? '' : String(rec[key]);
+    if (before === (value == null ? '' : String(value))) return;
+
+    rec[key] = value;                       // 画面表示用にその場で反映
+    if (rec.confidence) rec.confidence[key] = 1;   // 手で直した項目は確定扱い
     e.target.classList.remove('lowconf');
     tr.classList.toggle('needs-check', App.exporter.needsCheck(rec));
 
+    const patch = pendingEdits.get(rec.id) || {};
+    patch[key] = value;
+    pendingEdits.set(rec.id, patch);
+
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(async () => {
-      await App.db.putRecord(rec);
-      renderSummaries();
-      renderReport();
-    }, 350);
+    saveTimer = setTimeout(flushEdits, 350);
     renderSummaries();
+  }
+
+  /** ためた編集を、保存直前の最新レコードに当ててから書き込む */
+  async function flushEdits() {
+    if (!pendingEdits.size) return;
+    const edits = [...pendingEdits.entries()];
+    pendingEdits.clear();
+
+    for (const [id, patch] of edits) {
+      const latest = await App.db.getRecord(id);
+      if (!latest || latest.deleted) continue;
+      Object.assign(latest, patch);
+      latest.confidence = Object.assign({}, latest.confidence || {});
+      for (const key of Object.keys(patch)) latest.confidence[key] = 1;
+      await App.db.putRecord(latest);
+    }
+    await reload();
+    scheduleSync();
   }
 
   async function onRowClick(e) {
@@ -498,6 +634,7 @@
       await App.db.deleteRecord(id);
       state.thumbs.delete(id);
       await reload();
+      scheduleSync();
     } else if (btn.dataset.act === 'text') {
       const rec = await App.db.getRecord(id);
       showText(rec && rec.rawText ? rec.rawText : '（読み取り結果の全文は保存されていません）');
@@ -509,13 +646,14 @@
   function summaryHtml(totals, extra) {
     const cells = [
       ['件数', String(totals.count) + ' 件'],
-      ['合計', U.yen(totals.total)],
+      ['合計', U.yen(totals.total), 'total'],
       ['駐車場', U.yen(totals['駐車場'])],
       ['高速', U.yen(totals['高速'])],
       ['ガソリン', U.yen(totals['ガソリン'])],
       ['その他', U.yen(totals['タクシー'] + totals['電車・バス'] + totals['その他'])],
     ].concat(extra || []);
-    return cells.map(([k, v]) => `<div><small>${U.esc(k)}</small><b>${U.esc(v)}</b></div>`).join('');
+    return cells.map(([k, v, cls]) =>
+      `<div${cls ? ` class="${cls}"` : ''}><small>${U.esc(k)}</small><b>${U.esc(v)}</b></div>`).join('');
   }
 
   function renderSummaries() {
@@ -549,6 +687,7 @@
       from: $('#fFrom').value,
       to: $('#fTo').value,
       types: $('#fType').value ? [$('#fType').value] : null,
+      staff: $('#fStaff').value || '',
     };
   }
 
@@ -567,7 +706,7 @@
       $('#wrapTo').hidden = mode !== 'range';
       renderList();
     };
-    ['#fMode', '#fMonth', '#fDate', '#fFrom', '#fTo', '#fType', '#fCheck']
+    ['#fMode', '#fMonth', '#fDate', '#fFrom', '#fTo', '#fType', '#fStaff', '#fCheck']
       .forEach(sel => $(sel).addEventListener('change', update));
     $('#listXlsx').addEventListener('click', () => exportWith('xlsx', currentFilter()));
     $('#listCsv').addEventListener('click', () => exportWith('csv', currentFilter()));
@@ -578,11 +717,16 @@
     renderSummaries();
   }
 
+  function reportFilter(mode) {
+    return { mode, month: $('#repMonth').value, staff: $('#repStaff').value || '' };
+  }
+
   function bindReport() {
     $('#repMonth').addEventListener('change', renderReport);
-    $('#repXlsx').addEventListener('click', () => exportWith('xlsx', { mode: 'month', month: $('#repMonth').value }));
-    $('#repCsv').addEventListener('click', () => exportWith('csv', { mode: 'month', month: $('#repMonth').value }));
-    $('#repAllXlsx').addEventListener('click', () => exportWith('xlsx', { mode: 'all' }));
+    $('#repStaff').addEventListener('change', renderReport);
+    $('#repXlsx').addEventListener('click', () => exportWith('xlsx', reportFilter('month')));
+    $('#repCsv').addEventListener('click', () => exportWith('csv', reportFilter('month')));
+    $('#repAllXlsx').addEventListener('click', () => exportWith('xlsx', reportFilter('all')));
 
     $('#repDaily').addEventListener('click', e => {
       const btn = e.target.closest('button[data-day]');
@@ -603,8 +747,7 @@
   function numTd(v) { return `<td class="num">${v ? U.num(v) : '-'}</td>`; }
 
   function renderReport() {
-    const month = $('#repMonth').value;
-    const monthRecords = App.exporter.filterRecords(state.records, { mode: 'month', month });
+    const monthRecords = App.exporter.filterRecords(state.records, reportFilter('month'));
     const totals = App.exporter.grandTotal(monthRecords);
     const days = new Set(monthRecords.map(r => r.date).filter(Boolean)).size;
     $('#repSummary').innerHTML = summaryHtml(totals, [['稼働日数', days + ' 日']]);
@@ -623,7 +766,9 @@ ${TYPES.map(t => numTd(d[t])).join('')}
 <td class="num">${U.num(totals.total)}</td><td class="num">${totals.count}</td><td></td></tr>`
       : '';
 
-    const monthly = App.exporter.monthlySummary(state.records);
+    const staff = $('#repStaff').value || '';
+    const monthly = App.exporter.monthlySummary(
+      staff ? state.records.filter(r => r.staff === staff) : state.records);
     $('#repMonthly').innerHTML = monthly.length
       ? monthly.map(m => `<tr>
 <td>${U.esc(m.month)}</td>
@@ -652,25 +797,85 @@ ${TYPES.map(t => numTd(m[t])).join('')}
 
   /* ================= 同期・バックアップ ================= */
 
-  async function doSync() {
-    const key = $('#setWorkspace').value.trim();
+  /* ================= サーバー同期 ================= */
+
+  const SYNC_LABEL = {
+    off:     { text: 'ローカル保存のみ', cls: 'off' },
+    syncing: { text: '同期中…', cls: 'syncing' },
+    ok:      { text: '同期済み', cls: 'ok' },
+    pending: { text: '未送信あり', cls: 'pending' },
+    offline: { text: 'オフライン', cls: 'offline' },
+    error:   { text: '同期エラー', cls: 'error' },
+  };
+
+  function renderSyncBadge(st) {
+    const badge = $('#syncBadge');
+    const label = SYNC_LABEL[st.phase] || SYNC_LABEL.off;
+    badge.className = 'syncbadge ' + label.cls;
+    badge.hidden = !state.settings.syncEnabled;
+    $('#syncText').textContent = st.message || label.text;
+    badge.title = st.error
+      ? st.error
+      : (st.lastSyncAt ? `最終同期: ${U.toTimeStr(new Date(st.lastSyncAt))}／クリックで今すぐ同期`
+                       : 'クリックすると今すぐ同期します');
     const el = $('#syncStatus');
-    el.textContent = '同期しています…';
+    if (el) el.textContent = st.error ? '✗ ' + st.error : (st.message || '');
+  }
+
+  /** @param {boolean} silent 自動同期（失敗してもダイアログを出さない） */
+  async function doSync(silent) {
+    if (!state.settings.syncEnabled) return;
     try {
-      await saveSettings({ workspace: key });
-      const localRaw = await App.db.allRecordsRaw();
-      const serverRecords = await App.sync.sync(key, localRaw);
-      const merged = App.sync.merge(localRaw, serverRecords);
-      // ローカルにしかない画像・全文は保持したいので、既存レコードへ差分だけ反映する
-      const byId = new Map(localRaw.map(r => [r.id, r]));
-      const toSave = merged.map(m => Object.assign({}, byId.get(m.id) || {}, m));
-      await App.db.putRecordsRaw(toSave);
+      const res = await App.sync.run({ silent: true });
       await reload();
-      el.textContent = `✓ 同期しました（${merged.filter(r => !r.deleted).length}件）`;
+      if (!silent && !res.error) {
+        $('#syncStatus').textContent =
+          `✓ 送信 ${res.pushed}件 / 受信 ${res.pulled}件` +
+          (res.uploaded ? ` / 画像 ${res.uploaded}件` : '') +
+          (res.pending ? ` / 未送信 ${res.pending}件` : '');
+      }
+      if (!silent && res.error) alert('同期できませんでした:\n' + res.error);
     } catch (err) {
-      console.error(err);
+      if (!silent) alert('同期できませんでした:\n' + err.message);
+    }
+  }
+
+  async function pingServer() {
+    const el = $('#syncStatus');
+    el.textContent = 'サーバーに接続しています…';
+    try {
+      const info = await App.api.ping();
+      el.textContent = `✓ 接続できました（サーバー上の明細 ${info.total}件）`;
+    } catch (err) {
       el.textContent = '✗ ' + err.message;
     }
+  }
+
+  async function resyncAll() {
+    if (!confirm('この端末の明細をすべてサーバーへ送り直します。\n' +
+                 '（サーバー側に新しい内容がある明細は上書きされません）\nよろしいですか？')) return;
+    await App.sync.markAllDirty();
+    await doSync(false);
+  }
+
+  /** 自動同期: 起動時・一定間隔・オンライン復帰時・画面に戻ったとき */
+  function startAutoSync() {
+    if (state.settings.syncEnabled) doSync(true);
+    setInterval(() => {
+      if (state.settings.syncEnabled && !state.busy && document.visibilityState === 'visible') doSync(true);
+    }, 60000);
+    global.addEventListener('online', () => doSync(true));
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') doSync(true);
+    });
+  }
+
+  let syncTimer = null;
+  /** 編集直後にまとめて送る（打鍵のたびに通信しない） */
+  function scheduleSync() {
+    if (!state.settings.syncEnabled) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => doSync(true), 3000);
   }
 
   async function restoreBackup(e) {
@@ -683,9 +888,19 @@ ${TYPES.map(t => numTd(m[t])).join('')}
       if (!incoming) throw new Error('バックアップの形式が違います');
       if (!confirm(`${incoming.length}件を取り込みます。同じ明細は新しい方が残ります。よろしいですか？`)) return;
       const localRaw = await App.db.allRecordsRaw();
-      await App.db.putRecordsRaw(App.sync.merge(localRaw, incoming));
+      const byId = new Map(localRaw.map(r => [r.id, r]));
+      const merged = incoming
+        .filter(r => r && r.id)
+        .map(r => {
+          const local = byId.get(r.id);
+          if (local && Number(local.updatedAt || 0) >= Number(r.updatedAt || 0)) return null;
+          return Object.assign({}, local || {}, r, { dirty: 1 });
+        })
+        .filter(Boolean);
+      if (merged.length) await App.db.putRecordsRaw(merged);
       await reload();
-      alert('復元しました');
+      scheduleSync();
+      alert(`${merged.length}件を復元しました`);
     } catch (err) {
       alert('復元できませんでした: ' + err.message);
     }
@@ -695,6 +910,7 @@ ${TYPES.map(t => numTd(m[t])).join('')}
     if (!confirm('保存されている明細と画像をすべて削除します。元に戻せません。よろしいですか？')) return;
     if (!confirm('本当に削除しますか？先にバックアップの保存をおすすめします。')) return;
     await App.db.clearAll();
+    await App.db.setSetting(App.sync.SINCE_KEY, 0);
     state.thumbs.clear();
     state.lastBatchIds = [];
     await reload();
@@ -719,9 +935,11 @@ ${TYPES.map(t => numTd(m[t])).join('')}
   function closeModal() { $('#modal').classList.remove('on'); $('#modalBody').innerHTML = ''; }
 
   async function showImage(id) {
-    const rec = await App.db.getImage(id);
-    if (!rec) return;
-    $('#modalBody').innerHTML = `<img src="${U.esc(rec.full || rec.thumb)}" alt="レシート画像">`;
+    const stored = await App.db.getImage(id);
+    let src = stored && (stored.full || stored.thumb);
+    if (!src && state.settings.syncEnabled) src = App.api.imageUrl(id, 'full');
+    if (!src) return;
+    $('#modalBody').innerHTML = `<img src="${U.esc(src)}" alt="レシート画像">`;
     $('#modal').classList.add('on');
   }
   function showText(text) {

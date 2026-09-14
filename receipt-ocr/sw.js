@@ -2,7 +2,7 @@
    元の実装は全リクエストが cache-first だったため、index.html を修正しても
    端末には古い画面が出続けていた（「直したのに反映されない」原因）。
    ここではアプリ本体をネットワーク優先、CDNのライブラリのみキャッシュ優先にする。 */
-const VERSION = 'v1.0.0';
+const VERSION = 'v1.1.0';
 const SHELL_CACHE = `transport-expense-shell-${VERSION}`;
 const LIB_CACHE = 'transport-expense-lib';
 
@@ -17,6 +17,7 @@ const SHELL = [
   './assets/parse.js',
   './assets/ocr.js',
   './assets/export.js',
+  './assets/api.js',
   './assets/sync.js',
   './assets/app.js',
 ];
@@ -46,8 +47,8 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
-  // 同期・AIプロキシは常にネットワーク
-  if (url.pathname.endsWith('/sync.php') || url.pathname.endsWith('/ai-proxy.php')) return;
+  // API とアップロード画像は常にネットワーク（キャッシュすると同期結果が古くなる）
+  if (/\/api\//.test(url.pathname)) return;
 
   // 外部CDN（バージョン固定URL）はキャッシュ優先
   if (url.origin !== self.location.origin) {

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#1f63c0">
+<meta name="theme-color" content="#0b4f8a">
 <meta name="description" content="駐車場・高速代などの領収書を撮影してまとめて読み取り、日別・月別に集計してExcel/CSVで出力します。">
 <title>交通費レシート読み取り</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,10 +14,15 @@
 <body>
 
 <header>
-  <div class="title">
-    <h1>交通費レシート読み取り</h1>
+  <div class="headtext">
+    <div class="title">
+      <h1>交通費レシート読み取り</h1>
+      <button type="button" class="syncbadge" id="syncBadge" title="クリックすると今すぐ同期します">
+        <span class="dot"></span><span id="syncText">読み込み中…</span>
+      </button>
+    </div>
+    <p>領収書を撮るだけで、日別・月別の交通費に。PC・スマホでデータを共有します。</p>
   </div>
-  <p>駐車場・高速代の領収書を写真でまとめて登録 → その日の交通費を一覧・ダウンロード → 月単位で集計</p>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -43,6 +48,11 @@
     </label>
 
     <div class="controls" style="margin-top:12px">
+      <label class="field">
+        <span>担当者（この端末で登録する人）</span>
+        <input id="scanStaff" list="staffList" maxlength="30" placeholder="例: 高橋" style="min-width:150px">
+      </label>
+      <datalist id="staffList"></datalist>
       <label class="field">
         <span>読み取りエンジン</span>
         <select id="engineQuick">
@@ -85,7 +95,7 @@
         <thead><tr>
           <th class="col-thumb"></th><th class="col-date">日付</th><th class="col-time">時刻</th>
           <th class="col-type">種別</th><th>駐車場名・経路</th><th class="col-amount">金額（税込）</th>
-          <th>メモ</th><th class="col-act"></th>
+          <th class="col-staff">担当者</th><th>メモ</th><th class="col-act"></th>
         </tr></thead>
         <tbody id="scanRows"></tbody>
       </table>
@@ -113,6 +123,9 @@
       <label class="field"><span>種別</span>
         <select id="fType"><option value="">すべて</option></select>
       </label>
+      <label class="field"><span>担当者</span>
+        <select id="fStaff"><option value="">すべて</option></select>
+      </label>
       <label class="check"><input type="checkbox" id="fCheck"> 要確認のみ</label>
       <button class="btn" id="listXlsx">Excel出力</button>
       <button class="btn secondary" id="listCsv">CSV</button>
@@ -123,7 +136,7 @@
         <thead><tr>
           <th class="col-thumb"></th><th class="col-date">日付</th><th class="col-time">時刻</th>
           <th class="col-type">種別</th><th>駐車場名・経路</th><th class="col-amount">金額（税込）</th>
-          <th>メモ</th><th class="col-act"></th>
+          <th class="col-staff">担当者</th><th>メモ</th><th class="col-act"></th>
         </tr></thead>
         <tbody id="listRows"></tbody>
       </table>
@@ -141,6 +154,9 @@
       <h2>月次集計</h2>
       <div class="controls">
         <label class="field"><span>対象月</span><input type="month" id="repMonth"></label>
+        <label class="field"><span>担当者</span>
+          <select id="repStaff"><option value="">すべて</option></select>
+        </label>
         <button class="btn" id="repXlsx">この月をExcel出力</button>
         <button class="btn secondary" id="repCsv">CSV</button>
       </div>
@@ -226,18 +242,38 @@
   </div>
 
   <div class="panel">
-    <h2>PC・スマホ間の同期<span class="sub">任意</span></h2>
-    <div class="controls">
-      <label class="field" style="flex:1 1 280px"><span>共有キー（PCとスマホで同じ値）</span>
-        <input id="setWorkspace" maxlength="40" placeholder="例: wellsis-takahashi-2026">
+    <h2>サーバー（PC・スマホでのデータ共有）</h2>
+    <label class="check" style="margin-bottom:10px">
+      <input type="checkbox" id="setSyncEnabled"> サーバーと同期する（PCとスマホで同じデータを使う）
+    </label>
+    <div id="serverSettings" hidden>
+      <div class="controls">
+        <label class="field" style="flex:1 1 240px"><span>APIの場所</span>
+          <input id="setApiBase" placeholder="api/" autocomplete="off">
+        </label>
+        <label class="field" style="flex:1 1 200px"><span>合言葉（config.php で設定した場合のみ）</span>
+          <input id="setAccessToken" type="password" placeholder="未設定なら空のまま" autocomplete="off">
+        </label>
+        <label class="field" style="flex:1 1 160px"><span>担当者</span>
+          <input id="setStaff" maxlength="30" placeholder="例: 高橋">
+        </label>
+      </div>
+      <label class="check" style="margin-top:10px">
+        <input type="checkbox" id="setShareImages"> レシート画像もサーバーへ保存して共有する
       </label>
-      <button class="btn" id="btnSync">今すぐ同期</button>
+      <div class="controls" style="margin-top:12px">
+        <button class="btn" id="btnSync">今すぐ同期</button>
+        <button class="btn secondary" id="btnPing">接続テスト</button>
+        <button class="btn secondary" id="btnResync">全件を送り直す</button>
+      </div>
+      <p class="status" id="syncStatus"></p>
     </div>
-    <p class="status" id="syncStatus"></p>
     <p class="hint">
-      サーバーに <code>api/sync.php</code> を設置している場合のみ使えます。
-      共有キーを知っている人は同じデータを見られるため、推測されにくい文字列にしてください。
-      写真はサーバーに送られません（明細のテキストのみ）。
+      初回は <code>api/setup.php</code> をブラウザで開いて、MySQLの設定が正しいか確認してください。
+      同じ設定にしたPCとスマホは同じデータを共有し、編集はどちらからでも行えます。
+      同じ明細を両方で直した場合は<strong>あとで編集したほうが残ります</strong>ので、
+      端末の日時は「自動設定」にしておいてください。
+      オフラインの間も撮影・入力でき、通信が戻った時点でまとめて送信されます。
     </p>
   </div>
 
@@ -298,6 +334,7 @@ window.APP_CDN = {
 <script src="assets/parse.js"></script>
 <script src="assets/ocr.js"></script>
 <script src="assets/export.js"></script>
+<script src="assets/api.js"></script>
 <script src="assets/sync.js"></script>
 <script src="assets/app.js"></script>
 </body>

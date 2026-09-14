@@ -2,7 +2,11 @@
    - records : 明細（日付インデックス付き）
    - images  : 明細に紐づくサムネイル／OCR元画像
    - settings: 設定値（key-value）
-   localStorage は約5MBで画像が入らないため IndexedDB を使う。 */
+   localStorage は約5MBで画像が入らないため IndexedDB を使う。
+
+   サーバー同期を有効にしている場合、ここは「オフラインでも入力できるようにするための控え」で、
+   正となるデータは MySQL 側にある。putRecord() は dirty=1 を立て、
+   sync.js が送信に成功した時点で dirty を下ろす。 */
 (function (global) {
   'use strict';
   const App = global.App = global.App || {};
@@ -43,10 +47,11 @@
 
   /* ---------- records ---------- */
 
-  /** 明細を1件保存（月フィールドは date から自動導出） */
+  /** 明細を1件保存（月フィールドは date から自動導出し、未送信フラグを立てる） */
   async function putRecord(rec) {
     rec.month = (rec.date || '').slice(0, 7);
     rec.updatedAt = Date.now();
+    rec.dirty = 1;
     const store = await tx('records', 'readwrite');
     await done(store.put(rec));
     return rec;
@@ -89,14 +94,14 @@
     return done(store.get(id));
   }
 
-  /** 論理削除（同期先にも削除を伝えるため tombstone を残す） */
+  /** 論理削除（他の端末にも削除を伝えるため tombstone を残す） */
   async function deleteRecord(id) {
     const rec = await getRecord(id);
     if (!rec) return;
     const store = await tx('records', 'readwrite');
     await done(store.put({
       id: rec.id, date: rec.date, month: rec.month,
-      deleted: 1, updatedAt: Date.now()
+      deleted: 1, updatedAt: Date.now(), dirty: 1
     }));
     await deleteImage(id);
   }
@@ -154,9 +159,16 @@
     return null;
   }
 
+  /** 送信待ち（dirty=1）の明細 */
+  async function dirtyRecords() {
+    const all = await allRecordsRaw();
+    return all.filter(r => r.dirty);
+  }
+
   App.db = {
     open, putRecord, putRecordsRaw, allRecords, allRecordsRaw, getRecord,
     deleteRecord, clearAll, putImage, getImage, deleteImage, allImages,
-    getSetting, setSetting, usage, sortByDateTime
+    dirtyRecords, getSetting, setSetting, usage, sortByDateTime
   };
-})(window);
+  if (typeof module !== 'undefined' && module.exports) module.exports = App.db;
+})(typeof window !== 'undefined' ? window : globalThis);

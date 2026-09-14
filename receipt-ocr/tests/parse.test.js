@@ -134,10 +134,10 @@ group('2パスの突き合わせ（金額）', () => {
 /* ---------------- 集計・出力 ---------------- */
 
 const SAMPLE = [
-  { id: 'a', date: '2026-01-05', time: '10:00', type: '駐車場', name: 'A', amount: 600, confidence: { date: 1, amount: 1 } },
-  { id: 'b', date: '2026-01-05', time: '15:00', type: '高速', name: 'B', amount: 1450, confidence: { date: 1, amount: 1 } },
-  { id: 'c', date: '2026-01-20', time: '', type: '駐車場', name: 'C', amount: 300, confidence: { date: 1, amount: 1 } },
-  { id: 'd', date: '2026-02-02', time: '', type: 'タクシー', name: 'D', amount: 2000, confidence: { date: 1, amount: 1 } },
+  { id: 'a', date: '2026-01-05', time: '10:00', type: '駐車場', name: 'A', amount: 600, staff: '高橋', confidence: { date: 1, amount: 1 } },
+  { id: 'b', date: '2026-01-05', time: '15:00', type: '高速', name: 'B', amount: 1450, staff: '高橋', confidence: { date: 1, amount: 1 } },
+  { id: 'c', date: '2026-01-20', time: '', type: '駐車場', name: 'C', amount: 300, staff: '佐藤', confidence: { date: 1, amount: 1 } },
+  { id: 'd', date: '2026-02-02', time: '', type: 'タクシー', name: 'D', amount: 2000, staff: '佐藤', confidence: { date: 1, amount: 1 } },
 ];
 
 group('絞り込み', () => {
@@ -145,6 +145,8 @@ group('絞り込み', () => {
   check('月で絞る', exporter.filterRecords(SAMPLE, { mode: 'month', month: '2026-01' }).map(r => r.id), ['a', 'b', 'c']);
   check('期間で絞る', exporter.filterRecords(SAMPLE, { mode: 'range', from: '2026-01-06', to: '2026-02-28' }).map(r => r.id), ['c', 'd']);
   check('種別で絞る', exporter.filterRecords(SAMPLE, { mode: 'all', types: ['駐車場'] }).map(r => r.id), ['a', 'c']);
+  check('担当者で絞る', exporter.filterRecords(SAMPLE, { mode: 'all', staff: '佐藤' }).map(r => r.id), ['c', 'd']);
+  check('担当者＋月', exporter.filterRecords(SAMPLE, { mode: 'month', month: '2026-01', staff: '高橋' }).map(r => r.id), ['a', 'b']);
 });
 
 group('集計', () => {
@@ -168,22 +170,54 @@ group('要確認の判定', () => {
 
 group('CSV', () => {
   const csv = exporter.rowsToCsv(exporter.detailRows(SAMPLE.slice(0, 1)));
-  check('ヘッダ', csv.split('\r\n')[0], '日付,曜日,時刻,種別,名称・経路,金額(円),メモ,読取方法,要確認');
-  check('本体', csv.split('\r\n')[1], '2026-01-05,月,10:00,駐車場,A,600,,,');
+  check('ヘッダ', csv.split('\r\n')[0], '日付,曜日,時刻,種別,名称・経路,金額(円),担当者,メモ,読取方法,要確認');
+  check('本体', csv.split('\r\n')[1], '2026-01-05,月,10:00,駐車場,A,600,高橋,,,');
   check('カンマを含む値を引用', exporter.rowsToCsv([{ a: 'x,y' }]).split('\r\n')[1], '"x,y"');
 });
 
 /* ---------------- 同期 ---------------- */
 
-group('同期マージ', () => {
-  const local = [{ id: '1', updatedAt: 100, name: '旧' }, { id: '2', updatedAt: 5, name: 'ローカルのみ' }];
-  const server = [{ id: '1', updatedAt: 200, name: '新' }, { id: '3', updatedAt: 9, name: 'サーバーのみ' }];
-  const merged = sync.merge(local, server);
-  check('件数', merged.length, 3);
-  check('新しい方を採用', merged.find(r => r.id === '1').name, '新');
-  check('共有キーの検証（短い）', sync.validKey('abc'), false);
-  check('共有キーの検証（正常）', sync.validKey('wellsis-2026'), true);
-  check('共有キーの検証（記号）', sync.validKey('あいうえおか'), false);
+group('同期マージ（サーバーから来た1件と手元の1件）', () => {
+  const m = sync.mergeOne;
+
+  check('手元に無ければ取り込む',
+    m(undefined, { id: '1', name: 'サーバー', updatedAt: 100 }).name, 'サーバー');
+  check('取り込んだものは送信済み扱い',
+    m(undefined, { id: '1', name: 'X', updatedAt: 100 }).dirty, 0);
+
+  check('サーバーのほうが新しければ採用',
+    m({ id: '1', name: '手元', updatedAt: 100 }, { id: '1', name: 'サーバー', updatedAt: 200 }).name, 'サーバー');
+  check('手元のほうが新しければ上書きしない',
+    m({ id: '1', name: '手元', updatedAt: 300 }, { id: '1', name: 'サーバー', updatedAt: 200 }), null);
+  check('手元の未送信の編集を守る',
+    m({ id: '1', name: '編集中', updatedAt: 300, dirty: 1 }, { id: '1', name: 'サーバー', updatedAt: 200 }), null);
+
+  check('OCR全文は空で上書きしない',
+    m({ id: '1', rawText: '手元の全文', updatedAt: 1 }, { id: '1', rawText: '', updatedAt: 2 }).rawText, '手元の全文');
+  check('サーバーの画像有無をそのまま採用',
+    m({ id: '1', hasImage: true, updatedAt: 1 }, { id: '1', hasImage: false, updatedAt: 2 }).hasImage, false);
+  check('端末の画像の実体は保持',
+    m({ id: '1', localImage: 1, updatedAt: 1 }, { id: '1', hasImage: false, updatedAt: 2 }).localImage, 1);
+  check('未送信の画像は送信待ちのまま',
+    m({ id: '1', localImage: 1, imageSynced: 0, updatedAt: 1 }, { id: '1', hasImage: false, updatedAt: 2 }).imageSynced, 0);
+  check('サーバーに画像があれば再送しない',
+    m({ id: '1', localImage: 1, imageSynced: 0, updatedAt: 1 }, { id: '1', hasImage: true, updatedAt: 2 }).imageSynced, 1);
+  check('月フィールドを日付から作り直す',
+    m(undefined, { id: '1', date: '2026-03-09', updatedAt: 1 }).month, '2026-03');
+});
+
+group('同期で送るデータ', () => {
+  const w = sync.toWire({
+    id: 'x', staff: '高橋', date: '2026-01-05', time: '10:00', type: '駐車場',
+    name: 'A', amount: '600', note: 'メモ', rawText: 'あ'.repeat(5000),
+    hasImage: true, localImage: 1, deleted: 0, updatedAt: 123, dirty: 1, imageSynced: 0, month: '2026-01',
+  });
+  check('金額は数値化', w.amount, 600);
+  check('担当者を含む', w.staff, '高橋');
+  check('OCR全文は3000文字で打ち切る', w.rawText.length, 3000);
+  check('ローカル専用の項目は送らない',
+    ['dirty', 'imageSynced', 'month', 'localImage', 'hasImage'].filter(k => k in w), []);
+  check('削除は0/1で送る', sync.toWire({ id: 'x', deleted: true }).deleted, 1);
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

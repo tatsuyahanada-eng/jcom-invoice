@@ -9,13 +9,14 @@
 
   /**
    * @param {Array} records
-   * @param {{mode:'day'|'month'|'range'|'all', date?:string, month?:string, from?:string, to?:string, types?:string[]}} f
+   * @param {{mode:'day'|'month'|'range'|'all', date?:string, month?:string, from?:string, to?:string, types?:string[], staff?:string}} f
    */
   function filterRecords(records, f) {
     const filt = f || { mode: 'all' };
     return records.filter(r => {
       const d = r.date || '';
       if (filt.types && filt.types.length && !filt.types.includes(r.type)) return false;
+      if (filt.staff && (r.staff || '') !== filt.staff) return false;
       switch (filt.mode) {
         case 'day': return d === filt.date;
         case 'month': return d.slice(0, 7) === filt.month;
@@ -26,11 +27,12 @@
   }
 
   function labelFor(f) {
+    const staff = f.staff ? '_' + f.staff : '';
     switch (f.mode) {
-      case 'day': return f.date || '日付未指定';
-      case 'month': return f.month || '月未指定';
-      case 'range': return `${f.from || '開始未指定'}_${f.to || '終了未指定'}`;
-      default: return '全件';
+      case 'day': return (f.date || '日付未指定') + staff;
+      case 'month': return (f.month || '月未指定') + staff;
+      case 'range': return `${f.from || '開始未指定'}_${f.to || '終了未指定'}${staff}`;
+      default: return '全件' + staff;
     }
   }
 
@@ -88,6 +90,7 @@
       '種別': r.type || '',
       '名称・経路': r.name || '',
       '金額(円)': Number(r.amount) || 0,
+      '担当者': r.staff || '',
       'メモ': r.note || '',
       '読取方法': r.source || '',
       '要確認': needsCheck(r) ? '要確認' : '',
@@ -152,10 +155,11 @@
     const total = grandTotal(records);
     rows.push({
       '日付': '', '曜日': '', '時刻': '', '種別': '', '名称・経路': '合計',
-      '金額(円)': total.total, 'メモ': `${total.count}件`, '読取方法': '', '要確認': '',
+      '金額(円)': total.total, '担当者': '', 'メモ': `${total.count}件`, '読取方法': '', '要確認': '',
     });
     const wsDetail = X.utils.json_to_sheet(rows);
-    wsDetail['!cols'] = [{ wch: 12 }, { wch: 5 }, { wch: 7 }, { wch: 11 }, { wch: 32 }, { wch: 11 }, { wch: 24 }, { wch: 10 }, { wch: 9 }];
+    wsDetail['!cols'] = [{ wch: 12 }, { wch: 5 }, { wch: 7 }, { wch: 11 }, { wch: 32 },
+                         { wch: 11 }, { wch: 10 }, { wch: 24 }, { wch: 10 }, { wch: 9 }];
     X.utils.book_append_sheet(wb, wsDetail, '明細');
 
     // 日別集計
