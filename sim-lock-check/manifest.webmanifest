@@ -1,0 +1,19 @@
+{
+  "name": "スマホ移行Check Tool",
+  "short_name": "スマホ移行Check",
+  "description": "機種・型番・メーカーで検索し、SIMロックの状態・確認手順・解除方法とキャリアメール持ち運びの要点を一画面で確認できるツール",
+  "id": "/sim-lock-check/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "lang": "ja",
+  "background_color": "#eef1ef",
+  "theme_color": "#33574c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

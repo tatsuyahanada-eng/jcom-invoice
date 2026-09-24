@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>スマホ移行Check Tool</title>
+<meta name="description" content="機種・型番・メーカーで検索し、SIMロックの状態・確認手順・解除方法とキャリアメール持ち運びの要点を一画面で確認できるツール">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#33574c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="スマホ移行Check">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<meta property="og:title" content="スマホ移行Check Tool">
+<meta property="og:description" content="SIMロック状態とキャリアメール持ち運びを一画面で確認">
+<meta property="og:image" content="icons/title-lockup.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -26,6 +43,8 @@
     --cond: #5c5382;  --cond-bg: #e8e5f1;
     --rule: #3a5c72;  --rule-bg: #e2e9ed;
     --ng: #8a3b46;    --ng-bg: #f2e3e5;
+    /* 「ロックあり出荷」は必ず対応が要るため、他のステータスより強い警告トーンにする */
+    --alert: #ffffff; --alert-bg: #a8431f; --alert-line: #7a2f14;
     --radius: 10px;
     --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
     --sans: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
@@ -37,6 +56,7 @@
       --ink: #e6ece8; --muted: #93a39a; --accent: #74ac97; --accent-ink: #0d1512; --accent-soft: #223930; --accent-warm: #cda368;
       --free: #7fcaa8; --free-bg: #1b3327; --lock: #e0b271; --lock-bg: #3a2c17;
       --cond: #b3a6dd; --cond-bg: #2a2740; --rule: #8fb7cd; --rule-bg: #1f2f38; --ng: #e29aa2; --ng-bg: #3b2024;
+      --alert: #1a0e09; --alert-bg: #f0a877; --alert-line: #f0a877;
     }
   }
   :root[data-theme="dark"] {
@@ -45,6 +65,7 @@
     --ink: #e6ece8; --muted: #93a39a; --accent: #74ac97; --accent-ink: #0d1512; --accent-soft: #223930; --accent-warm: #cda368;
     --free: #7fcaa8; --free-bg: #1b3327; --lock: #e0b271; --lock-bg: #3a2c17;
     --cond: #b3a6dd; --cond-bg: #2a2740; --rule: #8fb7cd; --rule-bg: #1f2f38; --ng: #e29aa2; --ng-bg: #3b2024;
+    --alert: #1a0e09; --alert-bg: #f0a877; --alert-line: #f0a877;
   }
 
   * { box-sizing: border-box; }
@@ -64,9 +85,11 @@
   /* ---------- header ---------- */
   .top { margin-bottom: 14px; }
   .brand {
-    display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0;
-    margin: 0 0 4px; cursor: pointer; color: inherit;
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    background: none; border: 0; padding: 0; margin: 0 0 4px; cursor: pointer; color: inherit;
   }
+  .brand-icon { width: 40px; height: 40px; border-radius: 10px; flex: none; box-shadow: 0 2px 8px rgba(20, 20, 40, .18); }
+  .brand-text { display: block; min-width: 0; }
   .brand-eyebrow {
     font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--muted);
     letter-spacing: .09em; display: block; margin-bottom: 3px;
@@ -204,6 +227,20 @@
   .verdict .why { font-size: 14px; }
   .verdict .sub { font-size: 12px; color: var(--muted); }
 
+  /* 「ロックあり出荷」＝必ず対応が必要な状態を強く目立たせる */
+  .badge-alert {
+    background: var(--alert-bg); color: var(--alert); border: 2px solid var(--alert-line);
+    display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 2px 10px rgba(122, 47, 20, .28);
+  }
+  .badge-alert svg { width: 17px; height: 17px; flex: none; }
+  .alertbar {
+    display: flex; gap: 10px; align-items: flex-start; padding: 13px 18px;
+    background: var(--alert-bg); color: var(--alert); border-bottom: 1px solid var(--line);
+    font-size: 13.5px; line-height: 1.55;
+  }
+  .alertbar svg { width: 22px; height: 22px; flex: none; margin-top: 1px; }
+  .alertbar b { display: block; font-size: 14.5px; margin-bottom: 2px; }
+
   .sec { padding: 16px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
   .sec:last-child { border-bottom: 0; }
   .sec h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; }
@@ -320,8 +357,11 @@
   <header class="top">
     <h1>
       <button type="button" class="brand" id="brandHome" aria-label="トップに戻る">
-        <span class="brand-eyebrow">*#06# ─ IMEI → 設定 → 他社SIM → 照会</span>
-        <span class="brand-title">スマホ移行Check Tool</span>
+        <img class="brand-icon" src="icons/icon-192.png" alt="" width="40" height="40">
+        <span class="brand-text">
+          <span class="brand-eyebrow">*#06# ─ IMEI → 設定 → 他社SIM → 照会</span>
+          <span class="brand-title">スマホ移行Check Tool</span>
+        </span>
       </button>
     </h1>
     <div class="rule" aria-hidden="true"></div>
@@ -616,10 +656,15 @@
       </div>
 
       <div class="verdict">
-        <span class="badge ${st.cls}">${esc(st.label)}</span>
+        <span class="badge ${v.ship === "locked" ? "badge-alert" : st.cls}">${v.ship === "locked" ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v5M12 18v.01"></path></svg>` : ""}${esc(st.label)}</span>
         <span class="why">${esc(vt.why)}</span>
         <span class="sub">${esc(vt.sub)}</span>
       </div>
+      ${v.ship === "locked" ? `
+      <div class="alertbar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v5M12 18v.01"></path></svg>
+        <div><b>必ず対応してください</b>この機種・キャリアはロックあり出荷です。下の手順で解除済みかどうかを確認し、ロック中であれば解除手続きを必ず実施してください。未対応のまま他社SIMに差し替えると通信できません。</div>
+      </div>` : ""}
 
       <div class="sec">
         <h3><span class="tag">確認</span>SIMロックの確認手順（${esc(CARRIERS[v.c].name)}版 ${esc(mk.name.replace(/（.*/, ""))}）</h3>
@@ -829,6 +874,13 @@
     // 初期表示：サンプルとして iPhone SE（第2世代）ドコモ版を開いておく（スマホ幅では一覧のみ）
     state.sel = "iphone-se2"; state.selCarrier = "docomo";
     renderResults(); renderDetail();
+  }
+
+  // PWA: オフラインでも起動できるようアプリ一式をキャッシュするサービスワーカーを登録
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
   }
 })();
 </script>
