@@ -1,7 +1,7 @@
 // スマホ移行Check Tool — サービスワーカー
 // アプリ本体一式をキャッシュし、オフラインでも起動・閲覧できるようにする。
 // キャッシュ名のバージョンを上げると、次回アクセス時に新しいキャッシュへ切り替わる。
-const CACHE_NAME = "sim-lock-check-v1";
+const CACHE_NAME = "sim-lock-check-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -33,22 +33,20 @@ self.addEventListener("activate", event => {
   );
 });
 
-// キャッシュ優先、無ければネットワーク取得しキャッシュへ追加。
+// ネットワーク優先：オンライン時は常に最新を取得してキャッシュを更新し、
+// オフライン時だけキャッシュから返す（更新をアップロードすると次回起動で反映される）。
 // 同一オリジンのGETのみ対象（外部リクエストやPOST等はそのままネットワークへ）。
 self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
 
   event.respondWith(
-    caches.match(req).then(cached => {
-      if (cached) return cached;
-      return fetch(req).then(res => {
-        if (res.ok) {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
-        }
-        return res;
-      }).catch(() => cached);
-    })
+    fetch(req).then(res => {
+      if (res.ok) {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+      }
+      return res;
+    }).catch(() => caches.match(req).then(cached => cached || caches.match("./index.html")))
   );
 });
