@@ -38,7 +38,7 @@ const UNLOCK = {
     inquiry: "My docomo／ドコモショップ（IMEIで照会）",
     links: [
       { label: "ドコモ SIMロック解除（公式）", url: "https://www.docomo.ne.jp/support/unlock_simcard/" },
-      { label: "ドコモ ネットワーク利用制限 確認", url: "https://nw-restriction.nttdocomo.co.jp/search.php" }
+      { label: "ドコモ ネットワーク利用制限 確認（IMEI判定）", url: "http://nw-restriction.nttdocomo.co.jp/top.php" }
     ]
   },
   au: {
@@ -61,6 +61,7 @@ const UNLOCK = {
   uq: {
     rules: [
       "au（KDDI）と同じ基準：2021/10/1以降に発売された機種はSIMロックなしで販売",
+      "2026/8/19以降、UQ側の設定変更で解除手続きが不要になる端末が順次拡大中（公式ページで最新を確認）",
       "au回線網のため、povo・au系MVNOのSIMでは判定できない"
     ],
     how: [
@@ -71,7 +72,9 @@ const UNLOCK = {
     ],
     mechanism: "au版と同じ。コード無し、Wi-Fi接続＋「状態の更新」で反映。",
     inquiry: "My UQ mobile／UQスポット（IMEIで照会）",
-    links: []
+    links: [
+      { label: "UQモバイル SIMロック解除（公式）", url: "https://www.uqwimax.jp/mobile/support/procedure/simcard/unlock/" }
+    ]
   },
   sb: {
     rules: [

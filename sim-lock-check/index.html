@@ -82,30 +82,27 @@
   .mono { font-family: var(--mono); font-size: .92em; }
   h1, h2, h3 { text-wrap: balance; line-height: 1.35; }
 
-  /* ---------- header ---------- */
-  .top { margin-bottom: 14px; }
+  /* ---------- header（タイトルバー） ----------
+     背景と区別できるよう深緑のバンドに白抜き文字。タップでトップへ戻る。 */
+  .top {
+    margin-bottom: 14px; border-radius: 16px; overflow: hidden;
+    background: linear-gradient(135deg, #172b26 0%, #2c4d44 55%, #3d6a5c 100%);
+    box-shadow: 0 6px 20px rgba(18, 38, 32, .22);
+  }
   .brand {
-    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
-    background: none; border: 0; padding: 0; margin: 0 0 4px; cursor: pointer; color: inherit;
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    background: none; border: 0; padding: 16px 18px; margin: 0; cursor: pointer; color: #fff;
   }
-  .brand-icon { width: 40px; height: 40px; border-radius: 10px; flex: none; box-shadow: 0 2px 8px rgba(20, 20, 40, .18); }
-  .brand-text { display: block; min-width: 0; }
-  .brand-eyebrow {
-    font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--muted);
-    letter-spacing: .09em; display: block; margin-bottom: 3px;
+  .brand-icon { width: 58px; height: 58px; border-radius: 14px; flex: none; box-shadow: 0 4px 12px rgba(0, 0, 0, .3); }
+  .brand-text { display: grid; gap: 1px; min-width: 0; }
+  .brand-title { font-size: 27px; font-weight: 700; letter-spacing: .06em; line-height: 1.15; color: #fff; }
+  .brand-sub {
+    font-family: var(--mono); font-size: 15px; font-weight: 500; letter-spacing: .22em;
+    color: #e2c27e; line-height: 1.3;
   }
-  .brand-title {
-    font-size: 24px; font-weight: 700; letter-spacing: .02em; line-height: 1.3;
-    background: linear-gradient(90deg, var(--ink), var(--accent) 130%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .brand:hover .brand-title, .brand:focus-visible .brand-title { text-decoration: underline; text-decoration-color: var(--accent-warm); text-underline-offset: 4px; }
-  @supports not ((background-clip: text) or (-webkit-background-clip: text)) {
-    .brand-title { background: none; color: var(--ink); }
-  }
-  .top .rule { height: 2px; margin: 10px 0 12px; border-radius: 2px;
-    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-warm) 45%, transparent 75%); }
-  .top p { margin: 0; color: var(--muted); font-size: 13px; max-width: 60ch; }
+  .brand-tag { font-size: 11.5px; color: rgba(255, 255, 255, .72); letter-spacing: .04em; margin-top: 3px; }
+  .brand:hover .brand-title, .brand:focus-visible .brand-title { text-decoration: underline; text-decoration-color: #e2c27e; text-underline-offset: 5px; }
+  .brand:focus-visible { outline: 2px solid #e2c27e; outline-offset: -4px; }
 
   /* ---------- search bar ---------- */
   .search {
@@ -128,13 +125,14 @@
     border-radius: 8px; padding: 9px 13px; font-size: 13px; font-weight: 700; cursor: pointer;
   }
   .filtertoggle svg { width: 16px; height: 16px; flex: none; }
-  .filtertoggle[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .fcount[hidden] { display: none; }
+  .filtertoggle .chev { width: 14px; height: 14px; transition: transform .15s; }
+  .filtertoggle[aria-expanded="false"] .chev { transform: rotate(180deg); }
   .fcount {
     display: inline-flex; align-items: center; justify-content: center; min-width: 17px; height: 17px;
     padding: 0 5px; border-radius: 999px; background: var(--accent); color: var(--accent-ink);
     font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums;
   }
-  .filtertoggle[aria-expanded="true"] .fcount { background: var(--accent-ink); color: var(--accent); }
   .filterpanel { display: grid; gap: 10px; padding-top: 6px; border-top: 1px solid var(--line); }
   .filterpanel[hidden] { display: none; }
   .filters { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
@@ -202,6 +200,8 @@
   .item .mk { font-size: 12px; color: var(--muted); }
   .vrow { display: flex; flex-wrap: wrap; gap: 4px; }
   .vtag { font-size: 11px; padding: 1px 7px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent; }
+  .vtag b { font-size: 10px; margin-left: 2px; }
+  .vtag.vneed { background: var(--alert-bg); color: var(--alert); border-color: var(--alert-line); }
   .item.generic { background: var(--panel-2); border-style: dashed; }
 
   .st-free { background: var(--free-bg); color: var(--free); }
@@ -227,19 +227,48 @@
   .verdict .why { font-size: 14px; }
   .verdict .sub { font-size: 12px; color: var(--muted); }
 
-  /* 「ロックあり出荷」＝必ず対応が必要な状態を強く目立たせる */
-  .badge-alert {
-    background: var(--alert-bg); color: var(--alert); border: 2px solid var(--alert-line);
-    display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 2px 10px rgba(122, 47, 20, .28);
+  /* ---------- 検索結果の要点カード（①要否 ②解除の入口 ③メール持ち運びの入口） ---------- */
+  .keys { display: grid; gap: 10px; padding: 14px 14px 16px; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+  .key { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; background: var(--panel); }
+  .key-label { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+  .key-label .num {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-family: var(--mono);
   }
-  .badge-alert svg { width: 17px; height: 17px; flex: none; }
-  .alertbar {
-    display: flex; gap: 10px; align-items: flex-start; padding: 13px 18px;
-    background: var(--alert-bg); color: var(--alert); border-bottom: 1px solid var(--line);
-    font-size: 13.5px; line-height: 1.55;
+  .key-main { font-size: 20px; font-weight: 700; line-height: 1.3; display: flex; align-items: center; gap: 8px; }
+  .key-main svg { width: 24px; height: 24px; flex: none; }
+  .key-sub { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .key-sub b { color: var(--ink); }
+  .key.need { background: var(--alert-bg); border: 2px solid var(--alert-line); color: var(--alert); box-shadow: 0 4px 14px rgba(122, 47, 20, .25); }
+  .key.need .key-label, .key.need .key-sub, .key.need .key-sub b { color: inherit; }
+  .key.need .key-label .num { background: var(--alert); color: var(--alert-bg); }
+  .key.ok { border-color: var(--free); background: var(--free-bg); }
+  .key.ok .key-main { color: var(--free); }
+  .key.check { border-color: var(--cond); background: var(--cond-bg); }
+  .key.check .key-main { color: var(--cond); }
+  .key.ng .key-main { color: var(--ng); }
+  .btnrow { display: grid; gap: 8px; }
+  .bigbtn {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 50px;
+    padding: 12px 16px; border-radius: 10px; background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-size: 15px; text-decoration: none; line-height: 1.35;
   }
-  .alertbar svg { width: 22px; height: 22px; flex: none; margin-top: 1px; }
-  .alertbar b { display: block; font-size: 14.5px; margin-bottom: 2px; }
+  .bigbtn::after { content: "↗"; font-weight: 400; font-size: 17px; }
+  .bigbtn.sub { background: var(--panel); color: var(--accent); border: 1.5px solid var(--accent); }
+  .bigbtn:active { transform: translateY(1px); }
+
+  /* 詳細はタップで開閉 */
+  details.fold { border-bottom: 1px solid var(--line); }
+  details.fold:last-child { border-bottom: 0; }
+  details.fold > summary {
+    list-style: none; cursor: pointer; padding: 15px 18px; font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary::after { content: "＋"; color: var(--accent); font-size: 18px; flex: none; }
+  details.fold[open] > summary::after { content: "－"; }
+  details.fold > summary small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .fold-body { padding: 0 18px 18px; display: grid; gap: 10px; }
 
   .sec { padding: 16px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
   .sec:last-child { border-bottom: 0; }
@@ -344,8 +373,6 @@
     }
     .tab svg { width: 17px; height: 17px; }
     .tab[aria-selected="true"] { border-top-color: transparent; border-bottom-color: var(--accent); }
-    .filtertoggle { display: none; }
-    .filterpanel { display: grid !important; border-top: 0; padding-top: 0; }
   }
   @media (prefers-reduced-motion: no-preference) {
     .item, .chip, .ctab, .tab { transition: background-color .12s, border-color .12s, color .12s; }
@@ -355,17 +382,16 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>
-      <button type="button" class="brand" id="brandHome" aria-label="トップに戻る">
-        <img class="brand-icon" src="icons/icon-192.png" alt="" width="40" height="40">
+    <h1 style="margin:0">
+      <button type="button" class="brand" id="brandHome" aria-label="スマホ移行Check Tool（タップでトップに戻る）">
+        <img class="brand-icon" src="icons/icon-192.png" alt="" width="58" height="58">
         <span class="brand-text">
-          <span class="brand-eyebrow">*#06# ─ IMEI → 設定 → 他社SIM → 照会</span>
-          <span class="brand-title">スマホ移行Check Tool</span>
+          <span class="brand-title">スマホ移行</span>
+          <span class="brand-sub">CHECK TOOL</span>
+          <span class="brand-tag">SIMロック・キャリアメールをすばやく確認</span>
         </span>
       </button>
     </h1>
-    <div class="rule" aria-hidden="true"></div>
-    <p>機種名・型番・メーカーで検索し、端末とキャリアを選ぶと「SIMロックの状態・確認手順・解除方法」と「キャリアメール持ち運び」の要点が一画面でわかります。</p>
   </header>
 
   <section class="search" aria-label="検索">
@@ -373,11 +399,12 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
       <input id="q" type="search" placeholder="例：iPhone 12、SO-52B、アクオス、Galaxy、らくらく" autocomplete="off" aria-label="機種名・型番・メーカーで検索">
     </div>
-    <button type="button" class="filtertoggle" id="filterToggle" aria-expanded="false" aria-controls="filterPanel">
+    <button type="button" class="filtertoggle" id="filterToggle" aria-expanded="true" aria-controls="filterPanel">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
       絞り込み<span class="fcount" id="fcount" hidden>0</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
     </button>
-    <div class="filterpanel" id="filterPanel" hidden>
+    <div class="filterpanel" id="filterPanel">
       <div class="filters">
         <span class="lbl">販売キャリア</span>
         <div class="chips" id="carrierChips"></div>
@@ -498,7 +525,7 @@
     sb: "Y!mobile・LINEMO・ソフトバンク系MVNO"
   };
 
-  const state = { q: "", carrier: "all", os: "all", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null };
+  const state = { q: "", carrier: "all", os: "all", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set() };
 
   const deviceOs = d => MAKERS[d.maker].os;
   const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
@@ -531,7 +558,7 @@
 
   function vtags(d) {
     const vs = state.carrier === "all" ? d.variants : d.variants.filter(v => v.c === state.carrier);
-    return vs.map(v => `<span class="vtag ${STATUS[v.ship].cls}">${clogo(v.c)}${esc(CARRIERS[v.c].short)}${v.code ? " " + esc(v.code.replace(/（.*）/, "")) : ""}</span>`).join("");
+    return vs.map(v => `<span class="vtag ${v.ship === "locked" ? "vneed" : STATUS[v.ship].cls}">${clogo(v.c)}${esc(CARRIERS[v.c].short)}${v.code ? " " + esc(v.code.replace(/（.*）/, "")) : ""}${v.ship === "locked" ? `<b>要解除</b>` : v.ship === "free" ? `<b>不要</b>` : ""}</span>`).join("");
   }
 
   function renderResults() {
@@ -564,14 +591,6 @@
     let v = d.variants.find(x => x.c === state.selCarrier);
     if (!v && state.carrier !== "all") v = d.variants.find(x => x.c === state.carrier);
     return v || d.variants[0];
-  }
-
-  function verdictText(d, v) {
-    const ur = UNLOCK[v.c];
-    if (v.ship === "free") return { why: v.c === "rakuten" || v.c === "free" ? "販売時からSIMロックなし。解除手続きは不要です。" : "この機種はロックなしで販売されています。念のため設定画面で表示を確認。", sub: v.note || d.note || "" };
-    if (v.ship === "locked") return { why: "販売時はSIMロックあり。解除手続き済みかどうかを下の手順で確認します。", sub: v.note || d.note || ur.rules.join(" ／ ") };
-    if (v.ship === "cond") return { why: "販売時はロックあり。ただし購入時期によっては解除済で渡されています。", sub: v.note || ur.rules[0] };
-    return { why: "販売キャリアの基準（発売日・購入日）で判定し、設定画面または他社SIMで確認します。", sub: ur.rules.join(" ／ ") };
   }
 
   function codeRows(keys) {
@@ -625,72 +644,115 @@
     return `<div class="mailhead">${pick}${toggle}</div>${body}`;
   }
 
+  const ICON_WARN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v5M12 18v.01"></path></svg>`;
+  const ICON_OK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.7 2.7L16 9.8"></path></svg>`;
+  const ICON_Q = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5v.4M12 17v.01"></path></svg>`;
+  const ICON_X = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9 9l6 6M15 9l-6 6"></path></svg>`;
+  const extA = (url, label, cls) => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>`;
+
+  // ① SIMロック解除が必要か
+  function lockCard(d, v, path) {
+    if (v.ship === "free") return `<section class="key ok">
+      <div class="key-label"><span class="num">1</span>SIMロック解除</div>
+      <div class="key-main">${ICON_OK}解除不要（ロックなし）</div>
+      <div class="key-sub">${esc(v.note || d.note || "ロックなしで販売された機種です。")}</div></section>`;
+    if (v.ship === "locked") return `<section class="key need">
+      <div class="key-label"><span class="num">1</span>SIMロック解除</div>
+      <div class="key-main">${ICON_WARN}解除が必要（必ず確認）</div>
+      <div class="key-sub">ロックあり出荷。<b>${esc(path)}</b> で解除済みか確認し、ロック中なら②から手続きしてください。</div></section>`;
+    return `<section class="key check">
+      <div class="key-label"><span class="num">1</span>SIMロック解除</div>
+      <div class="key-main">${ICON_Q}要確認${v.ship === "cond" ? "（解除済の可能性あり）" : ""}</div>
+      <div class="key-sub">${esc(v.ship === "cond" ? (v.note || UNLOCK[v.c].rules[0]) : "発売日・購入日で判定")}。確認場所：<b>${esc(path)}</b></div></section>`;
+  }
+
+  // ② SIMロック解除の入口
+  function unlockCard(v) {
+    const ur = UNLOCK[v.c];
+    const noNeed = v.c === "rakuten" || v.c === "free" || v.ship === "free";
+    return `<section class="key">
+      <div class="key-label"><span class="num">2</span>SIMロック解除の入口（${esc(CARRIERS[v.c].name)}）</div>
+      ${noNeed ? `<div class="key-main" style="font-size:17px">手続き不要</div>
+           ${ur.links.length ? `<div class="key-sub">念のため確認する場合：${extA(ur.links[0].url, ur.links[0].label, "")}</div>` : ""}`
+        : `<div class="btnrow">${ur.links.slice(0, 1).map(l => extA(l.url, l.label, "bigbtn")).join("")}</div>
+           <div class="key-sub">照会・手続き：${esc(ur.inquiry)}</div>`}
+    </section>`;
+  }
+
+  // ③ キャリアメール持ち運びの入口
+  function mailCard(v, src, os) {
+    const head = `<div class="key-label"><span class="num">3</span>キャリアメール持ち運び${src ? `（旧：${esc(CARRIERS[src].name)}）` : ""}</div>`;
+    if (!src) return `<section class="key">${head}
+      <div class="key-sub">SIMフリー端末です。解約する旧キャリアを下の「キャリアメール持ち運びの詳細」で選んでください。</div></section>`;
+    const m = MAIL[src];
+    if (m.ok === false) return `<section class="key ng">${head}
+      <div class="key-main">${ICON_X}持ち運び不可</div>
+      <div class="key-sub">${esc(m.addresses.join("、"))} は持ち運びサービスの対象外です。</div></section>`;
+    const o = m[os === "ios" ? "iphone" : "android"];
+    const apply = (m.entries && m.entries[0]) || m.links[0];
+    return `<section class="key">${head}
+      <div class="btnrow">
+        ${extA(apply.url, "申込ページを開く", "bigbtn")}
+        ${extA(o.link.url, `${os === "ios" ? "iPhone" : "Android"}の設定方法`, "bigbtn sub")}
+      </div>
+      <div class="key-sub">申込期限：<b>${esc(m.deadline)}</b>　設定アプリ：${esc(o.app)}</div></section>`;
+  }
+
+  const fold = (key, title, hint, body) =>
+    `<details class="fold" data-fold="${key}"${state.folds.has(key) ? " open" : ""}><summary><span>${title}${hint ? `<small>${hint}</small>` : ""}</span></summary><div class="fold-body">${body}</div></details>`;
+
   function renderDetail() {
     const box = $("#detail");
     const d = DEVICES.find(x => x.id === state.sel);
     if (!d) {
-      box.innerHTML = `<div class="sec"><h3>機種を選んでください</h3><p style="margin:0;color:var(--muted)">左の一覧から端末をクリックすると、キャリア別のSIMロック状態・確認方法・解除方法と、キャリアメール持ち運びの情報を表示します。</p></div>`;
+      box.innerHTML = `<div class="sec"><h3>機種を選んでください</h3><p style="margin:0;color:var(--muted)">一覧から端末をタップすると、SIMロック解除の要否・解除の入口・キャリアメール持ち運びの入口を表示します。</p></div>`;
       return;
     }
     const v = pickVariant(d);
     state.selCarrier = v.c;
     const mk = MAKERS[d.maker];
     const os = deviceOs(d);
-    const st = STATUS[v.ship];
-    const vt = verdictText(d, v);
     const ur = UNLOCK[v.c];
     const path = (mk.pathBy && mk.pathBy[v.c]) || mk.path;
     const netKey = CARRIERS[v.c].net;
     const noCheck = v.c === "rakuten" || v.c === "free";
     const brandMk = d.brand ? MAKERS[d.brand] : null;
 
-    const mailSrc = state.mailSrc || (v.c === "free" ? "docomo" : v.c);
+    const mailSrc = state.mailSrc || (v.c === "free" ? null : v.c);
     const mailOs = state.mailOs || (os === "ios" ? "ios" : "android");
 
     box.innerHTML = `
       <div class="d-head">
         <button class="back" id="back">← 一覧へ戻る</button>
         <h2>${esc(d.name)}</h2>
-        <div class="d-meta"><span>メーカー <b>${esc(makerName(d))}</b></span><span>種類 <b>${OSNAME[os]}</b></span>${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 <b>${esc(v.rel)}</b></span></div>
+        <div class="d-meta"><span>${esc(makerName(d))}</span>${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 ${esc(v.rel)}</span></div>
         <div class="ctabs" role="group" aria-label="販売キャリアを選択">${d.variants.map(x => `<button class="ctab" data-vc="${x.c}" aria-pressed="${x.c === v.c}">${clogo(x.c)}${esc(CARRIERS[x.c].name)}版</button>`).join("")}</div>
       </div>
 
-      <div class="verdict">
-        <span class="badge ${v.ship === "locked" ? "badge-alert" : st.cls}">${v.ship === "locked" ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v5M12 18v.01"></path></svg>` : ""}${esc(st.label)}</span>
-        <span class="why">${esc(vt.why)}</span>
-        <span class="sub">${esc(vt.sub)}</span>
+      <div class="keys">
+        ${lockCard(d, v, path)}
+        ${unlockCard(v)}
+        ${mailCard(v, mailSrc, mailOs)}
       </div>
-      ${v.ship === "locked" ? `
-      <div class="alertbar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v5M12 18v.01"></path></svg>
-        <div><b>必ず対応してください</b>この機種・キャリアはロックあり出荷です。下の手順で解除済みかどうかを確認し、ロック中であれば解除手続きを必ず実施してください。未対応のまま他社SIMに差し替えると通信できません。</div>
-      </div>` : ""}
 
-      <div class="sec">
-        <h3><span class="tag">確認</span>SIMロックの確認手順（${esc(CARRIERS[v.c].name)}版 ${esc(mk.name.replace(/（.*/, ""))}）</h3>
-        ${noCheck ? `<div class="callout info">${esc(ur.mechanism)}　表示を見たい場合は下の場所で確認できます。</div>` : ""}
+      ${fold("check", "SIMロックの確認方法", "表示の見方・他社SIMテスト・ダイヤルコード", `
         <div class="path">${esc(path)}</div>
         <div class="judge">
           <div class="st-free"><span class="lab">解除済・ロックなし</span>${esc(mk.ok)}</div>
           <div class="st-locked"><span class="lab">ロック中</span>${esc(mk.ng)}</div>
         </div>
         <ul class="notes">${mk.notes.map(n => `<li>${esc(n)}</li>`).join("")}${brandMk ? `<li>${esc(brandMk.name)}のスマホ版の確認場所：${esc(brandMk.path)}（ガラホでは無いことが多い）</li>` : ""}</ul>
-        ${netKey && !noCheck ? `<div class="callout warn"><b>表示が無い・不明なときは他社SIMテスト</b><br>挿すSIM：${esc(TEST_NET[netKey])}<br>⚠ ${esc(SAME_NET[netKey])} のSIMは同じ回線網なので、ロック中でも使えてしまい判定になりません。解除コード入力画面が出たらキャンセル（誤入力で回数を消費）。</div>` : ""}
-        <details class="more"><summary>使えるダイヤルコード</summary><div class="codes">${codeRows(mk.codes)}</div></details>
-      </div>
+        ${netKey && !noCheck ? `<div class="callout warn"><b>表示が無い・不明なときは他社SIMテスト</b><br>挿すSIM：${esc(TEST_NET[netKey])}<br>⚠ ${esc(SAME_NET[netKey])} のSIMは同じ回線網なので判定になりません。解除コード入力画面が出たらキャンセル。</div>` : ""}
+        <div><b style="font-size:13px">使えるダイヤルコード</b><div class="codes" style="margin-top:6px">${codeRows(mk.codes)}</div></div>`)}
 
-      <div class="sec">
-        <h3><span class="tag">解除</span>SIMロック解除・照会（${esc(CARRIERS[v.c].name)}）</h3>
+      ${fold("unlock", "解除手続きの流れ・照会先", `${esc(CARRIERS[v.c].name)}の解除ルール`, `
         <ul class="notes">${ur.rules.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
         ${noCheck ? "" : `<ol class="steps">${ur.how.filter(s => os === "ios" ? !/^Android/.test(s) : !/^iPhone/.test(s)).map(s => `<li>${esc(s)}</li>`).join("")}</ol>`}
         <dl class="kv"><dt>照会先</dt><dd>${esc(ur.inquiry)}</dd><dt>解除の仕組み</dt><dd>${esc(ur.mechanism)}</dd></dl>
-        ${ur.links.length ? `<div class="links">${ur.links.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("")}</div>` : ""}
-      </div>
+        ${ur.links.length ? `<div class="links">${ur.links.map(l => extA(l.url, l.label, "")).join("")}</div>` : ""}`)}
 
-      <div class="sec" id="mailSec">
-        <h3><span class="tag">メール</span>キャリアメール持ち運び</h3>
-        ${mailBlock(mailSrc, mailOs)}
-      </div>`;
+      ${fold("mail", "キャリアメール持ち運びの詳細", "旧キャリアの切替・設定手順・QRコード・注意事項",
+        mailBlock(mailSrc || "docomo", mailOs))}`;
     mountQR(box);
   }
 
@@ -816,8 +878,8 @@
     state.q = ""; state.carrier = "all"; state.os = "all";
     state.sel = null; state.selCarrier = null; state.mailSrc = null; state.mailOs = null;
     $("#q").value = "";
-    $("#filterPanel").hidden = true;
-    $("#filterToggle").setAttribute("aria-expanded", "false");
+    $("#filterPanel").hidden = false;
+    $("#filterToggle").setAttribute("aria-expanded", "true");
     $("#detailSlot").dataset.open = "false";
     document.body.classList.remove("lock");
     setTab("search");
@@ -853,6 +915,24 @@
       if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done).catch(() => {});
     }
   });
+  // 詳細の開閉状態を覚えておき、キャリア切替などで再描画しても閉じないようにする
+  document.addEventListener("toggle", e => {
+    const f = e.target.dataset && e.target.dataset.fold;
+    if (!f) return;
+    e.target.open ? state.folds.add(f) : state.folds.delete(f);
+  }, true);
+
+  // 外部リンクは別ブラウザで開く。Androidは intent: で Chrome を指定して起動
+  // （Chrome が無い端末は browser_fallback_url で既定ブラウザにフォールバック）。
+  // iPhone は OS の仕様上ブラウザを指定できないため、新しいタブ（Safari）で開く。
+  document.addEventListener("click", e => {
+    const a = e.target.closest('a[href^="http"]');
+    if (!a || !/Android/i.test(navigator.userAgent)) return;
+    e.preventDefault();
+    const u = new URL(a.href);
+    location.href = `intent://${u.host}${u.pathname}${u.search}${u.hash}#Intent;scheme=${u.protocol.slice(0, -1)};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(a.href)};end`;
+  });
+
   document.addEventListener("change", e => {
     if (e.target.classList.contains("mailsrc")) { state.mailSrc = e.target.value; state.tab === "mail" ? renderMailFull() : renderDetail(); }
   });
