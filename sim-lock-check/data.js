@@ -7,15 +7,17 @@
 
 /* mark: バッジに表示する短い符号（実ロゴ画像は権利上使用できないため、
    ブランドカラー＋イニシャルの統一サイズバッジで代用。正式ロゴ画像を
-   使用できる場合は clogo() のCSS/マークアップを差し替えれば入れ替え可能） */
+   使用できる場合は clogo() のCSS/マークアップを差し替えれば入れ替え可能）
+   color: シックな配色に合わせて各社のブランドカラーを落ち着いたトーンに
+   寄せた近似色（正式なカラーコードではない） */
 const CARRIERS = {
-  docomo:  { name: "ドコモ",        short: "docomo",  net: "docomo", color: "#d0103a", mark: "d" },
-  au:      { name: "au",            short: "au",      net: "au",     color: "#e8680c", mark: "au" },
+  docomo:  { name: "ドコモ",        short: "docomo",  net: "docomo", color: "#a4234a", mark: "d" },
+  au:      { name: "au",            short: "au",      net: "au",     color: "#b56a25", mark: "au" },
   sb:      { name: "ソフトバンク",  short: "SB",      net: "sb",     color: "#4a4f57", mark: "SB" },
-  rakuten: { name: "楽天モバイル",  short: "楽天",    net: "rakuten",color: "#bf0000", mark: "R" },
-  uq:      { name: "UQモバイル",    short: "UQ",      net: "au",     color: "#e4007f", mark: "UQ" },
-  ymobile: { name: "ワイモバイル",  short: "Y!",      net: "sb",     color: "#ff0033", mark: "Y!" },
-  free:    { name: "SIMフリー",     short: "フリー",  net: null,     color: "#2f8f6a", mark: "SF" }
+  rakuten: { name: "楽天モバイル",  short: "楽天",    net: "rakuten",color: "#8c3b2a", mark: "R" },
+  uq:      { name: "UQモバイル",    short: "UQ",      net: "au",     color: "#9c4a7e", mark: "UQ" },
+  ymobile: { name: "ワイモバイル",  short: "Y!",      net: "sb",     color: "#9c2f68", mark: "Y!" },
+  free:    { name: "SIMフリー",     short: "フリー",  net: null,     color: "#3f7a5e", mark: "SF" }
 };
 
 /* キャリアごとのSIMロック解除・照会情報 */
