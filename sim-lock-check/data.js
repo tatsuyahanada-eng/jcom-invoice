@@ -5,14 +5,17 @@
    - 情報は 2026年9月時点の現場用リファレンスをもとに作成。最新は各社公式で確認すること
    ========================================================= */
 
+/* mark: バッジに表示する短い符号（実ロゴ画像は権利上使用できないため、
+   ブランドカラー＋イニシャルの統一サイズバッジで代用。正式ロゴ画像を
+   使用できる場合は clogo() のCSS/マークアップを差し替えれば入れ替え可能） */
 const CARRIERS = {
-  docomo:  { name: "ドコモ",        short: "docomo",  net: "docomo", color: "#d0103a" },
-  au:      { name: "au",            short: "au",      net: "au",     color: "#e8680c" },
-  sb:      { name: "ソフトバンク",  short: "SB",      net: "sb",     color: "#6b7785" },
-  rakuten: { name: "楽天モバイル",  short: "楽天",    net: "rakuten",color: "#9b1c63" },
-  uq:      { name: "UQモバイル",    short: "UQ",      net: "au",     color: "#d04f96" },
-  ymobile: { name: "ワイモバイル",  short: "Y!",      net: "sb",     color: "#2a7fc9" },
-  free:    { name: "SIMフリー",     short: "フリー",  net: null,     color: "#2f8f6a" }
+  docomo:  { name: "ドコモ",        short: "docomo",  net: "docomo", color: "#d0103a", mark: "d" },
+  au:      { name: "au",            short: "au",      net: "au",     color: "#e8680c", mark: "au" },
+  sb:      { name: "ソフトバンク",  short: "SB",      net: "sb",     color: "#4a4f57", mark: "SB" },
+  rakuten: { name: "楽天モバイル",  short: "楽天",    net: "rakuten",color: "#bf0000", mark: "R" },
+  uq:      { name: "UQモバイル",    short: "UQ",      net: "au",     color: "#e4007f", mark: "UQ" },
+  ymobile: { name: "ワイモバイル",  short: "Y!",      net: "sb",     color: "#ff0033", mark: "Y!" },
+  free:    { name: "SIMフリー",     short: "フリー",  net: null,     color: "#2f8f6a", mark: "SF" }
 };
 
 /* キャリアごとのSIMロック解除・照会情報 */
@@ -564,6 +567,10 @@ const MAIL = {
       { label: "ドコモメール持ち運び（公式）", url: "https://www.docomo.ne.jp/service/docomo_mail_portability/" },
       { label: "料金に関するFAQ（公式）", url: "https://www.docomo.ne.jp/faq/detail?faqId=429948" },
       { label: "申込〜設定の解説動画（非公式・約11分）", url: "https://www.youtube.com/watch?v=yGJbc3AFHSM" }
+    ],
+    entries: [
+      { label: "申込ページ（公式）", url: "https://www.docomo.ne.jp/service/docomo_mail_portability/" },
+      { label: "料金・注意事項（公式FAQ）", url: "https://www.docomo.ne.jp/faq/detail?faqId=429948" }
     ]
   },
   au: {
@@ -606,6 +613,10 @@ const MAIL = {
       { label: "au公式動画：iPhoneからの申込", url: "https://www.youtube.com/watch?v=-5YYlArui1E" },
       { label: "au公式動画：Androidからの申込", url: "https://www.youtube.com/watch?v=b4NdkA_F5Rw" },
       { label: "au公式動画：Gmailでの利用方法", url: "https://www.youtube.com/watch?v=9IDsuOD2JEQ" }
+    ],
+    entries: [
+      { label: "申込ページ（公式）", url: "https://www.au.com/mobile/service/aumail_portability/" },
+      { label: "ご注意事項（公式）", url: "https://www.au.com/mobile/service/aumail_portability/notice/" }
     ]
   },
   sb: {
@@ -643,6 +654,10 @@ const MAIL = {
       { label: "お申し込み方法（公式）", url: "https://www.softbank.jp/mobile/service/mail-address-portability/application/" },
       { label: "設定：Eメール(i) @i.softbank.jp", url: "https://www.softbank.jp/mobile/service/mail-address-portability/email-i/" },
       { label: "設定：S!メール（MMS）", url: "https://www.softbank.jp/mobile/service/mail-address-portability/mms/" }
+    ],
+    entries: [
+      { label: "申込ページ（公式）", url: "https://www.softbank.jp/mobile/service/mail-address-portability/application/" },
+      { label: "サービス概要・注意事項（公式）", url: "https://www.softbank.jp/mobile/service/mail-address-portability/" }
     ]
   },
   ymobile: {
@@ -688,6 +703,10 @@ const MAIL = {
       { label: "お申し込み方法（公式）", url: "https://www.softbank.jp/mobile/service/mail-address-portability/application/" },
       { label: "設定：Y!mobileメール @yahoo.ne.jp", url: "https://www.softbank.jp/mobile/service/mail-address-portability/ymobile/ymobile-mail/" },
       { label: "設定：MMS", url: "https://www.softbank.jp/mobile/service/mail-address-portability/ymobile/mms/" }
+    ],
+    entries: [
+      { label: "申込ページ（公式）", url: "https://www.softbank.jp/mobile/service/mail-address-portability/application/" },
+      { label: "サービス概要・注意事項（公式）", url: "https://www.softbank.jp/mobile/service/mail-address-portability/ymobile/" }
     ]
   },
   rakuten: {
@@ -730,6 +749,10 @@ const MAIL = {
     },
     links: [
       { label: "楽メール持ち運び（公式）", url: "https://network.mobile.rakuten.co.jp/service/rakumail-portability/" },
+      { label: "申込・利用・解約方法（公式）", url: "https://network.mobile.rakuten.co.jp/guide/rakumail-portability/" }
+    ],
+    entries: [
+      { label: "申込ページ（my 楽天モバイル）", url: "https://network.mobile.rakuten.co.jp/service/rakumail-portability/" },
       { label: "申込・利用・解約方法（公式）", url: "https://network.mobile.rakuten.co.jp/guide/rakumail-portability/" }
     ]
   },
