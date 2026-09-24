@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SIMロックチェックツール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  :root {
+    --bg: #eef2f4;
+    --panel: #ffffff;
+    --panel-2: #f5f8f9;
+    --line: #d3dde2;
+    --line-strong: #aebdc5;
+    --ink: #16232b;
+    --muted: #5a6b75;
+    --accent: #0b6b72;
+    --accent-ink: #ffffff;
+    --accent-soft: #dcefef;
+    --free: #16794a;  --free-bg: #e0f3e8;
+    --lock: #a45308;  --lock-bg: #fcebd6;
+    --cond: #6a3fb5;  --cond-bg: #ece4f8;
+    --rule: #2b5fa8;  --rule-bg: #e1eaf7;
+    --ng: #b3263e;    --ng-bg: #f9e1e5;
+    --radius: 10px;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #10181c; --panel: #172228; --panel-2: #1c2a31; --line: #2a3b44; --line-strong: #3d525d;
+      --ink: #e4edf0; --muted: #93a6b0; --accent: #4fc1c4; --accent-ink: #0b1a1d; --accent-soft: #173a3d;
+      --free: #5fd199; --free-bg: #173427; --lock: #f0a55a; --lock-bg: #3a2814;
+      --cond: #b99af0; --cond-bg: #2c2340; --rule: #86b0ef; --rule-bg: #1c2b44; --ng: #f08a9b; --ng-bg: #3d1c23;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #10181c; --panel: #172228; --panel-2: #1c2a31; --line: #2a3b44; --line-strong: #3d525d;
+    --ink: #e4edf0; --muted: #93a6b0; --accent: #4fc1c4; --accent-ink: #0b1a1d; --accent-soft: #173a3d;
+    --free: #5fd199; --free-bg: #173427; --lock: #f0a55a; --lock-bg: #3a2814;
+    --cond: #b99af0; --cond-bg: #2c2340; --rule: #86b0ef; --rule-bg: #1c2b44; --ng: #f08a9b; --ng-bg: #3d1c23;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.65;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 64px; }
+  a { color: var(--accent); }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .mono { font-family: var(--mono); font-size: .92em; }
+  h1, h2, h3 { text-wrap: balance; line-height: 1.35; }
+
+  /* ---------- header ---------- */
+  .top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; margin-bottom: 14px; }
+  .top h1 { margin: 0; font-size: 26px; letter-spacing: .02em; }
+  .top h1 .imei { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: .06em; display: block; }
+  .top p { margin: 0; color: var(--muted); font-size: 13px; max-width: 60ch; }
+
+  /* ---------- search bar ---------- */
+  .search {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px; display: grid; gap: 10px; box-shadow: 0 2px 10px rgba(10, 40, 50, .06);
+  }
+  .q { position: relative; }
+  .q input {
+    width: 100%; padding: 12px 14px 12px 40px; font-size: 17px;
+    border: 2px solid var(--line-strong); border-radius: 8px; background: var(--panel-2);
+  }
+  .q input:focus { border-color: var(--accent); outline: none; background: var(--panel); }
+  .q svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+  .filters .lbl { font-size: 11px; color: var(--muted); letter-spacing: .08em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    border: 1px solid var(--line-strong); background: var(--panel); border-radius: 999px;
+    padding: 4px 12px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+
+  /* ---------- tabs ---------- */
+  .tabs { display: flex; gap: 2px; margin: 16px 0 12px; border-bottom: 2px solid var(--line); overflow-x: auto; }
+  .tab {
+    border: 0; background: none; padding: 8px 14px; cursor: pointer; font-weight: 700; color: var(--muted);
+    border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap;
+  }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+  /* ---------- search view ---------- */
+  .split { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 16px; align-items: start; }
+  .results { display: grid; gap: 6px; }
+  .count { font-size: 12px; color: var(--muted); margin: 0 0 4px; }
+  .item {
+    text-align: left; width: 100%; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+    display: grid; gap: 4px;
+  }
+  .item:hover { border-color: var(--line-strong); }
+  .item[aria-current="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+  .item .nm { font-weight: 700; line-height: 1.4; }
+  .item .mk { font-size: 12px; color: var(--muted); }
+  .vrow { display: flex; flex-wrap: wrap; gap: 4px; }
+  .vtag { font-size: 11px; padding: 1px 7px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent; }
+  .item.generic { background: var(--panel-2); border-style: dashed; }
+
+  .st-free { background: var(--free-bg); color: var(--free); }
+  .st-locked { background: var(--lock-bg); color: var(--lock); }
+  .st-cond { background: var(--cond-bg); color: var(--cond); }
+  .st-rule { background: var(--rule-bg); color: var(--rule); }
+
+  .empty { padding: 20px; border: 1px dashed var(--line-strong); border-radius: 8px; color: var(--muted); background: var(--panel); }
+
+  /* ---------- detail ---------- */
+  .detail { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .d-head { padding: 16px 18px 12px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+  .d-head h2 { margin: 0; font-size: 22px; }
+  .d-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); }
+  .d-meta b { color: var(--ink); font-weight: 700; }
+  .ctabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ctab { border: 1px solid var(--line-strong); background: var(--panel); border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 14px; display: inline-flex; gap: 6px; align-items: center; }
+  .ctab[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--panel); font-weight: 700; }
+  .back { display: none; border: 0; background: none; color: var(--accent); font-weight: 700; padding: 0; cursor: pointer; justify-self: start; }
+
+  .verdict { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .badge { font-size: 16px; font-weight: 700; padding: 8px 14px; border-radius: 8px; white-space: nowrap; grid-row: span 2; }
+  .verdict .why { font-size: 14px; }
+  .verdict .sub { font-size: 12px; color: var(--muted); }
+
+  .sec { padding: 16px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+  .sec:last-child { border-bottom: 0; }
+  .sec h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .sec h3 .tag { white-space: nowrap; flex: none; font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--accent); border: 1px solid currentColor; border-radius: 4px; padding: 0 6px; }
+  .path { font-weight: 700; background: var(--panel-2); border: 1px solid var(--line); border-left: 4px solid var(--accent); padding: 10px 12px; border-radius: 6px; }
+  .judge { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .judge div { padding: 8px 10px; border-radius: 6px; font-size: 14px; }
+  .judge .lab { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+  ul.notes, ol.steps { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
+  ul.notes li::marker { color: var(--muted); }
+  ol.steps li::marker { font-family: var(--mono); color: var(--accent); font-weight: 500; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; font-size: 14px; }
+  .kv dt { color: var(--muted); font-size: 13px; }
+  .kv dd { margin: 0; }
+  .links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .links a {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; font-size: 13px; font-weight: 700;
+    border: 1px solid var(--accent); border-radius: 6px; text-decoration: none; background: var(--panel);
+  }
+  .links a:hover { background: var(--accent-soft); }
+  .links a::after { content: "↗"; font-weight: 400; }
+  .callout { padding: 10px 12px; border-radius: 6px; font-size: 14px; }
+  .callout.warn { background: var(--lock-bg); color: var(--ink); border: 1px solid var(--lock); }
+  .callout.ng { background: var(--ng-bg); border: 1px solid var(--ng); }
+  .callout.info { background: var(--rule-bg); border: 1px solid var(--rule); }
+  .codes { display: grid; gap: 6px; }
+  .code { display: grid; grid-template-columns: minmax(150px, max-content) 1fr; gap: 2px 12px; font-size: 13px; padding: 8px 10px; background: var(--panel-2); border-radius: 6px; }
+  .code .c { font-family: var(--mono); font-weight: 500; font-size: 14px; }
+  .code .n { color: var(--muted); font-size: 12px; grid-column: 2; }
+  .copy { border: 1px solid var(--line-strong); background: var(--panel); border-radius: 4px; font-size: 11px; padding: 0 6px; cursor: pointer; margin-left: 6px; }
+
+  .ostoggle { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 6px; overflow: hidden; }
+  .ostoggle button { border: 0; background: var(--panel); padding: 5px 14px; cursor: pointer; font-size: 13px; }
+  .ostoggle button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .mailhead { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+  .srcpick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
+  .srcpick select { padding: 4px 8px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--panel); }
+  .addr { display: flex; flex-wrap: wrap; gap: 4px; }
+  .addr span { font-family: var(--mono); font-size: 12px; padding: 1px 7px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; }
+  .srv { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .srv th, .srv td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; }
+  .srv th { background: var(--panel-2); font-weight: 700; white-space: nowrap; }
+  .srv td { font-family: var(--mono); }
+  details.more > summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+  details.more[open] > summary { margin-bottom: 8px; }
+
+  /* ---------- tables ---------- */
+  .tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+  table.list { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px; }
+  table.list th, table.list td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  table.list thead th { background: var(--panel-2); position: sticky; top: 0; font-size: 12px; letter-spacing: .04em; color: var(--muted); }
+  table.list tbody tr { cursor: pointer; }
+  table.list tbody tr:hover { background: var(--accent-soft); }
+  table.list td.code { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  .pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .yes { color: var(--free); font-weight: 700; }
+  .no { color: var(--ng); font-weight: 700; }
+
+  .guide { display: grid; gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 10px; }
+  .card h2 { margin: 0; font-size: 18px; }
+  .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; counter-reset: s; margin: 0; padding: 0; list-style: none; }
+  .flow li { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+  .flow li b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .flow li b::before { counter-increment: s; content: counter(s); font-family: var(--mono); color: var(--accent-ink); background: var(--accent); border-radius: 4px; padding: 0 6px; margin-right: 6px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+  .foot { margin-top: 28px; font-size: 12px; color: var(--muted); max-width: 80ch; }
+
+  @media (max-width: 860px) {
+    .split { grid-template-columns: 1fr; }
+    .detail-slot { position: fixed; inset: 0; z-index: 20; background: var(--bg); overflow-y: auto;
+      padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 24px); }
+    .detail-slot[data-open="false"] { display: none; }
+    .back { display: inline-block; }
+    body.lock { overflow: hidden; }
+  }
+  @media (max-width: 520px) {
+    .judge { grid-template-columns: 1fr; }
+    .kv { grid-template-columns: 1fr; gap: 0 0; }
+    .kv dd { margin-bottom: 8px; }
+    .code { grid-template-columns: 1fr; }
+    .code .n { grid-column: 1; }
+    .verdict { grid-template-columns: 1fr; }
+    .badge { grid-row: auto; justify-self: start; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .item, .chip, .ctab { transition: background-color .12s, border-color .12s; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="imei">*#06# ─ IMEI → 設定 → 他社SIM → 照会</span>SIMロックチェックツール</h1>
+    <p>機種名・型番・メーカーで検索し、端末とキャリアを選ぶと「SIMロックの状態・確認手順・解除方法」と「キャリアメール持ち運び」の要点が一画面でわかります。</p>
+  </header>
+
+  <section class="search" aria-label="検索">
+    <div class="q">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      <input id="q" type="search" placeholder="例：iPhone 12、SO-52B、アクオス、Galaxy、らくらく" autocomplete="off" aria-label="機種名・型番・メーカーで検索">
+    </div>
+    <div class="filters">
+      <span class="lbl">販売キャリア</span>
+      <div class="chips" id="carrierChips"></div>
+    </div>
+    <div class="filters">
+      <span class="lbl">種類</span>
+      <div class="chips" id="osChips"></div>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="表示切替">
+    <button class="tab" role="tab" id="tab-search" data-tab="search" aria-selected="true">機種検索</button>
+    <button class="tab" role="tab" id="tab-table" data-tab="table" aria-selected="false">SIMロック一覧表</button>
+    <button class="tab" role="tab" id="tab-mail" data-tab="mail" aria-selected="false">キャリアメール一覧</button>
+    <button class="tab" role="tab" id="tab-guide" data-tab="guide" aria-selected="false">確認の基本・ダイヤルコード</button>
+  </nav>
+
+  <section id="view-search" class="view">
+    <div class="split">
+      <div>
+        <p class="count" id="count"></p>
+        <div class="results" id="results"></div>
+      </div>
+      <div class="detail-slot" id="detailSlot" data-open="false">
+        <div class="detail" id="detail"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-table" class="view" hidden>
+    <div class="legend" id="legend" style="margin-bottom:8px"></div>
+    <div class="tablewrap"><table class="list" id="lockTable"></table></div>
+  </section>
+
+  <section id="view-mail" class="view" hidden></section>
+  <section id="view-guide" class="view" hidden></section>
+
+  <p class="foot">※ 本ツールはサンプルです。2026年9月時点の現場用リファレンス資料をもとに作成しています。発売時期はおおよそ、表示名はOS・機種で異なる場合があります。料金・受付条件・URLは変更されることがあるため、最終判断とお客さまへの案内は各社公式情報で確認してください。</p>
+</div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const norm = s => String(s ?? "").normalize("NFKC").toLowerCase().replace(/[\s\-‐ー_・／/（）()]/g, "")
+    .replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60)); // カタカナ→ひらがな
+
+  const STATUS = {
+    free:   { label: "ロックなし（SIMフリー）", short: "ロックなし", cls: "st-free" },
+    locked: { label: "ロックあり出荷", short: "ロックあり", cls: "st-locked" },
+    cond:   { label: "購入時期で解除済の可能性", short: "条件付き", cls: "st-cond" },
+    rule:   { label: "発売日・購入日で判定", short: "要判定", cls: "st-rule" }
+  };
+  const OSNAME = { ios: "iPhone", android: "Android", garaho: "ガラホ" };
+  const CARRIER_ORDER = ["docomo", "au", "sb", "rakuten", "uq", "ymobile", "free"];
+  const TEST_NET = {
+    docomo: "au回線 or ソフトバンク回線のSIM",
+    au: "ドコモ回線 or ソフトバンク回線のSIM",
+    sb: "ドコモ回線 or au回線のSIM",
+    rakuten: "（確認不要）",
+    free: "（確認不要）"
+  };
+  const SAME_NET = {
+    docomo: "ahamo・irumo・ドコモ系MVNO",
+    au: "UQ・povo・au系MVNO",
+    sb: "Y!mobile・LINEMO・ソフトバンク系MVNO"
+  };
+
+  const state = { q: "", carrier: "all", os: "all", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null };
+
+  const deviceOs = d => MAKERS[d.maker].os;
+  const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
+
+  // 検索用インデックス
+  DEVICES.forEach(d => {
+    const parts = [d.name, d.kana, MAKERS[d.maker].name, d.brand && MAKERS[d.brand].name, OSNAME[deviceOs(d)],
+      ...d.variants.flatMap(v => [v.code, CARRIERS[v.c].name, CARRIERS[v.c].short])];
+    d._idx = norm(parts.join(" "));
+  });
+
+  /* ---------- chips ---------- */
+  function renderChips() {
+    const cc = [["all", "すべて"], ...CARRIER_ORDER.map(k => [k, CARRIERS[k].name])];
+    $("#carrierChips").innerHTML = cc.map(([k, n]) =>
+      `<button class="chip" data-carrier="${k}" aria-pressed="${state.carrier === k}">${k !== "all" ? `<span class="dot" style="background:${CARRIERS[k].color}"></span>` : ""}${esc(n)}</button>`).join("");
+    const oc = [["all", "すべて"], ["ios", "iPhone"], ["android", "Android"], ["garaho", "ガラホ"]];
+    $("#osChips").innerHTML = oc.map(([k, n]) => `<button class="chip" data-os="${k}" aria-pressed="${state.os === k}">${n}</button>`).join("");
+  }
+
+  /* ---------- filtering ---------- */
+  function filtered() {
+    const terms = norm(state.q) ? state.q.normalize("NFKC").split(/\s+/).map(norm).filter(Boolean) : [];
+    return DEVICES.filter(d => {
+      if (state.os !== "all" && deviceOs(d) !== state.os) return false;
+      if (state.carrier !== "all" && !d.variants.some(v => v.c === state.carrier)) return false;
+      return terms.every(t => d._idx.includes(t));
+    });
+  }
+
+  function vtags(d) {
+    const vs = state.carrier === "all" ? d.variants : d.variants.filter(v => v.c === state.carrier);
+    return vs.map(v => `<span class="vtag ${STATUS[v.ship].cls}"><span class="dot" style="background:${CARRIERS[v.c].color}"></span>${esc(CARRIERS[v.c].short)}${v.code ? " " + esc(v.code.replace(/（.*）/, "")) : ""}</span>`).join("");
+  }
+
+  function renderResults() {
+    let list = filtered();
+    const specific = list.filter(d => !d.generic);
+    let generic = list.filter(d => d.generic);
+    // 検索語がある時、具体機種がヒットしたら汎用は同メーカーのものだけ残す
+    if (state.q && specific.length) {
+      const makers = new Set(specific.map(d => d.maker));
+      generic = generic.filter(d => makers.has(d.maker));
+    }
+    list = [...specific, ...generic];
+    $("#count").textContent = state.q || state.carrier !== "all" || state.os !== "all"
+      ? `${specific.length}機種ヒット` + (generic.length ? `（＋メーカー別の汎用ガイド ${generic.length}件）` : "")
+      : `登録 ${specific.length}機種 ＋ メーカー別の汎用ガイド`;
+    if (!list.length) {
+      $("#results").innerHTML = `<div class="empty">該当する機種がありません。<br>メーカー名（例：Galaxy、AQUOS、OPPO）で検索すると、メーカー別の確認方法が出ます。見つからない機種は「確認の基本」タブのSTEP 0の順で判定してください。</div>`;
+      return;
+    }
+    $("#results").innerHTML = list.map(d => `
+      <button class="item${d.generic ? " generic" : ""}" data-id="${d.id}" aria-current="${state.sel === d.id}">
+        <span class="nm">${esc(d.name)}</span>
+        <span class="mk">${esc(makerName(d))} ・ ${OSNAME[deviceOs(d)]}${d.generic ? " ・ 機種が一覧に無いとき用" : ""}</span>
+        ${d.generic ? "" : `<span class="vrow">${vtags(d)}</span>`}
+      </button>`).join("");
+  }
+
+  /* ---------- detail ---------- */
+  function pickVariant(d) {
+    let v = d.variants.find(x => x.c === state.selCarrier);
+    if (!v && state.carrier !== "all") v = d.variants.find(x => x.c === state.carrier);
+    return v || d.variants[0];
+  }
+
+  function verdictText(d, v) {
+    const ur = UNLOCK[v.c];
+    if (v.ship === "free") return { why: v.c === "rakuten" || v.c === "free" ? "販売時からSIMロックなし。解除手続きは不要です。" : "この機種はロックなしで販売されています。念のため設定画面で表示を確認。", sub: v.note || d.note || "" };
+    if (v.ship === "locked") return { why: "販売時はSIMロックあり。解除手続き済みかどうかを下の手順で確認します。", sub: v.note || d.note || ur.rules.join(" ／ ") };
+    if (v.ship === "cond") return { why: "販売時はロックあり。ただし購入時期によっては解除済で渡されています。", sub: v.note || ur.rules[0] };
+    return { why: "販売キャリアの基準（発売日・購入日）で判定し、設定画面または他社SIMで確認します。", sub: ur.rules.join(" ／ ") };
+  }
+
+  function codeRows(keys) {
+    return keys.map(k => {
+      const c = CODES[k]; const label = c.label || k;
+      return `<div class="code"><span class="c">${esc(label)}${c.label ? "" : `<button class="copy" data-copy="${esc(k)}">コピー</button>`}</span><span>${esc(c.show)}</span><span class="n">${esc(c.target)} ／ ${esc(c.note)}</span></div>`;
+    }).join("");
+  }
+
+  function mailBlock(src, os) {
+    const m = MAIL[src];
+    const osKey = os === "ios" ? "iphone" : "android";
+    const pick = `<div class="srcpick"><label>旧キャリア（解約する側）
+      <select class="mailsrc">${CARRIER_ORDER.filter(k => k !== "free").map(k => `<option value="${k}"${k === src ? " selected" : ""}>${esc(CARRIERS[k].name)}</option>`).join("")}</select></label></div>`;
+    const toggle = `<div class="ostoggle" role="group" aria-label="設定する端末">
+      <button data-mailos="ios" aria-pressed="${os === "ios"}">iPhoneで設定</button>
+      <button data-mailos="android" aria-pressed="${os !== "ios"}">Androidで設定</button></div>`;
+    let body = "";
+    if (m.ok === false) {
+      body = `<div class="callout ng"><b>持ち運び不可</b>：${esc(m.reason)}</div>
+        <div class="addr">${m.addresses.map(a => `<span>${esc(a)}</span>`).join("")}</div>
+        <ul class="notes">${m.advice.map(a => `<li>${esc(a)}</li>`).join("")}</ul>`;
+    } else if (m.ok === null) {
+      body = `<div class="callout info">${esc(m.reason)}</div>`;
+    } else {
+      const o = m[osKey];
+      const srv = o.server || m.server;
+      body = `
+        <div class="callout info"><b>${esc(m.title)}：持ち運び可</b>　申込期限 ${esc(m.deadline)}</div>
+        <div class="addr">${m.addresses.map(a => `<span>${esc(a)}</span>`).join("")}</div>
+        ${m.ng ? `<div class="callout ng" style="font-size:13px"><b>対象外：</b>${m.ng.map(esc).join("、")}</div>` : ""}
+        <dl class="kv">
+          <dt>手続き場所</dt><dd>${esc(m.place)}</dd>
+          <dt>事前に確認</dt><dd>${esc(m.account)}</dd>
+          <dt>支払方法</dt><dd>${esc(m.pay)}</dd>
+          <dt>料金</dt><dd>${esc(m.fee)}</dd>
+        </dl>
+        <div><b>${os === "ios" ? "iPhone" : "Android"}での設定</b>　<span class="pill st-rule">${esc(o.app)}</span></div>
+        <ol class="steps">${o.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>
+        ${srv ? `<div style="overflow-x:auto"><table class="srv"><tbody>${srv.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+        <div class="links"><a href="${esc(o.link.url)}" target="_blank" rel="noopener">${esc(o.link.label)}</a>${m.links.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("")}</div>
+        <details class="more"><summary>申込手順と注意事項</summary>
+          <div style="display:grid;gap:10px">
+            <div><b>申込</b><ol class="steps">${m.apply.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>
+            <div><b>注意事項</b><ul class="notes">${m.cautions.map(s => `<li>${esc(s)}</li>`).join("")}</ul></div>
+            <div><b>全キャリア共通（MNP切替前に確認・説明）</b><ul class="notes">${MAIL_COMMON.map(s => `<li>${esc(s)}</li>`).join("")}</ul></div>
+          </div>
+        </details>`;
+    }
+    return `<div class="mailhead">${pick}${toggle}</div>${body}`;
+  }
+
+  function renderDetail() {
+    const box = $("#detail");
+    const d = DEVICES.find(x => x.id === state.sel);
+    if (!d) {
+      box.innerHTML = `<div class="sec"><h3>機種を選んでください</h3><p style="margin:0;color:var(--muted)">左の一覧から端末をクリックすると、キャリア別のSIMロック状態・確認方法・解除方法と、キャリアメール持ち運びの情報を表示します。</p></div>`;
+      return;
+    }
+    const v = pickVariant(d);
+    state.selCarrier = v.c;
+    const mk = MAKERS[d.maker];
+    const os = deviceOs(d);
+    const st = STATUS[v.ship];
+    const vt = verdictText(d, v);
+    const ur = UNLOCK[v.c];
+    const path = (mk.pathBy && mk.pathBy[v.c]) || mk.path;
+    const netKey = CARRIERS[v.c].net;
+    const noCheck = v.c === "rakuten" || v.c === "free";
+    const brandMk = d.brand ? MAKERS[d.brand] : null;
+
+    const mailSrc = state.mailSrc || (v.c === "free" ? "docomo" : v.c);
+    const mailOs = state.mailOs || (os === "ios" ? "ios" : "android");
+
+    box.innerHTML = `
+      <div class="d-head">
+        <button class="back" id="back">← 一覧へ戻る</button>
+        <h2>${esc(d.name)}</h2>
+        <div class="d-meta"><span>メーカー <b>${esc(makerName(d))}</b></span><span>種類 <b>${OSNAME[os]}</b></span>${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 <b>${esc(v.rel)}</b></span></div>
+        <div class="ctabs" role="group" aria-label="販売キャリアを選択">${d.variants.map(x => `<button class="ctab" data-vc="${x.c}" aria-pressed="${x.c === v.c}"><span class="dot" style="background:${CARRIERS[x.c].color}"></span>${esc(CARRIERS[x.c].name)}版</button>`).join("")}</div>
+      </div>
+
+      <div class="verdict">
+        <span class="badge ${st.cls}">${esc(st.label)}</span>
+        <span class="why">${esc(vt.why)}</span>
+        <span class="sub">${esc(vt.sub)}</span>
+      </div>
+
+      <div class="sec">
+        <h3><span class="tag">確認</span>SIMロックの確認手順（${esc(CARRIERS[v.c].name)}版 ${esc(mk.name.replace(/（.*/, ""))}）</h3>
+        ${noCheck ? `<div class="callout info">${esc(ur.mechanism)}　表示を見たい場合は下の場所で確認できます。</div>` : ""}
+        <div class="path">${esc(path)}</div>
+        <div class="judge">
+          <div class="st-free"><span class="lab">解除済・ロックなし</span>${esc(mk.ok)}</div>
+          <div class="st-locked"><span class="lab">ロック中</span>${esc(mk.ng)}</div>
+        </div>
+        <ul class="notes">${mk.notes.map(n => `<li>${esc(n)}</li>`).join("")}${brandMk ? `<li>${esc(brandMk.name)}のスマホ版の確認場所：${esc(brandMk.path)}（ガラホでは無いことが多い）</li>` : ""}</ul>
+        ${netKey && !noCheck ? `<div class="callout warn"><b>表示が無い・不明なときは他社SIMテスト</b><br>挿すSIM：${esc(TEST_NET[netKey])}<br>⚠ ${esc(SAME_NET[netKey])} のSIMは同じ回線網なので、ロック中でも使えてしまい判定になりません。解除コード入力画面が出たらキャンセル（誤入力で回数を消費）。</div>` : ""}
+        <details class="more"><summary>使えるダイヤルコード</summary><div class="codes">${codeRows(mk.codes)}</div></details>
+      </div>
+
+      <div class="sec">
+        <h3><span class="tag">解除</span>SIMロック解除・照会（${esc(CARRIERS[v.c].name)}）</h3>
+        <ul class="notes">${ur.rules.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+        ${noCheck ? "" : `<ol class="steps">${ur.how.filter(s => os === "ios" ? !/^Android/.test(s) : !/^iPhone/.test(s)).map(s => `<li>${esc(s)}</li>`).join("")}</ol>`}
+        <dl class="kv"><dt>照会先</dt><dd>${esc(ur.inquiry)}</dd><dt>解除の仕組み</dt><dd>${esc(ur.mechanism)}</dd></dl>
+        ${ur.links.length ? `<div class="links">${ur.links.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("")}</div>` : ""}
+      </div>
+
+      <div class="sec" id="mailSec">
+        <h3><span class="tag">メール</span>キャリアメール持ち運び</h3>
+        ${mailBlock(mailSrc, mailOs)}
+      </div>`;
+  }
+
+  /* ---------- table view ---------- */
+  function renderTable() {
+    $("#legend").innerHTML = Object.values(STATUS).map(s => `<span><span class="pill ${s.cls}">${s.short}</span> ${s.label}</span>`).join("");
+    const rows = [];
+    filtered().filter(d => !d.generic).forEach(d => d.variants.forEach(v => {
+      if (state.carrier !== "all" && v.c !== state.carrier) return;
+      const mk = MAKERS[d.maker];
+      rows.push({ d, v, html: `<tr data-id="${d.id}" data-vc="${v.c}">
+        <td><span class="dot" style="background:${CARRIERS[v.c].color}"></span> ${esc(CARRIERS[v.c].name)}</td>
+        <td>${esc(makerName(d).replace(/（.*）$/, ""))}</td>
+        <td><b>${esc(d.name)}</b></td>
+        <td class="code">${esc(v.code || "—")}</td>
+        <td>${esc(v.rel)}</td>
+        <td><span class="pill ${STATUS[v.ship].cls}">${STATUS[v.ship].short}</span></td>
+        <td>${esc((mk.pathBy && mk.pathBy[v.c]) || mk.path)}</td>
+        <td>${MAIL[v.c].ok === true ? `<span class="yes">可</span>` : MAIL[v.c].ok === false ? `<span class="no">不可</span>` : "—"}</td>
+      </tr>` });
+    }));
+    rows.sort((a, b) => CARRIER_ORDER.indexOf(a.v.c) - CARRIER_ORDER.indexOf(b.v.c));
+    $("#lockTable").innerHTML = `<thead><tr><th>販売</th><th>メーカー</th><th>機種</th><th>型番</th><th>発売</th><th>出荷時</th><th>確認方法（ここを見る）</th><th>メール持運</th></tr></thead>
+      <tbody>${rows.map(r => r.html).join("") || `<tr><td colspan="8">該当なし</td></tr>`}</tbody>`;
+  }
+
+  /* ---------- mail view ---------- */
+  function renderMailView() {
+    const keys = ["docomo", "au", "sb", "ymobile", "rakuten", "uq"];
+    const cell = (k, os) => { const m = MAIL[k]; if (!m.ok) return "—"; const o = m[os]; return `<b>${esc(o.app)}</b><br>${esc(o.steps[0])}`; };
+    $("#view-mail").innerHTML = `<div class="guide">
+      <div class="card"><h2>キャリア × iPhone／Android 対応一覧</h2>
+        <div class="tablewrap" style="border:0"><table class="list"><thead><tr><th>旧キャリア</th><th>可否</th><th>対象アドレス</th><th>申込期限・場所</th><th>iPhone</th><th>Android</th><th>公式</th></tr></thead><tbody>
+        ${keys.map(k => { const m = MAIL[k]; return `<tr data-mail="${k}">
+          <td><span class="dot" style="background:${CARRIERS[k].color}"></span> <b>${esc(CARRIERS[k].name)}</b></td>
+          <td>${m.ok ? `<span class="yes">〇</span>` : `<span class="no">×</span>`}</td>
+          <td class="code">${m.addresses.map(esc).join("<br>")}</td>
+          <td>${m.ok ? esc(m.deadline) + "<br>" + esc(m.place) : esc(m.reason)}</td>
+          <td>${cell(k, "iphone")}</td><td>${cell(k, "android")}</td>
+          <td>${m.ok ? `<a href="${esc(m.links[0].url)}" target="_blank" rel="noopener">公式↗</a>` : ""}</td></tr>`; }).join("")}
+        </tbody></table></div>
+      </div>
+      <div class="card"><h2>作業の流れ</h2><ol class="flow">${MAIL_FLOW.map(([t, s]) => `<li><b>${esc(t)}</b>${esc(s)}</li>`).join("")}</ol></div>
+      <div class="card"><h2>全キャリア共通の注意（MNP切替前に確認・説明）</h2><ul class="notes">${MAIL_COMMON.map(s => `<li>${esc(s)}</li>`).join("")}</ul></div>
+      <div class="card"><h2>キャリア別の詳細</h2>
+        <p style="margin:0;font-size:13px;color:var(--muted)">旧キャリアと設定する端末を切り替えて確認できます。</p>
+        <div id="mailFull" style="display:grid;gap:10px"></div></div>
+      <div class="card"><h2>持ち運びできない格安SIMのアドレス（2023年5月時点）</h2>
+        <div class="tablewrap" style="border:0"><table class="list" style="min-width:0"><tbody>${MAIL_MVNO_NG.map(([n, a]) => `<tr style="cursor:default"><td>${esc(n)}</td><td class="code">${esc(a)}</td><td><span class="no">×</span></td></tr>`).join("")}</tbody></table></div>
+      </div></div>`;
+    renderMailFull();
+  }
+  function renderMailFull() {
+    const el = $("#mailFull"); if (!el) return;
+    el.innerHTML = mailBlock(state.mailSrc || "docomo", state.mailOs || "ios");
+  }
+
+  /* ---------- guide view ---------- */
+  function renderGuide() {
+    const steps = [
+      ["発売日・購入元を確認", "2021/10/1以降発売の機種、Apple／Google Store・メーカー直販・楽天モバイル購入品は原則ロックなし"],
+      ["設定画面で確認", "iPhone・Xperia・Galaxy・AQUOS等は設定に表示あり（機種検索で場所を確認）"],
+      ["ダイヤルコード", "一部Androidのみ。国内キャリア版は無効化されていることが多い"],
+      ["他社SIMを挿す", "解除コード入力画面や「SIM無効」が出たらロックあり"],
+      ["販売キャリアに照会", "IMEIを伝えればショップ・電話・Webで確認できる"]
+    ];
+    $("#view-guide").innerHTML = `<div class="guide">
+      <div class="card"><h2>STEP 0 ─ 確認の順番（上から試せば迷わない）</h2><ol class="flow">${steps.map(([t, s]) => `<li><b>${esc(t)}</b>${esc(s)}</li>`).join("")}</ol>
+        <div class="callout info"><b>現場の最短ルート：</b>① <span class="mono">*#06#</span> でIMEIを控える → ② 設定画面で表示確認 → ③ 表示なし・不明なら他社回線SIMを挿す → ④ それでも不明ならIMEIで販売キャリアへ照会</div></div>
+      <div class="card"><h2>キャリア別 ─ ロックなし販売の目安と照会先</h2>
+        <div class="tablewrap" style="border:0"><table class="list" style="min-width:640px"><thead><tr><th>販売元</th><th>ロックなしで販売された目安</th><th>照会方法</th><th>解除の仕組み（Android）</th></tr></thead><tbody>
+        ${CARRIER_ORDER.map(k => `<tr style="cursor:default"><td><span class="dot" style="background:${CARRIERS[k].color}"></span> <b>${esc(CARRIERS[k].name)}</b></td><td>${UNLOCK[k].rules.map(esc).join("<br>")}</td><td>${esc(UNLOCK[k].inquiry)}</td><td>${esc(UNLOCK[k].mechanism)}</td></tr>`).join("")}
+        </tbody></table></div></div>
+      <div class="card"><h2>他社SIMテストのコツ</h2><ul class="notes">
+        <li>販売キャリアと<b>別の回線網</b>のSIMを使う（例：au版端末 → ドコモ回線 or SB回線のSIM）</li>
+        <li>⚠ 同じ回線網の格安SIM（au版にUQ・povo・au系MVNO等）はロック中でも使えるため判定にならない</li>
+        <li>ロックありの症状：iPhone「SIMはサポートされていません」／Android「SIMネットワークのロック解除PIN」入力画面／ガラホ 解除コード入力画面・圏外のまま</li>
+        <li>電波が立ってもAPN未設定だとデータ通信は不可。通話 or SMS受信で判定</li>
+        <li>解除コード入力画面は入力回数に上限あり。コード不明ならキャンセル</li></ul></div>
+      <div class="card"><h2>ダイヤルコード（電話アプリで入力）</h2><div class="codes">${codeRows(Object.keys(CODES))}</div>
+        <p style="margin:0;font-size:12px;color:var(--muted)">ダイヤルコードはメーカー非公式機能。機種・OS・キャリアにより無反応／表示が異なる。「反応しない＝ロックなし」ではない。解除系コード（#7465625*638*# 等）は誤入力でロック回数を消費する恐れがあるため現場では使用しない。</p></div>
+      <div class="card"><h2>混同しやすい3つのロック</h2><dl class="kv">
+        <dt>SIMロック</dt><dd>他社SIMが使えない（本ツールの対象）</dd>
+        <dt>ネットワーク利用制限（赤ロム）</dt><dd>分割未払い・盗難等で通信停止。キャリアのIMEI判定サイトで「○△×」確認。SIMロックとは別物</dd>
+        <dt>アクティベーションロック・FRP</dt><dd>前所有者のApple ID／Googleアカウントが残っている状態。初期化しても解除されない</dd></dl></div>
+    </div>`;
+  }
+
+  /* ---------- tabs / routing ---------- */
+  function setTab(t) {
+    state.tab = t;
+    document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+    document.querySelectorAll(".view").forEach(v => { v.hidden = v.id !== "view-" + t; });
+    if (t === "table") renderTable();
+    if (t === "mail") renderMailView();
+    if (t === "guide") renderGuide();
+  }
+
+  function openDevice(id, vc) {
+    state.sel = id; state.selCarrier = vc || null; state.mailSrc = null; state.mailOs = null;
+    renderResults(); renderDetail();
+    const slot = $("#detailSlot");
+    slot.dataset.open = "true";
+    if (matchMedia("(max-width: 860px)").matches) { document.body.classList.add("lock"); slot.scrollTop = 0; }
+    try { history.replaceState(null, "", "#" + id + (state.selCarrier ? "." + state.selCarrier : "")); } catch (e) {}
+  }
+
+  function refresh() {
+    renderChips(); renderResults();
+    if (state.tab === "table") renderTable();
+  }
+
+  /* ---------- events ---------- */
+  $("#q").addEventListener("input", e => { state.q = e.target.value; refresh(); });
+  document.addEventListener("click", e => {
+    const t = e.target.closest("button, tr[data-id]");
+    if (!t) return;
+    if (t.dataset.carrier) { state.carrier = t.dataset.carrier; refresh(); return; }
+    if (t.dataset.os) { state.os = t.dataset.os; refresh(); return; }
+    if (t.dataset.tab) { setTab(t.dataset.tab); return; }
+    if (t.classList.contains("item")) { openDevice(t.dataset.id); return; }
+    if (t.tagName === "TR" && t.dataset.id) { setTab("search"); openDevice(t.dataset.id, t.dataset.vc); return; }
+    if (t.dataset.vc) { state.selCarrier = t.dataset.vc; state.mailSrc = null; renderDetail();
+      try { history.replaceState(null, "", "#" + state.sel + "." + state.selCarrier); } catch (e) {} return; }
+    if (t.dataset.mailos) { state.mailOs = t.dataset.mailos; state.tab === "mail" ? renderMailFull() : renderDetail(); return; }
+    if (t.id === "back") { $("#detailSlot").dataset.open = "false"; document.body.classList.remove("lock"); return; }
+    if (t.dataset.copy) {
+      const txt = t.dataset.copy;
+      const done = () => { t.textContent = "コピー済"; setTimeout(() => (t.textContent = "コピー"), 1400); };
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done).catch(() => {});
+    }
+  });
+  document.addEventListener("change", e => {
+    if (e.target.classList.contains("mailsrc")) { state.mailSrc = e.target.value; state.tab === "mail" ? renderMailFull() : renderDetail(); }
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "/" && document.activeElement !== $("#q")) { e.preventDefault(); $("#q").focus(); }
+    if (e.key === "Escape" && $("#detailSlot").dataset.open === "true" && matchMedia("(max-width: 860px)").matches) {
+      $("#detailSlot").dataset.open = "false"; document.body.classList.remove("lock");
+    }
+  });
+
+  /* ---------- init ---------- */
+  renderChips();
+  const h = decodeURIComponent(location.hash.slice(1));
+  const [hid, hc] = h.split(".");
+  if (["table", "mail", "guide"].includes(hid)) { renderResults(); setTab(hid); }
+  else if (DEVICES.some(d => d.id === hid)) openDevice(hid, hc);
+  else {
+    // 初期表示：サンプルとして iPhone SE（第2世代）ドコモ版を開いておく（スマホ幅では一覧のみ）
+    state.sel = "iphone-se2"; state.selCarrier = "docomo";
+    renderResults(); renderDetail();
+  }
+})();
+</script>
+</body>
+</html>
