@@ -543,7 +543,7 @@
     sb: "Y!mobile・LINEMO・ソフトバンク系MVNO"
   };
 
-  const state = { q: "", carrier: "all", os: "all", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set(), qrCarrier: null, qrOs: "ios" };
+  const state = { q: "", carrier: "all", os: "all", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set() };
 
   const deviceOs = d => MAKERS[d.maker].os;
   const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
@@ -873,11 +873,12 @@
     </div>`;
   }
 
-  /* ---------- QRだけ読み取りたいとき（機種を検索しなくても、キャリアを選べばQRを出す） ---------- */
+  /* ---------- QRだけ読み取りたいとき（機種を検索しなくても、上部の「販売キャリア」で選べばQRを出す） ---------- */
   function qrBody(c) {
-    if (!c) return `<div class="empty">キャリアを選ぶと、SIMロック解除とキャリアメール持ち運びのQRコードを表示します。</div>`;
+    if (!c || c === "all") return `<div class="empty">上の「絞り込み」から販売キャリアを1つ選ぶと、SIMロック解除とキャリアメール持ち運びのQRコードを表示します。</div>`;
+    if (c === "free") return `<div class="empty">${clogo("free")} SIMフリーは特定のキャリアに紐づかないため、QRコードの対象がありません。旧キャリアのメール持ち運びは「メール一覧」タブから確認してください。</div>`;
     const ur = UNLOCK[c];
-    const noNeed = c === "rakuten" || c === "free";
+    const noNeed = c === "rakuten";
     return `
       <div class="card">
         <h2>${clogo(c)} ${esc(CARRIERS[c].name)}</h2>
@@ -896,15 +897,7 @@
       </div>`;
   }
   function renderQrView() {
-    $("#view-qr").innerHTML = `<div class="guide">
-      <div class="card">
-        <h2>キャリアを選ぶ</h2>
-        <p style="margin:0 0 6px;font-size:13px;color:var(--muted)">機種の検索結果が無い場合でも、キャリアだけ選べばQRコードを表示できます。</p>
-        <div class="chips">${CARRIER_ORDER.filter(k => k !== "free").map(k =>
-          `<button class="chip" data-qrpick="${k}" aria-pressed="${state.qrCarrier === k}">${clogo(k)}${esc(CARRIERS[k].name)}</button>`).join("")}</div>
-      </div>
-      <div id="qrBody">${qrBody(state.qrCarrier)}</div>
-    </div>`;
+    $("#view-qr").innerHTML = `<div class="guide">${qrBody(state.carrier)}</div>`;
     mountQR($("#view-qr"));
   }
 
@@ -938,6 +931,7 @@
   function refresh() {
     renderChips(); renderResults(); updateFcount();
     if (state.tab === "table") renderTable();
+    if (state.tab === "qr") renderQrView();
   }
 
   // タイトルをタップ／クリックしたら検索・絞り込みを初期化してトップに戻る
@@ -974,7 +968,6 @@
     if (t.tagName === "TR" && t.dataset.id) { setTab("search"); openDevice(t.dataset.id, t.dataset.vc); return; }
     if (t.dataset.vc) { state.selCarrier = t.dataset.vc; state.mailSrc = null; renderDetail();
       try { history.replaceState(null, "", "#" + state.sel + "." + state.selCarrier); } catch (e) {} return; }
-    if (t.dataset.qrpick) { state.qrCarrier = t.dataset.qrpick; renderQrView(); return; }
     if (t.dataset.mailos) {
       state.mailOs = t.dataset.mailos;
       if (state.tab === "mail") renderMailFull();
