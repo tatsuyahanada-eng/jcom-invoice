@@ -248,6 +248,8 @@
   .key.check .key-main { color: var(--cond); }
   .key.ng .key-main { color: var(--ng); }
   .btnrow { display: grid; gap: 8px; }
+  .key .qrwrap { margin-top: 2px; }
+  .key.need .qrhead, .key.need .qrlabel { color: inherit; }
   .bigbtn {
     display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 50px;
     padding: 12px 16px; border-radius: 10px; background: var(--accent); color: var(--accent-ink);
@@ -675,7 +677,8 @@
       ${noNeed ? `<div class="key-main" style="font-size:17px">手続き不要</div>
            ${ur.links.length ? `<div class="key-sub">念のため確認する場合：${extA(ur.links[0].url, ur.links[0].label, "")}</div>` : ""}`
         : `<div class="btnrow">${ur.links.slice(0, 1).map(l => extA(l.url, l.label, "bigbtn")).join("")}</div>
-           <div class="key-sub">照会・手続き：${esc(ur.inquiry)}</div>`}
+           <div class="key-sub">照会・手続き：${esc(ur.inquiry)}</div>
+           ${qrSection(ur.links.slice(0, 1).map(l => ({ label: "SIMロック解除ページ", url: l.url })))}`}
     </section>`;
   }
 
@@ -695,7 +698,8 @@
         ${extA(apply.url, "申込ページを開く", "bigbtn")}
         ${extA(o.link.url, `${os === "ios" ? "iPhone" : "Android"}の設定方法`, "bigbtn sub")}
       </div>
-      <div class="key-sub">申込期限：<b>${esc(m.deadline)}</b>　設定アプリ：${esc(o.app)}</div></section>`;
+      <div class="key-sub">申込期限：<b>${esc(m.deadline)}</b>　設定アプリ：${esc(o.app)}</div>
+      ${qrSection([{ label: "申込ページ", url: apply.url }, { label: `${os === "ios" ? "iPhone" : "Android"}の設定方法`, url: o.link.url }])}</section>`;
   }
 
   const fold = (key, title, hint, body) =>
