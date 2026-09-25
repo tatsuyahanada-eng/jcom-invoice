@@ -2,7 +2,7 @@
   "name": "スマホ移行Check Tool",
   "short_name": "スマホ移行Check",
   "description": "機種・型番・メーカーで検索し、SIMロックの状態・確認手順・解除方法とキャリアメール持ち運びの要点を一画面で確認できるツール",
-  "id": "/sim-lock-check/",
+  "id": "./",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
