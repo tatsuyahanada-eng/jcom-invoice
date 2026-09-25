@@ -762,19 +762,20 @@
 
       <div class="keys">
         ${lockCard(d, v, pathList)}
+        <section class="card check-detail">
+          <h3 style="margin:0;font-size:15px">SIMロックの確認方法</h3>
+          ${pathListChips(pathList)}
+          <div class="judge">
+            <div class="st-free"><span class="lab">解除済・ロックなし</span>${esc(mk.ok)}</div>
+            <div class="st-locked"><span class="lab">ロック中</span>${esc(mk.ng)}</div>
+          </div>
+          <ul class="notes">${mk.notes.map(n => `<li>${esc(n)}</li>`).join("")}${brandMk ? `<li>${esc(brandMk.name)}のスマホ版の確認場所：${esc(pathListText(makerPathList(brandMk, v.c)))}（ガラホでは無いことが多い）</li>` : ""}</ul>
+          ${netKey && !noCheck ? `<div class="callout warn"><b>表示が無い・不明なときは他社SIMテスト</b><br>挿すSIM：${esc(TEST_NET[netKey])}<br>⚠ ${esc(SAME_NET[netKey])} のSIMは同じ回線網なので判定になりません。解除コード入力画面が出たらキャンセル。</div>` : ""}
+          <details class="more"><summary>使えるダイヤルコード</summary><div class="codes">${codeRows(mk.codes)}</div></details>
+        </section>
         ${unlockCard(v)}
         ${mailCard(v, mailSrc, mailOs)}
       </div>
-
-      ${fold("check", "SIMロックの確認方法", "表示の見方・他社SIMテスト・ダイヤルコード", `
-        ${pathListChips(pathList)}
-        <div class="judge">
-          <div class="st-free"><span class="lab">解除済・ロックなし</span>${esc(mk.ok)}</div>
-          <div class="st-locked"><span class="lab">ロック中</span>${esc(mk.ng)}</div>
-        </div>
-        <ul class="notes">${mk.notes.map(n => `<li>${esc(n)}</li>`).join("")}${brandMk ? `<li>${esc(brandMk.name)}のスマホ版の確認場所：${esc(pathListText(makerPathList(brandMk, v.c)))}（ガラホでは無いことが多い）</li>` : ""}</ul>
-        ${netKey && !noCheck ? `<div class="callout warn"><b>表示が無い・不明なときは他社SIMテスト</b><br>挿すSIM：${esc(TEST_NET[netKey])}<br>⚠ ${esc(SAME_NET[netKey])} のSIMは同じ回線網なので判定になりません。解除コード入力画面が出たらキャンセル。</div>` : ""}
-        <div><b style="font-size:13px">使えるダイヤルコード</b><div class="codes" style="margin-top:6px">${codeRows(mk.codes)}</div></div>`)}
 
       ${fold("unlock", "解除手続きの流れ・照会先", `${esc(CARRIERS[v.c].name)}の解除ルール`, `
         <ul class="notes">${ur.rules.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
