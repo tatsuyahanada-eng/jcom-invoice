@@ -276,7 +276,18 @@
   .sec:last-child { border-bottom: 0; }
   .sec h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; }
   .sec h3 .tag { white-space: nowrap; flex: none; font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--accent); border: 1px solid currentColor; border-radius: 4px; padding: 0 6px; }
-  .path { font-weight: 700; background: var(--panel-2); border: 1px solid var(--line); border-left: 4px solid var(--accent); padding: 10px 12px; border-radius: 6px; }
+  /* SIMロック確認手順のパンくずナビゲーション（正確・省スペース） */
+  .pathnav { display: flex; flex-direction: column; gap: 4px; }
+  .pathnav + .pathnav { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .pc-label { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .03em; }
+  .pc-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 2px; line-height: 1.5; }
+  .pc-step, .pc-target {
+    display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 13.5px; font-weight: 600;
+    background: var(--panel-2); border: 1px solid var(--line); white-space: nowrap;
+  }
+  .pc-target { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .pc-arrow { color: var(--muted); font-size: 12px; padding: 0 1px; flex: none; }
+  .pc-note { font-size: 12px; color: var(--muted); line-height: 1.5; }
   .judge { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .judge div { padding: 8px 10px; border-radius: 6px; font-size: 14px; }
   .judge .lab { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
@@ -652,8 +663,18 @@
   const ICON_X = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9 9l6 6M15 9l-6 6"></path></svg>`;
   const extA = (url, label, cls) => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>`;
 
+  // 確認手順のパンくず（1機種で手順が複数ある京セラ等は配列で保持）
+  const makerPathList = (mk, c) => mk.paths || [(mk.pathBy && mk.pathBy[c]) || mk.path];
+  const pathText = p => `${p.steps.join("→")}→「${p.target}」`;
+  const pathListText = list => list.map(p => (p.label ? p.label + "：" : "") + pathText(p)).join("／");
+  const pathChip = p => `<div class="pathnav">${p.label ? `<span class="pc-label">${esc(p.label)}</span>` : ""}<div class="pc-crumbs">${
+    p.steps.map(s => `<span class="pc-step">${esc(s)}</span><span class="pc-arrow">→</span>`).join("")
+  }<span class="pc-target">「${esc(p.target)}」</span></div>${p.note ? `<div class="pc-note">${esc(p.note)}</div>` : ""}</div>`;
+  const pathListChips = list => list.map(pathChip).join("");
+
   // ① SIMロック解除が必要か
-  function lockCard(d, v, path) {
+  function lockCard(d, v, pathList) {
+    const path = pathListText(pathList);
     if (v.ship === "free") return `<section class="key ok">
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_OK}解除不要（ロックなし）</div>
@@ -717,7 +738,7 @@
     const mk = MAKERS[d.maker];
     const os = deviceOs(d);
     const ur = UNLOCK[v.c];
-    const path = (mk.pathBy && mk.pathBy[v.c]) || mk.path;
+    const pathList = makerPathList(mk, v.c);
     const netKey = CARRIERS[v.c].net;
     const noCheck = v.c === "rakuten" || v.c === "free";
     const brandMk = d.brand ? MAKERS[d.brand] : null;
@@ -734,18 +755,18 @@
       </div>
 
       <div class="keys">
-        ${lockCard(d, v, path)}
+        ${lockCard(d, v, pathList)}
         ${unlockCard(v)}
         ${mailCard(v, mailSrc, mailOs)}
       </div>
 
       ${fold("check", "SIMロックの確認方法", "表示の見方・他社SIMテスト・ダイヤルコード", `
-        <div class="path">${esc(path)}</div>
+        ${pathListChips(pathList)}
         <div class="judge">
           <div class="st-free"><span class="lab">解除済・ロックなし</span>${esc(mk.ok)}</div>
           <div class="st-locked"><span class="lab">ロック中</span>${esc(mk.ng)}</div>
         </div>
-        <ul class="notes">${mk.notes.map(n => `<li>${esc(n)}</li>`).join("")}${brandMk ? `<li>${esc(brandMk.name)}のスマホ版の確認場所：${esc(brandMk.path)}（ガラホでは無いことが多い）</li>` : ""}</ul>
+        <ul class="notes">${mk.notes.map(n => `<li>${esc(n)}</li>`).join("")}${brandMk ? `<li>${esc(brandMk.name)}のスマホ版の確認場所：${esc(pathListText(makerPathList(brandMk, v.c)))}（ガラホでは無いことが多い）</li>` : ""}</ul>
         ${netKey && !noCheck ? `<div class="callout warn"><b>表示が無い・不明なときは他社SIMテスト</b><br>挿すSIM：${esc(TEST_NET[netKey])}<br>⚠ ${esc(SAME_NET[netKey])} のSIMは同じ回線網なので判定になりません。解除コード入力画面が出たらキャンセル。</div>` : ""}
         <div><b style="font-size:13px">使えるダイヤルコード</b><div class="codes" style="margin-top:6px">${codeRows(mk.codes)}</div></div>`)}
 
@@ -774,7 +795,7 @@
         <td class="code">${esc(v.code || "—")}</td>
         <td>${esc(v.rel)}</td>
         <td><span class="pill ${STATUS[v.ship].cls}">${STATUS[v.ship].short}</span></td>
-        <td>${esc((mk.pathBy && mk.pathBy[v.c]) || mk.path)}</td>
+        <td>${esc(pathListText(makerPathList(mk, v.c)))}</td>
         <td>${MAIL[v.c].ok === true ? `<span class="yes">可</span>` : MAIL[v.c].ok === false ? `<span class="no">不可</span>` : "—"}</td>
       </tr>` });
     }));
