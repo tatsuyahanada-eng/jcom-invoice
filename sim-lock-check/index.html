@@ -446,6 +446,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7v.01"></path></svg>
       確認の基本
     </button>
+    <button class="tab" role="tab" id="tab-qr" data-tab="qr" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3zM20 14v3M17 20h4"></path></svg>
+      QR
+    </button>
   </nav>
 
   <section id="view-search" class="view">
@@ -467,6 +471,7 @@
 
   <section id="view-mail" class="view" hidden></section>
   <section id="view-guide" class="view" hidden></section>
+  <section id="view-qr" class="view" hidden></section>
 
   <p class="foot">※ 本ツールはサンプルです。2026年9月時点の現場用リファレンス資料をもとに作成しています。発売時期はおおよそ、表示名はOS・機種で異なる場合があります。料金・受付条件・URLは変更されることがあるため、最終判断とお客さまへの案内は各社公式情報で確認してください。</p>
 </div>
@@ -538,7 +543,7 @@
     sb: "Y!mobile・LINEMO・ソフトバンク系MVNO"
   };
 
-  const state = { q: "", carrier: "all", os: "all", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set() };
+  const state = { q: "", carrier: "all", os: "all", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set(), qrCarrier: null, qrOs: "ios" };
 
   const deviceOs = d => MAKERS[d.maker].os;
   const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
@@ -613,10 +618,11 @@
     }).join("");
   }
 
-  function mailBlock(src, os) {
+  function mailBlock(src, os, opts) {
+    opts = opts || {};
     const m = MAIL[src];
     const osKey = os === "ios" ? "iphone" : "android";
-    const pick = `<div class="srcpick"><label>旧キャリア（解約する側）
+    const pick = opts.hidePicker ? "" : `<div class="srcpick"><label>旧キャリア（解約する側）
       <select class="mailsrc">${CARRIER_ORDER.filter(k => k !== "free").map(k => `<option value="${k}"${k === src ? " selected" : ""}>${esc(CARRIERS[k].name)}</option>`).join("")}</select></label></div>`;
     const toggle = `<div class="ostoggle" role="group" aria-label="設定する端末">
       <button data-mailos="ios" aria-pressed="${os === "ios"}">iPhoneで設定</button>
@@ -867,6 +873,41 @@
     </div>`;
   }
 
+  /* ---------- QRだけ読み取りたいとき（機種を検索しなくても、キャリアを選べばQRを出す） ---------- */
+  function qrBody(c) {
+    if (!c) return `<div class="empty">キャリアを選ぶと、SIMロック解除とキャリアメール持ち運びのQRコードを表示します。</div>`;
+    const ur = UNLOCK[c];
+    const noNeed = c === "rakuten" || c === "free";
+    return `
+      <div class="card">
+        <h2>${clogo(c)} ${esc(CARRIERS[c].name)}</h2>
+        <p style="margin:0;font-size:13px;color:var(--muted)">別の端末のカメラでQRコードを読み取ると、そのページがそのまま開きます。</p>
+      </div>
+      <div class="card">
+        <h2>① SIMロック解除</h2>
+        <ul class="notes">${ur.rules.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+        ${noNeed
+          ? `<div class="callout info">${esc(ur.mechanism)}</div>`
+          : `<div class="links">${ur.links.map(l => extA(l.url, l.label, "")).join("")}</div>${qrSection(ur.links)}`}
+      </div>
+      <div class="card">
+        <h2>② キャリアメール持ち運び（旧：${esc(CARRIERS[c].name)}）</h2>
+        ${mailBlock(c, state.mailOs || "ios", { hidePicker: true })}
+      </div>`;
+  }
+  function renderQrView() {
+    $("#view-qr").innerHTML = `<div class="guide">
+      <div class="card">
+        <h2>キャリアを選ぶ</h2>
+        <p style="margin:0 0 6px;font-size:13px;color:var(--muted)">機種の検索結果が無い場合でも、キャリアだけ選べばQRコードを表示できます。</p>
+        <div class="chips">${CARRIER_ORDER.filter(k => k !== "free").map(k =>
+          `<button class="chip" data-qrpick="${k}" aria-pressed="${state.qrCarrier === k}">${clogo(k)}${esc(CARRIERS[k].name)}</button>`).join("")}</div>
+      </div>
+      <div id="qrBody">${qrBody(state.qrCarrier)}</div>
+    </div>`;
+    mountQR($("#view-qr"));
+  }
+
   /* ---------- tabs / routing ---------- */
   function setTab(t) {
     state.tab = t;
@@ -875,6 +916,7 @@
     if (t === "table") renderTable();
     if (t === "mail") renderMailView();
     if (t === "guide") renderGuide();
+    if (t === "qr") renderQrView();
   }
 
   function openDevice(id, vc) {
@@ -932,7 +974,14 @@
     if (t.tagName === "TR" && t.dataset.id) { setTab("search"); openDevice(t.dataset.id, t.dataset.vc); return; }
     if (t.dataset.vc) { state.selCarrier = t.dataset.vc; state.mailSrc = null; renderDetail();
       try { history.replaceState(null, "", "#" + state.sel + "." + state.selCarrier); } catch (e) {} return; }
-    if (t.dataset.mailos) { state.mailOs = t.dataset.mailos; state.tab === "mail" ? renderMailFull() : renderDetail(); return; }
+    if (t.dataset.qrpick) { state.qrCarrier = t.dataset.qrpick; renderQrView(); return; }
+    if (t.dataset.mailos) {
+      state.mailOs = t.dataset.mailos;
+      if (state.tab === "mail") renderMailFull();
+      else if (state.tab === "qr") renderQrView();
+      else renderDetail();
+      return;
+    }
     if (t.id === "back") { $("#detailSlot").dataset.open = "false"; document.body.classList.remove("lock"); return; }
     if (t.dataset.copy) {
       const txt = t.dataset.copy;
@@ -973,7 +1022,7 @@
   updateFcount();
   const h = decodeURIComponent(location.hash.slice(1));
   const [hid, hc] = h.split(".");
-  if (["table", "mail", "guide"].includes(hid)) { renderResults(); setTab(hid); }
+  if (["table", "mail", "guide", "qr"].includes(hid)) { renderResults(); setTab(hid); }
   else if (DEVICES.some(d => d.id === hid)) openDevice(hid, hc);
   else {
     // 初期表示：サンプルとして iPhone SE（第2世代）ドコモ版を開いておく（スマホ幅では一覧のみ）
