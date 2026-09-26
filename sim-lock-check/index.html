@@ -119,11 +119,19 @@
   .q svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); }
 
   /* 絞り込み：スマホでは既定で折りたたみ、タップで開閉する */
+  .searchbtns { display: flex; gap: 8px; align-items: center; }
   .filtertoggle {
     display: inline-flex; align-items: center; gap: 7px; justify-self: start;
     border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--ink);
     border-radius: 8px; padding: 9px 13px; font-size: 13px; font-weight: 700; cursor: pointer;
   }
+  .clearbtn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line-strong); background: var(--panel); color: var(--ng);
+    border-radius: 8px; padding: 9px 13px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .clearbtn svg { width: 15px; height: 15px; flex: none; }
+  .clearbtn:active { background: var(--ng-bg); }
   .filtertoggle svg { width: 16px; height: 16px; flex: none; }
   .fcount[hidden] { display: none; }
   .filtertoggle .chev { width: 14px; height: 14px; transition: transform .15s; }
@@ -412,11 +420,17 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
       <input id="q" type="search" placeholder="例：iPhone 12、SO-52B、アクオス、Galaxy、らくらく" autocomplete="off" aria-label="機種名・型番・メーカーで検索">
     </div>
-    <button type="button" class="filtertoggle" id="filterToggle" aria-expanded="true" aria-controls="filterPanel">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
-      絞り込み<span class="fcount" id="fcount" hidden>0</span>
-      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
-    </button>
+    <div class="searchbtns">
+      <button type="button" class="filtertoggle" id="filterToggle" aria-expanded="true" aria-controls="filterPanel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
+        絞り込み<span class="fcount" id="fcount" hidden>0</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+      </button>
+      <button type="button" class="clearbtn" id="clearSearch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0-.8 12.1a2 2 0 01-2 1.9H9.8a2 2 0 01-2-1.9L7 7"></path></svg>
+        クリア
+      </button>
+    </div>
     <div class="filterpanel" id="filterPanel">
       <div class="filters">
         <span class="lbl">販売キャリア</span>
@@ -962,6 +976,13 @@
     const open = $("#filterToggle").getAttribute("aria-expanded") === "true";
     $("#filterToggle").setAttribute("aria-expanded", String(!open));
     $("#filterPanel").hidden = open;
+  });
+  // 検索をやり直す：キーワードと絞り込み条件をまとめてリセット
+  $("#clearSearch").addEventListener("click", () => {
+    state.q = ""; state.carrier = "all"; state.os = "all";
+    $("#q").value = "";
+    $("#q").focus();
+    refresh();
   });
   document.addEventListener("click", e => {
     const t = e.target.closest("button, tr[data-id]");
