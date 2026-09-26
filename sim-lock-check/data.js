@@ -401,6 +401,57 @@ const DEVICES = [
   { id: "xperia-new", name: "Xperia 10 IV 以降 / 1 IV 以降 / 5 IV 以降", maker: "xperia", kana: "エクスペリア",
     variants: ["docomo", "au", "sb", "uq", "ymobile", "rakuten", "free"].map(c => ({ c, rel: "2022年〜", ship: "free" })) },
 
+  // ---------- Xperia（2015〜2020年 旧機種） ----------
+  { id: "xperia-x-performance", name: "Xperia X Performance / X Compact", maker: "xperia", kana: "エクスペリア エックス",
+    variants: [
+      { c: "docomo", code: "SO-04H", rel: "2016年", ship: "locked" },
+      { c: "au", code: "SOV33", rel: "2016年", ship: "locked" },
+      { c: "sb", code: "502SO", rel: "2016年", ship: "locked" }
+    ] },
+  { id: "xperia-xz", name: "Xperia XZ / XZs", maker: "xperia", kana: "エクスペリア エックスゼット",
+    variants: [
+      { c: "docomo", code: "SO-01J／SO-03J", rel: "2016〜17年", ship: "locked" },
+      { c: "au", code: "SOV34／SOV35", rel: "2016〜17年", ship: "locked" },
+      { c: "sb", code: "601SO", rel: "2016年", ship: "locked" }
+    ] },
+  { id: "xperia-xz1", name: "Xperia XZ1 / XZ1 Compact", maker: "xperia", kana: "エクスペリア エックスゼットワン",
+    variants: [
+      { c: "docomo", code: "SO-01K", rel: "2017年", ship: "locked" },
+      { c: "au", code: "SOV36", rel: "2017年", ship: "locked" }
+    ] },
+  { id: "xperia-xz2", name: "Xperia XZ2 / XZ2 Compact / XZ2 Premium", maker: "xperia", kana: "エクスペリア エックスゼットツー",
+    variants: [
+      { c: "docomo", code: "SO-03K／SO-05K", rel: "2018年", ship: "locked" },
+      { c: "au", code: "SOV37／SOV38", rel: "2018年", ship: "locked" },
+      { c: "sb", code: "702SO", rel: "2018年", ship: "locked" }
+    ] },
+  { id: "xperia-xz3", name: "Xperia XZ3", maker: "xperia", kana: "エクスペリア エックスゼットスリー",
+    variants: [
+      { c: "docomo", code: "SO-01L", rel: "2018年", ship: "locked" },
+      { c: "au", code: "SOV39", rel: "2018年", ship: "locked" },
+      { c: "sb", code: "801SO", rel: "2018年", ship: "locked" }
+    ] },
+  { id: "xperia-1", name: "Xperia 1", maker: "xperia", kana: "エクスペリア ワン",
+    variants: [
+      { c: "docomo", code: "SO-03L", rel: "2019年", ship: "locked" },
+      { c: "au", code: "SOV40", rel: "2019年", ship: "locked" },
+      { c: "sb", code: "802SO", rel: "2019年", ship: "locked" }
+    ] },
+  { id: "xperia-5", name: "Xperia 5", maker: "xperia", kana: "エクスペリア ファイブ",
+    variants: [
+      { c: "au", code: "SOV41", rel: "2019年", ship: "locked" },
+      { c: "sb", code: "901SO", rel: "2019年", ship: "locked" }
+    ] },
+  { id: "xperia-ace", name: "Xperia Ace", maker: "xperia", kana: "エクスペリア エース",
+    variants: [
+      { c: "docomo", code: "SO-02L", rel: "2019年12月", ship: "locked" },
+      { c: "ymobile", code: "A001SO（初代）", rel: "2020年", ship: "locked" }
+    ] },
+  { id: "xperia-8", name: "Xperia 8", maker: "xperia", kana: "エクスペリア エイト",
+    variants: [
+      { c: "sb", code: "902SO", rel: "2019年", ship: "locked" }
+    ] },
+
   // ---------- Galaxy ----------
   { id: "galaxy-a21", name: "Galaxy A21", maker: "galaxy", kana: "ギャラクシー",
     variants: [
@@ -419,6 +470,44 @@ const DEVICES = [
     variants: [{ c: "docomo", code: "SC-53B", rel: "2021年6月", ship: "locked" }] },
   { id: "galaxy-new", name: "Galaxy S22 以降 / A23 以降", maker: "galaxy", kana: "ギャラクシー",
     variants: ["docomo", "au", "uq", "rakuten", "free"].map(c => ({ c, rel: "2022年〜", ship: "free" })) },
+
+  // ---------- Galaxy（2015〜2020年 旧機種） ----------
+  { id: "galaxy-s7edge", name: "Galaxy S7 edge", maker: "galaxy", kana: "ギャラクシー エステブン",
+    variants: [
+      { c: "docomo", code: "SC-02H", rel: "2016年", ship: "locked" },
+      { c: "au", code: "SCV33", rel: "2016年", ship: "locked" }
+    ] },
+  { id: "galaxy-s8", name: "Galaxy S8 / S8+", maker: "galaxy", kana: "ギャラクシー エスエイト",
+    variants: [
+      { c: "docomo", code: "SC-02J／SC-03J", rel: "2017年", ship: "locked" },
+      { c: "au", code: "SCV36", rel: "2017年", ship: "locked" }
+    ] },
+  { id: "galaxy-note8", name: "Galaxy Note8", maker: "galaxy", kana: "ギャラクシー ノート",
+    variants: [
+      { c: "docomo", code: "SC-01K", rel: "2017年", ship: "locked" },
+      { c: "au", code: "SCV37", rel: "2017年", ship: "locked" }
+    ] },
+  { id: "galaxy-s9", name: "Galaxy S9 / S9+", maker: "galaxy", kana: "ギャラクシー エスナイン",
+    variants: [
+      { c: "docomo", code: "SC-02K／SC-03K", rel: "2018年", ship: "locked" },
+      { c: "au", code: "SCV38", rel: "2018年", ship: "locked" }
+    ] },
+  { id: "galaxy-note9", name: "Galaxy Note9", maker: "galaxy", kana: "ギャラクシー ノート",
+    variants: [
+      { c: "docomo", code: "SC-01L", rel: "2018年", ship: "locked" },
+      { c: "au", code: "SCV40", rel: "2018年", ship: "locked" }
+    ] },
+  { id: "galaxy-s10", name: "Galaxy S10 / S10+", maker: "galaxy", kana: "ギャラクシー エステン",
+    variants: [
+      { c: "docomo", code: "SC-03L／SC-04L", rel: "2019年", ship: "locked" },
+      { c: "au", code: "SCV41／SCV42", rel: "2019年", ship: "locked" }
+    ] },
+  { id: "galaxy-feel", name: "Galaxy Feel / Feel2", maker: "galaxy", kana: "ギャラクシー フィール",
+    variants: [
+      { c: "docomo", code: "SC-04J（Feel）／SC-02L（Feel2）", rel: "2017〜18年", ship: "locked" }
+    ] },
+  { id: "galaxy-a20", name: "Galaxy A20", maker: "galaxy", kana: "ギャラクシー エートゥエンティ",
+    variants: [{ c: "docomo", code: "SC-02M", rel: "2019年", ship: "locked" }] },
 
   // ---------- AQUOS ----------
   { id: "aquos-sense3-basic", name: "AQUOS sense3 basic", maker: "aquos", kana: "アクオス センス",
@@ -447,6 +536,47 @@ const DEVICES = [
     ] },
   { id: "aquos-new", name: "AQUOS sense6 以降 / wish シリーズ / R7 以降", maker: "aquos", kana: "アクオス センス ウィッシュ",
     variants: ["docomo", "au", "sb", "uq", "ymobile", "rakuten", "free"].map(c => ({ c, rel: "2021年11月〜", ship: "free" })) },
+
+  // ---------- AQUOS（2015〜2020年 旧機種） ----------
+  { id: "aquos-r", name: "AQUOS R", maker: "aquos", kana: "アクオス アール",
+    variants: [
+      { c: "docomo", code: "SH-03J", rel: "2017年", ship: "locked" },
+      { c: "au", code: "SHV39", rel: "2017年", ship: "locked" }
+    ] },
+  { id: "aquos-r2", name: "AQUOS R2", maker: "aquos", kana: "アクオス アール",
+    variants: [
+      { c: "docomo", code: "SH-03K", rel: "2018年", ship: "locked" },
+      { c: "au", code: "SHV42", rel: "2018年", ship: "locked" },
+      { c: "sb", code: "706SH", rel: "2018年", ship: "locked" }
+    ] },
+  { id: "aquos-r3", name: "AQUOS R3", maker: "aquos", kana: "アクオス アール",
+    variants: [
+      { c: "docomo", code: "SH-04L", rel: "2019年", ship: "locked" },
+      { c: "au", code: "SHV44", rel: "2019年", ship: "locked" },
+      { c: "sb", code: "808SH", rel: "2019年", ship: "locked" }
+    ] },
+  { id: "aquos-sense", name: "AQUOS sense（初代）", maker: "aquos", kana: "アクオス センス",
+    variants: [
+      { c: "docomo", code: "SH-01K", rel: "2017年", ship: "locked" },
+      { c: "au", code: "SHV40", rel: "2018年", ship: "locked" },
+      { c: "sb", code: "603SH", rel: "2018年", ship: "locked" }
+    ] },
+  { id: "aquos-sense2", name: "AQUOS sense2", maker: "aquos", kana: "アクオス センス",
+    variants: [
+      { c: "docomo", code: "SH-01L", rel: "2018年", ship: "locked" },
+      { c: "au", code: "SHV43", rel: "2018年", ship: "locked" }
+    ] },
+  { id: "aquos-sense3", name: "AQUOS sense3", maker: "aquos", kana: "アクオス センス",
+    variants: [
+      { c: "docomo", code: "SH-02M", rel: "2019年", ship: "locked" },
+      { c: "au", code: "SHV45", rel: "2019年", ship: "locked" },
+      { c: "ymobile", code: "A004SH", rel: "2019年", ship: "locked" }
+    ] },
+  { id: "aquos-zeta", name: "AQUOS ZETA", maker: "aquos", kana: "アクオス ゼータ",
+    variants: [
+      { c: "docomo", code: "SH-01H／SH-04H", rel: "2015〜16年", ship: "locked" },
+      { c: "au", code: "SHV32", rel: "2015年", ship: "locked" }
+    ] },
   { id: "aquos-keitai", name: "AQUOSケータイ（ガラホ）", maker: "garaho", brand: "aquos", kana: "アクオス ケータイ ガラホ",
     variants: [
       { c: "docomo", code: "SH-02L", rel: "2019年", ship: "locked" },
@@ -516,6 +646,18 @@ const DEVICES = [
       { c: "au", code: "FCG01", rel: "2021年12月", ship: "free" },
       { c: "sb", code: "A101FC", rel: "2021年12月", ship: "free" }
     ] },
+
+  // ---------- arrows（2015〜2020年 旧機種） ----------
+  { id: "arrows-be", name: "arrows Be / Be3", maker: "fcnt", kana: "アローズ ビー",
+    variants: [
+      { c: "docomo", code: "F-04K（Be）／F-02L（Be3）", rel: "2018〜19年", ship: "locked" }
+    ] },
+  { id: "arrows-nx", name: "arrows NX", maker: "fcnt", kana: "アローズ エヌエックス",
+    variants: [
+      { c: "docomo", code: "F-01J／F-02H", rel: "2016〜17年", ship: "locked" }
+    ] },
+  { id: "raku-f04j", name: "らくらくスマートフォン me", maker: "fcnt", kana: "らくらくホン シニア",
+    variants: [{ c: "docomo", code: "F-01L", rel: "2019年", ship: "locked", note: "ドコモショップでIMEI照会が早い" }] },
 
   // ---------- HUAWEI ----------
   { id: "huawei-p20lite", name: "HUAWEI P20 lite", maker: "huawei", kana: "ファーウェイ",
