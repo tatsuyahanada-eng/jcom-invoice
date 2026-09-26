@@ -549,8 +549,11 @@
   const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
 
   // 検索用インデックス
+  // メーカー名の（BASIO・かんたんスマホ・DIGNO…）のような副ブランド列挙は、
+  // その名を持つ全機種にヒットしてしまうため、索引には括弧の前だけを使う
+  const bareMakerName = name => name.replace(/（.*/, "");
   DEVICES.forEach(d => {
-    const parts = [d.name, d.kana, MAKERS[d.maker].name, d.brand && MAKERS[d.brand].name, OSNAME[deviceOs(d)],
+    const parts = [d.name, d.kana, bareMakerName(MAKERS[d.maker].name), d.brand && bareMakerName(MAKERS[d.brand].name), OSNAME[deviceOs(d)],
       ...d.variants.flatMap(v => [v.code, CARRIERS[v.c].name, CARRIERS[v.c].short])];
     d._idx = norm(parts.join(" "));
   });
@@ -670,7 +673,9 @@
   const extA = (url, label, cls) => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>`;
 
   // 確認手順のパンくず（1機種で手順が複数ある京セラ等は配列で保持）
-  const makerPathList = (mk, c) => mk.paths || [(mk.pathBy && mk.pathBy[c]) || mk.path];
+  // 機種ごとに path/paths を直接持たせておけば、メーカー共通の場所より優先して使う
+  // （京セラのように、機種によって画面の階層が違うメーカー向け）
+  const makerPathList = (mk, c, d) => (d && (d.paths || d.path)) ? (d.paths || [d.path]) : (mk.paths || [(mk.pathBy && mk.pathBy[c]) || mk.path]);
   const pathText = p => `${p.steps.join("→")}→「${p.target}」`;
   const pathListText = list => list.map(p => (p.label ? p.label + "：" : "") + pathText(p)).join("／");
   const pathChip = p => `<div class="pathnav">${p.label ? `<span class="pc-label">${esc(p.label)}</span>` : ""}<div class="pc-crumbs">${
@@ -744,7 +749,7 @@
     const mk = MAKERS[d.maker];
     const os = deviceOs(d);
     const ur = UNLOCK[v.c];
-    const pathList = makerPathList(mk, v.c);
+    const pathList = makerPathList(mk, v.c, d);
     const netKey = CARRIERS[v.c].net;
     const noCheck = v.c === "rakuten" || v.c === "free";
     const brandMk = d.brand ? MAKERS[d.brand] : null;
@@ -802,7 +807,7 @@
         <td class="code">${esc(v.code || "—")}</td>
         <td>${esc(v.rel)}</td>
         <td><span class="pill ${STATUS[v.ship].cls}">${STATUS[v.ship].short}</span></td>
-        <td>${esc(pathListText(makerPathList(mk, v.c)))}</td>
+        <td>${esc(pathListText(makerPathList(mk, v.c, d)))}</td>
         <td>${MAIL[v.c].ok === true ? `<span class="yes">可</span>` : MAIL[v.c].ok === false ? `<span class="no">不可</span>` : "—"}</td>
       </tr>` });
     }));

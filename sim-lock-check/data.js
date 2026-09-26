@@ -197,10 +197,9 @@ const MAKERS = {
   },
   kyocera: {
     name: "京セラ（BASIO・かんたんスマホ・DIGNO・TORQUE）", os: "android",
-    paths: [
-      { label: "BASIO4", steps: ["その他の設定", "デバイス情報"], target: "SIMカードの状態" },
-      { label: "BASIO3", steps: ["ツール", "設定", "端末情報"], target: "SIMカードの状態" }
-    ],
+    /* 機種ごとの正確な場所は各DEVICESエントリのpath/pathsで上書きする（BASIO4/BASIO3等）。
+       ここはそれらを持たない機種（DIGNO・TORQUE・BASIO active等）向けの一般的な目安 */
+    path: P(["設定", "端末情報"], "SIMカードの状態", "機種により「その他の設定」の中や、ツール→設定の階層になっている場合がある（BASIOシリーズ等）"),
     ok: "許可 ＝ 解除済",
     ng: "許可されていません ＝ ロック中",
     notes: [
@@ -508,6 +507,20 @@ const DEVICES = [
     ] },
   { id: "galaxy-a20", name: "Galaxy A20", maker: "galaxy", kana: "ギャラクシー エートゥエンティ",
     variants: [{ c: "docomo", code: "SC-02M", rel: "2019年", ship: "locked" }] },
+  { id: "galaxy-a30", name: "Galaxy A30", maker: "galaxy", kana: "ギャラクシー エーサーティ",
+    variants: [{ c: "rakuten", rel: "2019年", ship: "free" }] },
+  { id: "galaxy-a41", name: "Galaxy A41", maker: "galaxy", kana: "ギャラクシー エーヨンジューイチ",
+    variants: [
+      { c: "docomo", code: "SC-41A", rel: "2020年", ship: "locked" },
+      { c: "uq", rel: "2020年", ship: "locked" }
+    ] },
+  { id: "galaxy-a51-5g", name: "Galaxy A51 5G", maker: "galaxy", kana: "ギャラクシー エーゴジューイチ",
+    variants: [{ c: "au", code: "SCG07", rel: "2020年", ship: "locked" }] },
+  { id: "galaxy-a22-5g", name: "Galaxy A22 5G", maker: "galaxy", kana: "ギャラクシー エーニジュウニ",
+    variants: [
+      { c: "au", rel: "2021年", ship: "locked" },
+      { c: "uq", rel: "2021年", ship: "locked" }
+    ] },
 
   // ---------- AQUOS ----------
   { id: "aquos-sense3-basic", name: "AQUOS sense3 basic", maker: "aquos", kana: "アクオス センス",
@@ -585,14 +598,35 @@ const DEVICES = [
 
   // ---------- 京セラ ----------
   { id: "basio4", name: "BASIO4", maker: "kyocera", kana: "ベイシオ シニア",
+    path: P(["その他の設定", "デバイス情報"], "SIMカードの状態"),
     variants: [
       { c: "au", code: "KYV47", rel: "2020年", ship: "locked" },
       { c: "uq", code: "KYV47", rel: "2020年", ship: "locked" }
     ] },
   { id: "basio3", name: "BASIO3", maker: "kyocera", kana: "ベイシオ シニア",
+    path: P(["ツール", "設定", "端末情報"], "SIMカードの状態"),
     variants: [{ c: "au", code: "KYV43", rel: "2018年", ship: "locked" }] },
+  { id: "basio2", name: "BASIO2", maker: "kyocera", kana: "ベイシオ シニア",
+    variants: [{ c: "au", code: "KYV39", rel: "2017年", ship: "locked" }] },
+  { id: "basio", name: "BASIO（初代）", maker: "kyocera", kana: "ベイシオ シニア",
+    variants: [{ c: "au", code: "KYV32", rel: "2016年", ship: "locked" }] },
+  { id: "basio-active", name: "BASIO active / active2", maker: "kyocera", kana: "ベイシオ アクティブ シニア",
+    variants: [
+      { c: "au", rel: "2019〜21年", ship: "locked", note: "防水・耐衝撃タイプのBASIO。設定 ＞ システム ＞ 端末情報 ＞「SIMロックの状態」で確認" },
+      { c: "uq", rel: "2019〜21年", ship: "locked" }
+    ], note: "型番はショップ・本体裏面のシールで確認（KYV4x系）" },
   { id: "kantan-sumaho2", name: "かんたんスマホ2 / 2+", maker: "kyocera", kana: "かんたんスマホ シニア",
     variants: [{ c: "ymobile", code: "A001KC", rel: "2021年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し。他社SIMで解除コード画面の有無を確認" }] },
+  { id: "kantan-sumaho1", name: "かんたんスマホ（初代）", maker: "kyocera", kana: "かんたんスマホ シニア",
+    variants: [{ c: "ymobile", code: "501KC", rel: "2016年", ship: "locked" }] },
+  { id: "digno", name: "DIGNO A / E / G / J / SANGA", maker: "kyocera", kana: "ディグノ",
+    variants: [
+      { c: "au", rel: "2016〜19年", ship: "locked", note: "au向けDIGNOシリーズ全般。設定 ＞ 端末情報 ＞ ステータス情報 ＞「SIMロックの状態」で確認" },
+      { c: "ymobile", rel: "2018〜19年", ship: "locked", note: "Y!mobile向け（DIGNO J等）" },
+      { c: "sb", rel: "2018〜19年", ship: "locked", note: "ソフトバンク向け（DIGNO G等）他社SIM挿入で解除コード画面の有無を確認" }
+    ] },
+  { id: "torque-g03", name: "TORQUE G03 / G04", maker: "kyocera", kana: "トルク",
+    variants: [{ c: "au", rel: "2018〜19年", ship: "locked" }] },
   { id: "torque-5g", name: "TORQUE 5G", maker: "kyocera", kana: "トルク",
     variants: [{ c: "au", code: "KYG01", rel: "2021年", ship: "locked" }] },
   { id: "gratina", name: "GRATINA（ガラホ）", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ",
@@ -623,10 +657,19 @@ const DEVICES = [
       { c: "rakuten", rel: "2020年", ship: "free" },
       { c: "free", code: "CPH2099", rel: "2020年", ship: "free" }
     ] },
+  { id: "oppo-a5-2020", name: "OPPO A5 2020", maker: "oppo", kana: "オッポ エーファイブ",
+    variants: [{ c: "au", code: "OPG01", rel: "2019年", ship: "locked" }] },
+  { id: "oppo-a55s", name: "OPPO A55s 5G", maker: "oppo", kana: "オッポ エーゴジューゴ",
+    variants: [{ c: "au", rel: "2021年", ship: "locked" }, { c: "uq", rel: "2021年", ship: "locked" }] },
 
   // ---------- Xiaomi ----------
   { id: "redmi-note-9t", name: "Redmi Note 9T", maker: "xiaomi", kana: "レッドミー シャオミ",
     variants: [{ c: "sb", code: "A001XM", rel: "2021年2月", ship: "locked", note: "他社SIMで解除コード入力画面＝ロック中。My SoftBankでIMEIからコード発行" }] },
+  { id: "redmi-9t", name: "Redmi 9T", maker: "xiaomi", kana: "レッドミー シャオミ",
+    variants: [
+      { c: "rakuten", rel: "2021年", ship: "free" },
+      { c: "uq", rel: "2021年", ship: "locked" }
+    ] },
   { id: "redmi-note-10-je", name: "Redmi Note 10 JE", maker: "xiaomi", kana: "レッドミー シャオミ",
     variants: [
       { c: "au", code: "XIG02", rel: "2021年8月", ship: "free", note: "解除済みの状態で出荷（au取説に記載）" },
@@ -658,6 +701,14 @@ const DEVICES = [
     ] },
   { id: "raku-f04j", name: "らくらくスマートフォン me", maker: "fcnt", kana: "らくらくホン シニア",
     variants: [{ c: "docomo", code: "F-01L", rel: "2019年", ship: "locked", note: "ドコモショップでIMEI照会が早い" }] },
+  { id: "raku-4", name: "らくらくスマートフォン4", maker: "fcnt", kana: "らくらくホン シニア",
+    variants: [{ c: "docomo", code: "F-04K", rel: "2018年", ship: "locked", note: "ドコモショップでIMEI照会が早い" }] },
+  { id: "arrows-5g", name: "arrows 5G", maker: "fcnt", kana: "アローズ",
+    variants: [{ c: "docomo", code: "F-51A", rel: "2020年", ship: "locked" }] },
+  { id: "arrows-u", name: "arrows U", maker: "fcnt", kana: "アローズ ユー",
+    variants: [{ c: "ymobile", code: "801FJ", rel: "2020年", ship: "locked" }] },
+  { id: "arrows-m-simfree", name: "arrows M04 / M05（SIMフリー版）", maker: "fcnt", kana: "アローズ エム シムフリー",
+    variants: [{ c: "free", rel: "2017〜19年", ship: "free", note: "富士通コネクテッドテクノロジーズのSIMフリー端末。ロックなし" }] },
 
   // ---------- HUAWEI ----------
   { id: "huawei-p20lite", name: "HUAWEI P20 lite", maker: "huawei", kana: "ファーウェイ",
