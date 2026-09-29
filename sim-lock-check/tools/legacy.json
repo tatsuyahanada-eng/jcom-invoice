@@ -1,0 +1,4697 @@
+[
+{
+"id": "iphone-6s-7",
+"name": "iPhone 6s / 7 / SE（第1世代）",
+"maker": "iphone",
+"kana": "アイフォン",
+"variants": [
+{
+"c": "docomo",
+"rel": "2015〜16年",
+"ship": "locked"
+},
+{
+"c": "au",
+"rel": "2015〜16年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"rel": "2015〜16年",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"rel": "2018年〜（Y!販売）",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+},
+{
+"c": "uq",
+"rel": "2018年〜（UQ販売）",
+"ship": "locked"
+}
+],
+"note": "iOS 14以上に更新できない機種は設定に「SIMロック」項目が出ない → 他社SIMテストで判定"
+},
+{
+"id": "iphone-8-x",
+"name": "iPhone 8 / 8 Plus / X",
+"maker": "iphone",
+"kana": "アイフォン",
+"variants": [
+{
+"c": "docomo",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "au",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "uq",
+"rel": "2019年〜（UQ販売）",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"rel": "2019年〜（Y!販売）",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+}
+]
+},
+{
+"id": "iphone-xs-xr",
+"name": "iPhone XS / XS Max / XR",
+"maker": "iphone",
+"kana": "アイフォン",
+"variants": [
+{
+"c": "docomo",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "au",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "iphone-11",
+"name": "iPhone 11 / 11 Pro / 11 Pro Max",
+"maker": "iphone",
+"kana": "アイフォン",
+"variants": [
+{
+"c": "docomo",
+"rel": "2019年9月",
+"ship": "locked"
+},
+{
+"c": "au",
+"rel": "2019年9月",
+"ship": "locked"
+},
+{
+"c": "sb",
+"rel": "2019年9月",
+"ship": "locked"
+}
+]
+},
+{
+"id": "iphone-se2",
+"name": "iPhone SE（第2世代）",
+"maker": "iphone",
+"kana": "アイフォン SE2",
+"variants": [
+{
+"c": "docomo",
+"rel": "2020年5月",
+"ship": "locked"
+},
+{
+"c": "au",
+"rel": "2020年5月",
+"ship": "locked"
+},
+{
+"c": "sb",
+"rel": "2020年5月",
+"ship": "locked"
+},
+{
+"c": "uq",
+"rel": "2020年",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"rel": "2020年〜",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+}
+]
+},
+{
+"id": "iphone-12",
+"name": "iPhone 12 / 12 mini / 12 Pro / 12 Pro Max",
+"maker": "iphone",
+"kana": "アイフォン",
+"variants": [
+{
+"c": "docomo",
+"rel": "2020年10月",
+"ship": "locked"
+},
+{
+"c": "au",
+"rel": "2020年10月",
+"ship": "locked"
+},
+{
+"c": "sb",
+"rel": "2020年10月",
+"ship": "locked"
+}
+]
+},
+{
+"id": "iphone-13",
+"name": "iPhone 13 / 13 mini / 13 Pro / 13 Pro Max",
+"maker": "iphone",
+"kana": "アイフォン",
+"variants": [
+{
+"c": "docomo",
+"rel": "2021年9月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2021年9月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2021年9月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2021年9月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2021年9月",
+"ship": "free"
+}
+],
+"note": "iPhone 13以降は全キャリアでロックなし販売"
+},
+{
+"id": "iphone-se3",
+"name": "iPhone SE（第3世代）",
+"maker": "iphone",
+"kana": "アイフォン SE3",
+"variants": [
+{
+"c": "docomo",
+"rel": "2022年3月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2022年3月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2022年3月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2022年3月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2022年3月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2022年3月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2022年3月",
+"ship": "free"
+}
+]
+},
+{
+"id": "nexus-6p",
+"name": "Nexus 6P",
+"maker": "pixel",
+"kana": "ネクサス グーグル",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2016年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "nexus-5x",
+"name": "Nexus 5X",
+"maker": "pixel",
+"kana": "ネクサス グーグル",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2016年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "nexus-6",
+"name": "Nexus 6",
+"maker": "pixel",
+"kana": "ネクサス グーグル",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2015年",
+"ship": "free",
+"note": "Y!mobile販売分もSIMフリー扱い"
+}
+]
+},
+{
+"id": "pixel-3",
+"name": "Pixel 3 / 3 XL / 3a / 3a XL",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "docomo",
+"rel": "2018〜19年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"rel": "2018〜19年",
+"ship": "locked"
+},
+{
+"c": "free",
+"rel": "2018〜19年",
+"ship": "free",
+"note": "Google Store版"
+}
+]
+},
+{
+"id": "pixel-4",
+"name": "Pixel 4 / 4 XL / 4a / 4a (5G)",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "sb",
+"rel": "2019〜20年",
+"ship": "locked"
+},
+{
+"c": "au",
+"rel": "2020年（4a 5G）",
+"ship": "locked"
+},
+{
+"c": "free",
+"rel": "2019〜20年",
+"ship": "free",
+"note": "Google Store版"
+}
+]
+},
+{
+"id": "pixel-5",
+"name": "Pixel 5 / 5a (5G)",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "au",
+"rel": "2020年10月（5）",
+"ship": "locked"
+},
+{
+"c": "sb",
+"rel": "2020〜21年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+},
+{
+"c": "free",
+"rel": "2020〜21年",
+"ship": "free",
+"note": "Google Store版"
+}
+]
+},
+{
+"id": "pixel-6plus",
+"name": "Pixel 上記以外の2021年10月以降発売モデル",
+"maker": "pixel",
+"kana": "ピクセル グーグル 11 12",
+"variants": [
+{
+"c": "au",
+"rel": "2021年10月〜",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2021年10月〜",
+"ship": "free"
+},
+{
+"c": "docomo",
+"rel": "2023年〜（Pixel 8〜）",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2021年10月〜",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-10-ii",
+"name": "Xperia 10 II",
+"maker": "xperia",
+"kana": "エクスペリア",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-41A",
+"rel": "2020年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOV43",
+"rel": "2020年",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"code": "A001SO",
+"rel": "2020年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+}
+]
+},
+{
+"id": "xperia-10-iii",
+"name": "Xperia 10 III",
+"maker": "xperia",
+"kana": "エクスペリア",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-52B",
+"rel": "2021年6月",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOG04",
+"rel": "2021年6月",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"code": "A102SO",
+"rel": "2021年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+}
+]
+},
+{
+"id": "xperia-1-iii",
+"name": "Xperia 1 III",
+"maker": "xperia",
+"kana": "エクスペリア",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-51B",
+"rel": "2021年7月",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOG03",
+"rel": "2021年7月",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "A101SO",
+"rel": "2021年7月",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+}
+]
+},
+{
+"id": "xperia-1-ii",
+"name": "Xperia 1 II",
+"maker": "xperia",
+"kana": "エクスペリア ワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-51A",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-5-ii",
+"name": "Xperia 5 II",
+"maker": "xperia",
+"kana": "エクスペリア ファイブ",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-52A",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-new",
+"name": "Xperia 上記以外の2021年10月以降発売モデル",
+"maker": "xperia",
+"kana": "エクスペリア",
+"variants": [
+{
+"c": "docomo",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2022年〜",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-x-performance",
+"name": "Xperia X Performance / X Compact",
+"maker": "xperia",
+"kana": "エクスペリア エックス",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-04H",
+"rel": "2016年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOV33",
+"rel": "2016年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "502SO",
+"rel": "2016年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-xz",
+"name": "Xperia XZ / XZs",
+"maker": "xperia",
+"kana": "エクスペリア エックスゼット",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-01J／SO-03J",
+"rel": "2016〜17年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOV34／SOV35",
+"rel": "2016〜17年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "601SO",
+"rel": "2016年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-xz1",
+"name": "Xperia XZ1 / XZ1 Compact",
+"maker": "xperia",
+"kana": "エクスペリア エックスゼットワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-01K",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOV36",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "701SO",
+"rel": "2017年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-xz2",
+"name": "Xperia XZ2 / XZ2 Compact / XZ2 Premium",
+"maker": "xperia",
+"kana": "エクスペリア エックスゼットツー",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-03K／SO-05K",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOV37／SOV38",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "702SO",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-xz3",
+"name": "Xperia XZ3",
+"maker": "xperia",
+"kana": "エクスペリア エックスゼットスリー",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-01L",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOV39",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "801SO",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-1",
+"name": "Xperia 1",
+"maker": "xperia",
+"kana": "エクスペリア ワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-03L",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOV40",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "802SO",
+"rel": "2019年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-5",
+"name": "Xperia 5",
+"maker": "xperia",
+"kana": "エクスペリア ファイブ",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-01M",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SOV41",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "901SO",
+"rel": "2019年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-ace",
+"name": "Xperia Ace",
+"maker": "xperia",
+"kana": "エクスペリア エース",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-02L",
+"rel": "2019年12月",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"code": "A001SO（初代）",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-8",
+"name": "Xperia 8",
+"maker": "xperia",
+"kana": "エクスペリア エイト",
+"variants": [
+{
+"c": "sb",
+"code": "902SO",
+"rel": "2019年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-a21",
+"name": "Galaxy A21",
+"maker": "galaxy",
+"kana": "ギャラクシー",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-42A",
+"rel": "2020年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SCV49",
+"rel": "2020年",
+"ship": "locked"
+},
+{
+"c": "uq",
+"code": "SCV49",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-a32",
+"name": "Galaxy A32 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー",
+"variants": [
+{
+"c": "au",
+"code": "SCG08",
+"rel": "2021年2月",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-s21",
+"name": "Galaxy S21 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-51B",
+"rel": "2021年4月",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SCG09",
+"rel": "2021年4月",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-a52",
+"name": "Galaxy A52 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-53B",
+"rel": "2021年6月",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-new",
+"name": "Galaxy 上記以外の2022年以降発売モデル",
+"maker": "galaxy",
+"kana": "ギャラクシー",
+"variants": [
+{
+"c": "docomo",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2022年〜",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-s7edge",
+"name": "Galaxy S7 edge",
+"maker": "galaxy",
+"kana": "ギャラクシー エステブン",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-02H",
+"rel": "2016年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SCV33",
+"rel": "2016年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-s8",
+"name": "Galaxy S8 / S8+",
+"maker": "galaxy",
+"kana": "ギャラクシー エスエイト",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-02J／SC-03J",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SCV36",
+"rel": "2017年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-note8",
+"name": "Galaxy Note8",
+"maker": "galaxy",
+"kana": "ギャラクシー ノート",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-01K",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SCV37",
+"rel": "2017年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-s9",
+"name": "Galaxy S9 / S9+",
+"maker": "galaxy",
+"kana": "ギャラクシー エスナイン",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-02K／SC-03K",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SCV38",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-note9",
+"name": "Galaxy Note9",
+"maker": "galaxy",
+"kana": "ギャラクシー ノート",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-01L",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SCV40",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-s10",
+"name": "Galaxy S10 / S10+",
+"maker": "galaxy",
+"kana": "ギャラクシー エステン",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-03L／SC-04L",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SCV41／SCV42",
+"rel": "2019年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-s20",
+"name": "Galaxy S20 5G / S20+ 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エストゥエンティ",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-51A／SC-52A",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-note20",
+"name": "Galaxy Note20 Ultra 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー ノート",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-53A",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-s21-ultra",
+"name": "Galaxy S21 Ultra 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エストゥエンティワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-52B",
+"rel": "2021年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-zfold-flip",
+"name": "Galaxy Z Fold / Z Flip 上記以外の最新モデル",
+"maker": "galaxy",
+"kana": "ギャラクシー ゼットフォールド ゼットフリップ",
+"variants": [
+{
+"c": "docomo",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2022年〜",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2022年〜",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-feel",
+"name": "Galaxy Feel / Feel2",
+"maker": "galaxy",
+"kana": "ギャラクシー フィール",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-04J（Feel）／SC-02L（Feel2）",
+"rel": "2017〜18年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-a20",
+"name": "Galaxy A20",
+"maker": "galaxy",
+"kana": "ギャラクシー エートゥエンティ",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-02M",
+"rel": "2019年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-a30",
+"name": "Galaxy A30",
+"maker": "galaxy",
+"kana": "ギャラクシー エーサーティ",
+"variants": [
+{
+"c": "rakuten",
+"rel": "2019年",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-a41",
+"name": "Galaxy A41",
+"maker": "galaxy",
+"kana": "ギャラクシー エーヨンジューイチ",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-41A",
+"rel": "2020年",
+"ship": "locked"
+},
+{
+"c": "uq",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "galaxy-a51-5g",
+"name": "Galaxy A51 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エーゴジューイチ",
+"variants": [
+{
+"c": "au",
+"code": "SCG07",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-sense3-basic",
+"name": "AQUOS sense3 basic",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "au",
+"code": "SHV48",
+"rel": "2020年6月",
+"ship": "locked"
+},
+{
+"c": "uq",
+"code": "SHV48",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-sense4",
+"name": "AQUOS sense4 / sense4 lite / sense4 basic",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-41A",
+"rel": "2020年11月",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"code": "A003SH（basic）",
+"rel": "2021年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+},
+{
+"c": "rakuten",
+"code": "SH-RM15（lite）",
+"rel": "2020年",
+"ship": "free"
+},
+{
+"c": "free",
+"code": "SH-M15",
+"rel": "2020年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-sense5g",
+"name": "AQUOS sense5G",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-53A",
+"rel": "2021年2月",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHG03",
+"rel": "2021年2月",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "A004SH",
+"rel": "2021年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+}
+]
+},
+{
+"id": "aquos-r5g-r6",
+"name": "AQUOS R5G / R6",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-51A／SH-51B",
+"rel": "2020〜21年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHG01",
+"rel": "2020年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "908SH／A101SH",
+"rel": "2020〜21年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+}
+]
+},
+{
+"id": "aquos-new",
+"name": "AQUOS 上記以外の2021年11月以降発売モデル",
+"maker": "aquos",
+"kana": "アクオス センス ウィッシュ",
+"variants": [
+{
+"c": "docomo",
+"rel": "2021年11月〜",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2021年11月〜",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2021年11月〜",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2021年11月〜",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2021年11月〜",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2021年11月〜",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2021年11月〜",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-r",
+"name": "AQUOS R",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-03J",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHV39",
+"rel": "2017年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-r2",
+"name": "AQUOS R2",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-03K",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHV42",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "706SH",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-r3",
+"name": "AQUOS R3",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-04L",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHV44",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "808SH",
+"rel": "2019年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-sense",
+"name": "AQUOS sense（初代）",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-01K",
+"rel": "2017年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHV40",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "603SH",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-sense2",
+"name": "AQUOS sense2",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-01L",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHV43",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-sense3",
+"name": "AQUOS sense3",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-02M",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHV45",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"code": "A004SH",
+"rel": "2019年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-zeta",
+"name": "AQUOS ZETA",
+"maker": "aquos",
+"kana": "アクオス ゼータ",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-01H／SH-04H",
+"rel": "2015〜16年",
+"ship": "locked"
+},
+{
+"c": "au",
+"code": "SHV32",
+"rel": "2015年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "aquos-keitai",
+"name": "AQUOSケータイ（ガラホ）",
+"maker": "garaho",
+"brand": "aquos",
+"kana": "アクオス ケータイ ガラホ",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-02L",
+"rel": "2019年",
+"ship": "locked"
+},
+{
+"c": "sb",
+"code": "805SH（AQUOSケータイ3）",
+"rel": "2019年",
+"ship": "locked",
+"note": "My SoftBankでIMEI照会も可"
+}
+]
+},
+{
+"id": "basio4",
+"name": "BASIO4",
+"maker": "kyocera",
+"kana": "ベイシオ シニア",
+"path": {
+"steps": [
+"その他の設定",
+"デバイス情報"
+],
+"target": "SIMカードの状態"
+},
+"variants": [
+{
+"c": "au",
+"code": "KYV47",
+"rel": "2020年",
+"ship": "locked"
+},
+{
+"c": "uq",
+"code": "KYV47",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "basio3",
+"name": "BASIO3",
+"maker": "kyocera",
+"kana": "ベイシオ シニア",
+"path": {
+"steps": [
+"ツール",
+"設定",
+"端末情報"
+],
+"target": "SIMカードの状態"
+},
+"variants": [
+{
+"c": "au",
+"code": "KYV43",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "basio2",
+"name": "BASIO2",
+"maker": "kyocera",
+"kana": "ベイシオ シニア",
+"variants": [
+{
+"c": "au",
+"code": "KYV39",
+"rel": "2017年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "basio",
+"name": "BASIO（初代）",
+"maker": "kyocera",
+"kana": "ベイシオ シニア",
+"variants": [
+{
+"c": "au",
+"code": "KYV32",
+"rel": "2016年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "kantan-sumaho2",
+"name": "かんたんスマホ2 / 2+",
+"maker": "kyocera",
+"kana": "かんたんスマホ シニア",
+"variants": [
+{
+"c": "ymobile",
+"code": "A001KC",
+"rel": "2021年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し。他社SIMで解除コード画面の有無を確認"
+}
+]
+},
+{
+"id": "kantan-sumaho1",
+"name": "かんたんスマホ（初代）",
+"maker": "kyocera",
+"kana": "かんたんスマホ シニア",
+"variants": [
+{
+"c": "ymobile",
+"code": "501KC",
+"rel": "2016年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "digno",
+"name": "DIGNO A / E / G / J / SANGA",
+"maker": "kyocera",
+"kana": "ディグノ",
+"variants": [
+{
+"c": "au",
+"rel": "2016〜19年",
+"ship": "locked",
+"note": "au向けDIGNOシリーズ全般。設定 ＞ 端末情報 ＞ ステータス情報 ＞「SIMロックの状態」で確認"
+},
+{
+"c": "ymobile",
+"rel": "2018〜19年",
+"ship": "locked",
+"note": "Y!mobile向け（DIGNO J等）"
+},
+{
+"c": "sb",
+"rel": "2018〜19年",
+"ship": "locked",
+"note": "ソフトバンク向け（DIGNO G等）他社SIM挿入で解除コード画面の有無を確認"
+}
+]
+},
+{
+"id": "torque-g03",
+"name": "TORQUE G03",
+"maker": "kyocera",
+"kana": "トルク",
+"variants": [
+{
+"c": "au",
+"code": "KYV41",
+"rel": "2018年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "torque-g04",
+"name": "TORQUE G04",
+"maker": "kyocera",
+"kana": "トルク",
+"variants": [
+{
+"c": "au",
+"code": "KYV46",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "torque-5g",
+"name": "TORQUE 5G",
+"maker": "kyocera",
+"kana": "トルク",
+"variants": [
+{
+"c": "au",
+"code": "KYG01",
+"rel": "2021年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "kyocera-kyg04",
+"name": "au KYG04（京セラ製・機種名未確認）",
+"maker": "kyocera",
+"kana": "キョウジー ゼロヨン",
+"variants": [
+{
+"c": "au",
+"code": "KYG04",
+"rel": "不明",
+"ship": "rule",
+"note": "型番から京セラ製と推定されますが、正式な製品名は未確認です。確認手順・解除方法はauの京セラ機種共通の目安を参照してください。判明次第、正式名称に更新します。"
+}
+]
+},
+{
+"id": "gratina",
+"name": "GRATINA（ガラホ）",
+"maker": "garaho",
+"brand": "kyocera",
+"kana": "グラティーナ ガラホ",
+"variants": [
+{
+"c": "au",
+"code": "KYF39",
+"rel": "2019年",
+"ship": "locked",
+"note": "他社SIM挿入でアンテナが立つか／My auで「SIMロック解除可否」確認"
+}
+]
+},
+{
+"id": "digno-keitai3",
+"name": "DIGNOケータイ3（ガラホ）",
+"maker": "garaho",
+"brand": "kyocera",
+"kana": "ディグノ ケータイ ガラホ",
+"variants": [
+{
+"c": "sb",
+"code": "903KC",
+"rel": "2019年",
+"ship": "locked",
+"note": "My SoftBankでIMEI照会も可"
+}
+]
+},
+{
+"id": "oppo-a54",
+"name": "OPPO A54 5G",
+"maker": "oppo",
+"kana": "オッポ",
+"variants": [
+{
+"c": "au",
+"code": "OPG02",
+"rel": "2021年6月",
+"ship": "locked"
+},
+{
+"c": "uq",
+"code": "OPG02",
+"rel": "2021年6月",
+"ship": "locked"
+}
+]
+},
+{
+"id": "oppo-reno3a",
+"name": "OPPO Reno3 A",
+"maker": "oppo",
+"kana": "オッポ リノ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2020年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+},
+{
+"c": "rakuten",
+"rel": "2020年",
+"ship": "free"
+},
+{
+"c": "free",
+"code": "CPH2013",
+"rel": "2020年",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-reno7a",
+"name": "OPPO Reno7 A",
+"maker": "oppo",
+"kana": "オッポ リノ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2022年",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-reno11a",
+"name": "OPPO Reno11 A",
+"maker": "oppo",
+"kana": "オッポ リノ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2024年",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-a79-5g",
+"name": "OPPO A79 5G",
+"maker": "oppo",
+"kana": "オッポ エーナナジュウキュウ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2023年",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-reno5a",
+"name": "OPPO Reno5 A",
+"maker": "oppo",
+"kana": "オッポ リノ",
+"variants": [
+{
+"c": "ymobile",
+"code": "A101OP",
+"rel": "2021年6月",
+"ship": "cond",
+"note": "2021/5/12以降の購入なら解除済で渡し。他社SIMで確認"
+},
+{
+"c": "rakuten",
+"rel": "2021年6月",
+"ship": "free"
+},
+{
+"c": "free",
+"code": "CPH2199",
+"rel": "2021年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-a73",
+"name": "OPPO A73",
+"maker": "oppo",
+"kana": "オッポ",
+"variants": [
+{
+"c": "rakuten",
+"rel": "2020年",
+"ship": "free"
+},
+{
+"c": "free",
+"code": "CPH2099",
+"rel": "2020年",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-a5-2020",
+"name": "OPPO A5 2020",
+"maker": "oppo",
+"kana": "オッポ エーファイブ",
+"variants": [
+{
+"c": "au",
+"code": "OPG01",
+"rel": "2019年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "redmi-note-9t",
+"name": "Redmi Note 9T",
+"maker": "xiaomi",
+"kana": "レッドミー シャオミ",
+"variants": [
+{
+"c": "sb",
+"code": "A001XM",
+"rel": "2021年2月",
+"ship": "locked",
+"note": "他社SIMで解除コード入力画面＝ロック中。My SoftBankでIMEIからコード発行"
+}
+]
+},
+{
+"id": "redmi-9t",
+"name": "Redmi 9T",
+"maker": "xiaomi",
+"kana": "レッドミー シャオミ",
+"variants": [
+{
+"c": "rakuten",
+"rel": "2021年",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2021年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "redmi-note-10-je",
+"name": "Redmi Note 10 JE",
+"maker": "xiaomi",
+"kana": "レッドミー シャオミ",
+"variants": [
+{
+"c": "au",
+"code": "XIG02",
+"rel": "2021年8月",
+"ship": "free",
+"note": "解除済みの状態で出荷（au取説に記載）"
+},
+{
+"c": "uq",
+"code": "XIG02",
+"rel": "2021年8月",
+"ship": "free",
+"note": "解除済みの状態で出荷"
+}
+]
+},
+{
+"id": "redmi-free",
+"name": "Redmi Note 9S / 10 Pro ほか国内SIMフリー版",
+"maker": "xiaomi",
+"kana": "レッドミー シャオミ",
+"variants": [
+{
+"c": "free",
+"rel": "2020年〜",
+"ship": "free"
+}
+]
+},
+{
+"id": "arrows-be4plus",
+"name": "arrows Be4 Plus",
+"maker": "fcnt",
+"kana": "アローズ",
+"variants": [
+{
+"c": "docomo",
+"code": "F-41B",
+"rel": "2021年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "raku-f42a",
+"name": "らくらくスマートフォン",
+"maker": "fcnt",
+"kana": "らくらくホン シニア",
+"variants": [
+{
+"c": "docomo",
+"code": "F-42A",
+"rel": "2020年",
+"ship": "locked",
+"note": "ドコモショップでIMEI照会が早い"
+}
+]
+},
+{
+"id": "arrows-we",
+"name": "arrows We",
+"maker": "fcnt",
+"kana": "アローズ",
+"variants": [
+{
+"c": "docomo",
+"code": "F-51B",
+"rel": "2021年12月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "FCG01",
+"rel": "2021年12月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A101FC",
+"rel": "2021年12月",
+"ship": "free"
+}
+]
+},
+{
+"id": "arrows-be",
+"name": "arrows Be / Be3",
+"maker": "fcnt",
+"kana": "アローズ ビー",
+"variants": [
+{
+"c": "docomo",
+"code": "F-04K（Be）／F-02L（Be3）",
+"rel": "2018〜19年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "arrows-nx",
+"name": "arrows NX",
+"maker": "fcnt",
+"kana": "アローズ エヌエックス",
+"variants": [
+{
+"c": "docomo",
+"code": "F-01J／F-02H",
+"rel": "2016〜17年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "raku-f04j",
+"name": "らくらくスマートフォン me",
+"maker": "fcnt",
+"kana": "らくらくホン シニア",
+"variants": [
+{
+"c": "docomo",
+"code": "F-01L",
+"rel": "2019年",
+"ship": "locked",
+"note": "ドコモショップでIMEI照会が早い"
+}
+]
+},
+{
+"id": "raku-4",
+"name": "らくらくスマートフォン4",
+"maker": "fcnt",
+"kana": "らくらくホン シニア",
+"variants": [
+{
+"c": "docomo",
+"code": "F-04K",
+"rel": "2018年",
+"ship": "locked",
+"note": "ドコモショップでIMEI照会が早い"
+}
+]
+},
+{
+"id": "arrows-alpha2",
+"name": "arrows Alpha2",
+"maker": "fcnt",
+"kana": "アローズ アルファ",
+"variants": [
+{
+"c": "rakuten",
+"rel": "2026年",
+"ship": "free"
+}
+]
+},
+{
+"id": "arrows-5g",
+"name": "arrows 5G",
+"maker": "fcnt",
+"kana": "アローズ",
+"variants": [
+{
+"c": "docomo",
+"code": "F-51A",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "arrows-u",
+"name": "arrows U",
+"maker": "fcnt",
+"kana": "アローズ ユー",
+"variants": [
+{
+"c": "ymobile",
+"code": "801FJ",
+"rel": "2020年",
+"ship": "locked"
+}
+]
+},
+{
+"id": "arrows-m-simfree",
+"name": "arrows M04 / M05（SIMフリー版）",
+"maker": "fcnt",
+"kana": "アローズ エム シムフリー",
+"variants": [
+{
+"c": "free",
+"rel": "2017〜19年",
+"ship": "free",
+"note": "富士通コネクテッドテクノロジーズのSIMフリー端末。ロックなし"
+}
+]
+},
+{
+"id": "huawei-p20lite",
+"name": "HUAWEI P20 lite",
+"maker": "huawei",
+"kana": "ファーウェイ",
+"variants": [
+{
+"c": "au",
+"code": "HWV32",
+"rel": "2018年",
+"ship": "locked"
+},
+{
+"c": "ymobile",
+"rel": "2018年",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+},
+{
+"c": "free",
+"code": "ANE-LX2J",
+"rel": "2018年",
+"ship": "free"
+}
+]
+},
+{
+"id": "rakuten-hand",
+"name": "Rakuten Hand / Hand 5G / Mini / BIG",
+"maker": "android",
+"mfr": "rakuten",
+"kana": "楽天 ラクテン ハンド",
+"variants": [
+{
+"c": "rakuten",
+"rel": "2020〜22年",
+"ship": "free",
+"note": "Rakuten Mini・Hand はeSIMのみ"
+}
+]
+},
+{
+"id": "moto-g64y",
+"name": "moto g64y 5G",
+"maker": "motorola",
+"kana": "モト モトローラ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2024年",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-ace2",
+"name": "Xperia Ace II",
+"maker": "xperia",
+"kana": "エクスペリア エース",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-41B",
+"rel": "2021年6月",
+"ship": "locked"
+}
+]
+},
+{
+"id": "xperia-5-iii",
+"name": "Xperia 5 III",
+"maker": "xperia",
+"kana": "エクスペリア ファイブ",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-53B",
+"rel": "2021年11月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG05",
+"rel": "2021年11月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2021年11月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-1-iv",
+"name": "Xperia 1 IV",
+"maker": "xperia",
+"kana": "エクスペリア ワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-51C",
+"rel": "2022年6月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG06",
+"rel": "2022年6月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A201SO",
+"rel": "2022年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-10-iv",
+"name": "Xperia 10 IV",
+"maker": "xperia",
+"kana": "エクスペリア テン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-52C",
+"rel": "2022年7月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG07",
+"rel": "2022年7月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A202SO",
+"rel": "2022年7月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2022年7月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2022年7月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2022年7月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-ace3",
+"name": "Xperia Ace III",
+"maker": "xperia",
+"kana": "エクスペリア エース",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-53C",
+"rel": "2022年6月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG08",
+"rel": "2022年6月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2022年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-5-iv",
+"name": "Xperia 5 IV",
+"maker": "xperia",
+"kana": "エクスペリア ファイブ",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-54C",
+"rel": "2022年10月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG09",
+"rel": "2022年10月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2022年10月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-1-v",
+"name": "Xperia 1 V",
+"maker": "xperia",
+"kana": "エクスペリア ワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-51D",
+"rel": "2023年6月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG10",
+"rel": "2023年6月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A301SO",
+"rel": "2023年6月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2023年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-10-v",
+"name": "Xperia 10 V",
+"maker": "xperia",
+"kana": "エクスペリア テン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-52D",
+"rel": "2023年7月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG11",
+"rel": "2023年7月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A302SO",
+"rel": "2023年7月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2023年7月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-5-v",
+"name": "Xperia 5 V",
+"maker": "xperia",
+"kana": "エクスペリア ファイブ",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-53D",
+"rel": "2023年11月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG12",
+"rel": "2023年11月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2023年11月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2023年11月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-1-vi",
+"name": "Xperia 1 VI",
+"maker": "xperia",
+"kana": "エクスペリア ワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-51E",
+"rel": "2024年6月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG13",
+"rel": "2024年6月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A401SO",
+"rel": "2024年6月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2024年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-10-vi",
+"name": "Xperia 10 VI",
+"maker": "xperia",
+"kana": "エクスペリア テン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-52E",
+"rel": "2024年6月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG14",
+"rel": "2024年6月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A402SO",
+"rel": "2024年6月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2024年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-1-vii",
+"name": "Xperia 1 VII",
+"maker": "xperia",
+"kana": "エクスペリア ワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-51F",
+"rel": "2025年6月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG15",
+"rel": "2025年6月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A501SO",
+"rel": "2025年6月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2025年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-10-vii",
+"name": "Xperia 10 VII",
+"maker": "xperia",
+"kana": "エクスペリア テン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-52F",
+"rel": "2025年10月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SOG16",
+"rel": "2025年10月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2025年10月",
+"ship": "free"
+}
+]
+},
+{
+"id": "xperia-1-viii",
+"name": "Xperia 1 VIII",
+"maker": "xperia",
+"kana": "エクスペリア ワン",
+"variants": [
+{
+"c": "docomo",
+"code": "SO-51G",
+"rel": "2026年6月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2026年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-z-flip3-fold3",
+"name": "Galaxy Z Flip3 5G / Z Fold3 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー ゼットフリップ ゼットフォールド",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-54B（Flip3）／SC-55B（Fold3）",
+"rel": "2021年10月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG12（Flip3）／SCG11（Fold3）",
+"rel": "2021年10月",
+"ship": "free"
+}
+],
+"note": "ドコモ・auとも発売時からSIMロックなし（au版は2021/10/6発売）"
+},
+{
+"id": "galaxy-a22-5g",
+"name": "Galaxy A22 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エートゥエンティトゥー",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-56B",
+"rel": "2021年12月",
+"ship": "free"
+}
+],
+"note": "ドコモのみの取り扱い（au・UQでの販売は無し）。2021/12/2発売でSIMロックなし"
+},
+{
+"id": "galaxy-s22",
+"name": "Galaxy S22 / S22 Ultra",
+"maker": "galaxy",
+"kana": "ギャラクシー エストゥエンティトゥー",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-51C／SC-52C",
+"rel": "2022年2月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG13／SCG14",
+"rel": "2022年2月",
+"ship": "free"
+},
+{
+"c": "uq",
+"code": "SCG13",
+"rel": "2022年2月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-a53",
+"name": "Galaxy A53 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エーゴジューサン",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-53C",
+"rel": "2022年5月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG15",
+"rel": "2022年5月",
+"ship": "free"
+},
+{
+"c": "uq",
+"code": "SCG15",
+"rel": "2022年5月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-z-flip4-fold4",
+"name": "Galaxy Z Flip4 / Z Fold4",
+"maker": "galaxy",
+"kana": "ギャラクシー ゼットフリップ ゼットフォールド",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-54C（Flip4）／SC-55C（Fold4）",
+"rel": "2022年9月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG17（Flip4）／SCG16（Fold4）",
+"rel": "2022年9月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-a23",
+"name": "Galaxy A23 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エーニジュウサン",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-56C",
+"rel": "2022年11月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG18",
+"rel": "2022年10月",
+"ship": "free"
+},
+{
+"c": "uq",
+"code": "SCG18",
+"rel": "2022年10月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2022年11月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-s23",
+"name": "Galaxy S23 / S23 Ultra",
+"maker": "galaxy",
+"kana": "ギャラクシー エストゥエンティスリー",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-51D／SC-52D",
+"rel": "2023年2月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG19／SCG20",
+"rel": "2023年2月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-a54",
+"name": "Galaxy A54 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エーゴジューヨン",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-53D",
+"rel": "2023年6月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG21",
+"rel": "2023年6月",
+"ship": "free"
+},
+{
+"c": "uq",
+"code": "SCG21",
+"rel": "2023年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-z-flip5-fold5",
+"name": "Galaxy Z Flip5 / Z Fold5",
+"maker": "galaxy",
+"kana": "ギャラクシー ゼットフリップ ゼットフォールド",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-54D（Flip5）／SC-55D（Fold5）",
+"rel": "2023年9月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2023年9月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-s24",
+"name": "Galaxy S24 / S24 Ultra",
+"maker": "galaxy",
+"kana": "ギャラクシー エストゥエンティフォー",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-51E／SC-52E",
+"rel": "2024年4月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG25／SCG26",
+"rel": "2024年4月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-a55",
+"name": "Galaxy A55 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エーゴジューゴ",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-53E",
+"rel": "2024年5月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG27",
+"rel": "2024年",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-z-flip6-fold6",
+"name": "Galaxy Z Flip6 / Z Fold6",
+"maker": "galaxy",
+"kana": "ギャラクシー ゼットフリップ ゼットフォールド",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-54E（Flip6）／SC-55E（Fold6）",
+"rel": "2024年7月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG29（Flip6）／SCG28（Fold6）",
+"rel": "2024年7月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-s25",
+"name": "Galaxy S25 / S25 Ultra",
+"maker": "galaxy",
+"kana": "ギャラクシー エストゥエンティファイブ",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-51F／SC-52F",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG31／SCG32",
+"rel": "2025年2月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-a25",
+"name": "Galaxy A25 5G",
+"maker": "galaxy",
+"kana": "ギャラクシー エートゥエンティファイブ",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-53F",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG33",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2025年2月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-z-flip7-fold7",
+"name": "Galaxy Z Flip7 / Z Fold7",
+"maker": "galaxy",
+"kana": "ギャラクシー ゼットフリップ ゼットフォールド",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-55F（Flip7）／SC-56F（Fold7）",
+"rel": "2025年8月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SCG35（Flip7）／SCG34（Fold7）",
+"rel": "2025年8月",
+"ship": "free"
+}
+]
+},
+{
+"id": "galaxy-s26",
+"name": "Galaxy S26 / S26+ / S26 Ultra",
+"maker": "galaxy",
+"kana": "ギャラクシー エストゥエンティシックス",
+"variants": [
+{
+"c": "docomo",
+"code": "SC-51G（S26）",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2026年3月",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-zero6",
+"name": "AQUOS zero6",
+"maker": "aquos",
+"kana": "アクオス ゼロ",
+"variants": [
+{
+"c": "sb",
+"code": "A102SH",
+"rel": "2021年10月",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-sense6",
+"name": "AQUOS sense6",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-54B",
+"rel": "2021年11月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SHG05",
+"rel": "2021年11月",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-sense6s",
+"name": "AQUOS sense6s",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "au",
+"code": "SHG07",
+"rel": "2022年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-wish",
+"name": "AQUOS wish",
+"maker": "aquos",
+"kana": "アクオス ウィッシュ",
+"variants": [
+{
+"c": "au",
+"code": "SHG06",
+"rel": "2022年1月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"code": "A104SH",
+"rel": "2022年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-wish2",
+"name": "AQUOS wish2",
+"maker": "aquos",
+"kana": "アクオス ウィッシュ",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-51C",
+"rel": "2022年",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SHG08",
+"rel": "2022年",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"code": "A204SH",
+"rel": "2022年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-wish3",
+"name": "AQUOS wish3",
+"maker": "aquos",
+"kana": "アクオス ウィッシュ",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-53D",
+"rel": "2023年8月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A303SH",
+"rel": "2023年",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"code": "A302SH",
+"rel": "2023年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-wish4",
+"name": "AQUOS wish4",
+"maker": "aquos",
+"kana": "アクオス ウィッシュ",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-52E",
+"rel": "2024年",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2024年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-sense7",
+"name": "AQUOS sense7",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-53C",
+"rel": "2022年11月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SHG10",
+"rel": "2022年11月",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-sense8",
+"name": "AQUOS sense8",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-54D",
+"rel": "2023年11月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SHG11",
+"rel": "2023年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-sense9",
+"name": "AQUOS sense9",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-53E",
+"rel": "2024年10月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SHG14",
+"rel": "2024年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-sense10",
+"name": "AQUOS sense10",
+"maker": "aquos",
+"kana": "アクオス センス",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-53F",
+"rel": "2025年11月",
+"ship": "free"
+},
+{
+"c": "au",
+"code": "SHG15",
+"rel": "2025年11月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2025年11月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2025年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-r7",
+"name": "AQUOS R7",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-52C",
+"rel": "2022年6月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2022年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-r8",
+"name": "AQUOS R8 / R8 pro",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-52D（R8）／SH-51D（R8 pro）",
+"rel": "2023年6月",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A301SH（R8 pro）",
+"rel": "2023年7月",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-r9",
+"name": "AQUOS R9 / R9 pro",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-51E（R9）／SH-54E（R9 pro）",
+"rel": "2024年",
+"ship": "free"
+},
+{
+"c": "sb",
+"code": "A401SH（R9）",
+"rel": "2024年",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-r10",
+"name": "AQUOS R10",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-51F",
+"rel": "2025年7月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2025年7月",
+"ship": "free"
+}
+]
+},
+{
+"id": "aquos-r11",
+"name": "AQUOS R11",
+"maker": "aquos",
+"kana": "アクオス アール",
+"variants": [
+{
+"c": "docomo",
+"code": "SH-51G",
+"rel": "2026年7月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2026年7月",
+"ship": "free"
+}
+]
+},
+{
+"id": "basio-active",
+"name": "BASIO active（シャープ製）",
+"maker": "aquos",
+"kana": "ベイシオ アクティブ シニア",
+"variants": [
+{
+"c": "au",
+"code": "SHG09",
+"rel": "2023年",
+"ship": "free"
+}
+],
+"note": "京セラのBASIOシリーズとは別の、シャープ製のau向けかんたんスマホ。設定 ＞ システム ＞ 端末情報 ＞「SIMロックの状態」で確認"
+},
+{
+"id": "basio-active2",
+"name": "BASIO active2（シャープ製）",
+"maker": "aquos",
+"kana": "ベイシオ アクティブ シニア",
+"variants": [
+{
+"c": "au",
+"code": "SHG12",
+"rel": "2024年4月",
+"ship": "free"
+}
+],
+"note": "シャープ製。設定 ＞ システム ＞ 端末情報 ＞「SIMロックの状態」で確認"
+},
+{
+"id": "arrows-n",
+"name": "arrows N",
+"maker": "fcnt",
+"kana": "アローズ エヌ",
+"variants": [
+{
+"c": "docomo",
+"code": "F-51C",
+"rel": "2022年11月",
+"ship": "free"
+}
+]
+},
+{
+"id": "arrows-alpha",
+"name": "arrows Alpha",
+"maker": "fcnt",
+"kana": "アローズ アルファ",
+"variants": [
+{
+"c": "docomo",
+"rel": "2025年8月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2025年8月",
+"ship": "free"
+}
+]
+},
+{
+"id": "arrows-we3",
+"name": "arrows We3",
+"maker": "fcnt",
+"kana": "アローズ ウィー",
+"variants": [
+{
+"c": "au",
+"rel": "2026年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "raku-f52b",
+"name": "らくらくスマートフォン F-52B",
+"maker": "fcnt",
+"kana": "らくらくホン シニア",
+"variants": [
+{
+"c": "docomo",
+"code": "F-52B",
+"rel": "2022年2月",
+"ship": "free"
+}
+]
+},
+{
+"id": "raku-f53e",
+"name": "らくらくスマートフォン F-53E",
+"maker": "fcnt",
+"kana": "らくらくホン シニア",
+"variants": [
+{
+"c": "docomo",
+"code": "F-53E",
+"rel": "2025年1月",
+"ship": "free"
+}
+]
+},
+{
+"id": "anshin-ky51b",
+"name": "あんしんスマホ KY-51B",
+"maker": "kyocera",
+"kana": "あんしんスマホ シニア",
+"variants": [
+{
+"c": "docomo",
+"code": "KY-51B",
+"rel": "2022年2月",
+"ship": "free"
+}
+]
+},
+{
+"id": "libero-5g",
+"name": "Libero 5G",
+"maker": "zte",
+"kana": "リベロ ゼットティーイー",
+"variants": [
+{
+"c": "ymobile",
+"code": "A003ZT",
+"rel": "2021年4月",
+"ship": "cond",
+"note": "2021/5/12以降の購入分は解除済で渡し"
+}
+]
+},
+{
+"id": "libero-5g-ii",
+"name": "Libero 5G II",
+"maker": "zte",
+"kana": "リベロ ゼットティーイー",
+"variants": [
+{
+"c": "ymobile",
+"code": "A103ZT",
+"rel": "2021年12月",
+"ship": "free"
+}
+]
+},
+{
+"id": "libero-5g-iii",
+"name": "Libero 5G III",
+"maker": "zte",
+"kana": "リベロ ゼットティーイー",
+"variants": [
+{
+"c": "ymobile",
+"code": "A202ZT",
+"rel": "2022年",
+"ship": "free"
+}
+]
+},
+{
+"id": "libero-5g-iv",
+"name": "Libero 5G IV",
+"maker": "zte",
+"kana": "リベロ ゼットティーイー",
+"variants": [
+{
+"c": "ymobile",
+"code": "A302ZT",
+"rel": "2023年",
+"ship": "free"
+}
+]
+},
+{
+"id": "libero-flip",
+"name": "Libero Flip",
+"maker": "zte",
+"kana": "リベロ フリップ 折りたたみ",
+"variants": [
+{
+"c": "ymobile",
+"code": "A304ZT",
+"rel": "2024年",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-a55s",
+"name": "OPPO A55s 5G",
+"maker": "oppo",
+"kana": "オッポ エーゴジューゴエス",
+"variants": [
+{
+"c": "au",
+"code": "OPG03",
+"rel": "2021年11月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2021年11月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2021年11月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2021年11月",
+"ship": "free"
+}
+],
+"note": "2021/10以降の発売のためSIMロックなし"
+},
+{
+"id": "oppo-reno9a",
+"name": "OPPO Reno9 A",
+"maker": "oppo",
+"kana": "オッポ リノ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2023年6月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2023年6月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2023年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-reno13a",
+"name": "OPPO Reno13 A",
+"maker": "oppo",
+"kana": "オッポ リノ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2025年6月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2025年6月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2025年6月",
+"ship": "free"
+}
+]
+},
+{
+"id": "oppo-reno15a",
+"name": "OPPO Reno15 A",
+"maker": "oppo",
+"kana": "オッポ リノ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2026年",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2026年",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2026年",
+"ship": "free"
+}
+]
+},
+{
+"id": "moto-g66y",
+"name": "moto g66y 5G",
+"maker": "motorola",
+"kana": "モト モトローラ",
+"variants": [
+{
+"c": "ymobile",
+"rel": "2025年",
+"ship": "free"
+}
+]
+},
+{
+"id": "xiaomi-14t",
+"name": "Xiaomi 14T",
+"maker": "xiaomi",
+"kana": "シャオミ",
+"variants": [
+{
+"c": "uq",
+"rel": "2024年12月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-6",
+"name": "Pixel 6 / 6 Pro",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "au",
+"rel": "2021年10月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2021年10月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2021年10月",
+"ship": "free"
+}
+],
+"note": "Google Store版・キャリア版ともSIMロックなし"
+},
+{
+"id": "pixel-6a",
+"name": "Pixel 6a",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "au",
+"rel": "2022年7月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2022年7月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2022年7月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-7",
+"name": "Pixel 7 / 7 Pro",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "au",
+"rel": "2022年10月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2022年10月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2022年10月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-7a",
+"name": "Pixel 7a",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "docomo",
+"rel": "2023年5月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2023年5月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2023年5月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2024年2月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2023年5月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-fold",
+"name": "Pixel Fold",
+"maker": "pixel",
+"kana": "ピクセル グーグル フォールド",
+"variants": [
+{
+"c": "docomo",
+"rel": "2023年7月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2023年7月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2023年7月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2023年7月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-8",
+"name": "Pixel 8 / 8 Pro",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "docomo",
+"rel": "2023年10月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2023年10月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2023年10月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2023年10月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-8a",
+"name": "Pixel 8a",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "docomo",
+"rel": "2024年5月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2024年5月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2024年5月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2024年5月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2024年5月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2024年5月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-9",
+"name": "Pixel 9 / 9 Pro / 9 Pro XL / 9 Pro Fold",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "docomo",
+"rel": "2024年8月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2024年8月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2024年8月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2024年8月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-9a",
+"name": "Pixel 9a",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "au",
+"rel": "2025年4月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2025年4月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2025年4月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2025年4月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-10",
+"name": "Pixel 10 / 10 Pro / 10 Pro XL / 10 Pro Fold",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "docomo",
+"rel": "2025年8月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2025年8月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2025年8月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2025年8月",
+"ship": "free"
+}
+]
+},
+{
+"id": "pixel-10a",
+"name": "Pixel 10a",
+"maker": "pixel",
+"kana": "ピクセル グーグル",
+"variants": [
+{
+"c": "au",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2026年3月",
+"ship": "free"
+}
+]
+},
+{
+"id": "iphone-14",
+"name": "iPhone 14 / 14 Plus / 14 Pro / 14 Pro Max",
+"maker": "iphone",
+"kana": "アイフォン 14",
+"variants": [
+{
+"c": "docomo",
+"rel": "2022年9月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2022年9月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2022年9月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2022年9月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2022年9月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2022年9月",
+"ship": "free"
+}
+],
+"note": "iPhone 13以降は全キャリアでロックなし販売"
+},
+{
+"id": "iphone-15",
+"name": "iPhone 15 / 15 Plus / 15 Pro / 15 Pro Max",
+"maker": "iphone",
+"kana": "アイフォン 15",
+"variants": [
+{
+"c": "docomo",
+"rel": "2023年9月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2023年9月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2023年9月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2023年9月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2023年9月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2023年9月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2023年9月",
+"ship": "free"
+}
+],
+"note": "iPhone 13以降は全キャリアでロックなし販売"
+},
+{
+"id": "iphone-16",
+"name": "iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max",
+"maker": "iphone",
+"kana": "アイフォン 16",
+"variants": [
+{
+"c": "docomo",
+"rel": "2024年9月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2024年9月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2024年9月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2024年9月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2024年9月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2024年9月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2024年9月",
+"ship": "free"
+}
+],
+"note": "iPhone 13以降は全キャリアでロックなし販売"
+},
+{
+"id": "iphone-16e",
+"name": "iPhone 16e",
+"maker": "iphone",
+"kana": "アイフォン 16e",
+"variants": [
+{
+"c": "docomo",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2025年2月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2025年2月",
+"ship": "free"
+}
+],
+"note": "iPhone 13以降は全キャリアでロックなし販売"
+},
+{
+"id": "iphone-17",
+"name": "iPhone 17 / iPhone Air / 17 Pro / 17 Pro Max",
+"maker": "iphone",
+"kana": "アイフォン 17 エアー",
+"variants": [
+{
+"c": "docomo",
+"rel": "2025年9月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2025年9月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2025年9月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2025年9月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2025年9月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2025年9月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2025年9月",
+"ship": "free"
+}
+],
+"note": "iPhone 13以降は全キャリアでロックなし販売"
+},
+{
+"id": "iphone-17e",
+"name": "iPhone 17e",
+"maker": "iphone",
+"kana": "アイフォン 17e",
+"variants": [
+{
+"c": "docomo",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2026年3月",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2026年3月",
+"ship": "free"
+}
+],
+"note": "iPhone 13以降は全キャリアでロックなし販売"
+},
+{
+"id": "iphone-latest",
+"name": "iPhone 上記以外の最新モデル（iPhone 18以降など）",
+"maker": "iphone",
+"kana": "アイフォン 18",
+"variants": [
+{
+"c": "docomo",
+"rel": "2026年〜",
+"ship": "free"
+},
+{
+"c": "au",
+"rel": "2026年〜",
+"ship": "free"
+},
+{
+"c": "sb",
+"rel": "2026年〜",
+"ship": "free"
+},
+{
+"c": "uq",
+"rel": "2026年〜",
+"ship": "free"
+},
+{
+"c": "ymobile",
+"rel": "2026年〜",
+"ship": "free"
+},
+{
+"c": "rakuten",
+"rel": "2026年〜",
+"ship": "free"
+},
+{
+"c": "free",
+"rel": "2026年〜",
+"ship": "free"
+}
+],
+"note": "iPhone 13以降は全キャリアでロックなし販売"
+},
+{
+"id": "generic-iphone",
+"generic": true,
+"maker": "iphone",
+"name": "その他の iPhone（Apple） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-pixel",
+"generic": true,
+"maker": "pixel",
+"name": "その他の Google Pixel 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-xperia",
+"generic": true,
+"maker": "xperia",
+"name": "その他の Xperia（ソニー） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-galaxy",
+"generic": true,
+"maker": "galaxy",
+"name": "その他の Galaxy（サムスン） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-aquos",
+"generic": true,
+"maker": "aquos",
+"name": "その他の AQUOS（シャープ） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-kyocera",
+"generic": true,
+"maker": "kyocera",
+"name": "その他の 京セラ（BASIO・かんたんスマホ・DIGNO・TORQUE） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-oppo",
+"generic": true,
+"maker": "oppo",
+"name": "その他の OPPO 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-xiaomi",
+"generic": true,
+"maker": "xiaomi",
+"name": "その他の Xiaomi（Redmi・Mi） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-fcnt",
+"generic": true,
+"maker": "fcnt",
+"name": "その他の arrows・らくらくスマートフォン（FCNT） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-motorola",
+"generic": true,
+"maker": "motorola",
+"name": "その他の Motorola（モトローラ） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-zte",
+"generic": true,
+"maker": "zte",
+"name": "その他の ZTE（Libero） 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-android",
+"generic": true,
+"maker": "android",
+"name": "その他の Android 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+},
+{
+"id": "generic-garaho",
+"generic": true,
+"maker": "garaho",
+"name": "その他の ガラホ 機種",
+"kana": "その他 汎用",
+"variants": [
+{
+"c": "docomo",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "au",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "sb",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "uq",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "ymobile",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "rakuten",
+"rel": "—",
+"ship": "rule"
+},
+{
+"c": "free",
+"rel": "—",
+"ship": "rule"
+}
+]
+}
+]

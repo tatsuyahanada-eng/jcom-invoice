@@ -132,6 +132,19 @@
     padding: 4px 10px; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
   }
   .chip:hover { color: var(--strong); }
+  .chip small { font-family: var(--mono); font-size: 10.5px; opacity: .7; margin-left: 2px; }
+  .chip.none, .chip:disabled { opacity: .35; cursor: default; }
+  .chips.scroll { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding-bottom: 3px; scrollbar-width: thin; }
+  .chips.scroll .chip { flex: none; }
+  .filters .chips.scroll { flex: 1 1 100%; min-width: 0; }
+  .filters.two { gap: 6px 26px; }
+  .filters .grp { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+  .filters .lbl { min-width: 0; }
+  .filters:not(.two) .lbl { min-width: 5em; }
+  small.pn { display: block; font-weight: 400; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .pn2 { font-size: 11.5px; color: var(--muted); }
+  .d-pn { font-size: 12.5px; color: var(--muted); }
+  .d-pn b { color: var(--strong); font-weight: 600; }
   .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; box-shadow: var(--glow); }
 
   /* キャリアバッジ（統一サイズ） */
@@ -506,7 +519,11 @@
       </div>
       <div class="filterpanel" id="filterPanel">
         <div class="filters"><span class="lbl">CARRIER</span><div class="chips" id="carrierChips"></div></div>
-        <div class="filters"><span class="lbl">TYPE</span><div class="chips" id="osChips"></div></div>
+        <div class="filters"><span class="lbl">MAKER</span><div class="chips scroll" id="mfrChips"></div></div>
+        <div class="filters two">
+          <span class="grp"><span class="lbl">TYPE</span><span class="chips" id="osChips"></span></span>
+          <span class="grp"><span class="lbl">SORT</span><span class="chips" id="sortChips"></span></span>
+        </div>
       </div>
     </section>
   </div>
@@ -618,18 +635,28 @@
     sb: "Y!mobile・LINEMO・ソフトバンク系MVNO"
   };
 
-  const state = { q: "", carrier: "all", os: "all", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set() };
+  const state = { q: "", carrier: "all", os: "all", mfr: "all", sort: "new", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set() };
 
   const deviceOs = d => MAKERS[d.maker].os;
   const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
+  // メーカー（実機のメーカー選択画面と同じ区分）。機種に mfr があればそれを優先
+  const mfrKey = d => d.mfr || MAKER_MFR[d.maker === "garaho" && d.brand ? d.brand : d.maker] || "";
+  const MFR_BY_KEY = Object.fromEntries(MFRS.map(m => [m.k, m]));
+  const mfrLabel = d => (MFR_BY_KEY[mfrKey(d)] || { name: makerName(d).replace(/（.*）$/, "") }).name;
+  // 発売時期 → 並び替え用の数値（例：2022年11月 → 202211）。不明は 0（一番後ろ）
+  const relKey = rel => { const m = /(\d{4})年(?:(\d{1,2})月)?/.exec(rel || ""); return m ? +m[1] * 100 + (m[2] ? +m[2] : 6) : 0; };
+  // キャリア版の製品名（キャリアの正式表記は「機種名＋型番」が多い）
+  const prodName = (d, v) => { const c = v.code ? v.code.replace(/（.*?）/g, "") : ""; return v.n || (c && !d.name.includes(c) ? `${d.name} ${c}` : d.name); };
 
   // 検索用インデックス
   // メーカー名の（BASIO・かんたんスマホ・DIGNO…）のような副ブランド列挙は、
   // その名を持つ全機種にヒットしてしまうため、索引には括弧の前だけを使う
   const bareMakerName = name => name.replace(/（.*/, "");
   DEVICES.forEach(d => {
+    const mf = MFR_BY_KEY[mfrKey(d)];
     const parts = [d.name, d.kana, bareMakerName(MAKERS[d.maker].name), d.brand && bareMakerName(MAKERS[d.brand].name), OSNAME[deviceOs(d)],
-      ...d.variants.flatMap(v => [v.code, CARRIERS[v.c].name, CARRIERS[v.c].short])];
+      mf && mf.name, mf && mf.alias,
+      ...d.variants.flatMap(v => [v.code, v.n, CARRIERS[v.c].name, CARRIERS[v.c].short])];
     d._idx = norm(parts.join(" "));
   });
 
@@ -640,6 +667,12 @@
       `<button class="chip" data-carrier="${k}" aria-pressed="${state.carrier === k}">${k !== "all" ? `${clogo(k)}` : ""}${esc(n)}</button>`).join("");
     const oc = [["all", "すべて"], ["ios", "iPhone"], ["android", "Android"], ["garaho", "ガラホ"]];
     $("#osChips").innerHTML = oc.map(([k, n]) => `<button class="chip" data-os="${k}" aria-pressed="${state.os === k}">${n}</button>`).join("");
+    // メーカー：登録機種数つき。機種が無いメーカーは薄く表示（実機の選択画面と同じ）
+    const cnt = {}; DEVICES.forEach(d => { if (!d.generic) cnt[mfrKey(d)] = (cnt[mfrKey(d)] || 0) + 1; });
+    $("#mfrChips").innerHTML = `<button class="chip" data-mfr="all" aria-pressed="${state.mfr === "all"}">すべて</button>` +
+      MFRS.map(m => `<button class="chip${cnt[m.k] ? "" : " none"}" data-mfr="${m.k}" aria-pressed="${state.mfr === m.k}"${cnt[m.k] ? "" : " disabled"}>${esc(m.name)}<small>${cnt[m.k] || 0}</small></button>`).join("");
+    $("#sortChips").innerHTML = [["new", "新しい順"], ["old", "古い順"], ["mfr", "メーカー順"]]
+      .map(([k, n]) => `<button class="chip" data-sort="${k}" aria-pressed="${state.sort === k}">${n}</button>`).join("");
   }
 
   /* ---------- filtering ---------- */
@@ -647,6 +680,7 @@
     const terms = norm(state.q) ? state.q.normalize("NFKC").split(/\s+/).map(norm).filter(Boolean) : [];
     return DEVICES.filter(d => {
       if (state.os !== "all" && deviceOs(d) !== state.os) return false;
+      if (state.mfr !== "all" && mfrKey(d) !== state.mfr) return false;
       if (state.carrier !== "all" && !d.variants.some(v => v.c === state.carrier)) return false;
       return terms.every(t => d._idx.includes(t));
     });
@@ -668,26 +702,34 @@
       const makers = new Set(specific.map(d => d.maker));
       generic = generic.filter(d => makers.has(d.maker));
     }
-    const rows = [];
+    const items = [];
     specific.forEach(d => d.variants.forEach(v => {
       if (state.carrier !== "all" && v.c !== state.carrier) return;
+      items.push({ d, v, k: relKey(v.rel) });
+    }));
+    const mfrIdx = d => { const i = MFRS.findIndex(m => m.k === mfrKey(d)); return i < 0 ? 99 : i; };
+    items.sort((a, b) =>
+      state.sort === "old" ? (a.k || 9e9) - (b.k || 9e9) :
+      state.sort === "mfr" ? mfrIdx(a.d) - mfrIdx(b.d) || b.k - a.k :
+      b.k - a.k);
+    const rows = items.map(({ d, v }) => {
       const [cls, lb] = judgeOf(v);
       const cur = state.sel === d.id && state.selCarrier === v.c;
-      rows.push(`<tr data-id="${d.id}" data-vc="${v.c}" aria-current="${cur}">
+      return `<tr data-id="${d.id}" data-vc="${v.c}" aria-current="${cur}">
         <td class="jd"><span class="st ${cls}">${lb}</span></td>
-        <td class="nm">${esc(d.name)}</td>
-        <td class="mk">${esc(makerName(d).replace(/（.*）$/, ""))}</td>
+        <td class="nm">${esc(d.name)}${v.n ? `<small class="pn">${esc(v.n)}</small>` : ""}</td>
+        <td class="mk">${esc(mfrLabel(d))}</td>
         <td class="car">${carDot(v.c)}</td>
         <td class="code">${esc(v.code ? v.code.replace(/（.*）/, "") : "—")}</td>
-        <td class="rel">${esc(v.rel)}</td></tr>`);
-    }));
+        <td class="rel">${esc(v.rel)}</td></tr>`;
+    });
     generic.forEach(d => rows.push(`<tr class="generic" data-id="${d.id}" aria-current="${state.sel === d.id}">
         <td class="jd"><span class="st gd">ガイド</span></td>
         <td class="nm">${esc(d.name)}</td>
-        <td class="mk">${esc(makerName(d).replace(/（.*）$/, ""))}</td>
+        <td class="mk">${esc(mfrLabel(d))}</td>
         <td class="car"><span class="dot" style="--c:#9fd0ff"><i></i>機種が一覧に無いとき用</span></td>
         <td class="code">—</td><td class="rel"></td></tr>`));
-    const filteredOn = state.q || state.carrier !== "all" || state.os !== "all";
+    const filteredOn = state.q || state.carrier !== "all" || state.os !== "all" || state.mfr !== "all";
     $("#count").innerHTML = `<span><b>${rows.length}</b>HITS <span style="margin-left:6px">${filteredOn ? `${specific.length}機種` : `登録 ${specific.length}機種`}${generic.length ? ` ＋ 汎用ガイド${generic.length}` : ""}</span></span>
       <span class="legend"><span style="color:var(--ng)">要解除</span><span style="color:var(--amber)">要確認・要判定</span><span style="color:var(--free)">解除不要</span></span>`;
     $("#stHits").textContent = "HITS: " + rows.length;
@@ -853,7 +895,8 @@
       <div class="d-head">
         <button class="back" id="back">← 一覧へ戻る</button>
         <h2>${esc(d.name)}</h2>
-        <div class="d-meta"><span>${esc(makerName(d))}</span>${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 ${esc(v.rel)}</span></div>
+        <div class="d-meta"><span>${esc(mfrLabel(d))}</span>${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 ${esc(v.rel)}</span></div>
+        ${prodName(d, v) !== d.name ? `<div class="d-pn">${esc(CARRIERS[v.c].name)}での製品名：<b>${esc(prodName(d, v))}</b></div>` : ""}
         <div class="ctabs" role="group" aria-label="販売キャリアを選択">${d.variants.map(x => `<button class="ctab" data-vc="${x.c}" aria-pressed="${x.c === v.c}">${clogo(x.c)}${esc(CARRIERS[x.c].name)}版</button>`).join("")}</div>
       </div>
 
@@ -894,8 +937,8 @@
       const mk = MAKERS[d.maker];
       rows.push({ d, v, html: `<tr data-id="${d.id}" data-vc="${v.c}">
         <td><span class="crow">${clogo(v.c)} ${esc(CARRIERS[v.c].name)}</span></td>
-        <td>${esc(makerName(d).replace(/（.*）$/, ""))}</td>
-        <td><b>${esc(d.name)}</b></td>
+        <td>${esc(mfrLabel(d))}</td>
+        <td><b>${esc(d.name)}</b>${v.n ? `<br><span class="pn2">${esc(v.n)}</span>` : ""}</td>
         <td class="code">${esc(v.code || "—")}</td>
         <td>${esc(v.rel)}</td>
         <td><span class="pill ${STATUS[v.ship].cls}">${STATUS[v.ship].short}</span></td>
@@ -903,7 +946,7 @@
         <td>${MAIL[v.c].ok === true ? `<span class="yes">可</span>` : MAIL[v.c].ok === false ? `<span class="no">不可</span>` : "—"}</td>
       </tr>` });
     }));
-    rows.sort((a, b) => CARRIER_ORDER.indexOf(a.v.c) - CARRIER_ORDER.indexOf(b.v.c));
+    rows.sort((a, b) => CARRIER_ORDER.indexOf(a.v.c) - CARRIER_ORDER.indexOf(b.v.c) || relKey(b.v.rel) - relKey(a.v.rel));
     $("#lockTable").innerHTML = `<thead><tr><th>販売</th><th>メーカー</th><th>機種</th><th>型番</th><th>発売</th><th>出荷時</th><th>確認方法（ここを見る）</th><th>メール持運</th></tr></thead>
       <tbody>${rows.map(r => r.html).join("") || `<tr><td colspan="8">該当なし</td></tr>`}</tbody>`;
   }
@@ -1022,7 +1065,7 @@
   }
 
   function updateFcount() {
-    const n = (state.carrier !== "all" ? 1 : 0) + (state.os !== "all" ? 1 : 0);
+    const n = (state.carrier !== "all" ? 1 : 0) + (state.os !== "all" ? 1 : 0) + (state.mfr !== "all" ? 1 : 0);
     const el = $("#fcount");
     el.hidden = n === 0;
     el.textContent = String(n);
@@ -1036,7 +1079,7 @@
 
   // タイトルをタップ／クリックしたら検索・絞り込みを初期化してトップに戻る
   function goHome() {
-    state.q = ""; state.carrier = "all"; state.os = "all";
+    state.q = ""; state.carrier = "all"; state.os = "all"; state.mfr = "all"; state.sort = "new";
     state.sel = null; state.selCarrier = null; state.mailSrc = null; state.mailOs = null;
     $("#q").value = "";
     $("#filterPanel").hidden = false;
@@ -1059,7 +1102,7 @@
   });
   // 検索をやり直す：キーワードと絞り込み条件をまとめてリセット
   $("#clearSearch").addEventListener("click", () => {
-    state.q = ""; state.carrier = "all"; state.os = "all";
+    state.q = ""; state.carrier = "all"; state.os = "all"; state.mfr = "all"; state.sort = "new";
     $("#q").value = "";
     $("#q").focus();
     refresh();
@@ -1070,6 +1113,8 @@
     if (t.id === "brandHome") { goHome(); return; }
     if (t.dataset.carrier) { state.carrier = t.dataset.carrier; refresh(); return; }
     if (t.dataset.os) { state.os = t.dataset.os; refresh(); return; }
+    if (t.dataset.mfr) { state.mfr = t.dataset.mfr; refresh(); return; }
+    if (t.dataset.sort) { state.sort = t.dataset.sort; refresh(); return; }
     if (t.dataset.tab) { setTab(t.dataset.tab); return; }
     if (t.tagName === "TR" && t.dataset.id) { if (state.tab !== "search") setTab("search"); openDevice(t.dataset.id, t.dataset.vc); return; }
     if (t.dataset.vc) { state.selCarrier = t.dataset.vc; state.mailSrc = null; renderDetail(); renderResults();
