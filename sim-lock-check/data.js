@@ -79,6 +79,7 @@ const UNLOCK = {
   sb: {
     rules: [
       "2021/5/12以降の購入分は解除済で渡し（発売日でなく購入日が基準）",
+      "2021/6以降に発売された機種は原則SIMロックなしで販売（一部例外あり）",
       "2021/10/1以降に発売された機種はSIMロックなしで販売"
     ],
     how: [
@@ -265,6 +266,17 @@ const MAKERS = {
     ],
     codes: ["*#06#", "*#*#7465625#*#*", "*#*#4636#*#*"]
   },
+  motorola: {
+    name: "Motorola（モトローラ）", os: "android",
+    path: P(["設定", "デバイス情報（端末情報）"], "SIMのステータス／機器の状態", "見つからない場合は設定の検索窓に「SIMロック」と入力"),
+    ok: "許可／解除済 ＝ ロックなし",
+    ng: "許可されていません／ロック中 ＝ ロックあり",
+    notes: [
+      "国内はY!mobile等のキャリア版・SIMフリー版ともにロックなし販売が中心",
+      "表示が無い機種は他社SIMテスト → 販売キャリアへIMEI照会で判定"
+    ],
+    codes: ["*#06#", "*#*#4636#*#*"]
+  },
   garaho: {
     name: "ガラホ（Android系ケータイ）", os: "garaho",
     path: P(["メニュー", "設定"], "端末情報", "「その他設定」の中に「端末情報」がある機種もある"),
@@ -352,6 +364,12 @@ const DEVICES = [
     variants: ["docomo", "au", "sb", "rakuten", "uq", "ymobile", "free"].map(c => ({ c, rel: "2022年〜", ship: "free" })) },
 
   // ---------- Pixel ----------
+  { id: "nexus-6p", name: "Nexus 6P", maker: "pixel", kana: "ネクサス グーグル",
+    variants: [{ c: "ymobile", rel: "2016年", ship: "locked" }] },
+  { id: "nexus-5x", name: "Nexus 5X", maker: "pixel", kana: "ネクサス グーグル",
+    variants: [{ c: "ymobile", rel: "2016年", ship: "locked" }] },
+  { id: "nexus-6", name: "Nexus 6", maker: "pixel", kana: "ネクサス グーグル",
+    variants: [{ c: "ymobile", rel: "2015年", ship: "free", note: "Y!mobile販売分もSIMフリー扱い" }] },
   { id: "pixel-3", name: "Pixel 3 / 3 XL / 3a / 3a XL", maker: "pixel", kana: "ピクセル グーグル",
     variants: [
       { c: "docomo", rel: "2018〜19年", ship: "locked" },
@@ -370,7 +388,7 @@ const DEVICES = [
       { c: "sb", rel: "2020〜21年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" },
       { c: "free", rel: "2020〜21年", ship: "free", note: "Google Store版" }
     ] },
-  { id: "pixel-6plus", name: "Pixel 6 以降（6〜10 シリーズ・aシリーズ）", maker: "pixel", kana: "ピクセル グーグル 7 8 9 10 7a 8a 9a",
+  { id: "pixel-6plus", name: "Pixel 6 以降（6〜11 シリーズ・aシリーズ）", maker: "pixel", kana: "ピクセル グーグル 7 8 9 10 11 7a 8a 9a",
     variants: [
       { c: "au", rel: "2021年10月〜", ship: "free" },
       { c: "sb", rel: "2021年10月〜", ship: "free" },
@@ -397,6 +415,10 @@ const DEVICES = [
       { c: "au", code: "SOG03", rel: "2021年7月", ship: "locked" },
       { c: "sb", code: "A101SO", rel: "2021年7月", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" }
     ] },
+  { id: "xperia-1-ii", name: "Xperia 1 II", maker: "xperia", kana: "エクスペリア ワン",
+    variants: [{ c: "docomo", code: "SO-51A", rel: "2020年", ship: "locked" }] },
+  { id: "xperia-5-ii", name: "Xperia 5 II", maker: "xperia", kana: "エクスペリア ファイブ",
+    variants: [{ c: "docomo", code: "SO-52A", rel: "2020年", ship: "locked" }] },
   { id: "xperia-new", name: "Xperia 10 IV 以降 / 1 IV 以降 / 5 IV 以降", maker: "xperia", kana: "エクスペリア",
     variants: ["docomo", "au", "sb", "uq", "ymobile", "rakuten", "free"].map(c => ({ c, rel: "2022年〜", ship: "free" })) },
 
@@ -416,7 +438,8 @@ const DEVICES = [
   { id: "xperia-xz1", name: "Xperia XZ1 / XZ1 Compact", maker: "xperia", kana: "エクスペリア エックスゼットワン",
     variants: [
       { c: "docomo", code: "SO-01K", rel: "2017年", ship: "locked" },
-      { c: "au", code: "SOV36", rel: "2017年", ship: "locked" }
+      { c: "au", code: "SOV36", rel: "2017年", ship: "locked" },
+      { c: "sb", code: "701SO", rel: "2017年", ship: "locked" }
     ] },
   { id: "xperia-xz2", name: "Xperia XZ2 / XZ2 Compact / XZ2 Premium", maker: "xperia", kana: "エクスペリア エックスゼットツー",
     variants: [
@@ -438,9 +461,12 @@ const DEVICES = [
     ] },
   { id: "xperia-5", name: "Xperia 5", maker: "xperia", kana: "エクスペリア ファイブ",
     variants: [
+      { c: "docomo", code: "SO-01M", rel: "2019年", ship: "locked" },
       { c: "au", code: "SOV41", rel: "2019年", ship: "locked" },
       { c: "sb", code: "901SO", rel: "2019年", ship: "locked" }
     ] },
+  { id: "xperia-ace3", name: "Xperia Ace III", maker: "xperia", kana: "エクスペリア エース",
+    variants: [{ c: "ymobile", rel: "2022年", ship: "free" }] },
   { id: "xperia-ace", name: "Xperia Ace", maker: "xperia", kana: "エクスペリア エース",
     variants: [
       { c: "docomo", code: "SO-02L", rel: "2019年12月", ship: "locked" },
@@ -501,6 +527,14 @@ const DEVICES = [
       { c: "docomo", code: "SC-03L／SC-04L", rel: "2019年", ship: "locked" },
       { c: "au", code: "SCV41／SCV42", rel: "2019年", ship: "locked" }
     ] },
+  { id: "galaxy-s20", name: "Galaxy S20 5G / S20+ 5G", maker: "galaxy", kana: "ギャラクシー エストゥエンティ",
+    variants: [{ c: "docomo", code: "SC-51A／SC-52A", rel: "2020年", ship: "locked" }] },
+  { id: "galaxy-note20", name: "Galaxy Note20 Ultra 5G", maker: "galaxy", kana: "ギャラクシー ノート",
+    variants: [{ c: "docomo", code: "SC-53A", rel: "2020年", ship: "locked" }] },
+  { id: "galaxy-s21-ultra", name: "Galaxy S21 Ultra 5G", maker: "galaxy", kana: "ギャラクシー エストゥエンティワン",
+    variants: [{ c: "docomo", code: "SC-52B", rel: "2021年", ship: "locked" }] },
+  { id: "galaxy-zfold-flip", name: "Galaxy Z Fold / Z Flip シリーズ", maker: "galaxy", kana: "ギャラクシー ゼットフォールド ゼットフリップ",
+    variants: ["docomo", "au", "sb", "rakuten", "free"].map(c => ({ c, rel: "2022年〜", ship: "free" })) },
   { id: "galaxy-feel", name: "Galaxy Feel / Feel2", maker: "galaxy", kana: "ギャラクシー フィール",
     variants: [
       { c: "docomo", code: "SC-04J（Feel）／SC-02L（Feel2）", rel: "2017〜18年", ship: "locked" }
@@ -541,6 +575,10 @@ const DEVICES = [
       { c: "au", code: "SHG03", rel: "2021年2月", ship: "locked" },
       { c: "sb", code: "A004SH", rel: "2021年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" }
     ] },
+  { id: "aquos-wish2", name: "AQUOS wish2", maker: "aquos", kana: "アクオス ウィッシュ",
+    variants: [{ c: "ymobile", rel: "2022年", ship: "free" }] },
+  { id: "aquos-wish4", name: "AQUOS wish4", maker: "aquos", kana: "アクオス ウィッシュ",
+    variants: [{ c: "ymobile", rel: "2024年", ship: "free" }] },
   { id: "aquos-r5g-r6", name: "AQUOS R5G / R6", maker: "aquos", kana: "アクオス アール",
     variants: [
       { c: "docomo", code: "SH-51A／SH-51B", rel: "2020〜21年", ship: "locked" },
@@ -651,6 +689,12 @@ const DEVICES = [
       { c: "rakuten", rel: "2020年", ship: "free" },
       { c: "free", code: "CPH2013", rel: "2020年", ship: "free" }
     ] },
+  { id: "oppo-reno7a", name: "OPPO Reno7 A", maker: "oppo", kana: "オッポ リノ",
+    variants: [{ c: "ymobile", rel: "2022年", ship: "free" }] },
+  { id: "oppo-reno11a", name: "OPPO Reno11 A", maker: "oppo", kana: "オッポ リノ",
+    variants: [{ c: "ymobile", rel: "2024年", ship: "free" }] },
+  { id: "oppo-a79-5g", name: "OPPO A79 5G", maker: "oppo", kana: "オッポ エーナナジュウキュウ",
+    variants: [{ c: "ymobile", rel: "2023年", ship: "free" }] },
   { id: "oppo-reno5a", name: "OPPO Reno5 A", maker: "oppo", kana: "オッポ リノ",
     variants: [
       { c: "ymobile", code: "A101OP", rel: "2021年6月", ship: "cond", note: "2021/5/12以降の購入なら解除済で渡し。他社SIMで確認" },
@@ -708,6 +752,8 @@ const DEVICES = [
     variants: [{ c: "docomo", code: "F-01L", rel: "2019年", ship: "locked", note: "ドコモショップでIMEI照会が早い" }] },
   { id: "raku-4", name: "らくらくスマートフォン4", maker: "fcnt", kana: "らくらくホン シニア",
     variants: [{ c: "docomo", code: "F-04K", rel: "2018年", ship: "locked", note: "ドコモショップでIMEI照会が早い" }] },
+  { id: "arrows-alpha2", name: "arrows Alpha2", maker: "fcnt", kana: "アローズ アルファ",
+    variants: [{ c: "rakuten", rel: "2026年", ship: "free" }] },
   { id: "arrows-5g", name: "arrows 5G", maker: "fcnt", kana: "アローズ",
     variants: [{ c: "docomo", code: "F-51A", rel: "2020年", ship: "locked" }] },
   { id: "arrows-u", name: "arrows U", maker: "fcnt", kana: "アローズ ユー",
@@ -727,8 +773,12 @@ const DEVICES = [
   { id: "rakuten-hand", name: "Rakuten Hand / Hand 5G / Mini / BIG", maker: "android", kana: "楽天 ラクテン ハンド",
     variants: [{ c: "rakuten", rel: "2020〜22年", ship: "free", note: "Rakuten Mini・Hand はeSIMのみ" }] },
 
+  // ---------- Motorola ----------
+  { id: "moto-g64y", name: "moto g64y 5G", maker: "motorola", kana: "モト モトローラ",
+    variants: [{ c: "ymobile", rel: "2024年", ship: "free" }] },
+
   // ---------- 汎用（機種が見つからない時） ----------
-  ...["iphone", "pixel", "xperia", "galaxy", "aquos", "kyocera", "oppo", "xiaomi", "fcnt", "android", "garaho"].map(m => ({
+  ...["iphone", "pixel", "xperia", "galaxy", "aquos", "kyocera", "oppo", "xiaomi", "fcnt", "motorola", "android", "garaho"].map(m => ({
     id: "generic-" + m, generic: true, maker: m,
     name: "その他の " + (m === "android" ? "Android" : m === "garaho" ? "ガラホ" : MAKERS[m].name) + " 機種",
     kana: "その他 汎用",
