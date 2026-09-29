@@ -1075,19 +1075,21 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SO-41B", rel: "2021年6月", ship: "locked" }
     ] },
+  { id: "xperia-5-ii", name: "Xperia 5 II", maker: "xperia", kana: "エクスペリア ファイブ マークツー",
+    variants: [
+      { c: "docomo", code: "SO-52A", rel: "2020年10月", ship: "locked" },
+      { c: "au", code: "SOG02", rel: "2020年10月", ship: "locked" }
+    ] },
   { id: "xperia-10-ii", name: "Xperia 10 II", maker: "xperia", kana: "エクスペリア",
     variants: [
       { c: "docomo", code: "SO-41A", rel: "2020年", ship: "locked" },
       { c: "au", code: "SOV43", rel: "2020年", ship: "locked" },
       { c: "ymobile", code: "A001SO", rel: "2020年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" }
     ] },
-  { id: "xperia-1-ii", name: "Xperia 1 II", maker: "xperia", kana: "エクスペリア ワン",
+  { id: "xperia-1-ii", name: "Xperia 1 II", maker: "xperia", kana: "エクスペリア ワン マークツー",
     variants: [
-      { c: "docomo", code: "SO-51A", rel: "2020年", ship: "locked" }
-    ] },
-  { id: "xperia-5-ii", name: "Xperia 5 II", maker: "xperia", kana: "エクスペリア ファイブ",
-    variants: [
-      { c: "docomo", code: "SO-52A", rel: "2020年", ship: "locked" }
+      { c: "docomo", code: "SO-51A", rel: "2020年5月", ship: "locked" },
+      { c: "au", code: "SOG01", rel: "2020年5月", ship: "locked" }
     ] },
   { id: "xperia-1", name: "Xperia 1", maker: "xperia", kana: "エクスペリア ワン",
     variants: [
@@ -1180,8 +1182,9 @@ const DEVICES = [
   { id: "galaxy-z-flip7", name: "Galaxy Z Flip7", maker: "galaxy", kana: "ギャラクシー ゼットフリップ セブン 折りたたみ",
     variants: [
       { c: "docomo", code: "SC-55F", rel: "2025年8月", ship: "free" },
-      { c: "au", code: "SCG35", rel: "2025年8月", ship: "free" }
-    ] },
+      { c: "au", code: "SCG35", rel: "2025年8月", ship: "free" },
+      { c: "free", rel: "2025年8月", ship: "free" }
+    ], note: "SIMフリー版（サムスン直販）もロックなし" },
   { id: "galaxy-z-fold7", name: "Galaxy Z Fold7", maker: "galaxy", kana: "ギャラクシー ゼットフォールド セブン 折りたたみ",
     variants: [
       { c: "docomo", code: "SC-56F", rel: "2025年8月", ship: "free" },
@@ -1199,12 +1202,18 @@ const DEVICES = [
   { id: "galaxy-s25", name: "Galaxy S25", maker: "galaxy", kana: "ギャラクシー エストゥエンティファイブ",
     variants: [
       { c: "docomo", code: "SC-51F", rel: "2025年2月", ship: "free" },
-      { c: "au", code: "SCG31", rel: "2025年2月", ship: "free" }
+      { c: "au", code: "SCG31", rel: "2025年2月", ship: "free" },
+      { c: "sb", rel: "2025年2月", ship: "free" }
     ] },
   { id: "galaxy-s25-ultra", name: "Galaxy S25 Ultra", maker: "galaxy", kana: "ギャラクシー エストゥエンティファイブ ウルトラ",
     variants: [
       { c: "docomo", code: "SC-52F", rel: "2025年2月", ship: "free" },
-      { c: "au", code: "SCG32", rel: "2025年2月", ship: "free" }
+      { c: "au", code: "SCG32", rel: "2025年2月", ship: "free" },
+      { c: "sb", rel: "2025年2月", ship: "free" }
+    ] },
+  { id: "galaxy-s24-fe", name: "Galaxy S24 FE", maker: "galaxy", kana: "ギャラクシー エストゥエンティフォー エフイー",
+    variants: [
+      { c: "au", rel: "2024年12月", ship: "free" }
     ] },
   { id: "galaxy-z-flip6", name: "Galaxy Z Flip6", maker: "galaxy", kana: "ギャラクシー ゼットフリップ シックス 折りたたみ",
     variants: [
@@ -1457,6 +1466,11 @@ const DEVICES = [
     variants: [
       { c: "ymobile", code: "A502SH", rel: "2025年6月", ship: "free" }
     ] },
+  { id: "aquos-r9-pro", name: "AQUOS R9 pro", maker: "aquos", kana: "アクオス アール ナイン プロ",
+    variants: [
+      { c: "docomo", code: "SH-54E", rel: "2024年", ship: "free" },
+      { c: "sb", rel: "2025年4月", ship: "free" }
+    ] },
   { id: "aquos-sense9", name: "AQUOS sense9", maker: "aquos", kana: "アクオス センス ナイン",
     variants: [
       { c: "docomo", code: "SH-53E", rel: "2024年10月", ship: "free" },
@@ -1471,10 +1485,6 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SH-51E", rel: "2024年", ship: "free" },
       { c: "sb", code: "A401SH", rel: "2024年", ship: "free" }
-    ] },
-  { id: "aquos-r9-pro", name: "AQUOS R9 pro", maker: "aquos", kana: "アクオス アール ナイン プロ",
-    variants: [
-      { c: "docomo", code: "SH-54E", rel: "2024年", ship: "free" }
     ] },
   { id: "basio-active2", name: "BASIO active2", maker: "aquos", kana: "ベイシオ アクティブ ツー シニア",
     variants: [
@@ -1505,6 +1515,10 @@ const DEVICES = [
       { c: "docomo", code: "SH-53C", rel: "2022年11月", ship: "free" },
       { c: "au", code: "SHG10", rel: "2022年11月", ship: "free" }
     ] },
+  { id: "aquos-sense7-plus", name: "AQUOS sense7 plus", maker: "aquos", kana: "アクオス センス セブン プラス",
+    variants: [
+      { c: "sb", rel: "2022年10月", ship: "free" }
+    ], note: "ソフトバンク独占販売" },
   { id: "aquos-wish2", name: "AQUOS wish2", maker: "aquos", kana: "アクオス ウィッシュ ツー",
     variants: [
       { c: "docomo", code: "SH-51C", rel: "2022年", ship: "free" },
@@ -1721,6 +1735,11 @@ const DEVICES = [
       { c: "uq", rel: "2025年1月", ship: "free" },
       { c: "free", rel: "2025年1月", ship: "free" }
     ] },
+  { id: "arrows-we2", name: "arrows We2", maker: "fcnt", kana: "アローズ ウィー ツー",
+    variants: [
+      { c: "au", rel: "2024年", ship: "free" },
+      { c: "uq", rel: "2024年", ship: "free" }
+    ] },
   { id: "arrows-n", name: "arrows N", maker: "fcnt", kana: "アローズ エヌ",
     variants: [
       { c: "docomo", code: "F-51C", rel: "2022年11月", ship: "free" }
@@ -1796,6 +1815,7 @@ const DEVICES = [
   { id: "oppo-reno13a", name: "OPPO Reno13 A", maker: "oppo", kana: "オッポ リノ サーティーン エー",
     variants: [
       { c: "ymobile", rel: "2025年6月", ship: "free" },
+      { c: "uq", rel: "2025年6月", ship: "free" },
       { c: "rakuten", rel: "2025年6月", ship: "free" },
       { c: "free", rel: "2025年6月", ship: "free" }
     ] },
@@ -1888,19 +1908,24 @@ const DEVICES = [
     variants: [
       { c: "uq", rel: "2024年12月", ship: "free" }
     ] },
+  { id: "xiaomi-14t-pro", name: "Xiaomi 14T Pro", maker: "xiaomi", kana: "シャオミ フォーティーンティー プロ",
+    variants: [
+      { c: "sb", rel: "2024年11月", ship: "free" }
+    ] },
   { id: "redmi-note-13-pro-plus", name: "Redmi Note 13 Pro+ 5G", maker: "xiaomi", kana: "レッドミー ノート サーティーン プロ プラス シャオミ",
     variants: [
       { c: "free", rel: "2024年", ship: "free" }
+    ] },
+  { id: "redmi-12-5g", name: "Redmi 12 5G", maker: "xiaomi", kana: "レッドミー トゥエルブ シャオミ",
+    variants: [
+      { c: "au", code: "XIG03", rel: "2023年10月", ship: "free" },
+      { c: "uq", code: "XIG03", rel: "2023年10月", ship: "free" },
+      { c: "sb", rel: "2024年4月", ship: "free" }
     ] },
   { id: "xiaomi-13t", name: "Xiaomi 13T", maker: "xiaomi", kana: "シャオミ サーティーンティー",
     variants: [
       { c: "au", code: "XIG04", rel: "2023年12月", ship: "free" },
       { c: "uq", code: "XIG04", rel: "2023年12月", ship: "free" }
-    ] },
-  { id: "redmi-12-5g", name: "Redmi 12 5G", maker: "xiaomi", kana: "レッドミー トゥエルブ シャオミ",
-    variants: [
-      { c: "au", code: "XIG03", rel: "2023年10月", ship: "free" },
-      { c: "uq", code: "XIG03", rel: "2023年10月", ship: "free" }
     ] },
   { id: "redmi-note-11-pro-5g", name: "Redmi Note 11 Pro 5G", maker: "xiaomi", kana: "レッドミー ノート イレブン プロ シャオミ",
     variants: [
@@ -1920,6 +1945,10 @@ const DEVICES = [
       { c: "rakuten", rel: "2021年", ship: "free" },
       { c: "uq", rel: "2021年", ship: "locked" }
     ] },
+  { id: "mi-11-lite-5g", name: "Mi 11 Lite 5G", maker: "xiaomi", kana: "エムアイ イレブン ライト シャオミ",
+    variants: [
+      { c: "au", code: "XIG01", rel: "2021年6月", ship: "locked" }
+    ] },
   { id: "redmi-note-10-pro", name: "Redmi Note 10 Pro", maker: "xiaomi", kana: "レッドミー ノート テン プロ シャオミ",
     variants: [
       { c: "free", rel: "2021年", ship: "free" }
@@ -1937,6 +1966,10 @@ const DEVICES = [
   { id: "moto-g66y", name: "moto g66y 5G", maker: "motorola", kana: "モト モトローラ",
     variants: [
       { c: "ymobile", rel: "2025年", ship: "free" }
+    ] },
+  { id: "razr-50-ultra", name: "razr 50 ultra", maker: "motorola", kana: "モト レイザー ウルトラ 折りたたみ モトローラ",
+    variants: [
+      { c: "sb", rel: "2024年12月", ship: "free" }
     ] },
   { id: "razr-50s", name: "razr 50s", maker: "motorola", kana: "モト レイザー 折りたたみ モトローラ",
     variants: [

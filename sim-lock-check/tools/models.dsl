@@ -82,6 +82,8 @@ xperia-xz1-compact | Xperia XZ1 Compact | xperia | エクスペリア エック�
 xperia-xz2 | Xperia XZ2 | xperia | エクスペリア エックスゼットツー | d:SO-03K, a:SOV37, s:702SO | 2018.05
 xperia-xz2-compact | Xperia XZ2 Compact | xperia | エクスペリア エックスゼットツー コンパクト | d:SO-05K | 2018.07
 xperia-xz2-premium | Xperia XZ2 Premium | xperia | エクスペリア エックスゼットツー プレミアム | d:SO-04K, a:SOV38 | 2018.08
+xperia-1-ii | Xperia 1 II | xperia | エクスペリア ワン マークツー | d:SO-51A, a:SOG01 | 2020.05
+xperia-5-ii | Xperia 5 II | xperia | エクスペリア ファイブ マークツー | d:SO-52A, a:SOG02 | 2020.10
 xperia-ace2 | Xperia Ace II | xperia | エクスペリア エース ツー | d:SO-41B | 2021.06
 xperia-5-iii | Xperia 5 III | xperia | エクスペリア ファイブ マークスリー | d:SO-53B, a:SOG05, s:A103SO | 2021.11
 xperia-pro-i | Xperia PRO-I | xperia | エクスペリア プロ アイ | f:XQ-BE42 | 2021.12 ## SIMフリー版（ソニーストア等）。ロックなし
@@ -130,14 +132,15 @@ galaxy-s24-ultra | Galaxy S24 Ultra | galaxy | ギャラクシー エストゥ�
 galaxy-a55 | Galaxy A55 5G | galaxy | ギャラクシー エーゴジューゴ | d:SC-53E, a:SCG27 | 2024
 galaxy-z-flip6 | Galaxy Z Flip6 | galaxy | ギャラクシー ゼットフリップ シックス 折りたたみ | d:SC-54E, a:SCG29 | 2024.07
 galaxy-z-fold6 | Galaxy Z Fold6 | galaxy | ギャラクシー ゼットフォールド シックス 折りたたみ | d:SC-55E, a:SCG28 | 2024.07
-galaxy-s25 | Galaxy S25 | galaxy | ギャラクシー エストゥエンティファイブ | d:SC-51F, a:SCG31 | 2025.02
-galaxy-s25-ultra | Galaxy S25 Ultra | galaxy | ギャラクシー エストゥエンティファイブ ウルトラ | d:SC-52F, a:SCG32 | 2025.02
+galaxy-s25 | Galaxy S25 | galaxy | ギャラクシー エストゥエンティファイブ | d:SC-51F, a:SCG31, s | 2025.02
+galaxy-s25-ultra | Galaxy S25 Ultra | galaxy | ギャラクシー エストゥエンティファイブ ウルトラ | d:SC-52F, a:SCG32, s | 2025.02
 galaxy-a25 | Galaxy A25 5G | galaxy | ギャラクシー エートゥエンティファイブ | d:SC-53F, a:SCG33, s, u, y, r | 2025.02
-galaxy-z-flip7 | Galaxy Z Flip7 | galaxy | ギャラクシー ゼットフリップ セブン 折りたたみ | d:SC-55F, a:SCG35 | 2025.08
+galaxy-z-flip7 | Galaxy Z Flip7 | galaxy | ギャラクシー ゼットフリップ セブン 折りたたみ | d:SC-55F, a:SCG35, f | 2025.08 ## SIMフリー版（サムスン直販）もロックなし
 galaxy-z-fold7 | Galaxy Z Fold7 | galaxy | ギャラクシー ゼットフォールド セブン 折りたたみ | d:SC-56F, a:SCG34 | 2025.08
 galaxy-s26 | Galaxy S26 | galaxy | ギャラクシー エストゥエンティシックス | d:SC-51G, a | 2026.03
 galaxy-s26-plus | Galaxy S26+ | galaxy | ギャラクシー エストゥエンティシックス プラス | a | 2026.03
 galaxy-s26-ultra | Galaxy S26 Ultra | galaxy | ギャラクシー エストゥエンティシックス ウルトラ | a | 2026.03
+galaxy-s24-fe | Galaxy S24 FE | galaxy | ギャラクシー エストゥエンティフォー エフイー | a | 2024.12
 # ================= Sharp =================
 aquos-sense4 | AQUOS sense4 | aquos | アクオス センス フォー | d:SH-41A@2020.11, f:SH-M15@2020.12 | 2020.11
 aquos-sense4-lite | AQUOS sense4 lite | aquos | アクオス センス フォー ライト | r:SH-RM15, f:SH-RM15 | 2020.12
@@ -153,12 +156,13 @@ aquos-wish3 | AQUOS wish3 | aquos | アクオス ウィッシュ スリー | d:S
 aquos-wish4 | AQUOS wish4 | aquos | アクオス ウィッシュ フォー | d:SH-52E@2024, y@2024.07 | 2024
 aquos-wish5 | AQUOS wish5 | aquos | アクオス ウィッシュ ファイブ | y:A502SH | 2025.06
 aquos-r7 | AQUOS R7 | aquos | アクオス アール セブン | d:SH-52C, s | 2022.06
+aquos-sense7-plus | AQUOS sense7 plus | aquos | アクオス センス セブン プラス | s | 2022.10 ## ソフトバンク独占販売
 aquos-sense7 | AQUOS sense7 | aquos | アクオス センス セブン | d:SH-53C, a:SHG10 | 2022.11
 aquos-r8 | AQUOS R8 | aquos | アクオス アール エイト | d:SH-52D | 2023.06
 aquos-r8-pro | AQUOS R8 pro | aquos | アクオス アール エイト プロ | d:SH-51D@2023.06, s:A301SH@2023.07 | 2023.06
 aquos-sense8 | AQUOS sense8 | aquos | アクオス センス エイト | d:SH-54D, a:SHG11 | 2023.11
 aquos-r9 | AQUOS R9 | aquos | アクオス アール ナイン | d:SH-51E, s:A401SH | 2024
-aquos-r9-pro | AQUOS R9 pro | aquos | アクオス アール ナイン プロ | d:SH-54E | 2024
+aquos-r9-pro | AQUOS R9 pro | aquos | アクオス アール ナイン プロ | d:SH-54E, s@2025.04 | 2024
 aquos-sense9 | AQUOS sense9 | aquos | アクオス センス ナイン | d:SH-53E@2024.10, a:SHG14@2024 | 2024.10
 aquos-r10 | AQUOS R10 | aquos | アクオス アール テン | d:SH-51F, s | 2025.07
 aquos-sense10 | AQUOS sense10 | aquos | アクオス センス テン | d:SH-53F, a:SHG15, s, u | 2025.11
@@ -182,6 +186,7 @@ arrows-u | arrows U | fcnt | アローズ ユー | s:801FJ | 2018
 arrows-m04 | arrows M04 | fcnt | アローズ エム ゼロヨン シムフリー | f | 2018 ## 富士通コネクテッドテクノロジーズのSIMフリー端末。ロックなし
 arrows-m05 | arrows M05 | fcnt | アローズ エム ゼロゴ シムフリー | f | 2019 ## 富士通コネクテッドテクノロジーズのSIMフリー端末。ロックなし
 arrows-alpha | arrows Alpha | fcnt | アローズ アルファ | d@2025.08, f@2025.08 | 2025.08
+arrows-we2 | arrows We2 | fcnt | アローズ ウィー ツー | a, u | 2024
 raku-lite | らくらくスマートフォン Lite MR01 | fcnt | らくらくホン シニア ライト | u, f | 2025.01
 # ================= OPPO =================
 oppo-find-x2-pro | OPPO Find X2 Pro | oppo | オッポ ファインド エックスツー プロ | a:OPG01 | 2020.06
@@ -193,16 +198,18 @@ oppo-reno7a | OPPO Reno7 A | oppo | オッポ リノ セブン エー | y:A201OP
 oppo-reno9a | OPPO Reno9 A | oppo | オッポ リノ ナイン エー | y, r, f | 2023.06
 oppo-reno10-pro | OPPO Reno10 Pro 5G | oppo | オッポ リノ テン プロ | s:A302OP, f | 2023
 oppo-a3-5g | OPPO A3 5G | oppo | オッポ エースリー | y | 2024.12
-oppo-reno13a | OPPO Reno13 A | oppo | オッポ リノ サーティーン エー | y, r, f | 2025.06
+oppo-reno13a | OPPO Reno13 A | oppo | オッポ リノ サーティーン エー | y, u, r, f | 2025.06
 oppo-a5-5g | OPPO A5 5G | oppo | オッポ エーファイブ | y@2025.12, u, r | 2025
 # ================= Xiaomi =================
 redmi-note-9s | Redmi Note 9S | xiaomi | レッドミー ノート ナイン エス シャオミ | f | 2020
+mi-11-lite-5g | Mi 11 Lite 5G | xiaomi | エムアイ イレブン ライト シャオミ | a:XIG01 | 2021.06
 redmi-note-10-pro | Redmi Note 10 Pro | xiaomi | レッドミー ノート テン プロ シャオミ | f | 2021
 redmi-note-10t | Redmi Note 10T | xiaomi | レッドミー ノート テン ティー シャオミ | s:A101XM | 2022.04
 redmi-note-11-pro-5g | Redmi Note 11 Pro 5G | xiaomi | レッドミー ノート イレブン プロ シャオミ | f | 2022
-redmi-12-5g | Redmi 12 5G | xiaomi | レッドミー トゥエルブ シャオミ | a:XIG03, u:XIG03 | 2023.10
+redmi-12-5g | Redmi 12 5G | xiaomi | レッドミー トゥエルブ シャオミ | a:XIG03, u:XIG03, s@2024.04 | 2023.10
 xiaomi-13t | Xiaomi 13T | xiaomi | シャオミ サーティーンティー | a:XIG04, u:XIG04 | 2023.12
 redmi-note-13-pro-plus | Redmi Note 13 Pro+ 5G | xiaomi | レッドミー ノート サーティーン プロ プラス シャオミ | f | 2024
+xiaomi-14t-pro | Xiaomi 14T Pro | xiaomi | シャオミ フォーティーンティー プロ | s | 2024.11
 xiaomi-14t | Xiaomi 14T | xiaomi | シャオミ フォーティーンティー | u | 2024.12
 redmi-14c | Redmi 14C | xiaomi | レッドミー フォーティーン シー シャオミ | f | 2025
 redmi-note-14-pro | Redmi Note 14 Pro 5G | xiaomi | レッドミー ノート フォーティーン プロ シャオミ | f | 2025
@@ -211,6 +218,7 @@ moto-g52j | moto g52j 5G | motorola | モト ジー モトローラ | f | 2022
 moto-g53j | moto g53j 5G | motorola | モト ジー モトローラ | f | 2023
 moto-g53y | moto g53y 5G | motorola | モト ジー モトローラ | y:A301MO | 2023.06
 razr-50s | razr 50s | motorola | モト レイザー 折りたたみ モトローラ | s | 2024.09
+razr-50-ultra | razr 50 ultra | motorola | モト レイザー ウルトラ 折りたたみ モトローラ | s | 2024.12
 # ================= ZTE (Libero) =================
 kantan-sumaho5 | かんたんスマホ5 | zte | かんたんスマホ シニア ゼットティーイー | y:A601ZT | 2026
 # ================= ASUS =================
