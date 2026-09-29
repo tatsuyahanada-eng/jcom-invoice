@@ -1,7 +1,7 @@
 // スマホ移行Check Tool — サービスワーカー
 // アプリ本体一式をキャッシュし、オフラインでも起動・閲覧できるようにする。
 // キャッシュ名のバージョンを上げると、次回アクセス時に新しいキャッシュへ切り替わる。
-const CACHE_NAME = "sim-lock-check-v2";
+const CACHE_NAME = "sim-lock-check-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
