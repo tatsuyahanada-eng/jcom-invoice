@@ -90,7 +90,7 @@
     .hero-user svg { width: 16px; height: 16px; }
 
     /* ===== Tabs ===== */
-    .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
+    .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
     .tabbtn {
       --c: var(--muted);
       min-height: 44px; padding: 4px 2px; background: rgba(74, 76, 80, .55); color: var(--c);
@@ -344,6 +344,17 @@
     .webbtn { min-width: 64px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(74, 76, 80, .6); font-size: 12px; font-weight: 700; color: var(--cyan); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 8px; }
     .webbtn svg { width: 16px; height: 16px; }
     .mapbtn:disabled, .webbtn:disabled, .linkbtn:disabled { opacity: .35; }
+    .toplinks { display: flex; align-items: center; gap: 8px; margin-top: 10px; overflow-x: auto; padding: 2px 0 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .toplinks::-webkit-scrollbar { display: none; }
+    .toplinks .lb { flex: none; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--dim); padding-right: 2px; }
+    .toplinks .lk { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(74, 76, 80, .6); color: var(--text); font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .toplinks .lk svg { width: 16px; height: 16px; color: var(--cyan); }
+    .toplinks .lk:disabled { opacity: .4; }
+    .toplinks .lk.add { border-style: dashed; color: var(--muted); font-weight: 500; }
+    .kv-addr { margin-bottom: 12px; }
+    .kv-addr .k { color: var(--muted); font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+    .kv-addr .v { font-size: 15px; word-break: break-word; }
+    .kv-addr .maprow { margin-top: 8px; }
     .applinks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .linkbtn { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(74, 76, 80, .6); font-size: 13px; font-weight: 700; color: var(--text); text-align: left; word-break: break-all; }
     .linkbtn svg { width: 18px; height: 18px; flex: none; color: var(--cyan); }
@@ -466,10 +477,10 @@
   <nav class="tabs" aria-label="メニュー">
     <button class="tabbtn t-gold" id="btnSync" type="button" title="Googleカレンダーから読み込む"><span data-icon="sync"></span>読み込み</button>
     <button class="tabbtn t-green" id="tabRoute" type="button"><span data-icon="route"></span>ルート</button>
-    <button class="tabbtn t-blue" id="btnSettings" type="button"><span data-icon="gear"></span>設定</button>
-    <button class="tabbtn active" id="tabNormal" type="button"><span data-icon="dot"></span>通常</button>
     <button class="tabbtn t-gray" id="tabEdit" type="button"><span data-icon="edit"></span>編集</button>
+    <button class="tabbtn t-blue" id="btnSettings" type="button"><span data-icon="gear"></span>設定</button>
   </nav>
+  <section class="toplinks" id="topLinks" aria-label="連携アプリ"></section>
 
   <div class="pathbar">
     <span class="lb">DATE</span>
@@ -638,7 +649,7 @@
     </div>
     <div class="card">
       <h3><span data-icon="link"></span>連携アプリ（定型リンク）</h3>
-      <p class="help" style="margin:0 0 8px;">名前とURLを登録すると、各案件の詳細画面にボタンとして表示されます。URLには案件の情報を差し込めます。</p>
+      <p class="help" style="margin:0 0 8px;">名前とURLを登録すると、画面の一番上にボタンとして並びます（業務開始前に使うアプリなどに）。URLに差し込み記号を入れると、「次の訪問」の案件の情報が入ります。</p>
       <ul class="linklist" id="linkList"></ul>
       <label class="fl" for="lName">名前</label>
       <input class="input" id="lName" placeholder="例: Waze でナビ">
@@ -919,7 +930,7 @@
     }
 
     $('#tabEdit').classList.toggle('active', editing);
-    $('#tabNormal').classList.toggle('active', !editing);
+    renderTopLinks();
     $('#btnReorder').classList.toggle('hidden', editing);
 
     // 状態ピル
@@ -1010,25 +1021,6 @@
       </div>
 
       <div class="card">
-        <h3>${icon('map')}地図で住所を見る${addr ? '' : '<span class="aside">住所が未設定です</span>'}</h3>
-        <div class="maprow">
-          <button class="mapbtn" type="button" data-map="google" data-mode="app" ${addr ? '' : 'disabled'}>
-            <span class="logo g">G</span><span class="nm">Googleマップ<small>アプリで開く</small></span><span class="go">${icon('ext')}</span>
-          </button>
-          <button class="webbtn" type="button" data-map="google" data-mode="web" ${addr ? '' : 'disabled'}>${icon('globe')}Web</button>
-        </div>
-        <div class="maprow">
-          <button class="mapbtn" type="button" data-map="yahoo" data-mode="app" ${addr ? '' : 'disabled'}>
-            <span class="logo y">Y!</span><span class="nm">Yahoo!マップ<small>アプリで開く</small></span><span class="go">${icon('ext')}</span>
-          </button>
-          <button class="webbtn" type="button" data-map="yahoo" data-mode="web" ${addr ? '' : 'disabled'}>${icon('globe')}Web</button>
-        </div>
-        <p class="help">アプリが入っていない場合はブラウザで開きます。</p>
-      </div>
-
-      ${linksCardHtml(j)}
-
-      <div class="card">
         <h3>${icon('work')}作業ステータス</h3>
         <div class="seg c3" data-group="work">
           ${Object.entries(WORK).map(([k, v]) => `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.work === k}">${v.label}</button>`).join('')}
@@ -1063,8 +1055,25 @@
 
       <div class="card">
         <h3>${icon('info')}予定の内容</h3>
+        <div class="kv-addr">
+          <div class="k">住所</div>
+          <div class="v">${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</div>
+          ${addr ? `
+          <div class="maprow">
+            <button class="mapbtn" type="button" data-map="google" data-mode="app">
+              <span class="logo g">G</span><span class="nm">Googleマップ<small>アプリで開く</small></span><span class="go">${icon('ext')}</span>
+            </button>
+            <button class="webbtn" type="button" data-map="google" data-mode="web">${icon('globe')}Web</button>
+          </div>
+          <div class="maprow">
+            <button class="mapbtn" type="button" data-map="yahoo" data-mode="app">
+              <span class="logo y">Y!</span><span class="nm">Yahoo!マップ<small>アプリで開く</small></span><span class="go">${icon('ext')}</span>
+            </button>
+            <button class="webbtn" type="button" data-map="yahoo" data-mode="web">${icon('globe')}Web</button>
+          </div>
+          <p class="help">アプリが入っていない場合はブラウザで開きます。</p>` : ''}
+        </div>
         <dl class="kv">
-          <dt>住所</dt><dd>${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</dd>
           <dt>電話</dt><dd>${j.phone ? `<a href="${telHref(j.phone)}">${esc(j.phone)}</a>` : '<span style="color:var(--muted)">未設定</span>'}</dd>
           <dt>取込元</dt><dd>${j.eventId ? ((day.source === 'device' ? '端末のカレンダー' : 'Googleカレンダー') + (j.calendar ? '（' + esc(j.calendar) + '）' : '')) : (j.manual ? '手動追加' : 'デモデータ')}</dd>
         </dl>
@@ -1099,12 +1108,6 @@
     }
     const mapBtn = e.target.closest('[data-map]');
     if (mapBtn) { openMap(mapBtn.dataset.map, mapBtn.dataset.mode, j.location); return; }
-    const linkBtn = e.target.closest('[data-link]');
-    if (linkBtn) {
-      const l = settings.links.find(x => x.id === linkBtn.dataset.link);
-      if (l) openUrl(fillTemplate(l.url, j));
-      return;
-    }
     const act = e.target.closest('[data-act]');
     if (!act) return;
     if (act.dataset.act === 'delLog') {
@@ -1193,17 +1196,31 @@
     else location.href = u;
   }
 
-  function linksCardHtml(j) {
-    const links = settings.links || [];
-    if (!links.length) {
-      return `<div class="card"><h3>${icon('link')}連携アプリ</h3><p class="help" style="margin:0;">設定 →「連携アプリ（定型リンク）」で、よく使うアプリやWebサービスをボタンとして登録できます。</p></div>`;
-    }
-    return `<div class="card"><h3>${icon('link')}連携アプリ</h3><div class="applinks">${links.map(l => {
-      const miss = missingFields(l.url, j);
-      const label = { address: '住所', tel: '電話' };
-      return `<button class="linkbtn" type="button" data-link="${esc(l.id)}" ${miss.length ? 'disabled' : ''} title="${miss.length ? esc(miss.map(m => label[m]).join('・') + 'が未設定') : ''}">${icon(/^https?:/i.test(l.url) ? 'ext' : 'link')}${esc(l.name)}</button>`;
-    }).join('')}</div></div>`;
+  // 画面上部の連携アプリ（業務開始前に使うことが多いので、トップにだけ置く）
+  function linkContextJob() {
+    const j = day.jobs.find(x => x.work !== 'done') || day.jobs[0];
+    return j || { title: '', location: '', phone: '', start: null, allDay: false, memo: '', parking: { status: 'unknown', note: '' } };
   }
+  function renderTopLinks() {
+    const links = settings.links || [];
+    const el = $('#topLinks');
+    if (!links.length) {
+      el.innerHTML = '<button class="lk add" type="button" data-toplink="add">＋ 連携アプリを登録</button>';
+      return;
+    }
+    const j = linkContextJob();
+    const label = { address: '住所', tel: '電話' };
+    el.innerHTML = '<span class="lb">LINK</span>' + links.map(l => {
+      const miss = missingFields(l.url, j);
+      return `<button class="lk" type="button" data-toplink="${esc(l.id)}" ${miss.length ? 'disabled' : ''} title="${miss.length ? esc(miss.map(m => label[m]).join('・') + 'が未設定') : ''}">${icon(/^https?:/i.test(l.url) ? 'ext' : 'link')}${esc(l.name)}</button>`;
+    }).join('');
+  }
+  $('#topLinks').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-toplink]'); if (!b) return;
+    if (b.dataset.toplink === 'add') { openSettings(); return; }
+    const l = settings.links.find(x => x.id === b.dataset.toplink);
+    if (l) openUrl(fillTemplate(l.url, linkContextJob()));
+  });
 
   async function copyText(t) {
     try { await navigator.clipboard.writeText(t); return true; }
@@ -1803,7 +1820,7 @@
       settings.links.push({ id: uid(), name, url });
       toast('連携アプリを追加しました');
     }
-    saveSettings(); resetLinkForm();
+    saveSettings(); resetLinkForm(); renderTopLinks();
   });
   $('#lCancel').addEventListener('click', resetLinkForm);
   $('#linkList').addEventListener('click', async e => {
@@ -1823,7 +1840,7 @@
       settings.links.splice(i, 1);
       if (editingLinkId === id) { editingLinkId = null; $('#lName').value = ''; $('#lUrl').value = ''; }
     }
-    saveSettings(); renderLinks();
+    saveSettings(); renderLinks(); renderTopLinks();
   });
 
   function applySourceUi() {
@@ -1959,8 +1976,7 @@
   $('#datePicker').addEventListener('change', e => { if (e.target.value) goTo(e.target.value); });
   $('#tabRoute').addEventListener('click', openRoute);
   $('#tabAdd').addEventListener('click', () => openForm());
-  $('#tabEdit').addEventListener('click', () => { editing = true; render(); });
-  $('#tabNormal').addEventListener('click', () => { editing = false; render(); });
+  $('#tabEdit').addEventListener('click', () => { editing = !editing; render(); });
   $('#btnReorder').addEventListener('click', () => { editing = true; render(); });
   $('#nextArea').addEventListener('click', (e) => { const b = e.target.closest('[data-next]'); if (b) openDetail(b.dataset.next); });
   $('#btnEditDone').addEventListener('click', () => { editing = false; render(); });
