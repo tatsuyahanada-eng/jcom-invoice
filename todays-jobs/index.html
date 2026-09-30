@@ -504,7 +504,7 @@
       <span id="syncedAt"></span>
     </div>
     <div class="edit-banner" id="editBanner">
-      <div class="grow"><b>編集モード</b><br><small>ゴミ箱で削除・↑↓で順番変更・タップで内容を修正</small></div>
+      <div class="grow"><b>編集モード</b><br><small>ゴミ箱で削除・↑↓で順番変更・タップで内容を修正<br>※ アプリ上で削除・修正しても、カレンダーの予定は変わりません</small></div>
       <button class="add" id="btnAddInEdit" type="button">＋ 追加</button>
       <button class="done" id="btnEditDone" type="button">完了</button>
     </div>
@@ -625,6 +625,7 @@
       <label class="fl" for="sKeyword">取り込み対象キーワード（任意）</label>
       <input class="input" id="sKeyword" placeholder="例: 工事, 点検（カンマ区切り）">
       <p class="help">指定すると、件名にいずれかのキーワードを含む予定だけを取り込みます。</p>
+      <p class="help" style="margin-top:10px;">🔒 このアプリはカレンダーを<b>読み取るだけ</b>です。アプリ内で案件を削除・編集しても、カレンダーの予定は変更・削除されません。</p>
     </div>
     <div class="card">
       <h3><span data-icon="route"></span>ルート案内</h3>
@@ -1228,7 +1229,7 @@
     $('#fAddr').value = j ? j.location : '';
     $('#fTel').value = j ? j.phone : '';
     $('#fDesc').value = j ? j.description : '';
-    $('#fHelp').textContent = j && j.eventId ? '編集した項目は、次回カレンダー同期時も上書きされません。' : `${fmtDateLabel(current)}の案件として追加します。`;
+    $('#fHelp').textContent = j && j.eventId ? '編集した項目は、次回カレンダー同期時も上書きされません。カレンダーの予定そのものは変更されません。' : `${fmtDateLabel(current)}の案件として追加します。`;
     const del = $('#fDelete');
     del.classList.toggle('hidden', !j);
     del.innerHTML = `${icon('trash')}削除`;
@@ -1286,7 +1287,7 @@
     const [removed] = day.jobs.splice(idx, 1);
     if (removed.eventId && !day.deleted.includes(removed.eventId)) day.deleted.push(removed.eventId);
     saveDay(); render();
-    toast(`「${removed.title || '案件'}」を削除しました`, '元に戻す', () => {
+    toast(`「${removed.title || '案件'}」をアプリから削除しました（カレンダーの予定は残ります）`, '元に戻す', () => {
       day.jobs.splice(Math.min(idx, day.jobs.length), 0, removed);
       if (removed.eventId) day.deleted = day.deleted.filter(x => x !== removed.eventId);
       saveDay(); render();
@@ -1665,7 +1666,8 @@
         title: '上書き取り込みしますか？',
         body: `<p>${esc(fmtDateLabel(current))}は、すでに<b>${imported}件</b>取り込み済みです。</p>`
           + '<p><b>上書き取り込み</b>：カレンダーの内容で入れ替えます。<span class="dng">連絡状況・駐車場・メモ・並び順・削除の記録は消えます。</span>（手動で追加した案件は残ります）</p>'
-          + '<p><b>更新のみ</b>：入力内容はそのまま残し、追加・変更された予定だけを反映します。</p>',
+          + '<p><b>更新のみ</b>：入力内容はそのまま残し、追加・変更された予定だけを反映します。</p>'
+          + '<p>どちらもカレンダー側の予定は変更されません（読み取りのみ）。</p>',
         buttons: [
           { label: '上書き取り込みする', value: 'overwrite', kind: 'danger' },
           { label: '入力内容を残して更新のみ', value: 'merge', kind: 'primary' },
