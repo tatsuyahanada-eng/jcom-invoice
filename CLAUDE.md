@@ -19,5 +19,6 @@
 ## デザイン方針（Today's Jobs）
 - 見た目は、ユーザーが提示した参考画像（CASE BY CASE）のダークHUD調で統一する: 濃紺の背景＋薄いグリッド、プラチナ（銀青 #C5D3DF。主色。蛍光シアン/緑は他アプリで使用済みのため使わない）／黄色（強調・主ボタン）、
   等幅フォントのラベル、四隅にブラケットのあるパネル、色分けした上部タブ（通常＝プラチナ塗り）、破線ボタン。
-- アプリアイコンはユーザー指定の画像（カレンダー＋書類＋カバン）。右下に小さく「TJ」を入れている（`todays-jobs/icon.png`、
-  Androidは `android/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png`）。アプリ内のタイトルの左にもアイコン、右に小さな「TJ」を表示。
+- アプリアイコンは、プラチナ（#C5D3DF）のシンプルな「カバン＋チェックマーク」（仕事の管理ツールと一目で分かる図柄）。濃紺の丸角四角の上に置き、下に小さく「TJ」を入れている
+  （`todays-jobs/icon.png` / `icon-192.png`、Androidは `android/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png`＋背景色 `navy`）。
+  アプリ内のタイトルの左にもアイコン、右に小さな「TJ」を表示。複雑な図柄（カレンダー・バインダー等）には戻さない。
