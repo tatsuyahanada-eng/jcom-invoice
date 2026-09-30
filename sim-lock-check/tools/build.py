@@ -61,98 +61,120 @@ def parse_dsl(path):
         rows.append(d)
     return rows
 
-# ---------- 1) 既存データの削除・訂正 ----------
-EXTRA_KEYS = ('path', 'paths', 'brand', 'mfr')
-models = {}       # id -> dict（順序維持）
-order = []
-def put(d):
-    if d['id'] not in models: order.append(d['id'])
-    models[d['id']] = d
+# ---------- 1) 基本データ（既存＋models.dsl） ----------
+def base_models():
+    models = {}
+    order = []
+    def put(d):
+        if d['id'] not in models: order.append(d['id'])
+        models[d['id']] = d
+    # ---------- 1) 既存データの削除・訂正 ----------
+    EXTRA_KEYS = ('path', 'paths', 'brand', 'mfr')
 
-REMOVE = {
-    # 分割して置き換える（models.dsl 側で再定義）
-    'iphone-6s-7', 'iphone-8-x', 'iphone-xs-xr', 'iphone-11', 'iphone-12', 'iphone-13', 'iphone-14', 'iphone-15', 'iphone-16', 'iphone-17',
-    'pixel-3', 'pixel-4', 'pixel-5', 'pixel-6', 'pixel-7', 'pixel-8', 'pixel-9', 'pixel-10',
-    'xperia-x-performance', 'xperia-xz', 'xperia-xz1', 'xperia-xz2',
-    'galaxy-s8', 'galaxy-s9', 'galaxy-s10', 'galaxy-s20', 'galaxy-feel', 'galaxy-z-flip3-fold3', 'galaxy-s22', 'galaxy-z-flip4-fold4', 'galaxy-s23',
-    'galaxy-z-flip5-fold5', 'galaxy-s24', 'galaxy-z-flip6-fold6', 'galaxy-s25', 'galaxy-z-flip7-fold7', 'galaxy-s26',
-    'aquos-sense4', 'aquos-r5g-r6', 'aquos-r8', 'aquos-r9',
-    'kantan-sumaho2', 'arrows-be', 'arrows-m-simfree', 'rakuten-hand', 'redmi-free',
-    # 誤りが判明したもの（訂正版を models.dsl に記載）
-    'oppo-a55s', 'oppo-a5-2020', 'raku-4', 'arrows-u', 'xperia-ace', 'kyocera-kyg04', 'torque-5g', 'basio-active',
-}
-for d in legacy:
-    if d['id'] in REMOVE: continue
-    d = copy.deepcopy(d)
-    # 個別の訂正
-    if d['id'] == 'aquos-sense3':      # Y!mobile版の型番が他機種と重複していた（未確認）ため削除
-        d['variants'] = [v for v in d['variants'] if v['c'] != 'ymobile']
-    if d['id'] == 'oppo-a54':
-        pass
-    put(d)
+    REMOVE = {
+        # 分割して置き換える（models.dsl 側で再定義）
+        'iphone-6s-7', 'iphone-8-x', 'iphone-xs-xr', 'iphone-11', 'iphone-12', 'iphone-13', 'iphone-14', 'iphone-15', 'iphone-16', 'iphone-17',
+        'pixel-3', 'pixel-4', 'pixel-5', 'pixel-6', 'pixel-7', 'pixel-8', 'pixel-9', 'pixel-10',
+        'xperia-x-performance', 'xperia-xz', 'xperia-xz1', 'xperia-xz2',
+        'galaxy-s8', 'galaxy-s9', 'galaxy-s10', 'galaxy-s20', 'galaxy-feel', 'galaxy-z-flip3-fold3', 'galaxy-s22', 'galaxy-z-flip4-fold4', 'galaxy-s23',
+        'galaxy-z-flip5-fold5', 'galaxy-s24', 'galaxy-z-flip6-fold6', 'galaxy-s25', 'galaxy-z-flip7-fold7', 'galaxy-s26',
+        'aquos-sense4', 'aquos-r5g-r6', 'aquos-r8', 'aquos-r9',
+        'kantan-sumaho2', 'arrows-be', 'arrows-m-simfree', 'rakuten-hand', 'redmi-free',
+        # 誤りが判明したもの（訂正版を models.dsl に記載）
+        'oppo-a55s', 'oppo-a5-2020', 'raku-4', 'arrows-u', 'xperia-ace', 'kyocera-kyg04', 'torque-5g', 'basio-active',
+    'digno',   # 個別の DIGNO 機種（一覧取り込み分）に置き換え
+    }
+    for d in legacy:
+        if d['id'] in REMOVE: continue
+        d = copy.deepcopy(d)
+        # 個別の訂正
+        if d['id'] == 'aquos-sense3':      # Y!mobile版の型番が他機種と重複していた（未確認）ため削除
+            d['variants'] = [v for v in d['variants'] if v['c'] != 'ymobile']
+        if d['id'] == 'oppo-a54':
+            pass
+        put(d)
 
-for d in parse_dsl(D_DIR + 'models.dsl'):
-    # 既存に同一idがあれば、path/paths などの補足を引き継ぐ
-    old = LG.get(d['id'])
-    if old:
-        for k in EXTRA_KEYS:
-            if k in old and k not in d: d[k] = old[k]
-        # 既存の個別メモを引き継ぐ（同じキャリアのみ）
-        for v in d['variants']:
-            for ov in old['variants']:
-                if ov['c'] == v['c'] and ov.get('note') and 'note' not in v: v['note'] = ov['note']
-        if old.get('note') and 'note' not in d: d['note'] = old['note']
-    put(d)
+    for d in parse_dsl(D_DIR + 'models.dsl'):
+        # 既存に同一idがあれば、path/paths などの補足を引き継ぐ
+        old = LG.get(d['id'])
+        if old:
+            for k in EXTRA_KEYS:
+                if k in old and k not in d: d[k] = old[k]
+            # 既存の個別メモを引き継ぐ（同じキャリアのみ）
+            for v in d['variants']:
+                for ov in old['variants']:
+                    if ov['c'] == v['c'] and ov.get('note') and 'note' not in v: v['note'] = ov['note']
+            if old.get('note') and 'note' not in d: d['note'] = old['note']
+        put(d)
+
+
+    return models, order
+
+def overlay_models():
+    p = D_DIR + 'jcom_overlay.json'
+    return json.load(open(p, encoding='utf-8')) if os.path.exists(p) else []
 
 # ---------- 2) 出力 ----------
-def js(v): return json.dumps(v, ensure_ascii=False)
-def pathjs(p):
-    s = '{ steps: %s, target: %s' % (js(p['steps']), js(p['target']))
-    if p.get('note'): s += ', note: ' + js(p['note'])
-    if p.get('label'): s += ', label: ' + js(p['label'])
-    return s + ' }'
-def var_js(v):
-    s = 'c: %s' % js(v['c'])
-    if v.get('code'): s += ', code: %s' % js(v['code'])
-    if v.get('n'): s += ', n: %s' % js(v['n'])
-    s += ', rel: %s, ship: %s' % (js(v['rel']), js(v['ship']))
-    if v.get('note'): s += ', note: %s' % js(v['note'])
-    return '{ ' + s + ' }'
-def dev_js(d):
-    head = '  { id: %s, name: %s, maker: %s,' % (js(d['id']), js(d['name']), js(d['maker']))
-    if d.get('mfr'): head += ' mfr: %s,' % js(d['mfr'])
-    if d.get('brand'): head += ' brand: %s,' % js(d['brand'])
-    head += ' kana: %s,' % js(d.get('kana', ''))
-    lines = [head]
-    if d.get('path'): lines.append('    path: ' + pathjs(d['path']) + ',')
-    if d.get('paths'): lines.append('    paths: [' + ', '.join(pathjs(p) for p in d['paths']) + '],')
-    vs = ',\n      '.join(var_js(v) for v in d['variants'])
-    tail = '\n    ]' + (', note: %s' % js(d['note']) if d.get('note') else '') + ' },'
-    lines.append('    variants: [\n      ' + vs + tail)
-    return '\n'.join(lines)
+def main():
+    models, order = base_models()
+    for d in overlay_models():
+        if d['id'] not in models: order.append(d['id'])
+        models[d['id']] = d
+    write(models, order)
 
-# メーカー順に並べる
-MAKER_ORDER = ['iphone', 'pixel', 'xperia', 'galaxy', 'aquos', 'kyocera', 'fcnt', 'oppo', 'xiaomi', 'motorola', 'zte', 'huawei', 'asus', 'lg', 'tcl', 'balmuda', 'htc', 'microsoft', 'android', 'garaho']
-def first_rel(d): return max((ym(v['rel']) for v in d['variants']), default=0)
-specific = [models[i] for i in order if not models[i].get('generic')]
-generic = [models[i] for i in order if models[i].get('generic')]
-LABEL = {'iphone': 'iPhone', 'pixel': 'Pixel / Nexus', 'xperia': 'Xperia', 'galaxy': 'Galaxy', 'aquos': 'AQUOS・BASIO(シャープ製)', 'kyocera': '京セラ', 'fcnt': 'arrows・らくらくスマートフォン', 'oppo': 'OPPO',
-         'xiaomi': 'Xiaomi', 'motorola': 'Motorola', 'zte': 'ZTE (Libero)', 'huawei': 'HUAWEI', 'asus': 'ASUS', 'lg': 'LG', 'tcl': 'TCL', 'balmuda': 'BALMUDA', 'htc': 'HTC', 'microsoft': 'Microsoft', 'android': 'その他Android', 'garaho': 'ガラホ'}
-out = []
-for mk in MAKER_ORDER:
-    grp = [d for d in specific if d['maker'] == mk]
-    if not grp: continue
-    grp.sort(key=lambda d: -first_rel(d))
-    out.append('\n  // ---------- %s ----------' % LABEL[mk])
-    out += [dev_js(d) for d in grp]
-rest = [d for d in specific if d['maker'] not in MAKER_ORDER]
-if rest: raise SystemExit('unknown maker: ' + ', '.join(sorted({d['maker'] for d in rest})))
+def write(models, order):
+    def js(v): return json.dumps(v, ensure_ascii=False)
+    def pathjs(p):
+        s = '{ steps: %s, target: %s' % (js(p['steps']), js(p['target']))
+        if p.get('note'): s += ', note: ' + js(p['note'])
+        if p.get('label'): s += ', label: ' + js(p['label'])
+        return s + ' }'
+    def var_js(v):
+        s = 'c: %s' % js(v['c'])
+        if v.get('code'): s += ', code: %s' % js(v['code'])
+        if v.get('n'): s += ', n: %s' % js(v['n'])
+        s += ', rel: %s, ship: %s' % (js(v['rel']), js(v['ship']))
+        if v.get('note'): s += ', note: %s' % js(v['note'])
+        return '{ ' + s + ' }'
+    def dev_js(d):
+        head = '  { id: %s, name: %s, maker: %s,' % (js(d['id']), js(d['name']), js(d['maker']))
+        if d.get('mfr'): head += ' mfr: %s,' % js(d['mfr'])
+        if d.get('brand'): head += ' brand: %s,' % js(d['brand'])
+        head += ' kana: %s,' % js(d.get('kana', ''))
+        lines = [head]
+        if d.get('path'): lines.append('    path: ' + pathjs(d['path']) + ',')
+        if d.get('paths'): lines.append('    paths: [' + ', '.join(pathjs(p) for p in d['paths']) + '],')
+        vs = ',\n      '.join(var_js(v) for v in d['variants'])
+        tail = '\n    ]' + (', note: %s' % js(d['note']) if d.get('note') else '') + ' },'
+        lines.append('    variants: [\n      ' + vs + tail)
+        return '\n'.join(lines)
 
-src = open(DATA_JS, encoding='utf-8').read()
-a = src.index('const DEVICES = [')
-b = src.index('  // ---------- 汎用（機種が見つからない時） ----------')
-generic_tail_end = src.index('];\n\n/* キャリアメール持ち運び */')
-new_devices = 'const DEVICES = [' + '\n'.join(out) + '\n\n' + src[b:generic_tail_end]
-src = src[:a] + new_devices + src[generic_tail_end:]
-open(DATA_JS, 'w', encoding='utf-8').write(src)
-print('models', len(specific), 'generic', len(generic))
+    # メーカー順に並べる
+    MAKER_ORDER = ['iphone', 'pixel', 'xperia', 'galaxy', 'aquos', 'kyocera', 'fcnt', 'oppo', 'xiaomi', 'motorola', 'zte', 'huawei', 'asus', 'lg', 'tcl', 'balmuda', 'htc', 'nothing', 'microsoft', 'android', 'garaho']
+    def first_rel(d): return max((ym(v['rel']) for v in d['variants']), default=0)
+    specific = [models[i] for i in order if not models[i].get('generic')]
+    generic = [models[i] for i in order if models[i].get('generic')]
+    LABEL = {'iphone': 'iPhone', 'pixel': 'Pixel / Nexus', 'xperia': 'Xperia', 'galaxy': 'Galaxy', 'aquos': 'AQUOS・BASIO(シャープ製)', 'kyocera': '京セラ', 'fcnt': 'arrows・らくらくスマートフォン', 'oppo': 'OPPO',
+             'xiaomi': 'Xiaomi', 'motorola': 'Motorola', 'zte': 'ZTE (Libero)', 'huawei': 'HUAWEI', 'asus': 'ASUS', 'lg': 'LG', 'tcl': 'TCL', 'balmuda': 'BALMUDA', 'htc': 'HTC', 'nothing': 'Nothing', 'microsoft': 'Microsoft', 'android': 'その他Android', 'garaho': 'ガラホ'}
+    out = []
+    for mk in MAKER_ORDER:
+        grp = [d for d in specific if d['maker'] == mk]
+        if not grp: continue
+        grp.sort(key=lambda d: -first_rel(d))
+        out.append('\n  // ---------- %s ----------' % LABEL[mk])
+        out += [dev_js(d) for d in grp]
+    rest = [d for d in specific if d['maker'] not in MAKER_ORDER]
+    if rest: raise SystemExit('unknown maker: ' + ', '.join(sorted({d['maker'] for d in rest})))
+
+    src = open(DATA_JS, encoding='utf-8').read()
+    a = src.index('const DEVICES = [')
+    b = src.index('  // ---------- 汎用（機種が見つからない時） ----------')
+    generic_tail_end = src.index('];\n\n/* キャリアメール持ち運び */')
+    new_devices = 'const DEVICES = [' + '\n'.join(out) + '\n\n' + src[b:generic_tail_end]
+    src = src[:a] + new_devices + src[generic_tail_end:]
+    open(DATA_JS, 'w', encoding='utf-8').write(src)
+    print('models', len(specific), 'generic', len(generic))
+
+
+if __name__ == "__main__":
+    main()

@@ -141,6 +141,9 @@
   .filters .grp { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
   .filters .lbl { min-width: 0; }
   .filters:not(.two) .lbl { min-width: 5em; }
+  .morerow, .morerow:hover { background: none !important; box-shadow: none !important; border: 0 !important; }
+  .morerow td { padding: 10px 0 !important; text-align: center; grid-column: 1 / -1; }
+  .morebtn { border: 1px solid var(--accent-deep); background: var(--panel); color: var(--accent); border-radius: 6px; padding: 9px 22px; font-weight: 700; cursor: pointer; }
   small.pn { display: block; font-weight: 400; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
   .pn2 { font-size: 11.5px; color: var(--muted); }
   .d-pn { font-size: 12.5px; color: var(--muted); }
@@ -635,7 +638,7 @@
     sb: "Y!mobile・LINEMO・ソフトバンク系MVNO"
   };
 
-  const state = { q: "", carrier: "all", os: "all", mfr: "all", sort: "new", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set() };
+  const state = { limit: 300, q: "", carrier: "all", os: "all", mfr: "all", sort: "new", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set() };
 
   const deviceOs = d => MAKERS[d.maker].os;
   const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
@@ -712,6 +715,7 @@
       state.sort === "old" ? (a.k || 9e9) - (b.k || 9e9) :
       state.sort === "mfr" ? mfrIdx(a.d) - mfrIdx(b.d) || b.k - a.k :
       b.k - a.k);
+    const totalRows = items.length + generic.length;
     const rows = items.map(({ d, v }) => {
       const [cls, lb] = judgeOf(v);
       const cur = state.sel === d.id && state.selCarrier === v.c;
@@ -738,7 +742,11 @@
       $("#results").innerHTML = `<tbody><tr style="cursor:default"><td colspan="6"><div class="empty">該当する機種がありません。<br>メーカー名（例：Galaxy、AQUOS、OPPO）で検索すると、メーカー別の確認方法が出ます。見つからない機種は「確認の基本」の順で判定してください。</div></td></tr></tbody>`;
       return;
     }
-    $("#results").innerHTML = `<thead><tr><th>判定</th><th>機種名</th><th>メーカー</th><th>キャリア</th><th>型番</th><th>発売</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+    // 件数が多いときは先頭から表示し、「さらに表示」で追加（スマホでの表示を軽くするため）
+    const shown = rows.slice(0, state.limit);
+    const more = rows.length > shown.length
+      ? `<tr class="morerow"><td colspan="6"><button type="button" class="morebtn" data-more="1">さらに表示（残り ${rows.length - shown.length} 件）</button></td></tr>` : "";
+    $("#results").innerHTML = `<thead><tr><th>判定</th><th>機種名</th><th>メーカー</th><th>キャリア</th><th>型番</th><th>発売</th></tr></thead><tbody>${shown.join("")}${more}</tbody>`;
   }
 
   /* ---------- detail ---------- */
@@ -1072,6 +1080,7 @@
   }
 
   function refresh() {
+    state.limit = 300;
     renderChips(); renderResults(); updateFcount();
     if (state.tab === "table") renderTable();
     if (state.tab === "qr") renderQrView();
@@ -1114,6 +1123,7 @@
     if (t.dataset.carrier) { state.carrier = t.dataset.carrier; refresh(); return; }
     if (t.dataset.os) { state.os = t.dataset.os; refresh(); return; }
     if (t.dataset.mfr) { state.mfr = t.dataset.mfr; refresh(); return; }
+    if (t.dataset.more) { state.limit += 500; renderResults(); return; }
     if (t.dataset.sort) { state.sort = t.dataset.sort; refresh(); return; }
     if (t.dataset.tab) { setTab(t.dataset.tab); return; }
     if (t.tagName === "TR" && t.dataset.id) { if (state.tab !== "search") setTab("search"); openDevice(t.dataset.id, t.dataset.vc); return; }

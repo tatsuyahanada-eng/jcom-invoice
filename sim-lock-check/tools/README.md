@@ -11,3 +11,10 @@ id | 機種名 | 確認手順グループ | 読み(検索用) | キャリア版 
 - ロック有無は発売時期から自動判定（ドコモ2021/8/27・au/UQ 2021/10/1・SB/Y! 2021/10/1以降はロックなし、楽天・SIMフリーは常にロックなし）
 - 型番は公式サイト等で確認できたものだけを書く（不明は空欄）
 - `legacy.json` は2021年以前の既存データ（`build.py` の REMOVE に載せた機種は除く）
+
+## J:COM「動作確認端末チェッカー」PDFの取り込み
+```
+python3 tools/extract_jcom_pdf.py <PDFのパス>   # → tools/jcom_source.json
+python3 tools/import_jcom.py                    # → tools/jcom_overlay.json（既存データと突き合わせ）
+python3 tools/build.py                          # → data.js
+```
