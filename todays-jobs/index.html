@@ -40,6 +40,7 @@
       --purple: #b195ff;
       --purple-weak: rgba(177, 149, 255, .13);
       --gold-text: #ffcc33;
+      --urgent: #e2475f;
       --ink: #484d51;
       --radius: 14px;
       --mono: "Courier New", Courier, ui-monospace, "SF Mono", Menlo, monospace;
@@ -450,6 +451,27 @@
     .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
     .toast button { border: 0; background: transparent; color: var(--gold); font-weight: 800; padding: 4px 6px; white-space: nowrap; }
 
+    /* 直前連絡が必要（目立つ印） */
+    .urgent-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--urgent); color: #ffffff; font-weight: 800; font-size: 13px; padding: 3px 12px 3px 9px; border-radius: 999px; margin-bottom: 8px; box-shadow: 0 0 0 2px rgba(226, 71, 95, .25), 0 0 14px rgba(226, 71, 95, .55); animation: urgentPulse 1.8s ease-in-out infinite; }
+    .urgent-tag svg { width: 15px; height: 15px; }
+    .urgent-tag.done { background: #23a865; box-shadow: none; animation: none; }
+    @keyframes urgentPulse { 50% { box-shadow: 0 0 0 4px rgba(226, 71, 95, .25), 0 0 22px rgba(226, 71, 95, .85); } }
+    @media (prefers-reduced-motion: reduce) { .urgent-tag, .urgent-banner { animation: none; } }
+    .job.urgent { border-left-color: var(--urgent); background: linear-gradient(135deg, rgba(226, 71, 95, .28), rgba(226, 71, 95, .10)); box-shadow: 0 0 0 1px rgba(226, 71, 95, .65), 0 0 18px rgba(226, 71, 95, .30); }
+    .job.urgent-done { border-left-color: #23a865; }
+    .urgent-banner { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--urgent); background: linear-gradient(135deg, rgba(226, 71, 95, .42), rgba(226, 71, 95, .20)); color: #ffffff; font-weight: 800; font-size: 16px; animation: urgentPulse 1.8s ease-in-out infinite; }
+    .urgent-banner svg { width: 24px; height: 24px; flex: none; }
+    .urgent-banner small { display: block; font-weight: 500; font-size: 12px; opacity: .92; }
+    .urgent-banner.done { border-color: #23a865; background: rgba(35, 168, 101, .22); animation: none; }
+    .pathval .urg { background: var(--urgent); color: #ffffff; font-size: 11px; font-weight: 800; padding: 1px 9px; border-radius: 999px; white-space: nowrap; animation: urgentPulse 1.8s ease-in-out infinite; }
+    .card.needcall { border-color: rgba(226, 71, 95, .55); }
+    .ph-call { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+    .ph-call:empty { display: none; }
+    .ph-call a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--gold-line); background: var(--warn-weak); color: var(--gold-text); font-weight: 800; font-size: 14px; text-decoration: none; }
+    .ph-call a svg { width: 16px; height: 16px; }
+    .desc a.tel { color: var(--gold-text); font-weight: 700; text-decoration: underline; }
+        .pathval { flex-wrap: wrap; gap: 4px 8px; }
+    .pathval .d, .pathval .tag, .pathval .urg { white-space: nowrap; flex: none; }
     .hidden { display: none !important; }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
@@ -485,7 +507,7 @@
   <div class="pathbar">
     <span class="lb">DATE</span>
     <label class="pathval">
-      <span class="d" id="dateLabel"></span><span class="tag" id="dateTag"></span>
+      <span class="d" id="dateLabel"></span><span class="tag" id="dateTag"></span><span class="urg hidden" id="dateUrgent"></span>
       <input type="date" id="datePicker" aria-label="日付を選択">
     </label>
     <button class="icon-btn" id="btnPrev" type="button" aria-label="前の日"><span data-icon="left"></span></button>
@@ -500,6 +522,8 @@
       <h2 id="hudTitle">本日の訪問先</h2>
       <p id="hudSub"></p>
     </div>
+
+    <button class="urgent-banner hidden" id="urgentBanner" type="button"></button>
 
     <section class="summary" aria-label="集計">
       <div class="cell"><div class="num" id="sumTotal">0<small>件</small></div><div class="lbl">訪問予定</div></div>
@@ -790,16 +814,28 @@
       .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
       .replace(/[‐‑‒–—―ー−－]/g, '-');
   }
-  function extractPhone(...texts) {
-    for (const t of texts) {
-      const s = normalizeText(t);
-      const m = s.match(/(?:\+81[-\s]?)?0\d{1,4}[-\s(]?\d{1,4}[-\s)]?\d{3,4}/);
-      if (m) {
-        const digits = m[0].replace(/\D/g, '');
-        if (digits.length >= 10 && digits.length <= 12) return m[0].trim();
-      }
+  // 電話番号らしい文字列（090/080/070/050 や、03・048 など市外局番で始まる10〜11桁）を探す
+  const PHONE_RE = /(?<!\d)(?:0[5789]0[-\s]?\d{4}[-\s]?\d{4}|0\d{1,4}(?:-|\()\d{1,4}(?:-|\))\d{3,4}|0\d{9,10})(?!\d)/g;
+  const normForPhone = (t) => normalizeText(t).replace(/（/g, '(').replace(/）/g, ')'); // 1文字ずつ置換するので位置は元の文字列と一致する
+  function phoneSpans(text) {
+    const src = String(text || '');
+    const n = normForPhone(src);
+    const out = [];
+    for (const m of n.matchAll(PHONE_RE)) {
+      const digits = m[0].replace(/\D/g, '');
+      if (digits.length < 10 || digits.length > 11) continue;
+      out.push({ start: m.index, end: m.index + m[0].length, raw: src.slice(m.index, m.index + m[0].length), norm: m[0], tel: digits });
     }
-    return '';
+    return out;
+  }
+  function findPhones(...texts) {
+    const seen = new Set(), list = [];
+    texts.forEach(t => phoneSpans(String(t || '').replace(/https?:\/\/[^\s<]+/g, m => ' '.repeat(m.length))).forEach(sp => { if (!seen.has(sp.tel)) { seen.add(sp.tel); list.push(sp); } }));
+    return list;
+  }
+  function extractPhone(...texts) {
+    const f = findPhones(...texts);
+    return f.length ? f[0].norm.trim() : '';
   }
   function extractAddress(desc) {
     const lines = String(desc || '').split(/\n/).map(l => l.trim()).filter(Boolean);
@@ -819,8 +855,17 @@
     const doc = new DOMParser().parseFromString(withBreaks, 'text/html');
     return (doc.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
   }
+  function phoneLinkify(seg) {
+    let out = '', last = 0;
+    for (const sp of phoneSpans(seg)) {
+      out += esc(seg.slice(last, sp.start)) + `<a class="tel" href="tel:${sp.tel}">${esc(sp.raw)}</a>`;
+      last = sp.end;
+    }
+    return out + esc(seg.slice(last));
+  }
   function linkify(text) {
-    return esc(text).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+    return String(text).split(/(https?:\/\/[^\s<]+)/g).map((seg, i) =>
+      i % 2 ? `<a href="${esc(seg)}" target="_blank" rel="noopener">${esc(seg)}</a>` : phoneLinkify(seg)).join('');
   }
   function fmtDateLabel(s) {
     const d = parseYmd(s);
@@ -857,7 +902,7 @@
       location: '', description: '', phone: '', calendar: '', edited: [],
       contact: { status: 'none', log: [] },
       parking: { status: 'unknown', note: '' },
-      memo: '', work: 'todo', missing: false,
+      memo: '', work: 'todo', missing: false, needCall: false,
     }, base);
   }
 
@@ -941,6 +986,20 @@
       ? `${total}件の訪問予定。タップで詳細、長押しで順番を入れ替えます。`
       : 'カレンダーから読み込むか、手動で追加してください。';
 
+    // 直前連絡が必要な案件の目立つ印（バナー・日付の横・カード）
+    const flagged = jobs.filter(j => j.needCall);
+    const pendingCall = flagged.filter(j => j.contact.status !== 'talked');
+    const ub = $('#urgentBanner');
+    if (flagged.length) {
+      ub.classList.remove('hidden'); ub.classList.toggle('done', !pendingCall.length);
+      ub.innerHTML = pendingCall.length
+        ? `${icon('phone')}<span>直前連絡が必要：${pendingCall.length}件<small>${flagged.length}件中・タップで該当の案件へ</small></span>`
+        : `${icon('check')}<span>直前連絡はすべて完了<small>${flagged.length}件</small></span>`;
+    } else ub.classList.add('hidden');
+    const du = $('#dateUrgent');
+    du.classList.toggle('hidden', !pendingCall.length);
+    du.textContent = `直前連絡 ${pendingCall.length}`;
+
     // 次の訪問（未完了の先頭）
     const nxt = jobs.find(j => j.work !== 'done');
     const nextArea = $('#nextArea');
@@ -949,7 +1008,7 @@
       nextArea.innerHTML = `<div class="pin-title">★ 次の訪問</div>
         <button class="pin-card" type="button" data-next="${esc(nxt.id)}">
           <span class="star">★</span>
-          <span class="tx"><span class="t">${esc(nxt.title || '(件名なし)')}</span><span class="s">${esc(t)}${nxt.location ? ' › ' + esc(nxt.location) : ''}</span></span>
+          <span class="tx">${nxt.needCall && nxt.contact.status !== 'talked' ? `<span class="urgent-tag">${icon('phone')}直前連絡が必要</span>` : ''}<span class="t">${esc(nxt.title || '(件名なし)')}</span><span class="s">${esc(t)}${nxt.location ? ' › ' + esc(nxt.location) : ''}</span></span>
           <span class="go">${icon('right')}</span>
         </button>`;
     } else nextArea.innerHTML = '';
@@ -971,9 +1030,10 @@
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
-      <li class="job" data-id="${esc(j.id)}" data-work="${j.work}">
+      <li class="job${j.needCall ? (j.contact.status === 'talked' ? ' urgent-done' : ' urgent') : ''}" data-id="${esc(j.id)}" data-work="${j.work}">
         <button class="del-btn" data-act="del" aria-label="削除">${icon('trash')}</button>
         <div class="job-main">
+          ${j.needCall ? `<div class="urgent-tag${j.contact.status === 'talked' ? ' done' : ''}">${icon(j.contact.status === 'talked' ? 'check' : 'phone')}${j.contact.status === 'talked' ? '直前連絡 済' : '直前連絡が必要'}</div>` : ''}
           <div class="job-head">
             <span class="job-num">${pad(i + 1)}</span>
             <span class="job-title">${esc(j.title || '(件名なし)')}</span>
@@ -1000,6 +1060,12 @@
     openSheet('#detailSheet');
   }
 
+  // 電話をかける（本文・メモ・駐車場備考から見つけた電話番号も、タップで電話アプリが開く）
+  function phoneChipsHtml(j) {
+    const list = findPhones(j.phone, j.title, j.location, j.description, j.memo, j.parking && j.parking.note);
+    return list.map(sp => `<a href="tel:${sp.tel}">${icon('phone')}${esc(sp.norm)}</a>`).join('');
+  }
+
   function renderDetail() {
     const j = findJob(openId);
     if (!j) { closeSheets(); return; }
@@ -1020,6 +1086,13 @@
         <button class="action ${addr ? '' : 'disabled'}" data-act="copyAddr" type="button">${icon('copy')}住所コピー</button>
       </div>
 
+      <div class="card needcall">
+        <div class="switch-row">
+          <div class="tx"><b>直前連絡が必要</b><small>オンにすると、トップ画面に目立つ赤い印が出ます</small></div>
+          <label class="switch"><input type="checkbox" id="dNeedCall" ${j.needCall ? 'checked' : ''}><span></span></label>
+        </div>
+      </div>
+
       <div class="card">
         <h3>${icon('work')}作業ステータス</h3>
         <div class="seg c3" data-group="work">
@@ -1029,6 +1102,7 @@
 
       <div class="card">
         <h3>${icon('phone')}事前連絡<span class="aside">${lastLog ? `最終 ${hm(lastLog.at)}・${j.contact.log.length}回` : '未連絡'}</span></h3>
+        <div class="ph-call" id="phoneChips">${phoneChipsHtml(j)}</div>
         <div class="seg c4" data-group="contact">
           ${CONTACT_BUTTONS.map(k => { const v = CONTACT[k]; return `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.contact.status === k}">${icon(v.icon)}${v.label}</button>`; }).join('')}
         </div>
@@ -1083,8 +1157,9 @@
 
     const parkNote = $('#dParkNote'), memo = $('#dMemo');
     const flash = (k) => { const el = $(`[data-saved="${k}"]`); if (!el) return; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1200); };
-    const saveParkNote = debounce(() => { j.parking.note = parkNote.value; saveDay(); render(); flash('parking'); }, 400);
-    const saveMemo = debounce(() => { j.memo = memo.value; saveDay(); render(); flash('memo'); }, 400);
+    const saveParkNote = debounce(() => { j.parking.note = parkNote.value; saveDay(); render(); flash('parking'); $('#phoneChips').innerHTML = phoneChipsHtml(j); }, 400);
+    const saveMemo = debounce(() => { j.memo = memo.value; saveDay(); render(); flash('memo'); $('#phoneChips').innerHTML = phoneChipsHtml(j); }, 400);
+    $('#dNeedCall').addEventListener('change', (e) => { j.needCall = e.target.checked; saveDay(); render(); toast(j.needCall ? '直前連絡が必要としてマークしました（トップ画面に表示されます）' : '直前連絡のマークを外しました'); });
     parkNote.addEventListener('input', saveParkNote);
     memo.addEventListener('input', saveMemo);
   }
@@ -1978,6 +2053,11 @@
   $('#tabAdd').addEventListener('click', () => openForm());
   $('#tabEdit').addEventListener('click', () => { editing = !editing; render(); });
   $('#btnReorder').addEventListener('click', () => { editing = true; render(); });
+  $('#urgentBanner').addEventListener('click', () => {
+    const j = day.jobs.find(x => x.needCall && x.contact.status !== 'talked') || day.jobs.find(x => x.needCall);
+    const el = j && listEl.querySelector(`.job[data-id="${j.id}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
   $('#nextArea').addEventListener('click', (e) => { const b = e.target.closest('[data-next]'); if (b) openDetail(b.dataset.next); });
   $('#btnEditDone').addEventListener('click', () => { editing = false; render(); });
   $('#btnAddInEdit').addEventListener('click', () => openForm());
