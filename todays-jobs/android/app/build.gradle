@@ -5,7 +5,7 @@ plugins {
 // Webアプリ本体（../index.html など）をそのままアプリのassetsに取り込む
 tasks.register('copyWebAssets', Copy) {
     from("$rootDir/..") {
-        include 'index.html', 'icon.svg', 'manifest.webmanifest'
+        include 'index.html', 'icon.png', 'icon-192.png', 'manifest.webmanifest'
     }
     into layout.buildDirectory.dir('generated/webassets/www')
 }
