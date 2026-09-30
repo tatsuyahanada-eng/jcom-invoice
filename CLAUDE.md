@@ -22,3 +22,7 @@
 - アプリアイコンは、プラチナ（#C5D3DF）を光沢ハイライトで光らせた、中央に置いたカレンダー風の図柄のみ（濃紺の丸角四角の上。TJ・カバン・チェック等は入れない）
   （`todays-jobs/icon.png` / `icon-192.png`、Androidは `android/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png`＋背景色 `navy`）。
   アプリ内のタイトルの左にもこのアイコンを表示。複雑な図柄には戻さない。
+
+## カレンダー連携の方針（Today's Jobs）
+- 多くの人が使う前提で、Androidアプリの標準は「端末のカレンダー（CalendarContract）から読み込む」。Googleログイン・Google Cloud設定・審査が不要なため。
+- Googleログイン（Android認可/ウェブのクライアントID）は任意の代替手段として残す。

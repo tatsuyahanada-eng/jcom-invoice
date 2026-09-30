@@ -358,6 +358,7 @@
     .ph-chips button.preset { background: var(--accent-weak); border-color: rgba(197, 211, 223, .4); color: var(--cyan); font-weight: 700; }
 
     .seg { display: grid; gap: 6px; }
+    .seg.c2 { grid-template-columns: repeat(2, 1fr); }
     .seg.c3 { grid-template-columns: repeat(3, 1fr); }
     .seg.c4 { grid-template-columns: repeat(4, 1fr); }
     .seg button {
@@ -374,6 +375,10 @@
     .seg button[data-tone="purple"][aria-pressed="true"] { background: #8d6cf0; }
     .seg button[data-tone="danger"][aria-pressed="true"] { background: #e2475f; }
 
+    .calrow { display: flex; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .calrow input { width: 20px; height: 20px; accent-color: var(--cyan); flex: none; }
+    .calrow .tx { flex: 1; min-width: 0; word-break: break-word; }
+    .calrow small { display: block; color: var(--muted); font-size: 11px; }
     .log { list-style: none; margin: 10px 0 0; padding: 0; font-size: 13px; }
     .log li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px dashed var(--line); }
     .log li .tm { color: var(--muted); font-family: var(--mono); width: 48px; }
@@ -569,7 +574,20 @@
   </div>
   <div class="sheet-body">
     <div class="card">
-      <h3><span data-icon="calendar"></span>Googleカレンダー連携</h3>
+      <h3><span data-icon="calendar"></span>カレンダー連携</h3>
+      <div id="srcSwitch" class="hidden" style="margin-bottom:12px;">
+        <div class="seg c2" id="srcSeg">
+          <button type="button" data-src="device" data-tone="info" aria-pressed="false">この端末のカレンダー</button>
+          <button type="button" data-src="google" data-tone="info" aria-pressed="false">Googleでログイン</button>
+        </div>
+      </div>
+      <div id="devPanel" class="hidden">
+        <p class="help" style="margin:0 0 10px;">スマホに同期されているカレンダー（Googleカレンダーアプリなど）から、直接予定を読み込みます。Googleへのログインや設定は不要です。</p>
+        <button class="btn sm" id="devLoad" type="button">カレンダーを選ぶ（権限を許可）</button>
+        <div id="devCalList" style="margin-top:8px;"></div>
+        <p class="help" id="devHelp">未選択の場合は、表示中のカレンダーすべてから読み込みます。</p>
+      </div>
+      <div id="googlePanel">
       <div class="conn" id="connState"><span class="dot"></span><span class="grow" id="connText">未接続</span></div>
       <label class="fl web-only" for="sClientId">OAuth クライアントID</label>
       <input class="input web-only" id="sClientId" placeholder="xxxxxxxx.apps.googleusercontent.com" autocapitalize="off" spellcheck="false">
@@ -581,6 +599,7 @@
       </div>
       <label class="fl" for="sCalendar">読み込むカレンダー</label>
       <select class="input" id="sCalendar"><option value="primary">メインカレンダー</option></select>
+      </div>
       <div class="switch-row" style="margin-top:12px;">
         <div class="tx">終日の予定を除外<small>休み・メモ等の終日予定を読み込まない</small></div>
         <label class="switch"><input type="checkbox" id="sExcludeAllDay"><span></span></label>
@@ -778,8 +797,9 @@
   }
 
   /* ================= State ================= */
-  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [] };
+  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [] };
   let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
+  if (!Array.isArray(settings.deviceCalendars)) settings.deviceCalendars = [];
   settings.links = Array.isArray(settings.links) ? settings.links.filter(l => l && l.name && l.url) : [];
   let current = todayStr();
   let day = null;
@@ -854,7 +874,7 @@
     // Empty
     const empty = $('#emptyArea');
     if (!total) {
-      const connected = !!settings.clientId || NATIVE;
+      const connected = !!settings.clientId || NATIVE || HAS_DEVICE_CAL;
       empty.innerHTML = `
         <div class="empty">
           <div class="ill">${icon('calendar')}</div>
@@ -1016,7 +1036,7 @@
         <dl class="kv">
           <dt>住所</dt><dd>${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</dd>
           <dt>電話</dt><dd>${j.phone ? `<a href="${telHref(j.phone)}">${esc(j.phone)}</a>` : '<span style="color:var(--muted)">未設定</span>'}</dd>
-          <dt>取込元</dt><dd>${j.eventId ? 'Googleカレンダー' : (j.manual ? '手動追加' : 'デモデータ')}</dd>
+          <dt>取込元</dt><dd>${j.eventId ? (day.source === 'device' ? '端末のカレンダー' : 'Googleカレンダー') : (j.manual ? '手動追加' : 'デモデータ')}</dd>
         </dl>
         ${j.description ? `<hr style="border:0;border-top:1px solid var(--line);margin:12px 0;"><p class="desc">${linkify(j.description)}</p>` : ''}
       </div>
@@ -1412,7 +1432,32 @@
 
   // Androidアプリ（WebView）内では、端末標準のGoogleログインを橋渡しして使う
   const NATIVE = !!(window.TJNative && window.TJNative.requestToken);
+  const HAS_DEVICE_CAL = !!(window.TJNative && window.TJNative.queryEvents);
+  const calSource = () => settings.source || (HAS_DEVICE_CAL ? 'device' : 'google');
   const nativeWait = {};
+  window.__tjNativeResult = (id, data, err) => {
+    const w = nativeWait[id]; delete nativeWait[id];
+    if (!w) return;
+    if (err) w.reject(new Error(err === 'PERMISSION_DENIED'
+      ? 'カレンダーへのアクセスが許可されていません。端末の「設定 → アプリ → Today\'s Jobs → 権限」から許可してください'
+      : err));
+    else w.resolve(data);
+  };
+  function nativeCall(method, ...args) {
+    return new Promise((resolve, reject) => {
+      const id = uid();
+      nativeWait[id] = { resolve, reject };
+      window.TJNative[method](id, ...args);
+    });
+  }
+  async function fetchDeviceEvents() {
+    const raw = await nativeCall('queryEvents', current, JSON.stringify(settings.deviceCalendars || []));
+    return JSON.parse(raw).map(e => ({
+      id: e.id, status: 'confirmed', summary: e.title || '', location: e.location || '', description: e.description || '',
+      start: e.allDay ? { date: current } : { dateTime: new Date(e.start).toISOString() },
+      end: e.allDay ? { date: current } : { dateTime: new Date(e.end).toISOString() },
+    }));
+  }
   window.__tjNativeToken = (id, tok, err) => {
     const w = nativeWait[id]; delete nativeWait[id];
     if (!w) return;
@@ -1526,22 +1571,29 @@
   let syncing = false;
   async function sync() {
     if (syncing) return;
-    if (!NATIVE && !settings.clientId) {
+    const useDevice = calSource() === 'device' && HAS_DEVICE_CAL;
+    if (!useDevice && !NATIVE && !settings.clientId) {
       openSettings();
       toast('まずGoogleカレンダーの接続設定をしてください');
       return;
     }
     syncing = true; setSyncBusy(true);
     try {
-      const d0 = parseYmd(current), d1 = parseYmd(addDays(current, 1));
-      const data = await gapi(`/calendars/${encodeURIComponent(settings.calendarId || 'primary')}/events`, {
-        timeMin: d0.toISOString(), timeMax: d1.toISOString(),
-        singleEvents: 'true', orderBy: 'startTime', maxResults: '100',
-      });
+      let items;
+      if (useDevice) {
+        items = await fetchDeviceEvents();
+      } else {
+        const d0 = parseYmd(current), d1 = parseYmd(addDays(current, 1));
+        const data = await gapi(`/calendars/${encodeURIComponent(settings.calendarId || 'primary')}/events`, {
+          timeMin: d0.toISOString(), timeMax: d1.toISOString(),
+          singleEvents: 'true', orderBy: 'startTime', maxResults: '100',
+        });
+        items = data.items || [];
+      }
       if (day.source === 'demo') { day = emptyDay(current); }
-      const { added, updated } = mergeEvents(data.items || []);
+      const { added, updated } = mergeEvents(items);
       day.syncedAt = new Date().toISOString();
-      day.source = 'gcal';
+      day.source = useDevice ? 'device' : 'gcal';
       saveDay(); render();
       toast(added || updated ? `読み込み完了：新規 ${added}件 / 更新 ${updated}件` : '読み込み完了：変更はありません');
     } catch (err) {
@@ -1573,6 +1625,8 @@
   /* ================= Settings ================= */
   function openSettings() {
     $('#sClientId').value = settings.clientId;
+    $('#srcSwitch').classList.toggle('hidden', !HAS_DEVICE_CAL);
+    applySourceUi();
     document.querySelectorAll('.web-only').forEach(el => el.classList.toggle('hidden', NATIVE));
     document.querySelectorAll('.native-only').forEach(el => el.classList.toggle('hidden', !NATIVE));
     $('#sExcludeAllDay').checked = settings.excludeAllDay;
@@ -1657,6 +1711,35 @@
       if (editingLinkId === id) { editingLinkId = null; $('#lName').value = ''; $('#lUrl').value = ''; }
     }
     saveSettings(); renderLinks();
+  });
+
+  function applySourceUi() {
+    const src = HAS_DEVICE_CAL ? calSource() : 'google';
+    $('#devPanel').classList.toggle('hidden', src !== 'device');
+    $('#googlePanel').classList.toggle('hidden', src !== 'google');
+    document.querySelectorAll('#srcSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === src)));
+    if (src === 'device' && !$('#devCalList').children.length && window.TJNative.hasCalendarPermission && window.TJNative.hasCalendarPermission()) loadDeviceCalendars(false);
+  }
+  $('#srcSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    settings.source = b.dataset.src; saveSettings(); applySourceUi();
+  });
+  async function loadDeviceCalendars(askPermission = true) {
+    try {
+      const list = JSON.parse(await nativeCall('listCalendars'));
+      const chosen = settings.deviceCalendars;
+      $('#devCalList').innerHTML = list.length ? list.map(c => `
+        <label class="calrow"><input type="checkbox" data-cal="${c.id}" ${(chosen.length ? chosen.includes(c.id) : c.visible) ? 'checked' : ''}>
+          <span class="tx">${esc(c.name)}<small>${esc(c.account || '')}</small></span></label>`).join('')
+        : '<p class="help">端末にカレンダーが見つかりません。GoogleカレンダーアプリなどでGoogleアカウントを同期してください。</p>';
+    } catch (err) {
+      if (askPermission || !/許可/.test(err.message)) toast(err.message);
+    }
+  }
+  $('#devLoad').addEventListener('click', () => loadDeviceCalendars(true));
+  $('#devCalList').addEventListener('change', () => {
+    settings.deviceCalendars = [...document.querySelectorAll('#devCalList input:checked')].map(i => Number(i.dataset.cal));
+    saveSettings();
   });
 
   $('#sClientId').addEventListener('change', e => { settings.clientId = e.target.value.trim(); saveSettings(); updateConnUi(); });
