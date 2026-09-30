@@ -58,8 +58,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setNavigationBarColor(0xFF06111D);
-        getWindow().setStatusBarColor(0xFF06111D);
+        getWindow().setNavigationBarColor(0xFF1A1C1F);
+        getWindow().setStatusBarColor(0xFF1A1C1F);
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
@@ -211,6 +211,7 @@ public class MainActivity extends Activity {
                 CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
                 CalendarContract.Calendars.ACCOUNT_NAME,
                 CalendarContract.Calendars.VISIBLE,
+                CalendarContract.Calendars.CALENDAR_COLOR,
         };
         try (Cursor c = getContentResolver().query(CalendarContract.Calendars.CONTENT_URI, proj, null, null,
                 CalendarContract.Calendars.ACCOUNT_NAME + ", " + CalendarContract.Calendars.CALENDAR_DISPLAY_NAME)) {
@@ -220,6 +221,7 @@ public class MainActivity extends Activity {
                 o.put("name", c.getString(1));
                 o.put("account", c.getString(2));
                 o.put("visible", c.getInt(3) == 1);
+                o.put("color", c.getInt(4));
                 out.put(o);
             }
         }
@@ -261,6 +263,7 @@ public class MainActivity extends Activity {
                 CalendarContract.Instances.EVENT_LOCATION,// 5
                 CalendarContract.Instances.DESCRIPTION,   // 6
                 CalendarContract.Instances.SELF_ATTENDEE_STATUS, // 7
+                CalendarContract.Instances.CALENDAR_DISPLAY_NAME, // 8
         };
         SimpleDateFormat utc = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         utc.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -290,6 +293,7 @@ public class MainActivity extends Activity {
                 o.put("allDay", allDay);
                 o.put("location", c.getString(5));
                 o.put("description", c.getString(6));
+                o.put("calendar", c.getString(8));
                 out.put(o);
             }
         }

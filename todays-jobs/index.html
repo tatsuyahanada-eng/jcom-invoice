@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#03202f">
+  <meta name="theme-color" content="#1f2528">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,18 +16,18 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #06111d;
-      --panel: #0b2033;
-      --panel-2: #0a1c2d;
-      --line: #17505e;
-      --line-2: #21697a;
-      --line-soft: rgba(197, 211, 223, .2);
-      --text: #e8f3f8;
-      --muted: #85a6b8;
-      --dim: #4c7386;
-      --cyan: #c5d3df;
-      --accent: #c5d3df;
-      --accent-weak: rgba(197, 211, 223, .12);
+      --bg: #1a1c1f;
+      --panel: #25292c;
+      --panel-2: #222629;
+      --line: #3c4547;
+      --line-2: #4c5759;
+      --line-soft: rgba(208, 210, 212, .2);
+      --text: #eff0f1;
+      --muted: #9ba0a2;
+      --dim: #656a6d;
+      --cyan: #d0d2d4;
+      --accent: #d0d2d4;
+      --accent-weak: rgba(208, 210, 212, .12);
       --gold: #ffcc33;
       --warn: #ffcc33;
       --warn-weak: rgba(255, 204, 51, .11);
@@ -39,7 +39,7 @@
       --danger-weak: rgba(255, 100, 121, .12);
       --purple: #b195ff;
       --purple-weak: rgba(177, 149, 255, .13);
-      --ink: #04141f;
+      --ink: #191d20;
       --radius: 14px;
       --mono: "Courier New", Courier, ui-monospace, "SF Mono", Menlo, monospace;
       --safe-b: env(safe-area-inset-bottom, 0px);
@@ -51,9 +51,9 @@
       font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
       background-color: var(--bg);
       background-image:
-        radial-gradient(ellipse at 50% -10%, rgba(197, 211, 223, .10), transparent 55%),
-        linear-gradient(rgba(197, 211, 223, .045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(197, 211, 223, .045) 1px, transparent 1px);
+        radial-gradient(ellipse at 50% -10%, rgba(208, 210, 212, .10), transparent 55%),
+        linear-gradient(rgba(208, 210, 212, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(208, 210, 212, .045) 1px, transparent 1px);
       background-size: 100% 100%, 44px 44px, 44px 44px;
       background-attachment: fixed;
       color: var(--text);
@@ -69,12 +69,12 @@
     /* ===== Hero ===== */
     .hero {
       position: relative; text-align: center; padding: 14px 12px 12px 76px;
-      background: linear-gradient(160deg, rgba(20, 90, 100, .40), rgba(9, 34, 52, .75));
+      background: linear-gradient(160deg, rgba(61, 71, 73, .40), rgba(36, 41, 44, .75));
       border: 1px solid var(--line-soft); border-radius: 16px;
     }
-    .hero-logo { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 54px; height: 54px; display: block; filter: drop-shadow(0 0 8px rgba(197, 211, 223, .35)); }
-    .hero-title { font-family: var(--mono); font-weight: 700; font-size: clamp(16px, 5vw, 22px); white-space: nowrap; letter-spacing: .12em; color: var(--cyan); text-shadow: 0 0 18px rgba(197, 211, 223, .35); }
-    .hero-title .tj { font-size: 9px; letter-spacing: .1em; margin-left: 6px; padding: 1px 5px; border: 1px solid rgba(197, 211, 223, .45); border-radius: 3px; vertical-align: 4px; color: rgba(197, 211, 223, .8); text-shadow: none; }
+    .hero-logo { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 54px; height: 54px; display: block; filter: drop-shadow(0 0 8px rgba(208, 210, 212, .35)); }
+    .hero-title { font-family: var(--mono); font-weight: 700; font-size: clamp(16px, 5vw, 22px); white-space: nowrap; letter-spacing: .12em; color: var(--cyan); text-shadow: 0 0 18px rgba(208, 210, 212, .35); }
+    .hero-title .tj { font-size: 9px; letter-spacing: .1em; margin-left: 6px; padding: 1px 5px; border: 1px solid rgba(208, 210, 212, .45); border-radius: 3px; vertical-align: 4px; color: rgba(208, 210, 212, .8); text-shadow: none; }
     .foot .tj-s { color: var(--cyan); opacity: .7; }
     .hero-sub { text-wrap: balance; font-size: 11px; color: var(--muted); letter-spacing: .06em; margin: 1px 0 8px; }
     .pill {
@@ -82,8 +82,8 @@
       background: var(--cyan); color: var(--ink); font-weight: 800; font-size: 14px;
     }
     .pill i { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); }
-    .pill.off { background: #3a5567; color: #d5e3ea; }
-    .pill.off i { background: #d5e3ea; opacity: .5; }
+    .pill.off { background: #525659; color: #dee0e1; }
+    .pill.off i { background: #dee0e1; opacity: .5; }
     .pill.demo { background: var(--gold); }
     .hero-user { margin-top: 6px; font-size: 14px; color: var(--cyan); display: flex; justify-content: center; align-items: center; gap: 6px; }
     .hero-user svg { width: 16px; height: 16px; }
@@ -92,7 +92,7 @@
     .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
     .tabbtn {
       --c: var(--muted);
-      min-height: 44px; padding: 4px 2px; background: rgba(6, 17, 29, .55); color: var(--c);
+      min-height: 44px; padding: 4px 2px; background: rgba(26, 28, 31, .55); color: var(--c);
       border: 1px solid var(--c); border-radius: 3px; font-size: 12.5px; font-weight: 700;
       display: flex; align-items: center; justify-content: center; gap: 4px; line-height: 1.1; white-space: nowrap;
       clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px));
@@ -100,13 +100,13 @@
     .tabbtn svg { width: 16px; height: 16px; flex: none; }
     .tabbtn.t-gold { --c: #d9ad2c; }
     .tabbtn.t-green { --c: #3fb56b; }
-    .tabbtn.t-blue { --c: #4a86d4; }
-    .tabbtn.t-gray { --c: #6c8797; }
+    .tabbtn.t-blue { --c: #9aa9b8; }
+    .tabbtn.t-gray { --c: #7e8285; }
     .tabbtn:active { filter: brightness(1.35); }
     .tabbtn.active {
       background: var(--cyan); color: var(--ink); border-color: var(--cyan);
       clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
-      box-shadow: 0 0 16px rgba(197, 211, 223, .35);
+      box-shadow: 0 0 16px rgba(208, 210, 212, .35);
     }
     .spin svg { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -121,7 +121,7 @@
     .pathval { position: relative; flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 0; }
     .pathval .d { font-family: var(--mono); font-size: 19px; font-weight: 700; letter-spacing: .02em; }
     .pathval .tag { font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 999px; background: var(--cyan); color: var(--ink); }
-    .pathval .tag.past { background: #4c7386; color: #fff; }
+    .pathval .tag.past { background: #656a6d; color: #ffffff; }
     .pathval .tag.future { background: var(--purple); color: var(--ink); }
     .pathval input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; }
     .icon-btn {
@@ -134,7 +134,7 @@
     /* ===== HUD panel ===== */
     .hud {
       position: relative; margin: 18px 4px 0; padding: 18px 14px 20px;
-      border: 1px solid rgba(197, 211, 223, .12); background: rgba(5, 18, 30, .45);
+      border: 1px solid rgba(208, 210, 212, .12); background: rgba(26, 29, 31, .45);
     }
     .corner { position: absolute; width: 22px; height: 22px; border: 0 solid var(--cyan); pointer-events: none; }
     .corner.tl { left: -1px; top: -1px; border-left-width: 3px; border-top-width: 3px; }
@@ -146,16 +146,16 @@
     .hud-head span { font-size: 13px; color: var(--muted); }
     .hud-title { text-align: center; padding: 18px 0 14px; }
     .hud-title .k { font-family: var(--mono); font-size: 12px; letter-spacing: .32em; color: var(--dim); }
-    .hud-title h2 { margin: 4px 0 6px; font-size: 26px; color: var(--cyan); letter-spacing: .04em; text-shadow: 0 0 14px rgba(197, 211, 223, .25); }
+    .hud-title h2 { margin: 4px 0 6px; font-size: 26px; color: var(--cyan); letter-spacing: .04em; text-shadow: 0 0 14px rgba(208, 210, 212, .25); }
     .hud-title p { margin: 0; font-size: 13.5px; color: var(--muted); }
 
     /* ===== Summary ===== */
     .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
-    .summary .cell { padding: 8px 2px 7px; text-align: center; border: 1px solid var(--line-soft); border-radius: 10px; background: rgba(9, 34, 52, .6); }
+    .summary .cell { padding: 8px 2px 7px; text-align: center; border: 1px solid var(--line-soft); border-radius: 10px; background: rgba(36, 41, 44, .6); }
     .summary .num { font-family: var(--mono); font-size: 21px; font-weight: 700; color: var(--cyan); line-height: 1.2; }
     .summary .num small { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 1px; }
     .summary .lbl { font-size: 10.5px; color: var(--muted); }
-    .progress { height: 3px; background: rgba(197, 211, 223, .12); border-radius: 2px; overflow: hidden; }
+    .progress { height: 3px; background: rgba(208, 210, 212, .12); border-radius: 2px; overflow: hidden; }
     .progress > i { display: block; height: 100%; background: var(--ok); width: 0; transition: width .3s; box-shadow: 0 0 8px var(--ok); }
 
     .meta-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 2px 8px; font-size: 12px; color: var(--muted); }
@@ -188,7 +188,7 @@
     .list { list-style: none; margin: 0; padding: 0; }
     .job {
       position: relative; display: flex; align-items: stretch;
-      background: linear-gradient(135deg, #0e2d43, #0a2033);
+      background: linear-gradient(135deg, #2d3236, #24282c);
       border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 14px;
       margin-bottom: 10px; overflow: hidden;
       -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
@@ -197,7 +197,7 @@
     .job.pressing { transform: scale(.985); }
     .job.dragging {
       transition: box-shadow .18s ease; z-index: 10; border-color: var(--cyan);
-      box-shadow: 0 0 0 1px var(--cyan), 0 14px 30px rgba(0, 0, 0, .55), 0 0 24px rgba(197, 211, 223, .35);
+      box-shadow: 0 0 0 1px var(--cyan), 0 14px 30px rgba(0, 0, 0, .55), 0 0 24px rgba(208, 210, 212, .35);
     }
     .list.is-dragging .job:not(.dragging) { transition: transform .18s ease; }
     .job[data-work="doing"] { border-left-color: var(--gold); box-shadow: inset 0 0 0 1px rgba(255, 204, 51, .25); }
@@ -223,7 +223,7 @@
     .chip svg { width: 12px; height: 12px; }
     .chip.ok { background: var(--ok-weak); color: var(--ok); border-color: rgba(63, 208, 122, .4); }
     .chip.warn { background: var(--warn-weak); color: var(--gold); border-color: var(--gold-line); }
-    .chip.info { background: var(--accent-weak); color: var(--cyan); border-color: rgba(197, 211, 223, .4); }
+    .chip.info { background: var(--accent-weak); color: var(--cyan); border-color: rgba(208, 210, 212, .4); }
     .chip.purple { background: var(--purple-weak); color: var(--purple); border-color: rgba(177, 149, 255, .4); }
     .chip.danger { background: var(--danger-weak); color: var(--danger); border-color: rgba(255, 100, 121, .45); }
     .job-grip { flex: none; width: 34px; display: grid; place-items: center; color: var(--dim); }
@@ -232,7 +232,7 @@
     .editing .job-edit { display: flex; }
     .editing .job-grip { display: none; }
     .mini-btn {
-      width: 36px; height: 32px; border-radius: 6px; border: 1px solid var(--line-2); background: rgba(6, 17, 29, .6);
+      width: 36px; height: 32px; border-radius: 6px; border: 1px solid var(--line-2); background: rgba(26, 28, 31, .6);
       display: grid; place-items: center; color: var(--cyan);
     }
     .mini-btn svg { width: 18px; height: 18px; }
@@ -246,7 +246,7 @@
 
     /* ===== Empty ===== */
     .empty { text-align: center; padding: 26px 8px 8px; color: var(--muted); }
-    .empty .ill { width: 64px; height: 64px; border-radius: 16px; border: 1px solid var(--line-soft); margin: 0 auto 14px; display: grid; place-items: center; color: var(--cyan); background: rgba(9, 34, 52, .6); }
+    .empty .ill { width: 64px; height: 64px; border-radius: 16px; border: 1px solid var(--line-soft); margin: 0 auto 14px; display: grid; place-items: center; color: var(--cyan); background: rgba(36, 41, 44, .6); }
     .empty .ill svg { width: 32px; height: 32px; }
     .empty h3 { margin: 0 0 6px; color: var(--text); font-size: 17px; }
     .empty p { margin: 0 0 18px; font-size: 13px; }
@@ -261,7 +261,7 @@
     }
     .btn svg { width: 18px; height: 18px; }
     .btn:active { filter: brightness(.9); }
-    .btn.secondary { background: rgba(9, 34, 52, .7); color: var(--cyan); border-color: var(--line-2); box-shadow: none; }
+    .btn.secondary { background: rgba(36, 41, 44, .7); color: var(--cyan); border-color: var(--line-2); box-shadow: none; }
     .btn.danger { background: transparent; color: var(--danger); border-color: rgba(255, 100, 121, .5); box-shadow: none; }
     .btn.ghost { background: transparent; color: var(--cyan); box-shadow: none; }
     .btn.block { width: 100%; }
@@ -279,7 +279,7 @@
     .navrow { display: flex; gap: 10px; margin-top: 14px; }
     .navbtn {
       display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 20px; border-radius: 6px; font-weight: 800; font-size: 15px;
-      background: rgba(255, 255, 255, .04); color: #8ba4b3; border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .04); color: #9ca0a2; border: 1px solid var(--line);
     }
     .navbtn svg { width: 18px; height: 18px; }
     .navbtn.gold { background: var(--gold); color: var(--ink); border-color: var(--gold); box-shadow: 0 0 18px rgba(255, 204, 51, .4); }
@@ -295,17 +295,17 @@
     .edit-banner .done { background: var(--gold); color: var(--ink); }
 
     /* ===== Sheets ===== */
-    .scrim { position: fixed; inset: 0; background: rgba(0, 6, 12, .66); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .scrim { position: fixed; inset: 0; background: rgba(16, 18, 21, .66); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
     .scrim.show { opacity: 1; pointer-events: auto; }
     .sheet {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
       max-width: 640px; margin: 0 auto; max-height: calc(100vh - 40px - var(--safe-t)); max-height: calc(100dvh - 40px - var(--safe-t));
-      background: #071626; border: 1px solid var(--line-soft); border-bottom: 0; border-radius: 18px 18px 0 0;
-      transform: translateY(105%); display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0, 0, 0, .6), 0 -1px 0 rgba(197, 211, 223, .3);
+      background: #1e2124; border: 1px solid var(--line-soft); border-bottom: 0; border-radius: 18px 18px 0 0;
+      transform: translateY(105%); display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0, 0, 0, .6), 0 -1px 0 rgba(208, 210, 212, .3);
       visibility: hidden; transition: transform .25s cubic-bezier(.2, .8, .2, 1), visibility 0s .25s;
     }
     .sheet.show { transform: translateY(0); visibility: visible; transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
-    .sheet-head { background: #0a1f31; border-radius: 18px 18px 0 0; padding: 8px 12px 10px 16px; border-bottom: 1px solid var(--line-soft); flex: none; }
+    .sheet-head { background: #24282b; border-radius: 18px 18px 0 0; padding: 8px 12px 10px 16px; border-bottom: 1px solid var(--line-soft); flex: none; }
     .sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 0 auto 8px; }
     .sheet-title-row { display: flex; align-items: flex-start; gap: 8px; }
     .sheet-title-row .t { flex: 1; min-width: 0; }
@@ -313,10 +313,10 @@
     .sheet-title-row .sub { font-family: var(--mono); font-size: 13px; color: var(--cyan); letter-spacing: .06em; }
     .sheet-head .icon-btn { border-color: transparent; color: var(--muted); width: 36px; height: 36px; }
     .sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 12px calc(20px + var(--safe-b)); flex: 1; overscroll-behavior: contain; }
-    .sheet-foot { flex: none; padding: 10px 12px calc(10px + var(--safe-b)); background: #0a1f31; border-top: 1px solid var(--line-soft); display: flex; gap: 8px; }
+    .sheet-foot { flex: none; padding: 10px 12px calc(10px + var(--safe-b)); background: #24282b; border-top: 1px solid var(--line-soft); display: flex; gap: 8px; }
     .sheet-foot .btn { flex: 1; }
 
-    .card { background: linear-gradient(135deg, rgba(14, 45, 67, .85), rgba(10, 32, 51, .85)); border-radius: 12px; border: 1px solid var(--line); padding: 14px; margin-bottom: 10px; }
+    .card { background: linear-gradient(135deg, rgba(45, 50, 54, .85), rgba(36, 40, 44, .85)); border-radius: 12px; border: 1px solid var(--line); padding: 14px; margin-bottom: 10px; }
     .card h3 { margin: 0 0 10px; font-size: 13px; color: var(--cyan); display: flex; align-items: center; gap: 6px; letter-spacing: .04em; }
     .card h3 svg { width: 16px; height: 16px; }
     .card h3 .aside { margin-left: auto; font-weight: 500; color: var(--muted); font-size: 12px; }
@@ -324,27 +324,27 @@
     .actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
     .action {
       display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px;
-      background: rgba(9, 34, 52, .7); border: 1px solid var(--line-2); border-radius: 10px;
+      background: rgba(36, 41, 44, .7); border: 1px solid var(--line-2); border-radius: 10px;
       color: var(--cyan); font-size: 12px; font-weight: 700; text-decoration: none;
     }
     .action svg { width: 22px; height: 22px; }
-    .action.disabled { color: #3f6273; border-color: var(--line); pointer-events: none; }
+    .action.disabled { color: #595e61; border-color: var(--line); pointer-events: none; }
 
     .maprow { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
     .maprow + .maprow { margin-top: 8px; }
-    .mapbtn { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 8px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(6, 17, 29, .6); text-align: left; }
-    .mapbtn .logo { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none; color: #fff; font-weight: 800; font-size: 15px; font-family: Arial, sans-serif; }
+    .mapbtn { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 8px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(26, 28, 31, .6); text-align: left; }
+    .mapbtn .logo { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none; color: #ffffff; font-weight: 800; font-size: 15px; font-family: Arial, sans-serif; }
     .mapbtn .logo.g { background: #1a73e8; }
     .mapbtn .logo.y { background: #ff0033; }
     .mapbtn .nm { font-weight: 700; font-size: 14px; line-height: 1.2; }
     .mapbtn .nm small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; }
     .mapbtn .go { margin-left: auto; color: var(--cyan); }
     .mapbtn .go svg { width: 18px; height: 18px; display: block; }
-    .webbtn { min-width: 64px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(6, 17, 29, .6); font-size: 12px; font-weight: 700; color: var(--cyan); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 8px; }
+    .webbtn { min-width: 64px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(26, 28, 31, .6); font-size: 12px; font-weight: 700; color: var(--cyan); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 8px; }
     .webbtn svg { width: 16px; height: 16px; }
     .mapbtn:disabled, .webbtn:disabled, .linkbtn:disabled { opacity: .35; }
     .applinks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .linkbtn { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(6, 17, 29, .6); font-size: 13px; font-weight: 700; color: var(--text); text-align: left; word-break: break-all; }
+    .linkbtn { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(26, 28, 31, .6); font-size: 13px; font-weight: 700; color: var(--text); text-align: left; word-break: break-all; }
     .linkbtn svg { width: 18px; height: 18px; flex: none; color: var(--cyan); }
     .linklist { list-style: none; margin: 0 0 4px; padding: 0; }
     .linklist li { display: flex; align-items: center; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--line); }
@@ -354,27 +354,32 @@
     .linklist .mini-btn { width: 32px; height: 32px; flex: none; }
     .linklist .empty-row { color: var(--muted); font-size: 13px; justify-content: center; }
     .ph-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .ph-chips button { border: 1px solid var(--line-2); background: rgba(6, 17, 29, .6); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
-    .ph-chips button.preset { background: var(--accent-weak); border-color: rgba(197, 211, 223, .4); color: var(--cyan); font-weight: 700; }
+    .ph-chips button { border: 1px solid var(--line-2); background: rgba(26, 28, 31, .6); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+    .ph-chips button.preset { background: var(--accent-weak); border-color: rgba(208, 210, 212, .4); color: var(--cyan); font-weight: 700; }
 
     .seg { display: grid; gap: 6px; }
     .seg.c2 { grid-template-columns: repeat(2, 1fr); }
     .seg.c3 { grid-template-columns: repeat(3, 1fr); }
     .seg.c4 { grid-template-columns: repeat(4, 1fr); }
     .seg button {
-      min-height: 46px; border-radius: 8px; border: 1px solid var(--line-2); background: rgba(6, 17, 29, .6);
+      min-height: 46px; border-radius: 8px; border: 1px solid var(--line-2); background: rgba(26, 28, 31, .6);
       font-size: 13px; font-weight: 700; color: var(--muted); padding: 4px 2px; line-height: 1.2;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     }
     .seg button svg { width: 18px; height: 18px; }
-    .seg button[aria-pressed="true"] { color: #fff; border-color: transparent; }
-    .seg button[data-tone="neutral"][aria-pressed="true"] { background: #4c6f83; }
+    .seg button[aria-pressed="true"] { color: #ffffff; border-color: transparent; }
+    .seg button[data-tone="neutral"][aria-pressed="true"] { background: #64696b; }
     .seg button[data-tone="ok"][aria-pressed="true"] { background: #23a865; }
-    .seg button[data-tone="info"][aria-pressed="true"] { background: var(--cyan); color: var(--ink); box-shadow: 0 0 14px rgba(197, 211, 223, .35); }
+    .seg button[data-tone="info"][aria-pressed="true"] { background: var(--cyan); color: var(--ink); box-shadow: 0 0 14px rgba(208, 210, 212, .35); }
     .seg button[data-tone="warn"][aria-pressed="true"] { background: var(--gold); color: var(--ink); box-shadow: 0 0 14px rgba(255, 204, 51, .3); }
     .seg button[data-tone="purple"][aria-pressed="true"] { background: #8d6cf0; }
     .seg button[data-tone="danger"][aria-pressed="true"] { background: #e2475f; }
 
+    .calhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0 6px; font-size: 12px; color: var(--muted); }
+    .calhead button { border: 1px solid var(--line-2); background: rgba(26, 28, 31, .6); color: var(--cyan); border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 700; margin-left: 6px; }
+    .calgrp { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--dim); padding: 10px 2px 2px; word-break: break-all; }
+    .caldot { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(255, 255, 255, .12); }
+    .chip.cal { color: var(--text); }
     .calrow { display: flex; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: 14px; }
     .calrow input { width: 20px; height: 20px; accent-color: var(--cyan); flex: none; }
     .calrow .tx { flex: 1; min-width: 0; word-break: break-word; }
@@ -389,11 +394,11 @@
     label.fl { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
     label.fl:first-child { margin-top: 0; }
     .input, textarea.input, select.input {
-      width: 100%; border: 1px solid var(--line-2); border-radius: 8px; background: #051320; color: var(--text);
+      width: 100%; border: 1px solid var(--line-2); border-radius: 8px; background: #1a1e20; color: var(--text);
       padding: 11px 12px; font-size: 16px; outline: none; color-scheme: dark;
     }
-    .input::placeholder { color: #3f6273; }
-    .input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(197, 211, 223, .16); }
+    .input::placeholder { color: #595e61; }
+    .input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(208, 210, 212, .16); }
     textarea.input { resize: vertical; min-height: 88px; line-height: 1.5; }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .help { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
@@ -413,22 +418,22 @@
     .switch-row .tx small { display: block; color: var(--muted); font-size: 12px; }
     .switch { position: relative; width: 50px; height: 30px; flex: none; }
     .switch input { opacity: 0; width: 0; height: 0; }
-    .switch span { position: absolute; inset: 0; border-radius: 999px; background: #24485a; transition: background .2s; }
-    .switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #cfe0e8; transition: transform .2s; }
+    .switch span { position: absolute; inset: 0; border-radius: 999px; background: #41474a; transition: background .2s; }
+    .switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #dadcdd; transition: transform .2s; }
     .switch input:checked + span { background: var(--cyan); }
     .switch input:checked + span::after { transform: translateX(20px); background: var(--ink); }
 
-    .conn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(6, 17, 29, .6); border: 1px solid var(--line); font-size: 13px; }
-    .conn .dot { width: 10px; height: 10px; border-radius: 50%; background: #4c6f83; flex: none; }
+    .conn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(26, 28, 31, .6); border: 1px solid var(--line); font-size: 13px; }
+    .conn .dot { width: 10px; height: 10px; border-radius: 50%; background: #64696b; flex: none; }
     .conn.on .dot { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
     .conn .grow { flex: 1; }
 
     .toast {
       position: fixed; left: 50%; bottom: calc(24px + var(--safe-b)); z-index: 60;
       transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
-      background: #0d2b40; color: var(--text); border: 1px solid var(--cyan); border-radius: 12px; padding: 10px 12px 10px 16px;
+      background: #2b3034; color: var(--text); border: 1px solid var(--cyan); border-radius: 12px; padding: 10px 12px 10px 16px;
       font-size: 14px; display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px);
-      box-shadow: 0 8px 28px rgba(0, 0, 0, .55), 0 0 18px rgba(197, 211, 223, .25); transition: opacity .2s, transform .2s;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .55), 0 0 18px rgba(208, 210, 212, .25); transition: opacity .2s, transform .2s;
     }
     .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
     .toast button { border: 0; background: transparent; color: var(--gold); font-weight: 800; padding: 4px 6px; white-space: nowrap; }
@@ -585,7 +590,7 @@
         <p class="help" style="margin:0 0 10px;">スマホに同期されているカレンダー（Googleカレンダーアプリなど）から、直接予定を読み込みます。Googleへのログインや設定は不要です。</p>
         <button class="btn sm" id="devLoad" type="button">カレンダーを選ぶ（権限を許可）</button>
         <div id="devCalList" style="margin-top:8px;"></div>
-        <p class="help" id="devHelp">未選択の場合は、表示中のカレンダーすべてから読み込みます。</p>
+        <p class="help" id="devHelp">チェックを付けたカレンダーの予定だけを読み込みます（例：「その他業務」「くらしのマーケット」など）。</p>
       </div>
       <div id="googlePanel">
       <div class="conn" id="connState"><span class="dot"></span><span class="grow" id="connText">未接続</span></div>
@@ -597,8 +602,9 @@
         <button class="btn sm" id="sConnect" type="button">Googleに接続</button>
         <button class="btn sm secondary hidden" id="sDisconnect" type="button">接続解除</button>
       </div>
-      <label class="fl" for="sCalendar">読み込むカレンダー</label>
-      <select class="input" id="sCalendar"><option value="primary">メインカレンダー</option></select>
+      <label class="fl">読み込むカレンダー（複数選択できます）</label>
+      <div id="gCalList"></div>
+      <p class="help" id="gCalHelp"></p>
       </div>
       <div class="switch-row" style="margin-top:12px;">
         <div class="tx">終日の予定を除外<small>休み・メモ等の終日予定を読み込まない</small></div>
@@ -797,9 +803,10 @@
   }
 
   /* ================= State ================= */
-  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [] };
+  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null };
   let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
   if (!Array.isArray(settings.deviceCalendars)) settings.deviceCalendars = [];
+  if (!Array.isArray(settings.googleCalendars)) settings.googleCalendars = [{ id: settings.calendarId || 'primary', name: settings.calendarName || 'メインカレンダー' }];
   settings.links = Array.isArray(settings.links) ? settings.links.filter(l => l && l.name && l.url) : [];
   let current = todayStr();
   let day = null;
@@ -815,7 +822,7 @@
   function newJob(base) {
     return Object.assign({
       id: uid(), eventId: null, title: '', start: null, end: null, allDay: false,
-      location: '', description: '', phone: '', edited: [],
+      location: '', description: '', phone: '', calendar: '', edited: [],
       contact: { status: 'none', log: [] },
       parking: { status: 'unknown', note: '' },
       memo: '', work: 'todo', missing: false,
@@ -927,6 +934,8 @@
     const parkChip = `<span class="chip ${pk.chip}">${icon('car')}P ${esc(pk.label)}</span>`;
     const workChip = j.work !== 'todo' ? `<span class="chip ${j.work === 'done' ? 'ok' : 'info'}">${icon(j.work === 'done' ? 'check' : 'work')}${WORK[j.work].label}</span>` : '';
     const missingChip = j.missing ? `<span class="chip danger">${icon('alert')}カレンダーから削除済</span>` : '';
+    const multiCal = new Set(day.jobs.map(x => x.calendar).filter(Boolean)).size > 1;
+    const calChip = (j.calendar && multiCal) ? `<span class="chip cal">${icon('calendar')}${esc(j.calendar)}</span>` : '';
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
@@ -941,7 +950,7 @@
           <div class="job-sub">
             ${j.location ? `<div class="job-addr">${icon('pin')}<span>${esc(j.location)}</span></div>` : ''}
             ${memoText ? `<div class="job-memo">${esc(memoText)}</div>` : ''}
-            <div class="chips">${workChip}${contactChip}${parkChip}${missingChip}${manualChip}</div>
+            <div class="chips">${workChip}${contactChip}${parkChip}${calChip}${missingChip}${manualChip}</div>
           </div>
         </div>
         <div class="job-grip" aria-hidden="true">${icon('grip')}</div>
@@ -1036,7 +1045,7 @@
         <dl class="kv">
           <dt>住所</dt><dd>${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</dd>
           <dt>電話</dt><dd>${j.phone ? `<a href="${telHref(j.phone)}">${esc(j.phone)}</a>` : '<span style="color:var(--muted)">未設定</span>'}</dd>
-          <dt>取込元</dt><dd>${j.eventId ? (day.source === 'device' ? '端末のカレンダー' : 'Googleカレンダー') : (j.manual ? '手動追加' : 'デモデータ')}</dd>
+          <dt>取込元</dt><dd>${j.eventId ? ((day.source === 'device' ? '端末のカレンダー' : 'Googleカレンダー') + (j.calendar ? '（' + esc(j.calendar) + '）' : '')) : (j.manual ? '手動追加' : 'デモデータ')}</dd>
         </dl>
         ${j.description ? `<hr style="border:0;border-top:1px solid var(--line);margin:12px 0;"><p class="desc">${linkify(j.description)}</p>` : ''}
       </div>
@@ -1450,10 +1459,35 @@
       window.TJNative[method](id, ...args);
     });
   }
+  const intToHex = (n) => '#' + ((Number(n) >>> 0) & 0xffffff).toString(16).padStart(6, '0');
+  const safeColor = (c) => (/^#[0-9a-f]{6}$/i.test(c || '') ? c : '#8a9096');
+  // カレンダー選択リスト（端末/Google共通）: list=[{id,name,account,color}], selected=Set<string>
+  function renderCalPicker(el, list, selected, onChange) {
+    const groups = new Map();
+    list.forEach(c => { const k = c.account || ''; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); });
+    el.innerHTML = '<div class="calhead"><span class="cnt"></span><span><button type="button" data-all="1">全選択</button><button type="button" data-all="0">全解除</button></span></div>'
+      + [...groups].map(([acc, cs]) => (acc ? `<div class="calgrp">${esc(acc)}</div>` : '')
+        + cs.map(c => `<label class="calrow"><input type="checkbox" value="${esc(String(c.id))}" ${selected.has(String(c.id)) ? 'checked' : ''}><i class="caldot" style="background:${safeColor(c.color)}"></i><span class="tx">${esc(c.name)}</span></label>`).join('')).join('');
+    const update = () => {
+      const ids = [...el.querySelectorAll('input:checked')].map(i => i.value);
+      el.querySelector('.cnt').textContent = `${ids.length} / ${list.length} 件を選択中`;
+      return ids;
+    };
+    update();
+    el.onchange = () => onChange(update());
+    el.onclick = (e) => {
+      const b = e.target.closest('[data-all]'); if (!b) return;
+      el.querySelectorAll('input').forEach(i => { i.checked = b.dataset.all === '1'; });
+      onChange(update());
+    };
+  }
   async function fetchDeviceEvents() {
-    const raw = await nativeCall('queryEvents', current, JSON.stringify(settings.deviceCalendars || []));
+    if (settings.deviceCalendarsChosen && !settings.deviceCalendars.length) {
+      throw new Error('取り込むカレンダーが選択されていません。設定の「カレンダー連携」で選んでください');
+    }
+    const raw = await nativeCall('queryEvents', current, JSON.stringify(settings.deviceCalendarsChosen ? settings.deviceCalendars : []));
     return JSON.parse(raw).map(e => ({
-      id: e.id, status: 'confirmed', summary: e.title || '', location: e.location || '', description: e.description || '',
+      id: e.id, status: 'confirmed', summary: e.title || '', location: e.location || '', description: e.description || '', calendar: e.calendar || '',
       start: e.allDay ? { date: current } : { dateTime: new Date(e.start).toISOString() },
       end: e.allDay ? { date: current } : { dateTime: new Date(e.end).toISOString() },
     }));
@@ -1530,6 +1564,7 @@
       location,
       description,
       phone: extractPhone(description, ev.location, ev.summary),
+      calendar: ev.calendar || '',
     };
   }
 
@@ -1549,7 +1584,7 @@
       const ex = byEvent.get(ev.id);
       if (ex) {
         let ch = false;
-        for (const k of ['title', 'start', 'end', 'allDay', 'location', 'description', 'phone']) {
+        for (const k of ['title', 'start', 'end', 'allDay', 'location', 'description', 'phone', 'calendar']) {
           if (ex.edited.includes(k)) continue;
           if (ex[k] !== base[k]) { ex[k] = base[k]; ch = true; }
         }
@@ -1584,11 +1619,16 @@
         items = await fetchDeviceEvents();
       } else {
         const d0 = parseYmd(current), d1 = parseYmd(addDays(current, 1));
-        const data = await gapi(`/calendars/${encodeURIComponent(settings.calendarId || 'primary')}/events`, {
-          timeMin: d0.toISOString(), timeMax: d1.toISOString(),
-          singleEvents: 'true', orderBy: 'startTime', maxResults: '100',
-        });
-        items = data.items || [];
+        const cals = settings.googleCalendars.length ? settings.googleCalendars : [];
+        if (!cals.length) throw new Error('取り込むカレンダーが選択されていません。設定の「カレンダー連携」で選んでください');
+        items = [];
+        for (const c of cals) {
+          const data = await gapi(`/calendars/${encodeURIComponent(c.id)}/events`, {
+            timeMin: d0.toISOString(), timeMax: d1.toISOString(),
+            singleEvents: 'true', orderBy: 'startTime', maxResults: '100',
+          });
+          (data.items || []).forEach(ev => items.push(Object.assign({}, ev, { id: c.id === 'primary' ? ev.id : c.id + ':' + ev.id, calendar: c.name })));
+        }
       }
       if (day.source === 'demo') { day = emptyDay(current); }
       const { added, updated } = mergeEvents(items);
@@ -1607,18 +1647,22 @@
   async function loadCalendars() {
     try {
       const data = await gapi('/users/me/calendarList', { minAccessRole: 'reader' });
-      const sel = $('#sCalendar');
-      sel.innerHTML = (data.items || []).map(c =>
-        `<option value="${esc(c.primary ? 'primary' : c.id)}">${esc(c.summaryOverride || c.summary)}${c.primary ? '（メイン）' : ''}</option>`).join('');
-      sel.value = settings.calendarId;
-      if (sel.value !== settings.calendarId) { sel.value = 'primary'; settings.calendarId = 'primary'; saveSettings(); }
+      const list = (data.items || []).map(c => ({
+        id: c.primary ? 'primary' : c.id, plain: c.summaryOverride || c.summary,
+        name: (c.summaryOverride || c.summary) + (c.primary ? '（メイン）' : ''), account: '', color: c.backgroundColor,
+      }));
+      renderCalPicker($('#gCalList'), list, new Set(settings.googleCalendars.map(x => x.id)), ids => {
+        settings.googleCalendars = ids.map(id => ({ id, name: (list.find(l => l.id === id) || {}).plain || id }));
+        saveSettings(); updateConnUi();
+      });
+      $('#gCalHelp').textContent = 'チェックを付けたカレンダーの予定だけを読み込みます。';
     } catch (err) { toast(err.message); }
   }
 
   function updateConnUi() {
     const on = !!(token && token.exp > Date.now());
     $('#connState').classList.toggle('on', on);
-    $('#connText').textContent = on ? `接続中（${settings.calendarName || 'カレンダー'}）` : ((settings.clientId || NATIVE) ? '未ログイン（読み込み時にログインします）' : '未設定');
+    $('#connText').textContent = on ? `接続中（${settings.googleCalendars.length}件のカレンダーを選択）` : ((settings.clientId || NATIVE) ? '未ログイン（読み込み時にログインします）' : '未設定');
     $('#sDisconnect').classList.toggle('hidden', !on);
   }
 
@@ -1634,11 +1678,9 @@
     $('#sOrigin').value = settings.origin;
     $('#sSkipDone').checked = settings.skipDone;
     resetLinkForm();
-    const sel = $('#sCalendar');
-    if (![...sel.options].some(o => o.value === settings.calendarId)) {
-      sel.insertAdjacentHTML('beforeend', `<option value="${esc(settings.calendarId)}">${esc(settings.calendarName)}</option>`);
+    if (!$('#gCalList').children.length) {
+      $('#gCalHelp').textContent = '選択中: ' + (settings.googleCalendars.map(c => c.name).join('、') || 'なし') + '（「Googleに接続」を押すと、一覧から選べます）';
     }
-    sel.value = settings.calendarId;
     updateConnUi();
     openSheet('#settingsSheet');
   }
@@ -1726,28 +1768,25 @@
   });
   async function loadDeviceCalendars(askPermission = true) {
     try {
-      const list = JSON.parse(await nativeCall('listCalendars'));
-      const chosen = settings.deviceCalendars;
-      $('#devCalList').innerHTML = list.length ? list.map(c => `
-        <label class="calrow"><input type="checkbox" data-cal="${c.id}" ${(chosen.length ? chosen.includes(c.id) : c.visible) ? 'checked' : ''}>
-          <span class="tx">${esc(c.name)}<small>${esc(c.account || '')}</small></span></label>`).join('')
-        : '<p class="help">端末にカレンダーが見つかりません。GoogleカレンダーアプリなどでGoogleアカウントを同期してください。</p>';
+      const list = JSON.parse(await nativeCall('listCalendars')).map(c => ({ id: c.id, name: c.name, account: c.account, color: intToHex(c.color), visible: c.visible }));
+      if (!list.length) {
+        $('#devCalList').innerHTML = '<p class="help">端末にカレンダーが見つかりません。GoogleカレンダーアプリなどでGoogleアカウントを同期してください。</p>';
+        return;
+      }
+      if (!settings.deviceCalendarsChosen) { // 初回は表示中のカレンダーをすべて選択状態にして保存
+        settings.deviceCalendars = list.filter(c => c.visible).map(c => c.id);
+        settings.deviceCalendarsChosen = true; saveSettings();
+      }
+      renderCalPicker($('#devCalList'), list, new Set(settings.deviceCalendars.map(String)), ids => {
+        settings.deviceCalendars = ids.map(Number); settings.deviceCalendarsChosen = true; saveSettings();
+      });
     } catch (err) {
       if (askPermission || !/許可/.test(err.message)) toast(err.message);
     }
   }
   $('#devLoad').addEventListener('click', () => loadDeviceCalendars(true));
-  $('#devCalList').addEventListener('change', () => {
-    settings.deviceCalendars = [...document.querySelectorAll('#devCalList input:checked')].map(i => Number(i.dataset.cal));
-    saveSettings();
-  });
 
   $('#sClientId').addEventListener('change', e => { settings.clientId = e.target.value.trim(); saveSettings(); updateConnUi(); });
-  $('#sCalendar').addEventListener('change', e => {
-    settings.calendarId = e.target.value;
-    settings.calendarName = e.target.selectedOptions[0] ? e.target.selectedOptions[0].textContent : '';
-    saveSettings(); updateConnUi();
-  });
   $('#sExcludeAllDay').addEventListener('change', e => { settings.excludeAllDay = e.target.checked; saveSettings(); });
   $('#sKeyword').addEventListener('change', e => { settings.keyword = e.target.value.trim(); saveSettings(); });
   $('#sOrigin').addEventListener('change', e => { settings.origin = e.target.value.trim(); saveSettings(); });
