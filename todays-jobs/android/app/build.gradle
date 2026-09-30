@@ -1,0 +1,61 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Webアプリ本体（../index.html など）をそのままアプリのassetsに取り込む
+tasks.register('copyWebAssets', Copy) {
+    from("$rootDir/..") {
+        include 'index.html', 'icon.svg', 'manifest.webmanifest'
+    }
+    into layout.buildDirectory.dir('generated/webassets/www')
+}
+
+android {
+    namespace 'jp.todaysjobs.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'jp.todaysjobs.app'
+        minSdk 26
+        targetSdk 34
+        // CIのビルド番号で採番（上書きインストールできるよう毎回増える）
+        versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+        versionName "1.0.${System.getenv('GITHUB_RUN_NUMBER') ?: '0'}"
+    }
+
+    // 固定の署名鍵で署名する（毎回同じ署名 = 上書きインストール可・Google認証のSHA-1が変わらない）
+    signingConfigs {
+        release {
+            storeFile file('todaysjobs.jks')
+            storePassword 'todaysjobs'
+            keyAlias 'todaysjobs'
+            keyPassword 'todaysjobs'
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+
+    sourceSets {
+        main.assets.srcDir layout.buildDirectory.dir('generated/webassets')
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+tasks.named('preBuild') { dependsOn 'copyWebAssets' }
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
+}

@@ -1,0 +1,61 @@
+name: Build Android APK
+
+on:
+  push:
+    paths:
+      - 'todays-jobs/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Build release APK
+        working-directory: todays-jobs/android
+        run: gradle --no-daemon assembleRelease
+
+      - name: Name the APK
+        run: |
+          mkdir -p dist
+          cp todays-jobs/android/app/build/outputs/apk/release/app-release.apk "dist/today'sjobs.apk"
+          ls -l dist
+
+      # Actions の成果物（zip の中に today'sjobs.apk が入る）
+      - uses: actions/upload-artifact@v4
+        with:
+          name: todays-jobs-apk
+          path: "dist/today'sjobs.apk"
+          if-no-files-found: error
+
+      # スマホから直接ダウンロードできるよう、固定タグのReleaseにも公開する
+      - name: Publish release (apk-latest)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete apk-latest --cleanup-tag --yes || true
+          gh release create apk-latest "dist/today'sjobs.apk#today'sjobs.apk" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Today's Jobs APK (build #${{ github.run_number }})" \
+            --notes "Branch: ${{ github.ref_name }} / Commit: ${GITHUB_SHA::7}"

@@ -535,9 +535,10 @@
     <div class="card">
       <h3><span data-icon="calendar"></span>Googleカレンダー連携</h3>
       <div class="conn" id="connState"><span class="dot"></span><span class="grow" id="connText">未接続</span></div>
-      <label class="fl" for="sClientId">OAuth クライアントID</label>
-      <input class="input" id="sClientId" placeholder="xxxxxxxx.apps.googleusercontent.com" autocapitalize="off" spellcheck="false">
-      <p class="help">Google Cloud Console で作成した「ウェブアプリケーション」のクライアントIDを入力してください（手順は README 参照）。</p>
+      <label class="fl web-only" for="sClientId">OAuth クライアントID</label>
+      <input class="input web-only" id="sClientId" placeholder="xxxxxxxx.apps.googleusercontent.com" autocapitalize="off" spellcheck="false">
+      <p class="help web-only">Google Cloud Console で作成した「ウェブアプリケーション」のクライアントIDを入力してください（手順は README 参照）。</p>
+      <p class="help native-only hidden">Androidアプリでは、端末のGoogleアカウントでログインします（クライアントIDの入力は不要です）。</p>
       <div style="display:flex; gap:8px; margin-top:10px;">
         <button class="btn sm" id="sConnect" type="button">Googleに接続</button>
         <button class="btn sm secondary hidden" id="sDisconnect" type="button">接続解除</button>
@@ -815,7 +816,7 @@
     // Empty
     const empty = $('#emptyArea');
     if (!total) {
-      const connected = !!settings.clientId;
+      const connected = !!settings.clientId || NATIVE;
       empty.innerHTML = `
         <div class="empty">
           <div class="ill">${icon('calendar')}</div>
@@ -1345,6 +1346,29 @@
 
   /* ================= Google Calendar ================= */
   let token = null; // { access_token, exp }
+
+  // Androidアプリ（WebView）内では、端末標準のGoogleログインを橋渡しして使う
+  const NATIVE = !!(window.TJNative && window.TJNative.requestToken);
+  const nativeWait = {};
+  window.__tjNativeToken = (id, tok, err) => {
+    const w = nativeWait[id]; delete nativeWait[id];
+    if (!w) return;
+    if (err || !tok) w.reject(new Error(err || 'Googleログインに失敗しました')); else w.resolve(tok);
+  };
+  function nativeToken() {
+    return new Promise((resolve, reject) => {
+      const id = uid();
+      nativeWait[id] = {
+        resolve: (tok) => {
+          token = { access_token: tok, exp: Date.now() + 3300 * 1000 };
+          try { sessionStorage.setItem('tj:token', JSON.stringify(token)); } catch {}
+          updateConnUi(); resolve(tok);
+        },
+        reject,
+      };
+      window.TJNative.requestToken(id);
+    });
+  }
   try { const t = JSON.parse(sessionStorage.getItem('tj:token') || 'null'); if (t && t.exp > Date.now()) token = t; } catch {}
   let tokenClient = null, tokenClientId = null;
 
@@ -1357,6 +1381,7 @@
   }
   async function getToken() {
     if (token && token.exp - 60000 > Date.now()) return token.access_token;
+    if (NATIVE) return nativeToken();
     if (!settings.clientId) throw new Error('NO_CLIENT_ID');
     await waitGis();
     return new Promise((resolve, reject) => {
@@ -1438,7 +1463,7 @@
   let syncing = false;
   async function sync() {
     if (syncing) return;
-    if (!settings.clientId) {
+    if (!NATIVE && !settings.clientId) {
       openSettings();
       toast('まずGoogleカレンダーの接続設定をしてください');
       return;
@@ -1478,13 +1503,15 @@
   function updateConnUi() {
     const on = !!(token && token.exp > Date.now());
     $('#connState').classList.toggle('on', on);
-    $('#connText').textContent = on ? `接続中（${settings.calendarName || 'カレンダー'}）` : (settings.clientId ? '未ログイン（読み込み時にログインします）' : '未設定');
+    $('#connText').textContent = on ? `接続中（${settings.calendarName || 'カレンダー'}）` : ((settings.clientId || NATIVE) ? '未ログイン（読み込み時にログインします）' : '未設定');
     $('#sDisconnect').classList.toggle('hidden', !on);
   }
 
   /* ================= Settings ================= */
   function openSettings() {
     $('#sClientId').value = settings.clientId;
+    document.querySelectorAll('.web-only').forEach(el => el.classList.toggle('hidden', NATIVE));
+    document.querySelectorAll('.native-only').forEach(el => el.classList.toggle('hidden', !NATIVE));
     $('#sExcludeAllDay').checked = settings.excludeAllDay;
     $('#sKeyword').value = settings.keyword;
     $('#sOrigin').value = settings.origin;
@@ -1580,8 +1607,10 @@
   $('#sOrigin').addEventListener('change', e => { settings.origin = e.target.value.trim(); saveSettings(); });
   $('#sSkipDone').addEventListener('change', e => { settings.skipDone = e.target.checked; saveSettings(); });
   $('#sConnect').addEventListener('click', async () => {
-    settings.clientId = $('#sClientId').value.trim(); saveSettings();
-    if (!settings.clientId) { toast('クライアントIDを入力してください'); $('#sClientId').focus(); return; }
+    if (!NATIVE) {
+      settings.clientId = $('#sClientId').value.trim(); saveSettings();
+      if (!settings.clientId) { toast('クライアントIDを入力してください'); $('#sClientId').focus(); return; }
+    }
     try { token = null; await getToken(); await loadCalendars(); toast('Googleカレンダーに接続しました'); }
     catch (err) { toast(err.message); }
     updateConnUi();
@@ -1679,6 +1708,13 @@
   $('#tabEdit').addEventListener('click', () => { editing = !editing; render(); });
   $('#btnEditDone').addEventListener('click', () => { editing = false; render(); });
   $('#btnAddInEdit').addEventListener('click', () => openForm());
+
+  // Androidの戻るボタン用：開いているシート/編集モードを閉じたら true を返す
+  window.__tjBack = () => {
+    if (document.querySelector('.sheet.show')) { closeSheets(); return true; }
+    if (editing) { editing = false; render(); return true; }
+    return false;
+  };
 
   // 日付が変わったら（翌朝アプリを開いたとき等）自動で当日に切り替え
   let lastToday = todayStr();

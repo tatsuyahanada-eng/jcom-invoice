@@ -80,3 +80,25 @@ Googleカレンダーを読むために、一度だけ OAuth クライアントI
 
 ## ホーム画面に追加
 スマホのブラウザで開き「ホーム画面に追加」すると、アプリのように全画面で起動できます。
+
+## Androidアプリ（APK）
+
+同じWebアプリを、Android用アプリ（`todays-jobs/android/`）としても配布できます。
+
+### ダウンロードとインストール
+1. GitHub の Releases から **`apk-latest`** を開き、`today'sjobs.apk`（ファイル名は環境により `today.sjobs.apk` と表示されることがあります）をダウンロード
+   - もしくは、Actions の最新の実行 → Artifacts の `todays-jobs-apk`（zipの中に `today'sjobs.apk`）
+2. ダウンロードしたAPKをタップしてインストール（初回は「提供元不明のアプリ」の許可が必要です）
+3. 2回目以降は、同じ手順で上書きインストールできます（署名が同じため、データも残ります）
+
+### Googleカレンダー連携（アプリ版）
+アプリ版は端末のGoogleアカウントでログインします。事前に一度だけ、Google Cloud Console で次を設定してください。
+
+1. 上記「セットアップ」の 1〜3（プロジェクト作成・Calendar API有効化・OAuth同意画面）
+2. 「認証情報」→「OAuth クライアントID」→ 種類 **Android**
+   - パッケージ名: `jp.todaysjobs.app`
+   - SHA-1 証明書フィンガープリント: `90:1D:58:B6:3D:A9:DC:CC:7C:D7:95:E5:33:BA:D0:6E:97:FB:54:4B`
+3. アプリの「読み込み」を押すとGoogleのログイン・許可画面が出ます（クライアントIDの入力は不要）
+
+### ビルドについて
+`todays-jobs/` 配下を push すると GitHub Actions（`.github/workflows/build-apk.yml`）が自動でAPKをビルドし、Releaseを更新します。
