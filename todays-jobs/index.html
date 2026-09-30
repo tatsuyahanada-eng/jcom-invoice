@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2a4a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Today's Jobs">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>Today's Jobs</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #0f2a4a;
+      --navy-2: #1b3d66;
+      --bg: #eef1f5;
+      --panel: #ffffff;
+      --panel-2: #f6f8fb;
+      --line: #dde3ea;
+      --line-2: #c9d2dd;
+      --text: #1a2433;
+      --muted: #637083;
+      --accent: #1f5fbf;
+      --accent-weak: #e7effb;
+      --ok: #16865a;
+      --ok-weak: #e3f4ec;
+      --warn: #b76e00;
+      --warn-weak: #fdf1dc;
+      --danger: #c7354f;
+      --danger-weak: #fbe8ec;
+      --purple: #6b4bc4;
+      --purple-weak: #efeafb;
+      --radius: 12px;
+      --shadow: 0 1px 2px rgba(15, 42, 74, .06), 0 2px 8px rgba(15, 42, 74, .06);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", Meiryo, "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-text-size-adjust: 100%;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 640px; margin: 0 auto; min-height: 100vh; padding-bottom: calc(96px + var(--safe-b)); }
+
+    /* ===== App bar ===== */
+    .appbar {
+      position: sticky; top: 0; z-index: 20;
+      background: var(--navy); color: #fff;
+      padding: calc(10px + var(--safe-t)) 16px 0;
+    }
+    .appbar-row { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+    .brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 8px; background: #fff; color: var(--navy);
+      display: grid; place-items: center; flex: none;
+    }
+    .brand-name { font-size: 18px; font-weight: 700; letter-spacing: .01em; line-height: 1.1; }
+    .brand-sub { font-size: 11px; color: #a9bbd3; letter-spacing: .06em; text-transform: uppercase; }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 10px; border: 0; background: transparent;
+      color: inherit; display: grid; place-items: center; flex: none;
+    }
+    .appbar .icon-btn:active { background: rgba(255,255,255,.12); }
+    .icon-btn svg { width: 22px; height: 22px; }
+    .spin svg { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .datebar { display: flex; align-items: center; gap: 4px; padding: 6px 0 12px; }
+    .datebar .icon-btn { width: 36px; height: 36px; }
+    .date-main {
+      flex: 1; text-align: center; border: 0; background: rgba(255,255,255,.08);
+      border-radius: 10px; padding: 6px 8px; color: #fff; position: relative;
+    }
+    .date-main .d { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .date-main .tag {
+      display: inline-block; font-size: 11px; font-weight: 700; margin-left: 6px; padding: 1px 7px;
+      border-radius: 999px; background: #3b82f6; vertical-align: 2px;
+    }
+    .date-main .tag.past { background: #64748b; }
+    .date-main .tag.future { background: #7c5cd6; }
+    .date-main input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; }
+
+    /* ===== Summary ===== */
+    .summary {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      background: var(--panel); border-bottom: 1px solid var(--line);
+    }
+    .summary .cell { padding: 10px 4px 9px; text-align: center; border-right: 1px solid var(--line); }
+    .summary .cell:last-child { border-right: 0; }
+    .summary .num { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+    .summary .num small { font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 1px; }
+    .summary .lbl { font-size: 11px; color: var(--muted); }
+    .progress { height: 3px; background: var(--line); }
+    .progress > i { display: block; height: 100%; background: var(--ok); width: 0; transition: width .3s; }
+
+    .meta-line {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 12px 16px 6px; font-size: 12px; color: var(--muted);
+    }
+    .meta-line .hint { display: flex; align-items: center; gap: 4px; }
+    .meta-line svg { width: 14px; height: 14px; }
+
+    .notice {
+      margin: 10px 16px 0; padding: 10px 12px; border-radius: 10px; font-size: 13px;
+      background: var(--warn-weak); color: #6b4300; border: 1px solid #f2d59e;
+      display: flex; gap: 10px; align-items: center;
+    }
+    .notice .grow { flex: 1; }
+    .notice button {
+      border: 0; background: var(--warn); color: #fff; border-radius: 8px; padding: 6px 10px;
+      font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+
+    /* ===== Job list ===== */
+    .list { list-style: none; margin: 0; padding: 4px 12px 12px; }
+    .job {
+      position: relative; display: flex; align-items: stretch;
+      background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);
+      margin-bottom: 10px; overflow: hidden; border: 1px solid var(--line);
+      -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .2s;
+    }
+    .job.pressing { transform: scale(.985); }
+    .job.dragging {
+      transition: box-shadow .18s ease; z-index: 10;
+      box-shadow: 0 12px 28px rgba(15, 42, 74, .25); border-color: var(--accent);
+    }
+    .list.is-dragging .job:not(.dragging) { transition: transform .18s ease; }
+    .job .rail { width: 5px; flex: none; background: var(--line-2); }
+    .job[data-work="doing"] .rail { background: var(--accent); }
+    .job[data-work="done"] .rail { background: var(--ok); }
+    .job[data-work="done"] .job-body { opacity: .55; }
+    .job-num {
+      flex: none; width: 44px; display: flex; flex-direction: column; align-items: center;
+      padding-top: 14px; gap: 2px;
+    }
+    .job-num .n {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: #fff;
+      display: grid; place-items: center; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums;
+    }
+    .job[data-work="done"] .job-num .n { background: var(--ok); }
+    .job[data-work="doing"] .job-num .n { background: var(--accent); }
+    .job-body { flex: 1; min-width: 0; padding: 12px 4px 12px 0; }
+    .job-time { font-size: 13px; font-weight: 700; color: var(--navy-2); font-variant-numeric: tabular-nums; }
+    .job-title { font-size: 16px; font-weight: 700; margin: 1px 0 4px; line-height: 1.35; word-break: break-word; }
+    .job-addr { font-size: 13px; color: var(--muted); display: flex; gap: 4px; align-items: flex-start; }
+    .job-addr svg { width: 14px; height: 14px; flex: none; margin-top: 3px; }
+    .job-addr span { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .job-memo {
+      margin-top: 6px; font-size: 12px; color: #6b4300; background: var(--warn-weak);
+      border-radius: 6px; padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 999px; background: var(--panel-2); color: var(--muted);
+      border: 1px solid var(--line); white-space: nowrap;
+    }
+    .chip svg { width: 12px; height: 12px; }
+    .chip.ok { background: var(--ok-weak); color: var(--ok); border-color: #bfe3d1; }
+    .chip.warn { background: var(--warn-weak); color: var(--warn); border-color: #f2d59e; }
+    .chip.info { background: var(--accent-weak); color: var(--accent); border-color: #c5d7f3; }
+    .chip.purple { background: var(--purple-weak); color: var(--purple); border-color: #d6cbf3; }
+    .chip.danger { background: var(--danger-weak); color: var(--danger); border-color: #f1c4cd; }
+    .job-grip {
+      flex: none; width: 36px; display: grid; place-items: center; color: #9aa6b5;
+    }
+    .job-grip svg { width: 20px; height: 20px; }
+    .job-edit { display: none; flex: none; flex-direction: column; justify-content: center; gap: 6px; padding: 0 8px; }
+    .editing .job-edit { display: flex; }
+    .editing .job-grip { display: none; }
+    .mini-btn {
+      width: 36px; height: 32px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--panel);
+      display: grid; place-items: center; color: var(--muted);
+    }
+    .mini-btn svg { width: 18px; height: 18px; }
+    .mini-btn:disabled { opacity: .35; }
+    .del-btn {
+      display: none; flex: none; width: 48px; border: 0; background: var(--danger-weak); color: var(--danger);
+      align-items: center; justify-content: center;
+    }
+    .del-btn svg { width: 22px; height: 22px; }
+    .editing .del-btn { display: flex; }
+    .editing .job-num { width: 40px; }
+
+    /* ===== Empty ===== */
+    .empty { text-align: center; padding: 40px 24px; color: var(--muted); }
+    .empty .ill {
+      width: 64px; height: 64px; border-radius: 16px; background: var(--panel); margin: 0 auto 14px;
+      display: grid; place-items: center; box-shadow: var(--shadow); color: var(--accent);
+    }
+    .empty .ill svg { width: 32px; height: 32px; }
+    .empty h3 { margin: 0 0 6px; color: var(--text); font-size: 17px; }
+    .empty p { margin: 0 0 18px; font-size: 13px; }
+    .empty .stack { display: grid; gap: 10px; max-width: 320px; margin: 0 auto; }
+
+    /* ===== Buttons ===== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 46px; padding: 10px 16px; border-radius: 10px; border: 1px solid transparent;
+      font-weight: 700; font-size: 15px; background: var(--accent); color: #fff;
+    }
+    .btn svg { width: 18px; height: 18px; }
+    .btn:active { filter: brightness(.92); }
+    .btn.secondary { background: var(--panel); color: var(--navy); border-color: var(--line-2); }
+    .btn.danger { background: var(--panel); color: var(--danger); border-color: #f1c4cd; }
+    .btn.ghost { background: transparent; color: var(--accent); border-color: transparent; }
+    .btn.block { width: 100%; }
+    .btn.sm { min-height: 36px; padding: 6px 12px; font-size: 13px; }
+
+    /* ===== Bottom bar ===== */
+    .bottombar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
+      background: rgba(255,255,255,.96); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      padding: 8px 12px calc(8px + var(--safe-b));
+    }
+    .bottombar .inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .tab {
+      border: 0; background: transparent; border-radius: 10px; padding: 4px 0;
+      display: flex; flex-direction: column; align-items: center; gap: 1px; color: var(--navy-2);
+      font-size: 11px; font-weight: 700; min-height: 48px; justify-content: center;
+    }
+    .tab svg { width: 22px; height: 22px; }
+    .tab:active { background: var(--panel-2); }
+    .tab.active { color: #fff; background: var(--navy); }
+
+    /* ===== Sheets ===== */
+    .scrim {
+      position: fixed; inset: 0; background: rgba(10, 20, 35, .45); z-index: 40;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .scrim.show { opacity: 1; pointer-events: auto; }
+    .sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+      max-width: 640px; margin: 0 auto; max-height: calc(100vh - 40px - var(--safe-t)); max-height: calc(100dvh - 40px - var(--safe-t));
+      background: var(--bg); border-radius: 18px 18px 0 0;
+      transform: translateY(105%); transition: transform .25s cubic-bezier(.2,.8,.2,1);
+      display: flex; flex-direction: column; box-shadow: 0 -8px 30px rgba(0,0,0,.18);
+      visibility: hidden; transition: transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s .25s;
+    }
+    .sheet.show { transform: translateY(0); visibility: visible; transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+    .sheet-head {
+      background: var(--panel); border-radius: 18px 18px 0 0; padding: 8px 12px 10px 16px;
+      border-bottom: 1px solid var(--line); flex: none;
+    }
+    .sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 0 auto 8px; }
+    .sheet-title-row { display: flex; align-items: flex-start; gap: 8px; }
+    .sheet-title-row .t { flex: 1; min-width: 0; }
+    .sheet-title-row h2 { margin: 0; font-size: 17px; line-height: 1.35; word-break: break-word; }
+    .sheet-title-row .sub { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .sheet-head .icon-btn { color: var(--muted); width: 36px; height: 36px; }
+    .sheet-head .icon-btn:active { background: var(--panel-2); }
+    .sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 12px calc(20px + var(--safe-b)); flex: 1; overscroll-behavior: contain; }
+    .sheet-foot { flex: none; padding: 10px 12px calc(10px + var(--safe-b)); background: var(--panel); border-top: 1px solid var(--line); display: flex; gap: 8px; }
+    .sheet-foot .btn { flex: 1; }
+
+    .card { background: var(--panel); border-radius: var(--radius); border: 1px solid var(--line); padding: 14px; margin-bottom: 10px; }
+    .card h3 {
+      margin: 0 0 10px; font-size: 13px; color: var(--navy-2); display: flex; align-items: center; gap: 6px;
+      letter-spacing: .02em;
+    }
+    .card h3 svg { width: 16px; height: 16px; }
+    .card h3 .aside { margin-left: auto; font-weight: 500; color: var(--muted); font-size: 12px; }
+
+    .actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+    .action {
+      display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px;
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      color: var(--accent); font-size: 12px; font-weight: 700; text-decoration: none;
+    }
+    .action svg { width: 22px; height: 22px; }
+    .action.disabled { color: #b3bcc8; pointer-events: none; }
+
+    .seg { display: grid; gap: 6px; }
+    .seg.c3 { grid-template-columns: repeat(3, 1fr); }
+    .seg.c4 { grid-template-columns: repeat(4, 1fr); }
+    .seg button {
+      min-height: 44px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel);
+      font-size: 13px; font-weight: 700; color: var(--muted); padding: 4px 2px; line-height: 1.2;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    }
+    .seg button svg { width: 18px; height: 18px; }
+    .seg button[aria-pressed="true"] { color: #fff; border-color: transparent; }
+    .seg button[data-tone="neutral"][aria-pressed="true"] { background: #64748b; }
+    .seg button[data-tone="ok"][aria-pressed="true"] { background: var(--ok); }
+    .seg button[data-tone="info"][aria-pressed="true"] { background: var(--accent); }
+    .seg button[data-tone="warn"][aria-pressed="true"] { background: var(--warn); }
+    .seg button[data-tone="purple"][aria-pressed="true"] { background: var(--purple); }
+    .seg button[data-tone="danger"][aria-pressed="true"] { background: var(--danger); }
+
+    .log { list-style: none; margin: 10px 0 0; padding: 0; font-size: 13px; }
+    .log li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px dashed var(--line); }
+    .log li .tm { color: var(--muted); font-variant-numeric: tabular-nums; width: 44px; }
+    .log li .st { font-weight: 700; flex: 1; }
+    .log li button { border: 0; background: transparent; color: #9aa6b5; padding: 4px; }
+    .log li button svg { width: 16px; height: 16px; }
+
+    label.fl { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
+    label.fl:first-child { margin-top: 0; }
+    .input, textarea.input, select.input {
+      width: 100%; border: 1px solid var(--line-2); border-radius: 10px; background: #fff;
+      padding: 11px 12px; font-size: 16px; outline: none;
+    }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(31, 95, 191, .15); }
+    textarea.input { resize: vertical; min-height: 88px; line-height: 1.5; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .help { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+    .saved { font-size: 11px; color: var(--ok); font-weight: 700; opacity: 0; transition: opacity .3s; }
+    .saved.show { opacity: 1; }
+
+    .desc { white-space: pre-wrap; word-break: break-word; font-size: 14px; margin: 0; }
+    .desc a { color: var(--accent); }
+    .kv { display: grid; grid-template-columns: 72px 1fr; gap: 6px 10px; font-size: 14px; }
+    .kv dt { color: var(--muted); font-size: 12px; font-weight: 700; padding-top: 2px; }
+    .kv dd { margin: 0; word-break: break-word; }
+    .kv a { color: var(--accent); text-decoration: none; }
+
+    .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0; }
+    .switch-row .tx { font-size: 14px; }
+    .switch-row .tx small { display: block; color: var(--muted); font-size: 12px; }
+    .switch { position: relative; width: 50px; height: 30px; flex: none; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--line-2); transition: background .2s; }
+    .switch span::after {
+      content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s;
+    }
+    .switch input:checked + span { background: var(--ok); }
+    .switch input:checked + span::after { transform: translateX(20px); }
+
+    .conn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); font-size: 13px; }
+    .conn .dot { width: 10px; height: 10px; border-radius: 50%; background: #9aa6b5; flex: none; }
+    .conn.on .dot { background: var(--ok); }
+    .conn .grow { flex: 1; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: calc(84px + var(--safe-b)); z-index: 60;
+      transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+      background: #1a2433; color: #fff; border-radius: 12px; padding: 10px 12px 10px 16px;
+      font-size: 14px; display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.25); transition: opacity .2s, transform .2s;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+    .toast button { border: 0; background: transparent; color: #7fb2ff; font-weight: 700; padding: 4px 6px; white-space: nowrap; }
+
+    .edit-banner {
+      display: none; margin: 10px 12px 0; padding: 10px 12px; border-radius: 10px;
+      background: var(--navy); color: #fff; font-size: 13px; align-items: center; gap: 10px;
+    }
+    .editing-mode .edit-banner { display: flex; }
+    .edit-banner .grow { flex: 1; }
+    .edit-banner button { border: 0; border-radius: 8px; padding: 7px 12px; font-weight: 700; font-size: 13px; }
+    .edit-banner .add { background: rgba(255,255,255,.15); color: #fff; }
+    .edit-banner .done { background: #fff; color: var(--navy); }
+
+    .hidden { display: none !important; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="appbar">
+    <div class="appbar-row">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M8.5 13.5l2.2 2.2 4.8-4.8"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Today's Jobs</div>
+          <div class="brand-sub">Field Visit Planner</div>
+        </div>
+      </div>
+      <button class="icon-btn" id="btnSync" aria-label="Googleカレンダーから読み込む" title="カレンダーから読み込む"></button>
+      <button class="icon-btn" id="btnSettings" aria-label="設定" title="設定"></button>
+    </div>
+    <div class="datebar">
+      <button class="icon-btn" id="btnPrev" aria-label="前の日"></button>
+      <label class="date-main">
+        <span class="d" id="dateLabel"></span><span class="tag" id="dateTag"></span>
+        <input type="date" id="datePicker" aria-label="日付を選択">
+      </label>
+      <button class="icon-btn" id="btnNext" aria-label="次の日"></button>
+    </div>
+  </header>
+
+  <section class="summary" aria-label="集計">
+    <div class="cell"><div class="num" id="sumTotal">0<small>件</small></div><div class="lbl">訪問予定</div></div>
+    <div class="cell"><div class="num" id="sumContact">0</div><div class="lbl">連絡済</div></div>
+    <div class="cell"><div class="num" id="sumParking">0</div><div class="lbl">駐車場確認</div></div>
+    <div class="cell"><div class="num" id="sumDone">0</div><div class="lbl">完了</div></div>
+  </section>
+  <div class="progress"><i id="progressBar"></i></div>
+
+  <div id="noticeArea"></div>
+  <div class="edit-banner" id="editBanner">
+    <div class="grow"><b>編集モード</b><br><small>不要な案件は削除できます</small></div>
+    <button class="add" id="btnAddInEdit">＋ 追加</button>
+    <button class="done" id="btnEditDone">完了</button>
+  </div>
+
+  <div class="meta-line" id="metaLine">
+    <span class="hint" id="hintText"></span>
+    <span id="syncedAt"></span>
+  </div>
+
+  <ol class="list" id="list"></ol>
+  <div id="emptyArea"></div>
+</div>
+
+<nav class="bottombar" aria-label="操作">
+  <div class="inner">
+    <button class="tab" id="tabRoute"><span data-icon="route"></span>ルート案内</button>
+    <button class="tab" id="tabAdd"><span data-icon="plus"></span>案件追加</button>
+    <button class="tab" id="tabEdit"><span data-icon="edit"></span>編集</button>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- 詳細シート -->
+<section class="sheet" id="detailSheet" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="sheet-head">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <div class="t">
+        <div class="sub" id="dSub"></div>
+        <h2 id="dTitle"></h2>
+      </div>
+      <button class="icon-btn" id="dEdit" aria-label="基本情報を編集"></button>
+      <button class="icon-btn" data-close aria-label="閉じる"></button>
+    </div>
+  </div>
+  <div class="sheet-body" id="dBody"></div>
+</section>
+
+<!-- 追加・編集シート -->
+<section class="sheet" id="formSheet" role="dialog" aria-modal="true" aria-labelledby="fTitle">
+  <div class="sheet-head">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <div class="t"><h2 id="fTitle">案件を追加</h2></div>
+      <button class="icon-btn" data-close aria-label="閉じる"></button>
+    </div>
+  </div>
+  <div class="sheet-body">
+    <form id="jobForm" class="card" autocomplete="off">
+      <label class="fl" for="fName">件名・作業内容 <span style="color:var(--danger)">*</span></label>
+      <input class="input" id="fName" required placeholder="例: 山田様邸 エアコン取付">
+      <div class="row2">
+        <div><label class="fl" for="fStart">開始</label><input class="input" type="time" id="fStart"></div>
+        <div><label class="fl" for="fEnd">終了</label><input class="input" type="time" id="fEnd"></div>
+      </div>
+      <label class="fl" for="fAddr">住所</label>
+      <input class="input" id="fAddr" placeholder="例: 東京都港区芝公園4-2-8">
+      <label class="fl" for="fTel">電話番号</label>
+      <input class="input" id="fTel" type="tel" inputmode="tel" placeholder="例: 090-1234-5678">
+      <label class="fl" for="fDesc">内容・詳細</label>
+      <textarea class="input" id="fDesc" rows="4" placeholder="作業内容、お客様情報など"></textarea>
+      <p class="help" id="fHelp"></p>
+    </form>
+  </div>
+  <div class="sheet-foot">
+    <button class="btn danger hidden" id="fDelete" type="button"></button>
+    <button class="btn" id="fSave" type="submit" form="jobForm">保存</button>
+  </div>
+</section>
+
+<!-- 設定シート -->
+<section class="sheet" id="settingsSheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+  <div class="sheet-head">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <div class="t"><h2 id="sTitle">設定</h2></div>
+      <button class="icon-btn" data-close aria-label="閉じる"></button>
+    </div>
+  </div>
+  <div class="sheet-body">
+    <div class="card">
+      <h3><span data-icon="calendar"></span>Googleカレンダー連携</h3>
+      <div class="conn" id="connState"><span class="dot"></span><span class="grow" id="connText">未接続</span></div>
+      <label class="fl" for="sClientId">OAuth クライアントID</label>
+      <input class="input" id="sClientId" placeholder="xxxxxxxx.apps.googleusercontent.com" autocapitalize="off" spellcheck="false">
+      <p class="help">Google Cloud Console で作成した「ウェブアプリケーション」のクライアントIDを入力してください（手順は README 参照）。</p>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="btn sm" id="sConnect" type="button">Googleに接続</button>
+        <button class="btn sm secondary hidden" id="sDisconnect" type="button">接続解除</button>
+      </div>
+      <label class="fl" for="sCalendar">読み込むカレンダー</label>
+      <select class="input" id="sCalendar"><option value="primary">メインカレンダー</option></select>
+      <div class="switch-row" style="margin-top:12px;">
+        <div class="tx">終日の予定を除外<small>休み・メモ等の終日予定を読み込まない</small></div>
+        <label class="switch"><input type="checkbox" id="sExcludeAllDay"><span></span></label>
+      </div>
+      <label class="fl" for="sKeyword">取り込み対象キーワード（任意）</label>
+      <input class="input" id="sKeyword" placeholder="例: 工事, 点検（カンマ区切り）">
+      <p class="help">指定すると、件名にいずれかのキーワードを含む予定だけを取り込みます。</p>
+    </div>
+    <div class="card">
+      <h3><span data-icon="route"></span>ルート案内</h3>
+      <label class="fl" for="sOrigin">出発地（空欄なら現在地）</label>
+      <input class="input" id="sOrigin" placeholder="例: 〇〇営業所の住所">
+      <div class="switch-row" style="margin-top:12px;">
+        <div class="tx">完了済みの案件をルートから除外</div>
+        <label class="switch"><input type="checkbox" id="sSkipDone" checked><span></span></label>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span data-icon="db"></span>データ</h3>
+      <p class="help" style="margin:0 0 10px;">入力した連絡状況・駐車場・メモは、この端末のブラウザ内に日付ごとに保存されます（30日経過で自動削除）。</p>
+      <div style="display:grid; gap:8px;">
+        <button class="btn secondary" id="sDemo" type="button">デモデータを読み込む（表示中の日付）</button>
+        <button class="btn danger" id="sResetDay" type="button">表示中の日付のデータをリセット</button>
+        <button class="btn danger" id="sResetAll" type="button">すべてのデータを削除</button>
+      </div>
+    </div>
+    <p class="help" style="text-align:center;">Today's Jobs v1.0</p>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastText"></span><button id="toastAction" class="hidden"></button></div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ================= Icons ================= */
+  const P = {
+    sync: '<path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    left: '<path d="M15 18l-6-6 6-6"/>',
+    right: '<path d="M9 18l6-6-6-6"/>',
+    up: '<path d="M18 15l-6-6-6 6"/>',
+    down: '<path d="M6 9l6 6 6-6"/>',
+    close: '<path d="M18 6L6 18M6 6l12 12"/>',
+    pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+    phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>',
+    nav: '<path d="M3 11l19-9-9 19-2-8-8-2z"/>',
+    copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    grip: '<circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/>',
+    trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',
+    edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+    calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    car: '<path d="M5 17h14v-5l-2-5H7l-2 5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/><path d="M5 12h14"/>',
+    note: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+    alert: '<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+    check: '<path d="M20 6L9 17l-5-5"/>',
+    work: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    db: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.7-4 3-9 3s-9-1.3-9-3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/>',
+    hand: '<path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/>',
+    voicemail: '<circle cx="6" cy="12" r="4"/><circle cx="18" cy="12" r="4"/><path d="M6 16h12"/>',
+    ring: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/><path d="M15 3.5a6 6 0 0 1 5.5 5.5M15 7a2.5 2.5 0 0 1 2 2"/>',
+    minus: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+    sms: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  };
+  const icon = (name, extra = '') =>
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${P[name] || ''}</svg>`;
+
+  /* ================= Constants ================= */
+  const CONTACT = {
+    none:      { label: '未連絡',   short: '未連絡', tone: 'neutral', chip: '',       icon: 'minus' },
+    talked:    { label: '通話済',   short: '通話済', tone: 'ok',      chip: 'ok',     icon: 'phone' },
+    voicemail: { label: '留守電',   short: '留守電', tone: 'purple',  chip: 'purple', icon: 'voicemail' },
+    callonly:  { label: 'コールのみ', short: 'コールのみ', tone: 'warn', chip: 'warn',  icon: 'ring' },
+    sms:       { label: 'SMS送信',  short: 'SMS',   tone: 'info',    chip: 'info',   icon: 'sms' },
+  };
+  const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms'];
+  const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'warn', sms: 'accent' };
+  const PARKING = {
+    unknown: { label: '未確認', tone: 'neutral', chip: '' },
+    yes:     { label: 'あり',   tone: 'ok',      chip: 'ok' },
+    no:      { label: 'なし',   tone: 'danger',  chip: 'danger' },
+  };
+  const WORK = {
+    todo:  { label: '未着手', tone: 'neutral' },
+    doing: { label: '作業中', tone: 'info' },
+    done:  { label: '完了',   tone: 'ok' },
+  };
+  const WEEK = ['日', '月', '火', '水', '木', '金', '土'];
+  const LS_PREFIX = 'tj:day:';
+  const LS_SETTINGS = 'tj:settings';
+  const KEEP_DAYS = 30;
+  const SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+
+  /* ================= Utils ================= */
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pad = (n) => String(n).padStart(2, '0');
+  const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parseYmd = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const addDays = (s, n) => { const d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); };
+  const todayStr = () => ymd(new Date());
+  const hm = (iso) => { if (!iso) return ''; const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const uid = () => 'm_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const telHref = (t) => 'tel:' + String(t).replace(/[^\d+]/g, '');
+  const store = {
+    get(k, fb) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch { return fb; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('保存に失敗しました（容量不足の可能性）'); } },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+    keys() { try { return Object.keys(localStorage); } catch { return []; } },
+  };
+  const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+  function normalizeText(s) { // 全角数字・ハイフン類を半角へ
+    return String(s || '')
+      .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+      .replace(/[‐‑‒–—―ー−－]/g, '-');
+  }
+  function extractPhone(...texts) {
+    for (const t of texts) {
+      const s = normalizeText(t);
+      const m = s.match(/(?:\+81[-\s]?)?0\d{1,4}[-\s(]?\d{1,4}[-\s)]?\d{3,4}/);
+      if (m) {
+        const digits = m[0].replace(/\D/g, '');
+        if (digits.length >= 10 && digits.length <= 12) return m[0].trim();
+      }
+    }
+    return '';
+  }
+  function extractAddress(desc) {
+    const lines = String(desc || '').split(/\n/).map(l => l.trim()).filter(Boolean);
+    for (const l of lines) {
+      const m = l.match(/^(?:住所|所在地|現場|訪問先|場所)\s*[:：]\s*(.+)$/);
+      if (m) return m[1].trim();
+    }
+    for (const l of lines) {
+      if (/〒?\d{3}-?\d{4}/.test(l) || /(都|道|府|県).+(市|区|町|村)/.test(l)) return l.replace(/^〒?\s*/, '');
+    }
+    return '';
+  }
+  function htmlToText(html) {
+    if (!html) return '';
+    if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+    const withBreaks = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li)>/gi, '\n');
+    const doc = new DOMParser().parseFromString(withBreaks, 'text/html');
+    return (doc.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function linkify(text) {
+    return esc(text).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  }
+  function fmtDateLabel(s) {
+    const d = parseYmd(s);
+    return `${d.getMonth() + 1}月${d.getDate()}日（${WEEK[d.getDay()]}）`;
+  }
+  function relTag(s) {
+    const diff = Math.round((parseYmd(s) - parseYmd(todayStr())) / 86400000);
+    if (diff === 0) return ['今日', ''];
+    if (diff === 1) return ['明日', 'future'];
+    if (diff === -1) return ['昨日', 'past'];
+    return diff > 0 ? [`${diff}日後`, 'future'] : [`${-diff}日前`, 'past'];
+  }
+
+  /* ================= State ================= */
+  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '' };
+  let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
+  let current = todayStr();
+  let day = null;
+  let editing = false;
+  let openId = null;
+
+  const saveSettings = () => store.set(LS_SETTINGS, settings);
+  const emptyDay = (date) => ({ date, jobs: [], deleted: [], syncedAt: null, source: null });
+  const loadDay = (date) => Object.assign(emptyDay(date), store.get(LS_PREFIX + date, null) || {});
+  const saveDay = () => { store.set(LS_PREFIX + day.date, day); };
+  const findJob = (id) => day.jobs.find(j => j.id === id);
+
+  function newJob(base) {
+    return Object.assign({
+      id: uid(), eventId: null, title: '', start: null, end: null, allDay: false,
+      location: '', description: '', phone: '', edited: [],
+      contact: { status: 'none', log: [] },
+      parking: { status: 'unknown', note: '' },
+      memo: '', work: 'todo', missing: false,
+    }, base);
+  }
+
+  function purgeOld() {
+    const limit = addDays(todayStr(), -KEEP_DAYS);
+    store.keys().filter(k => k.startsWith(LS_PREFIX)).forEach(k => {
+      if (k.slice(LS_PREFIX.length) < limit) store.del(k);
+    });
+  }
+
+  /* ================= Rendering ================= */
+  const listEl = $('#list');
+
+  function render() {
+    // Date bar
+    $('#dateLabel').textContent = fmtDateLabel(current);
+    const [tag, cls] = relTag(current);
+    const tagEl = $('#dateTag'); tagEl.textContent = tag; tagEl.className = 'tag ' + cls;
+    $('#datePicker').value = current;
+
+    // Summary
+    const jobs = day.jobs;
+    const total = jobs.length;
+    const contacted = jobs.filter(j => j.contact.status !== 'none').length;
+    const parking = jobs.filter(j => j.parking.status !== 'unknown').length;
+    const done = jobs.filter(j => j.work === 'done').length;
+    $('#sumTotal').innerHTML = `${total}<small>件</small>`;
+    $('#sumContact').innerHTML = `${contacted}<small>/${total}</small>`;
+    $('#sumParking').innerHTML = `${parking}<small>/${total}</small>`;
+    $('#sumDone').innerHTML = `${done}<small>/${total}</small>`;
+    $('#progressBar').style.width = total ? (done / total * 100) + '%' : '0';
+
+    // Meta
+    $('#hintText').innerHTML = total
+      ? (editing ? `${icon('info')}矢印で順番変更・ゴミ箱で削除` : `${icon('hand')}長押しで訪問順を入れ替え`)
+      : '';
+    $('#syncedAt').textContent = day.syncedAt
+      ? `${day.source === 'demo' ? 'デモ' : '同期'} ${new Date(day.syncedAt).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+      : '';
+
+    // Notice (new day)
+    const notice = $('#noticeArea');
+    notice.innerHTML = '';
+    if (current < todayStr()) {
+      notice.innerHTML = `<div class="notice">${icon('calendar', 'width="18" height="18"')}<div class="grow">過去の日付を表示中です。</div><button data-act="goToday">今日へ</button></div>`;
+    }
+
+    // List
+    document.body.classList.toggle('editing-mode', editing);
+    listEl.classList.toggle('editing', editing);
+    listEl.innerHTML = jobs.map((j, i) => jobHtml(j, i, jobs.length)).join('');
+
+    // Empty
+    const empty = $('#emptyArea');
+    if (!total) {
+      const connected = !!settings.clientId;
+      empty.innerHTML = `
+        <div class="empty">
+          <div class="ill">${icon('calendar')}</div>
+          <h3>${fmtDateLabel(current)}の案件はまだありません</h3>
+          <p>Googleカレンダーから予定を読み込むか、手動で追加してください。</p>
+          <div class="stack">
+            <button class="btn" data-act="sync">${icon('sync')}カレンダーから読み込む</button>
+            <button class="btn secondary" data-act="add">${icon('plus')}手動で追加</button>
+            ${connected ? '' : `<button class="btn ghost" data-act="demo">デモデータで試してみる</button>`}
+          </div>
+        </div>`;
+    } else {
+      empty.innerHTML = '';
+    }
+
+    $('#tabEdit').classList.toggle('active', editing);
+    $('#tabEdit').lastChild.textContent = editing ? '編集完了' : '編集';
+  }
+
+  function jobHtml(j, i, n) {
+    const time = j.allDay ? '終日' : (j.start ? `${hm(j.start)}${j.end ? '–' + hm(j.end) : ''}` : '時間未定');
+    const c = CONTACT[j.contact.status] || CONTACT.none;
+    const lastLog = j.contact.log[j.contact.log.length - 1];
+    const contactChip = j.contact.status === 'none'
+      ? `<span class="chip">${icon('phone')}未連絡</span>`
+      : `<span class="chip ${c.chip}">${icon(c.icon)}${esc(c.short)}${lastLog ? ' ' + hm(lastLog.at) : ''}${j.contact.log.length > 1 ? ` ×${j.contact.log.length}` : ''}</span>`;
+    const pk = PARKING[j.parking.status];
+    const parkChip = `<span class="chip ${pk.chip}">${icon('car')}P ${esc(pk.label)}</span>`;
+    const workChip = j.work !== 'todo' ? `<span class="chip ${j.work === 'done' ? 'ok' : 'info'}">${icon(j.work === 'done' ? 'check' : 'work')}${WORK[j.work].label}</span>` : '';
+    const missingChip = j.missing ? `<span class="chip danger">${icon('alert')}カレンダーから削除済</span>` : '';
+    const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
+    const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
+    return `
+      <li class="job" data-id="${esc(j.id)}" data-work="${j.work}">
+        <button class="del-btn" data-act="del" aria-label="削除">${icon('trash')}</button>
+        <div class="rail"></div>
+        <div class="job-num"><span class="n">${i + 1}</span></div>
+        <div class="job-body">
+          <div class="job-time">${esc(time)}</div>
+          <div class="job-title">${esc(j.title || '(件名なし)')}</div>
+          ${j.location ? `<div class="job-addr">${icon('pin')}<span>${esc(j.location)}</span></div>` : ''}
+          ${memoText ? `<div class="job-memo">${esc(memoText)}</div>` : ''}
+          <div class="chips">${workChip}${contactChip}${parkChip}${missingChip}${manualChip}</div>
+        </div>
+        <div class="job-grip" aria-hidden="true">${icon('grip')}</div>
+        <div class="job-edit">
+          <button class="mini-btn" data-act="up" aria-label="上へ" ${i === 0 ? 'disabled' : ''}>${icon('up')}</button>
+          <button class="mini-btn" data-act="down" aria-label="下へ" ${i === n - 1 ? 'disabled' : ''}>${icon('down')}</button>
+        </div>
+      </li>`;
+  }
+
+  /* ================= Detail sheet ================= */
+  function openDetail(id) {
+    openId = id;
+    renderDetail();
+    openSheet('#detailSheet');
+  }
+
+  function renderDetail() {
+    const j = findJob(openId);
+    if (!j) { closeSheets(); return; }
+    const idx = day.jobs.indexOf(j);
+    const time = j.allDay ? '終日' : (j.start ? `${hm(j.start)}${j.end ? '–' + hm(j.end) : ''}` : '時間未定');
+    $('#dSub').textContent = `#${idx + 1}　${time}`;
+    $('#dTitle').textContent = j.title || '(件名なし)';
+
+    const addr = j.location;
+    const navUrl = addr ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving` : '';
+    const lastLog = j.contact.log[j.contact.log.length - 1];
+
+    $('#dBody').innerHTML = `
+      ${j.missing ? `<div class="notice" style="margin:0 0 10px;">${icon('alert', 'width="18" height="18"')}<div class="grow">この予定はGoogleカレンダー側で削除または変更されています。不要なら編集から削除してください。</div></div>` : ''}
+      <div class="actions">
+        <a class="action ${j.phone ? '' : 'disabled'}" href="${j.phone ? telHref(j.phone) : '#'}">${icon('phone')}電話</a>
+        <a class="action ${addr ? '' : 'disabled'}" href="${navUrl || '#'}" target="_blank" rel="noopener">${icon('nav')}ナビ開始</a>
+        <button class="action ${addr ? '' : 'disabled'}" data-act="copyAddr" type="button">${icon('copy')}住所コピー</button>
+      </div>
+
+      <div class="card">
+        <h3>${icon('work')}作業ステータス</h3>
+        <div class="seg c3" data-group="work">
+          ${Object.entries(WORK).map(([k, v]) => `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.work === k}">${v.label}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>${icon('phone')}事前連絡<span class="aside">${lastLog ? `最終 ${hm(lastLog.at)}・${j.contact.log.length}回` : '未連絡'}</span></h3>
+        <div class="seg c4" data-group="contact">
+          ${CONTACT_BUTTONS.map(k => { const v = CONTACT[k]; return `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.contact.status === k}">${icon(v.icon)}${v.label}</button>`; }).join('')}
+        </div>
+        <p class="help">タップするたびに連絡履歴に記録されます（時刻つき）。</p>
+        ${j.contact.log.length ? `<ul class="log">${j.contact.log.slice().reverse().map((l, ri) => {
+          const li = j.contact.log.length - 1 - ri;
+          return `<li><span class="tm">${hm(l.at)}</span><span class="st" style="color:var(--${LOG_COLOR[l.status] || 'accent'})">${CONTACT[l.status].label}</span><button type="button" data-act="delLog" data-i="${li}" aria-label="この履歴を削除">${icon('close')}</button></li>`;
+        }).join('')}</ul>` : ''}
+      </div>
+
+      <div class="card">
+        <h3>${icon('car')}駐車場<span class="saved" data-saved="parking">保存しました</span></h3>
+        <div class="seg c3" data-group="parking">
+          ${Object.entries(PARKING).map(([k, v]) => `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.parking.status === k}">${v.label}</button>`).join('')}
+        </div>
+        <label class="fl" for="dParkNote" style="margin-top:12px;">駐車場の備考</label>
+        <textarea class="input" id="dParkNote" rows="2" placeholder="例: 建物裏の来客用No.3 / 近隣コインP 30分300円">${esc(j.parking.note)}</textarea>
+      </div>
+
+      <div class="card">
+        <h3>${icon('alert')}注意事項・メモ<span class="saved" data-saved="memo">保存しました</span></h3>
+        <textarea class="input" id="dMemo" rows="4" placeholder="例: 犬がいるのでインターホン前に連絡 / 養生必須 / 14時以降希望">${esc(j.memo)}</textarea>
+      </div>
+
+      <div class="card">
+        <h3>${icon('info')}予定の内容</h3>
+        <dl class="kv">
+          <dt>住所</dt><dd>${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</dd>
+          <dt>電話</dt><dd>${j.phone ? `<a href="${telHref(j.phone)}">${esc(j.phone)}</a>` : '<span style="color:var(--muted)">未設定</span>'}</dd>
+          <dt>取込元</dt><dd>${j.eventId ? 'Googleカレンダー' : (j.manual ? '手動追加' : 'デモデータ')}</dd>
+        </dl>
+        ${j.description ? `<hr style="border:0;border-top:1px solid var(--line);margin:12px 0;"><p class="desc">${linkify(j.description)}</p>` : ''}
+      </div>
+    `;
+
+    const parkNote = $('#dParkNote'), memo = $('#dMemo');
+    const flash = (k) => { const el = $(`[data-saved="${k}"]`); if (!el) return; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1200); };
+    const saveParkNote = debounce(() => { j.parking.note = parkNote.value; saveDay(); render(); flash('parking'); }, 400);
+    const saveMemo = debounce(() => { j.memo = memo.value; saveDay(); render(); flash('memo'); }, 400);
+    parkNote.addEventListener('input', saveParkNote);
+    memo.addEventListener('input', saveMemo);
+  }
+
+  $('#dBody').addEventListener('click', (e) => {
+    const j = findJob(openId); if (!j) return;
+    const segBtn = e.target.closest('.seg button');
+    if (segBtn) {
+      const group = segBtn.parentElement.dataset.group;
+      const val = segBtn.dataset.val;
+      if (group === 'work') j.work = val;
+      if (group === 'parking') j.parking.status = val;
+      if (group === 'contact') {
+        j.contact.log.push({ status: val, at: new Date().toISOString() });
+        j.contact.status = val;
+        if (navigator.vibrate) navigator.vibrate(15);
+        toast(`${CONTACT[val].label} を記録しました`);
+      }
+      saveDay(); render(); renderDetail();
+      return;
+    }
+    const act = e.target.closest('[data-act]');
+    if (!act) return;
+    if (act.dataset.act === 'delLog') {
+      j.contact.log.splice(Number(act.dataset.i), 1);
+      const last = j.contact.log[j.contact.log.length - 1];
+      j.contact.status = last ? last.status : 'none';
+      saveDay(); render(); renderDetail();
+    }
+    if (act.dataset.act === 'copyAddr' && j.location) {
+      copyText(j.location).then(ok => toast(ok ? '住所をコピーしました' : 'コピーできませんでした'));
+    }
+  });
+
+  async function copyText(t) {
+    try { await navigator.clipboard.writeText(t); return true; }
+    catch {
+      const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand('copy'); } catch {}
+      ta.remove(); return ok;
+    }
+  }
+
+  $('#dEdit').addEventListener('click', () => { const id = openId; closeSheets(); setTimeout(() => openForm(id), 180); });
+
+  /* ================= Add / Edit form ================= */
+  let formId = null;
+  function openForm(id = null) {
+    formId = id;
+    const j = id ? findJob(id) : null;
+    $('#fTitle').textContent = j ? '案件を編集' : '案件を追加';
+    $('#fName').value = j ? j.title : '';
+    $('#fStart').value = j && j.start && !j.allDay ? hm(j.start) : '';
+    $('#fEnd').value = j && j.end && !j.allDay ? hm(j.end) : '';
+    $('#fAddr').value = j ? j.location : '';
+    $('#fTel').value = j ? j.phone : '';
+    $('#fDesc').value = j ? j.description : '';
+    $('#fHelp').textContent = j && j.eventId ? '編集した項目は、次回カレンダー同期時も上書きされません。' : `${fmtDateLabel(current)}の案件として追加します。`;
+    const del = $('#fDelete');
+    del.classList.toggle('hidden', !j);
+    del.innerHTML = `${icon('trash')}削除`;
+    openSheet('#formSheet');
+    if (!j) setTimeout(() => $('#fName').focus(), 260);
+  }
+
+  function timeToIso(t) {
+    if (!t) return null;
+    const [h, m] = t.split(':').map(Number);
+    const d = parseYmd(current); d.setHours(h, m, 0, 0);
+    return d.toISOString();
+  }
+
+  $('#jobForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const vals = {
+      title: $('#fName').value.trim(),
+      start: timeToIso($('#fStart').value),
+      end: timeToIso($('#fEnd').value),
+      location: $('#fAddr').value.trim(),
+      phone: $('#fTel').value.trim(),
+      description: $('#fDesc').value.trim(),
+    };
+    if (!vals.title) { $('#fName').focus(); return; }
+    if (formId) {
+      const j = findJob(formId);
+      if (j) {
+        const wasAllDay = j.allDay;
+        for (const k of Object.keys(vals)) {
+          const before = j[k] || '', after = vals[k] || '';
+          const changed = (k === 'start' || k === 'end') ? (wasAllDay ? !!after : hm(before) !== hm(after)) : before !== after;
+          if (changed) {
+            j[k] = vals[k];
+            if (!j.edited.includes(k)) j.edited.push(k);
+          }
+        }
+        if (wasAllDay && (vals.start || vals.end)) { j.allDay = false; if (!j.edited.includes('allDay')) j.edited.push('allDay'); }
+      }
+      toast('案件を更新しました');
+    } else {
+      day.jobs.push(newJob(Object.assign(vals, { manual: true })));
+      toast('案件を追加しました');
+    }
+    saveDay(); closeSheets(); render();
+  });
+
+  $('#fDelete').addEventListener('click', () => {
+    const id = formId; closeSheets(); deleteJob(id);
+  });
+
+  function deleteJob(id) {
+    const idx = day.jobs.findIndex(j => j.id === id);
+    if (idx < 0) return;
+    const [removed] = day.jobs.splice(idx, 1);
+    if (removed.eventId && !day.deleted.includes(removed.eventId)) day.deleted.push(removed.eventId);
+    saveDay(); render();
+    toast(`「${removed.title || '案件'}」を削除しました`, '元に戻す', () => {
+      day.jobs.splice(Math.min(idx, day.jobs.length), 0, removed);
+      if (removed.eventId) day.deleted = day.deleted.filter(x => x !== removed.eventId);
+      saveDay(); render();
+    });
+  }
+
+  /* ================= Sheets ================= */
+  const scrim = $('#scrim');
+  function openSheet(sel) {
+    document.querySelectorAll('.sheet.show').forEach(s => s.classList.remove('show'));
+    $(sel).classList.add('show'); scrim.classList.add('show');
+    $(sel).querySelector('.sheet-body').scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSheets() {
+    document.querySelectorAll('.sheet.show').forEach(s => s.classList.remove('show'));
+    scrim.classList.remove('show');
+    document.body.style.overflow = '';
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    openId = null;
+  }
+  scrim.addEventListener('click', closeSheets);
+  document.querySelectorAll('[data-close]').forEach(b => { b.innerHTML = icon('close'); b.addEventListener('click', closeSheets); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheets(); });
+  // シート上部を下にスワイプで閉じる
+  document.querySelectorAll('.sheet-head').forEach(h => {
+    let y0 = null;
+    h.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; }, { passive: true });
+    h.addEventListener('touchend', e => { if (y0 !== null && e.changedTouches[0].clientY - y0 > 60) closeSheets(); y0 = null; });
+  });
+
+  /* ================= Toast ================= */
+  let toastTimer;
+  function toast(msg, actionLabel, action) {
+    const t = $('#toast'), btn = $('#toastAction');
+    $('#toastText').textContent = msg;
+    if (actionLabel) {
+      btn.textContent = actionLabel; btn.classList.remove('hidden');
+      btn.onclick = () => { action(); t.classList.remove('show'); };
+    } else { btn.classList.add('hidden'); btn.onclick = null; }
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), actionLabel ? 5000 : 2200);
+  }
+
+  /* ================= List interactions ================= */
+  let suppressClick = false;
+  listEl.addEventListener('click', (e) => {
+    if (suppressClick) { suppressClick = false; return; }
+    const li = e.target.closest('.job'); if (!li) return;
+    const id = li.dataset.id;
+    const act = e.target.closest('[data-act]');
+    if (act) {
+      const i = day.jobs.findIndex(j => j.id === id);
+      if (act.dataset.act === 'del') { deleteJob(id); return; }
+      if (act.dataset.act === 'up' && i > 0) { moveJob(i, i - 1); return; }
+      if (act.dataset.act === 'down' && i < day.jobs.length - 1) { moveJob(i, i + 1); return; }
+      return;
+    }
+    if (editing) openForm(id); else openDetail(id);
+  });
+  listEl.addEventListener('contextmenu', e => { if (e.target.closest('.job')) e.preventDefault(); });
+
+  function moveJob(from, to) {
+    if (from === to) return;
+    const [j] = day.jobs.splice(from, 1);
+    day.jobs.splice(to, 0, j);
+    saveDay(); render();
+  }
+
+  /* ---- 長押しドラッグで並び替え ---- */
+  (function setupDrag() {
+    const LONG_PRESS = 380, SLOP = 8, EDGE = 90;
+    let timer = null, pressCard = null, sx = 0, sy = 0;
+    let drag = null;
+
+    function cancelPress() {
+      clearTimeout(timer); timer = null;
+      if (pressCard) pressCard.classList.remove('pressing');
+      pressCard = null;
+    }
+    function begin(card, y) {
+      const items = [...listEl.querySelectorAll('.job')];
+      const from = items.indexOf(card);
+      if (from < 0 || items.length < 2) { cancelPress(); return; }
+      const rects = items.map(el => el.getBoundingClientRect());
+      const gap = rects[1] ? Math.max(0, rects[1].top - rects[0].bottom) : 10;
+      drag = { card, items, rects, from, to: from, startY: y, lastY: y, startScroll: window.scrollY, shift: rects[from].height + gap, raf: 0 };
+      card.classList.remove('pressing');
+      card.classList.add('dragging');
+      listEl.classList.add('is-dragging');
+      if (navigator.vibrate) navigator.vibrate(25);
+      tick();
+    }
+    function move(y) {
+      if (!drag) return;
+      drag.lastY = y;
+      const dy = y - drag.startY + (window.scrollY - drag.startScroll);
+      drag.card.style.transform = `translateY(${dy}px) scale(1.02)`;
+      const r = drag.rects[drag.from];
+      const center = r.top + r.height / 2 + dy;
+      let to = drag.from;
+      for (let i = drag.from + 1; i < drag.items.length; i++) {
+        const ri = drag.rects[i]; if (center > ri.top + ri.height / 2) to = i;
+      }
+      for (let i = drag.from - 1; i >= 0; i--) {
+        const ri = drag.rects[i]; if (center < ri.top + ri.height / 2) to = i;
+      }
+      drag.to = to;
+      drag.items.forEach((el, i) => {
+        if (i === drag.from) return;
+        let s = 0;
+        if (drag.from < i && i <= to) s = -drag.shift;
+        else if (to <= i && i < drag.from) s = drag.shift;
+        el.style.transform = s ? `translateY(${s}px)` : '';
+      });
+    }
+    function tick() {
+      if (!drag) return;
+      const y = drag.lastY;
+      let v = 0;
+      if (y < EDGE + 60) v = -Math.ceil((EDGE + 60 - y) / 10);
+      else if (y > window.innerHeight - EDGE) v = Math.ceil((y - (window.innerHeight - EDGE)) / 10);
+      if (v) { window.scrollBy(0, v); move(y); }
+      drag.raf = requestAnimationFrame(tick);
+    }
+    function end() {
+      if (!drag) return;
+      cancelAnimationFrame(drag.raf);
+      const { from, to, items } = drag;
+      items.forEach(el => { el.style.transform = ''; });
+      drag.card.classList.remove('dragging');
+      listEl.classList.remove('is-dragging');
+      drag = null;
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 350);
+      if (from !== to) {
+        moveJob(from, to);
+        toast(`訪問順を ${from + 1} → ${to + 1} 番目に変更しました`);
+      }
+    }
+    function start(e, x, y) {
+      if (editing) return;
+      const card = e.target.closest('.job');
+      if (!card || e.target.closest('button, a, input, textarea')) return;
+      sx = x; sy = y; pressCard = card;
+      card.classList.add('pressing');
+      timer = setTimeout(() => { timer = null; begin(card, sy); }, LONG_PRESS);
+    }
+    function moved(x, y) {
+      if (timer && (Math.abs(x - sx) > SLOP || Math.abs(y - sy) > SLOP)) cancelPress();
+    }
+
+    // Touch
+    listEl.addEventListener('touchstart', e => { if (e.touches.length === 1) start(e, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    listEl.addEventListener('touchmove', e => {
+      const t = e.touches[0];
+      if (drag) { e.preventDefault(); move(t.clientY); return; }
+      moved(t.clientX, t.clientY);
+    }, { passive: false });
+    listEl.addEventListener('touchend', () => { cancelPress(); end(); });
+    listEl.addEventListener('touchcancel', () => { cancelPress(); end(); });
+
+    // Mouse (PC)
+    listEl.addEventListener('mousedown', e => { if (e.button === 0) start(e, e.clientX, e.clientY); });
+    window.addEventListener('mousemove', e => { if (drag) { e.preventDefault(); move(e.clientY); } else moved(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', () => { cancelPress(); end(); });
+  })();
+
+  /* ================= Google Calendar ================= */
+  let token = null; // { access_token, exp }
+  try { const t = JSON.parse(sessionStorage.getItem('tj:token') || 'null'); if (t && t.exp > Date.now()) token = t; } catch {}
+  let tokenClient = null, tokenClientId = null;
+
+  function gisReady() { return !!(window.google && google.accounts && google.accounts.oauth2); }
+  function waitGis(ms = 6000) {
+    return new Promise((res, rej) => {
+      const t0 = Date.now();
+      (function poll() { if (gisReady()) res(); else if (Date.now() - t0 > ms) rej(new Error('Googleのログイン機能を読み込めませんでした（通信環境を確認してください）')); else setTimeout(poll, 150); })();
+    });
+  }
+  async function getToken() {
+    if (token && token.exp - 60000 > Date.now()) return token.access_token;
+    if (!settings.clientId) throw new Error('NO_CLIENT_ID');
+    await waitGis();
+    return new Promise((resolve, reject) => {
+      if (!tokenClient || tokenClientId !== settings.clientId) {
+        tokenClientId = settings.clientId;
+        tokenClient = google.accounts.oauth2.initTokenClient({ client_id: settings.clientId, scope: SCOPE, callback: () => {} });
+      }
+      tokenClient.callback = (resp) => {
+        if (resp.error) { reject(new Error('Google認証に失敗しました: ' + resp.error)); return; }
+        token = { access_token: resp.access_token, exp: Date.now() + (Number(resp.expires_in) || 3600) * 1000 };
+        try { sessionStorage.setItem('tj:token', JSON.stringify(token)); } catch {}
+        updateConnUi();
+        resolve(token.access_token);
+      };
+      tokenClient.error_callback = (err) => reject(new Error(err && err.type === 'popup_closed' ? 'ログインがキャンセルされました' : 'ログイン画面を開けませんでした（ポップアップ許可を確認）'));
+      tokenClient.requestAccessToken({ prompt: '' });
+    });
+  }
+  async function gapi(path, params = {}) {
+    const at = await getToken();
+    const url = new URL('https://www.googleapis.com/calendar/v3' + path);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + at } });
+    if (res.status === 401) { token = null; try { sessionStorage.removeItem('tj:token'); } catch {} throw new Error('認証の有効期限が切れました。もう一度読み込んでください'); }
+    if (!res.ok) throw new Error(`カレンダーの取得に失敗しました (${res.status})`);
+    return res.json();
+  }
+
+  function eventToBase(ev) {
+    const description = htmlToText(ev.description || '');
+    const location = (ev.location || '').trim() || extractAddress(description);
+    return {
+      eventId: ev.id,
+      title: ev.summary || '',
+      allDay: !!(ev.start && ev.start.date && !ev.start.dateTime),
+      start: ev.start && ev.start.dateTime ? new Date(ev.start.dateTime).toISOString() : null,
+      end: ev.end && ev.end.dateTime ? new Date(ev.end.dateTime).toISOString() : null,
+      location,
+      description,
+      phone: extractPhone(description, ev.location, ev.summary),
+    };
+  }
+
+  function mergeEvents(events) {
+    const kw = settings.keyword.split(/[,、，]/).map(s => s.trim()).filter(Boolean);
+    const byEvent = new Map(day.jobs.filter(j => j.eventId).map(j => [j.eventId, j]));
+    const seen = new Set();
+    let added = 0, updated = 0;
+    const wasEmpty = day.jobs.length === 0;
+    for (const ev of events) {
+      if (ev.status === 'cancelled') continue;
+      const base = eventToBase(ev);
+      if (settings.excludeAllDay && base.allDay) continue;
+      if (kw.length && !kw.some(k => base.title.includes(k))) continue;
+      seen.add(ev.id);
+      if (day.deleted.includes(ev.id)) continue;
+      const ex = byEvent.get(ev.id);
+      if (ex) {
+        let ch = false;
+        for (const k of ['title', 'start', 'end', 'allDay', 'location', 'description', 'phone']) {
+          if (ex.edited.includes(k)) continue;
+          if (ex[k] !== base[k]) { ex[k] = base[k]; ch = true; }
+        }
+        if (ex.missing) { ex.missing = false; ch = true; }
+        if (ch) updated++;
+      } else {
+        day.jobs.push(newJob(base));
+        added++;
+      }
+    }
+    day.jobs.forEach(j => { if (j.eventId && !seen.has(j.eventId)) j.missing = true; });
+    if (wasEmpty) {
+      // 初回は時刻順
+      day.jobs.sort((a, b) => (a.allDay ? -1 : 0) - (b.allDay ? -1 : 0) || String(a.start || '').localeCompare(String(b.start || '')));
+    }
+    return { added, updated };
+  }
+
+  let syncing = false;
+  async function sync() {
+    if (syncing) return;
+    if (!settings.clientId) {
+      openSettings();
+      toast('まずGoogleカレンダーの接続設定をしてください');
+      return;
+    }
+    syncing = true; setSyncBusy(true);
+    try {
+      const d0 = parseYmd(current), d1 = parseYmd(addDays(current, 1));
+      const data = await gapi(`/calendars/${encodeURIComponent(settings.calendarId || 'primary')}/events`, {
+        timeMin: d0.toISOString(), timeMax: d1.toISOString(),
+        singleEvents: 'true', orderBy: 'startTime', maxResults: '100',
+      });
+      if (day.source === 'demo') { day = emptyDay(current); }
+      const { added, updated } = mergeEvents(data.items || []);
+      day.syncedAt = new Date().toISOString();
+      day.source = 'gcal';
+      saveDay(); render();
+      toast(added || updated ? `読み込み完了：新規 ${added}件 / 更新 ${updated}件` : '読み込み完了：変更はありません');
+    } catch (err) {
+      if (err.message !== 'NO_CLIENT_ID') toast(err.message || '読み込みに失敗しました');
+    } finally {
+      syncing = false; setSyncBusy(false);
+    }
+  }
+  function setSyncBusy(b) { $('#btnSync').classList.toggle('spin', b); }
+
+  async function loadCalendars() {
+    try {
+      const data = await gapi('/users/me/calendarList', { minAccessRole: 'reader' });
+      const sel = $('#sCalendar');
+      sel.innerHTML = (data.items || []).map(c =>
+        `<option value="${esc(c.primary ? 'primary' : c.id)}">${esc(c.summaryOverride || c.summary)}${c.primary ? '（メイン）' : ''}</option>`).join('');
+      sel.value = settings.calendarId;
+      if (sel.value !== settings.calendarId) { sel.value = 'primary'; settings.calendarId = 'primary'; saveSettings(); }
+    } catch (err) { toast(err.message); }
+  }
+
+  function updateConnUi() {
+    const on = !!(token && token.exp > Date.now());
+    $('#connState').classList.toggle('on', on);
+    $('#connText').textContent = on ? `接続中（${settings.calendarName || 'カレンダー'}）` : (settings.clientId ? '未ログイン（読み込み時にログインします）' : '未設定');
+    $('#sDisconnect').classList.toggle('hidden', !on);
+  }
+
+  /* ================= Settings ================= */
+  function openSettings() {
+    $('#sClientId').value = settings.clientId;
+    $('#sExcludeAllDay').checked = settings.excludeAllDay;
+    $('#sKeyword').value = settings.keyword;
+    $('#sOrigin').value = settings.origin;
+    $('#sSkipDone').checked = settings.skipDone;
+    const sel = $('#sCalendar');
+    if (![...sel.options].some(o => o.value === settings.calendarId)) {
+      sel.insertAdjacentHTML('beforeend', `<option value="${esc(settings.calendarId)}">${esc(settings.calendarName)}</option>`);
+    }
+    sel.value = settings.calendarId;
+    updateConnUi();
+    openSheet('#settingsSheet');
+  }
+  $('#sClientId').addEventListener('change', e => { settings.clientId = e.target.value.trim(); saveSettings(); updateConnUi(); });
+  $('#sCalendar').addEventListener('change', e => {
+    settings.calendarId = e.target.value;
+    settings.calendarName = e.target.selectedOptions[0] ? e.target.selectedOptions[0].textContent : '';
+    saveSettings(); updateConnUi();
+  });
+  $('#sExcludeAllDay').addEventListener('change', e => { settings.excludeAllDay = e.target.checked; saveSettings(); });
+  $('#sKeyword').addEventListener('change', e => { settings.keyword = e.target.value.trim(); saveSettings(); });
+  $('#sOrigin').addEventListener('change', e => { settings.origin = e.target.value.trim(); saveSettings(); });
+  $('#sSkipDone').addEventListener('change', e => { settings.skipDone = e.target.checked; saveSettings(); });
+  $('#sConnect').addEventListener('click', async () => {
+    settings.clientId = $('#sClientId').value.trim(); saveSettings();
+    if (!settings.clientId) { toast('クライアントIDを入力してください'); $('#sClientId').focus(); return; }
+    try { token = null; await getToken(); await loadCalendars(); toast('Googleカレンダーに接続しました'); }
+    catch (err) { toast(err.message); }
+    updateConnUi();
+  });
+  $('#sDisconnect').addEventListener('click', () => {
+    if (token && gisReady()) { try { google.accounts.oauth2.revoke(token.access_token, () => {}); } catch {} }
+    token = null; try { sessionStorage.removeItem('tj:token'); } catch {}
+    updateConnUi(); toast('接続を解除しました');
+  });
+  $('#sDemo').addEventListener('click', () => {
+    if (day.jobs.length && !confirm('表示中の日付のデータをデモデータで置き換えます。よろしいですか？')) return;
+    loadDemo(); closeSheets();
+  });
+  $('#sResetDay').addEventListener('click', () => {
+    if (!confirm(`${fmtDateLabel(current)}のデータ（並び順・連絡状況・メモ・削除した案件）をリセットします。よろしいですか？`)) return;
+    store.del(LS_PREFIX + current); day = loadDay(current); render(); closeSheets(); toast('リセットしました');
+  });
+  $('#sResetAll').addEventListener('click', () => {
+    if (!confirm('すべての日付のデータを削除します。よろしいですか？（設定は残ります）')) return;
+    store.keys().filter(k => k.startsWith(LS_PREFIX)).forEach(k => store.del(k));
+    day = loadDay(current); render(); closeSheets(); toast('すべてのデータを削除しました');
+  });
+
+  /* ================= Demo ================= */
+  function loadDemo() {
+    const at = (h, m) => { const d = parseYmd(current); d.setHours(h, m, 0, 0); return d.toISOString(); };
+    const demo = [
+      { title: '佐藤様邸 エアコン取付（2台）', start: at(9, 0), end: at(10, 30), location: '東京都世田谷区三軒茶屋2-11-22', description: '室内機2台（リビング・寝室）\n既設撤去あり\n連絡先: 090-1234-5678', phone: '090-1234-5678' },
+      { title: '株式会社ミナト 複合機 定期点検', start: at(11, 0), end: at(12, 0), location: '東京都渋谷区道玄坂1-12-1', description: '総務部 田中様\n受付で入館証を受け取る\nTEL 03-1234-5678', phone: '03-1234-5678' },
+      { title: '鈴木様 給湯器交換 現地調査', start: at(13, 30), end: at(14, 15), location: '東京都目黒区自由が丘1-29-3', description: '型番確認・設置場所の採寸\n携帯 080-2222-3333', phone: '080-2222-3333' },
+      { title: '高橋様邸 インターネット回線 開通工事', start: at(15, 0), end: at(16, 30), location: '神奈川県川崎市中原区小杉町3-264', description: 'マンション 8F 共用部MDF立会い\n管理会社へ事前申請済み\n連絡先 070-4444-5555', phone: '070-4444-5555' },
+      { title: '中村様 アフター点検（前回不具合確認）', start: at(17, 0), end: at(17, 45), location: '東京都大田区蒲田5-13-1', description: '前回の水漏れ箇所の再確認\n連絡先: 090-6666-7777', phone: '090-6666-7777' },
+    ];
+    day = emptyDay(current);
+    day.jobs = demo.map(d => newJob(d));
+    day.jobs[0].contact = { status: 'talked', log: [{ status: 'talked', at: at(8, 5) }] };
+    day.jobs[0].parking = { status: 'yes', note: '敷地内 玄関前に1台可' };
+    day.jobs[1].contact = { status: 'voicemail', log: [{ status: 'callonly', at: at(8, 10) }, { status: 'voicemail', at: at(8, 25) }] };
+    day.jobs[1].parking = { status: 'no', note: '近隣コインP（道玄坂上）30分300円' };
+    day.jobs[1].memo = '入館は11時以降のみ。台車使用不可';
+    day.jobs[3].memo = '犬がいるのでインターホン前に電話';
+    day.syncedAt = new Date().toISOString();
+    day.source = 'demo';
+    saveDay(); render();
+    toast('デモデータを読み込みました');
+  }
+
+  /* ================= Route ================= */
+  function openRoute() {
+    const targets = day.jobs.filter(j => j.location && !(settings.skipDone && j.work === 'done'));
+    if (!targets.length) { toast('住所が登録された案件がありません'); return; }
+    const addrs = targets.map(j => j.location);
+    const dest = addrs[addrs.length - 1];
+    const wps = addrs.slice(0, -1).slice(0, 9);
+    let url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving`;
+    if (settings.origin) url += `&origin=${encodeURIComponent(settings.origin)}`;
+    if (wps.length) url += `&waypoints=${wps.map(encodeURIComponent).join('%7C')}`;
+    if (addrs.length > 10) toast('Googleマップの経由地は最大9件のため、一部を省略しました');
+    window.open(url, '_blank', 'noopener');
+  }
+
+  /* ================= Navigation ================= */
+  function goTo(date) {
+    current = date;
+    day = loadDay(current);
+    editing = false;
+    settings.lastViewed = current; saveSettings();
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-act]');
+    if (!a || a.closest('#list') || a.closest('#dBody')) return;
+    const act = a.dataset.act;
+    if (act === 'sync') sync();
+    if (act === 'add') openForm();
+    if (act === 'demo') loadDemo();
+    if (act === 'goToday') goTo(todayStr());
+  });
+
+  $('#btnSync').innerHTML = icon('sync');
+  $('#btnSettings').innerHTML = icon('gear');
+  $('#btnPrev').innerHTML = icon('left');
+  $('#btnNext').innerHTML = icon('right');
+  document.querySelectorAll('[data-icon]').forEach(el => { el.outerHTML = icon(el.dataset.icon); });
+
+  $('#btnSync').addEventListener('click', sync);
+  $('#btnSettings').addEventListener('click', openSettings);
+  $('#btnPrev').addEventListener('click', () => goTo(addDays(current, -1)));
+  $('#btnNext').addEventListener('click', () => goTo(addDays(current, 1)));
+  $('#datePicker').addEventListener('change', e => { if (e.target.value) goTo(e.target.value); });
+  $('#tabRoute').addEventListener('click', openRoute);
+  $('#tabAdd').addEventListener('click', () => openForm());
+  $('#tabEdit').addEventListener('click', () => { editing = !editing; render(); });
+  $('#btnEditDone').addEventListener('click', () => { editing = false; render(); });
+  $('#btnAddInEdit').addEventListener('click', () => openForm());
+
+  // 日付が変わったら（翌朝アプリを開いたとき等）自動で当日に切り替え
+  let lastToday = todayStr();
+  function checkDateRollover() {
+    const t = todayStr();
+    if (t !== lastToday) {
+      const wasViewingToday = current === lastToday;
+      lastToday = t;
+      if (wasViewingToday) {
+        goTo(t);
+        toast('日付が変わりました。今日の予定を読み込んでください', '読み込む', sync);
+      }
+    }
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDateRollover(); });
+  setInterval(checkDateRollover, 60000);
+
+  /* ================= Boot ================= */
+  purgeOld();
+  goTo(todayStr());
+})();
+</script>
+</body>
+</html>
