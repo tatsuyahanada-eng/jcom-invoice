@@ -284,6 +284,50 @@
     .action svg { width: 22px; height: 22px; }
     .action.disabled { color: #b3bcc8; pointer-events: none; }
 
+    .maprow { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    .maprow + .maprow { margin-top: 8px; }
+    .mapbtn {
+      display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 8px 12px;
+      border: 1px solid var(--line-2); border-radius: 10px; background: var(--panel); text-align: left;
+    }
+    .mapbtn .logo {
+      width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none;
+      color: #fff; font-weight: 800; font-size: 15px; font-family: Arial, sans-serif;
+    }
+    .mapbtn .logo.g { background: #1a73e8; }
+    .mapbtn .logo.y { background: #ff0033; }
+    .mapbtn .nm { font-weight: 700; font-size: 14px; line-height: 1.2; }
+    .mapbtn .nm small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; }
+    .mapbtn .go { margin-left: auto; color: var(--accent); }
+    .mapbtn .go svg { width: 18px; height: 18px; display: block; }
+    .webbtn {
+      min-width: 64px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--panel-2);
+      font-size: 12px; font-weight: 700; color: var(--navy-2); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1px; padding: 4px 8px;
+    }
+    .webbtn svg { width: 16px; height: 16px; }
+    .mapbtn:disabled, .webbtn:disabled, .linkbtn:disabled { opacity: .4; }
+    .applinks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .linkbtn {
+      display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 10px;
+      border: 1px solid var(--line-2); border-radius: 10px; background: var(--panel);
+      font-size: 13px; font-weight: 700; color: var(--navy); text-align: left; word-break: break-all;
+    }
+    .linkbtn svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
+    .linklist { list-style: none; margin: 0 0 4px; padding: 0; }
+    .linklist li { display: flex; align-items: center; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .linklist .tx { flex: 1; min-width: 0; }
+    .linklist .tx b { display: block; font-size: 14px; }
+    .linklist .tx span { display: block; font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .linklist .mini-btn { width: 32px; height: 32px; flex: none; }
+    .linklist .empty-row { color: var(--muted); font-size: 13px; justify-content: center; }
+    .ph-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .ph-chips button {
+      border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 999px;
+      padding: 3px 10px; font-size: 12px; color: var(--navy-2);
+    }
+    .ph-chips button.preset { background: var(--accent-weak); border-color: #c5d7f3; color: var(--accent); font-weight: 700; }
+
     .seg { display: grid; gap: 6px; }
     .seg.c3 { grid-template-columns: repeat(3, 1fr); }
     .seg.c4 { grid-template-columns: repeat(4, 1fr); }
@@ -518,6 +562,31 @@
       </div>
     </div>
     <div class="card">
+      <h3><span data-icon="link"></span>連携アプリ（定型リンク）</h3>
+      <p class="help" style="margin:0 0 8px;">名前とURLを登録すると、各案件の詳細画面にボタンとして表示されます。URLには案件の情報を差し込めます。</p>
+      <ul class="linklist" id="linkList"></ul>
+      <label class="fl" for="lName">名前</label>
+      <input class="input" id="lName" placeholder="例: Waze でナビ">
+      <label class="fl" for="lUrl">URL（アプリのURLスキームも可）</label>
+      <input class="input" id="lUrl" placeholder="例: https://waze.com/ul?q={address}&navigate=yes" autocapitalize="off" spellcheck="false" inputmode="url">
+      <div class="ph-chips" id="phChips">
+        <button type="button" data-ph="{address}">住所</button>
+        <button type="button" data-ph="{tel}">電話</button>
+        <button type="button" data-ph="{title}">件名</button>
+        <button type="button" data-ph="{date}">日付</button>
+        <button type="button" data-ph="{start}">開始時刻</button>
+        <button type="button" data-ph="{memo}">メモ</button>
+        <button type="button" data-ph="{parking}">駐車場</button>
+      </div>
+      <p class="help">ボタンをタップするとカーソル位置に差し込み記号が入ります（例: <code>{address}</code> → その案件の住所）。</p>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="btn sm" id="lSave" type="button">追加</button>
+        <button class="btn sm secondary hidden" id="lCancel" type="button">キャンセル</button>
+      </div>
+      <label class="fl">よく使うテンプレート（タップで入力欄にセット）</label>
+      <div class="ph-chips" id="presetChips"></div>
+    </div>
+    <div class="card">
       <h3><span data-icon="db"></span>データ</h3>
       <p class="help" style="margin:0 0 10px;">入力した連絡状況・駐車場・メモは、この端末のブラウザ内に日付ごとに保存されます（30日経過で自動削除）。</p>
       <div style="display:grid; gap:8px;">
@@ -566,6 +635,10 @@
     voicemail: '<circle cx="6" cy="12" r="4"/><circle cx="18" cy="12" r="4"/><path d="M6 16h12"/>',
     ring: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/><path d="M15 3.5a6 6 0 0 1 5.5 5.5M15 7a2.5 2.5 0 0 1 2 2"/>',
     minus: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+    link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/>',
+    map: '<path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/>',
+    ext: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14L21 3"/>',
     sms: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   };
   const icon = (name, extra = '') =>
@@ -666,8 +739,9 @@
   }
 
   /* ================= State ================= */
-  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '' };
+  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [] };
   let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
+  settings.links = Array.isArray(settings.links) ? settings.links.filter(l => l && l.name && l.url) : [];
   let current = todayStr();
   let day = null;
   let editing = false;
@@ -822,6 +896,25 @@
       </div>
 
       <div class="card">
+        <h3>${icon('map')}地図で住所を見る${addr ? '' : '<span class="aside">住所が未設定です</span>'}</h3>
+        <div class="maprow">
+          <button class="mapbtn" type="button" data-map="google" data-mode="app" ${addr ? '' : 'disabled'}>
+            <span class="logo g">G</span><span class="nm">Googleマップ<small>アプリで開く</small></span><span class="go">${icon('ext')}</span>
+          </button>
+          <button class="webbtn" type="button" data-map="google" data-mode="web" ${addr ? '' : 'disabled'}>${icon('globe')}Web</button>
+        </div>
+        <div class="maprow">
+          <button class="mapbtn" type="button" data-map="yahoo" data-mode="app" ${addr ? '' : 'disabled'}>
+            <span class="logo y">Y!</span><span class="nm">Yahoo!マップ<small>アプリで開く</small></span><span class="go">${icon('ext')}</span>
+          </button>
+          <button class="webbtn" type="button" data-map="yahoo" data-mode="web" ${addr ? '' : 'disabled'}>${icon('globe')}Web</button>
+        </div>
+        <p class="help">アプリが入っていない場合はブラウザで開きます。</p>
+      </div>
+
+      ${linksCardHtml(j)}
+
+      <div class="card">
         <h3>${icon('work')}作業ステータス</h3>
         <div class="seg c3" data-group="work">
           ${Object.entries(WORK).map(([k, v]) => `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.work === k}">${v.label}</button>`).join('')}
@@ -890,6 +983,14 @@
       saveDay(); render(); renderDetail();
       return;
     }
+    const mapBtn = e.target.closest('[data-map]');
+    if (mapBtn) { openMap(mapBtn.dataset.map, mapBtn.dataset.mode, j.location); return; }
+    const linkBtn = e.target.closest('[data-link]');
+    if (linkBtn) {
+      const l = settings.links.find(x => x.id === linkBtn.dataset.link);
+      if (l) openUrl(fillTemplate(l.url, j));
+      return;
+    }
     const act = e.target.closest('[data-act]');
     if (!act) return;
     if (act.dataset.act === 'delLog') {
@@ -902,6 +1003,93 @@
       copyText(j.location).then(ok => toast(ok ? '住所をコピーしました' : 'コピーできませんでした'));
     }
   });
+
+  /* ================= 地図アプリ / 連携アプリ ================= */
+  const UA = navigator.userAgent;
+  const IS_IOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
+  const IS_ANDROID = /Android/.test(UA);
+
+  function mapUrls(service, addr) {
+    const q = encodeURIComponent(addr);
+    if (service === 'google') {
+      const web = `https://www.google.com/maps/search/?api=1&query=${q}`;
+      const app = IS_IOS ? `comgooglemaps://?q=${q}`
+        : IS_ANDROID ? `intent://maps.google.com/maps?q=${q}#Intent;scheme=https;package=com.google.android.apps.maps;S.browser_fallback_url=${encodeURIComponent(web)};end`
+        : web;
+      return { app, web };
+    }
+    const web = `https://map.yahoo.co.jp/search?q=${q}`;
+    const app = IS_IOS ? `yjmap://search?query=${q}`
+      : IS_ANDROID ? `intent://search?query=${q}#Intent;scheme=yjmap;package=jp.co.yahoo.android.apps.map;S.browser_fallback_url=${encodeURIComponent(web)};end`
+      : web;
+    return { app, web };
+  }
+
+  // アプリを起動。iOSで起動できなかった（画面が切り替わらない）場合はブラウザで開く案内を出す
+  function launchApp(appUrl, webUrl, name) {
+    if (appUrl === webUrl) { window.open(webUrl, '_blank', 'noopener'); return; }
+    let left = false;
+    const onHide = () => { if (document.hidden) left = true; };
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', onHide);
+    location.href = appUrl;
+    setTimeout(() => {
+      document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('pagehide', onHide);
+      if (!left && !document.hidden && IS_IOS) {
+        toast(`${name}アプリを起動できませんでした`, 'ブラウザで開く', () => window.open(webUrl, '_blank', 'noopener'));
+      }
+    }, 1800);
+  }
+
+  function openMap(service, mode, addr) {
+    if (!addr) return;
+    const u = mapUrls(service, addr);
+    const name = service === 'google' ? 'Googleマップ' : 'Yahoo!マップ';
+    if (mode === 'web') window.open(u.web, '_blank', 'noopener');
+    else launchApp(u.app, u.web, name);
+  }
+
+  const BLOCKED_SCHEMES = /^(javascript|data|vbscript|file|blob|about):/i;
+  function isAllowedUrl(u) { return /^[a-z][a-z0-9+.-]*:/i.test(u) && !BLOCKED_SCHEMES.test(u.trim()); }
+
+  function templateValues(j) {
+    const d = parseYmd(day.date);
+    return {
+      address: j.location || '',
+      tel: j.phone || '',
+      title: j.title || '',
+      date: `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`,
+      start: j.allDay ? '終日' : (j.start ? hm(j.start) : ''),
+      memo: j.memo || '',
+      parking: [PARKING[j.parking.status].label, j.parking.note].filter(Boolean).join(' '),
+    };
+  }
+  function fillTemplate(url, j) {
+    const v = templateValues(j);
+    return url.replace(/\{(\w+)\}/g, (m, k) => (k in v ? encodeURIComponent(v[k]) : m));
+  }
+  function missingFields(url, j) {
+    const v = templateValues(j);
+    return ['address', 'tel'].filter(k => url.includes(`{${k}}`) && !v[k]);
+  }
+  function openUrl(u) {
+    if (!isAllowedUrl(u)) { toast('このURLは開けません'); return; }
+    if (/^https?:/i.test(u)) window.open(u, '_blank', 'noopener');
+    else location.href = u;
+  }
+
+  function linksCardHtml(j) {
+    const links = settings.links || [];
+    if (!links.length) {
+      return `<div class="card"><h3>${icon('link')}連携アプリ</h3><p class="help" style="margin:0;">設定 →「連携アプリ（定型リンク）」で、よく使うアプリやWebサービスをボタンとして登録できます。</p></div>`;
+    }
+    return `<div class="card"><h3>${icon('link')}連携アプリ</h3><div class="applinks">${links.map(l => {
+      const miss = missingFields(l.url, j);
+      const label = { address: '住所', tel: '電話' };
+      return `<button class="linkbtn" type="button" data-link="${esc(l.id)}" ${miss.length ? 'disabled' : ''} title="${miss.length ? esc(miss.map(m => label[m]).join('・') + 'が未設定') : ''}">${icon(/^https?:/i.test(l.url) ? 'ext' : 'link')}${esc(l.name)}</button>`;
+    }).join('')}</div></div>`;
+  }
 
   async function copyText(t) {
     try { await navigator.clipboard.writeText(t); return true; }
@@ -1301,6 +1489,7 @@
     $('#sKeyword').value = settings.keyword;
     $('#sOrigin').value = settings.origin;
     $('#sSkipDone').checked = settings.skipDone;
+    resetLinkForm();
     const sel = $('#sCalendar');
     if (![...sel.options].some(o => o.value === settings.calendarId)) {
       sel.insertAdjacentHTML('beforeend', `<option value="${esc(settings.calendarId)}">${esc(settings.calendarName)}</option>`);
@@ -1309,6 +1498,77 @@
     updateConnUi();
     openSheet('#settingsSheet');
   }
+  const LINK_PRESETS = [
+    { name: 'Waze でナビ', url: 'https://waze.com/ul?q={address}&navigate=yes' },
+    { name: 'Appleマップ', url: 'https://maps.apple.com/?q={address}' },
+    { name: 'LINEで送る', url: 'https://line.me/R/msg/text/?{title}%0A{address}' },
+    { name: 'SMSを作成', url: 'sms:{tel}' },
+    { name: 'Google検索', url: 'https://www.google.com/search?q={title}' },
+  ];
+  let editingLinkId = null;
+  function renderLinks() {
+    const links = settings.links;
+    $('#linkList').innerHTML = links.length ? links.map((l, i) => `
+      <li data-id="${esc(l.id)}">
+        <div class="tx"><b>${esc(l.name)}</b><span>${esc(l.url)}</span></div>
+        <button class="mini-btn" type="button" data-lact="up" aria-label="上へ" ${i === 0 ? 'disabled' : ''}>${icon('up')}</button>
+        <button class="mini-btn" type="button" data-lact="down" aria-label="下へ" ${i === links.length - 1 ? 'disabled' : ''}>${icon('down')}</button>
+        <button class="mini-btn" type="button" data-lact="edit" aria-label="編集">${icon('edit')}</button>
+        <button class="mini-btn" type="button" data-lact="del" aria-label="削除" style="color:var(--danger)">${icon('trash')}</button>
+      </li>`).join('') : '<li class="empty-row">まだ登録されていません</li>';
+    $('#lSave').textContent = editingLinkId ? '更新' : '追加';
+    $('#lCancel').classList.toggle('hidden', !editingLinkId);
+  }
+  function resetLinkForm() { editingLinkId = null; $('#lName').value = ''; $('#lUrl').value = ''; renderLinks(); }
+  $('#presetChips').innerHTML = LINK_PRESETS.map((p, i) => `<button type="button" class="preset" data-preset="${i}">${esc(p.name)}</button>`).join('');
+  $('#presetChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-preset]'); if (!b) return;
+    const p = LINK_PRESETS[Number(b.dataset.preset)];
+    $('#lName').value = p.name; $('#lUrl').value = p.url;
+    toast('内容を確認して「' + (editingLinkId ? '更新' : '追加') + '」を押してください');
+  });
+  $('#phChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-ph]'); if (!b) return;
+    const inp = $('#lUrl');
+    const st = inp.selectionStart ?? inp.value.length, en = inp.selectionEnd ?? inp.value.length;
+    inp.value = inp.value.slice(0, st) + b.dataset.ph + inp.value.slice(en);
+    inp.focus(); inp.setSelectionRange(st + b.dataset.ph.length, st + b.dataset.ph.length);
+  });
+  $('#lSave').addEventListener('click', () => {
+    const name = $('#lName').value.trim(), url = $('#lUrl').value.trim();
+    if (!name) { toast('名前を入力してください'); $('#lName').focus(); return; }
+    if (!url || !isAllowedUrl(url)) { toast('URLは https:// やアプリのスキーム（例: xxx://）で始めてください'); $('#lUrl').focus(); return; }
+    if (editingLinkId) {
+      const l = settings.links.find(x => x.id === editingLinkId);
+      if (l) { l.name = name; l.url = url; }
+      toast('連携アプリを更新しました');
+    } else {
+      settings.links.push({ id: uid(), name, url });
+      toast('連携アプリを追加しました');
+    }
+    saveSettings(); resetLinkForm();
+  });
+  $('#lCancel').addEventListener('click', resetLinkForm);
+  $('#linkList').addEventListener('click', e => {
+    const b = e.target.closest('[data-lact]'); if (!b) return;
+    const id = b.closest('li').dataset.id;
+    const i = settings.links.findIndex(l => l.id === id);
+    if (i < 0) return;
+    const a = b.dataset.lact;
+    if (a === 'up' && i > 0) settings.links.splice(i - 1, 0, settings.links.splice(i, 1)[0]);
+    if (a === 'down' && i < settings.links.length - 1) settings.links.splice(i + 1, 0, settings.links.splice(i, 1)[0]);
+    if (a === 'edit') {
+      editingLinkId = id; $('#lName').value = settings.links[i].name; $('#lUrl').value = settings.links[i].url;
+      $('#lName').focus();
+    }
+    if (a === 'del') {
+      if (!confirm(`「${settings.links[i].name}」を削除しますか？`)) return;
+      settings.links.splice(i, 1);
+      if (editingLinkId === id) { editingLinkId = null; $('#lName').value = ''; $('#lUrl').value = ''; }
+    }
+    saveSettings(); renderLinks();
+  });
+
   $('#sClientId').addEventListener('change', e => { settings.clientId = e.target.value.trim(); saveSettings(); updateConnUi(); });
   $('#sCalendar').addEventListener('change', e => {
     settings.calendarId = e.target.value;
