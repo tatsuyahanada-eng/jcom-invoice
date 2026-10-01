@@ -182,6 +182,7 @@
     .pin-card .star { color: var(--gold); font-size: 22px; line-height: 1; flex: none; }
     .pin-card .tx { flex: 1; min-width: 0; }
     .pin-card .t { font-weight: 800; font-size: 16px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pin-card .pt { display: block; font-family: var(--mono); font-size: 20px; font-weight: 800; color: var(--gold-text); line-height: 1.2; margin-bottom: 2px; }
     .pin-card .s { font-size: 12.5px; color: var(--muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .pin-card .go { color: var(--gold); flex: none; }
     .pin-card .go svg { width: 20px; height: 20px; display: block; }
@@ -211,7 +212,7 @@
     .job[data-work="doing"] .job-num { color: var(--gold); }
     .job[data-work="done"] .job-num { color: var(--ok); }
     .job-title { flex: 1 1 55%; min-width: 0; font-size: 17px; font-weight: 800; line-height: 1.35; word-break: break-word; }
-    .job-time { font-family: var(--mono); font-size: 13px; color: var(--muted); flex: none; white-space: nowrap; margin-left: auto; }
+    .job-time { font-family: var(--mono); font-size: 17px; font-weight: 700; color: var(--gold-text); flex: none; white-space: nowrap; margin-left: auto; letter-spacing: .02em; }
     .job-sub { padding-left: 40px; }
     .job-addr { margin-top: 5px; font-size: 13px; color: var(--muted); display: flex; gap: 4px; align-items: flex-start; }
     .job-addr svg { width: 14px; height: 14px; flex: none; margin-top: 3px; color: var(--cyan); }
@@ -278,9 +279,9 @@
     .dashbtn svg { width: 18px; height: 18px; }
     .dashbtn.gold { border-color: var(--gold-line); color: var(--gold); }
     .dashbtn:active { background: var(--accent-weak); }
-    .navrow { display: flex; gap: 10px; margin-top: 14px; }
+    .navrow { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 14px; }
     .navbtn {
-      display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 20px; border-radius: 6px; font-weight: 800; font-size: 15px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 8px 6px; border-radius: 6px; font-weight: 800; font-size: 15px; white-space: nowrap;
       background: rgba(255, 255, 255, .04); color: #cfd2d4; border: 1px solid var(--line);
     }
     .navbtn svg { width: 18px; height: 18px; }
@@ -313,6 +314,8 @@
     .sheet-title-row .t { flex: 1; min-width: 0; }
     .sheet-title-row h2 { margin: 0; font-size: 18px; line-height: 1.35; word-break: break-word; color: var(--text); }
     .sheet-title-row .sub { font-family: var(--mono); font-size: 13px; color: var(--cyan); letter-spacing: .06em; }
+    .sheet-title-row .sub .no { display: inline-block; margin-right: 10px; color: var(--muted); font-size: 14px; }
+    .sheet-title-row .sub .tm { font-size: 26px; font-weight: 800; color: var(--gold-text); letter-spacing: .02em; line-height: 1.2; }
     .sheet-head .icon-btn { border-color: transparent; color: var(--muted); width: 36px; height: 36px; }
     .sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 12px calc(20px + var(--safe-b)); flex: 1; overscroll-behavior: contain; }
     .sheet-foot { flex: none; padding: 10px 12px calc(10px + var(--safe-b)); background: #53575a; border-top: 1px solid var(--line-soft); display: flex; gap: 8px; }
@@ -586,6 +589,7 @@
     <div class="navrow">
       <button class="navbtn" type="button" data-act="prevDay"><span data-icon="left"></span>前の日</button>
       <button class="navbtn gold" type="button" data-act="goToday"><span data-icon="sync"></span>今日へ</button>
+      <button class="navbtn" type="button" data-act="nextDay">次の日<span data-icon="right"></span></button>
     </div>
   </main>
 
@@ -1066,7 +1070,7 @@
       nextArea.innerHTML = `<div class="pin-title">★ 次の訪問</div>
         <button class="pin-card" type="button" data-next="${esc(nxt.id)}">
           <span class="star">★</span>
-          <span class="tx">${pendingFlags(nxt).length ? `<span class="urgent-tags">${urgentTagsHtml(nxt, true)}</span>` : ''}<span class="t">${esc(nxt.title || '(件名なし)')}</span><span class="s">${esc(t)}${nxt.location ? ' › ' + esc(nxt.location) : ''}</span></span>
+          <span class="tx">${pendingFlags(nxt).length ? `<span class="urgent-tags">${urgentTagsHtml(nxt, true)}</span>` : ''}<span class="pt">${esc(t)}</span><span class="t">${esc(nxt.title || '(件名なし)')}</span><span class="s">${nxt.location ? esc(nxt.location) : '住所未設定'}</span></span>
           <span class="go">${icon('right')}</span>
         </button>`;
     } else nextArea.innerHTML = '';
@@ -1136,7 +1140,7 @@
     if (!j) { closeSheets(); return; }
     const idx = day.jobs.indexOf(j);
     const time = j.allDay ? '終日' : (j.start ? `${hm(j.start)}${j.end ? '–' + hm(j.end) : ''}` : '時間未定');
-    $('#dSub').textContent = `#${idx + 1}　${time}`;
+    $('#dSub').innerHTML = `<span class="no">#${idx + 1}</span><span class="tm">${esc(time)}</span>`;
     $('#dTitle').textContent = j.title || '(件名なし)';
 
     const addr = j.location;
@@ -2443,6 +2447,7 @@
     if (act === 'demo') loadDemo();
     if (act === 'goToday') goTo(todayStr());
     if (act === 'prevDay') goTo(addDays(current, -1));
+    if (act === 'nextDay') goTo(addDays(current, 1));
   });
 
   document.querySelectorAll('[data-icon]').forEach(el => { el.outerHTML = icon(el.dataset.icon); });
