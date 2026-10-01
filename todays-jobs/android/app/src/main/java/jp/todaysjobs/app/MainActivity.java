@@ -58,8 +58,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setNavigationBarColor(0xFF4A4C50);
-        getWindow().setStatusBarColor(0xFF4A4C50);
+        getWindow().setNavigationBarColor(0xFF122136);
+        getWindow().setStatusBarColor(0xFF122136);
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
