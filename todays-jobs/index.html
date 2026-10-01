@@ -91,7 +91,7 @@
     .hero-user svg { width: 16px; height: 16px; }
 
     /* ===== Tabs ===== */
-    .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+    .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
     .tabbtn {
       --c: var(--muted);
       min-height: 44px; padding: 4px 2px; background: rgba(74, 76, 80, .55); color: var(--c);
@@ -472,6 +472,33 @@
     .desc a.tel { color: var(--gold-text); font-weight: 700; text-decoration: underline; }
         .pathval { flex-wrap: wrap; gap: 4px 8px; }
     .pathval .d, .pathval .tag, .pathval .urg { white-space: nowrap; flex: none; }
+    /* メール定型文 */
+    .tabbtn.t-mail { --c: #e6a873; }
+    .sheet.tall { height: calc(100vh - 40px - var(--safe-t)); height: calc(100dvh - 40px - var(--safe-t)); }
+    .icon-btn.on { background: var(--accent-weak); border-color: var(--cyan); color: var(--cyan); }
+    .m-path { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; padding: 2px 2px 10px; }
+    .m-path .lb { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--dim); margin-right: 4px; }
+    .m-path .crumb { background: none; border: 0; color: var(--text); font-family: var(--mono); font-size: 14px; padding: 4px 2px; text-decoration: underline; text-underline-offset: 3px; }
+    .m-path .crumb:last-child { text-decoration: none; font-weight: 700; }
+    .m-path .sep { color: var(--dim); }
+    .m-list { list-style: none; margin: 0 0 10px; padding: 0; }
+    .m-item { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 8px 10px 8px 12px; margin-bottom: 8px; border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 12px; background: var(--panel); cursor: pointer; }
+    .m-item.tpl { border-left-color: var(--gold-line); }
+    .m-item.sel { border-color: var(--gold); border-left-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+    .m-item .ic { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; flex: none; background: rgba(255, 255, 255, .07); color: var(--cyan); }
+    .m-item.folder .ic { color: var(--gold); }
+    .m-item.sel .ic { background: var(--gold); color: var(--ink); }
+    .m-item .ic svg, .m-item .go svg { width: 18px; height: 18px; display: block; }
+    .m-item .tx { flex: 1; min-width: 0; }
+    .m-item .tx b { display: block; font-size: 15px; word-break: break-word; }
+    .m-item .tx small { display: block; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .m-item .go { color: var(--muted); }
+    .m-item .at { color: #e6a873; font-weight: 800; font-size: 18px; padding: 0 4px; }
+    .m-item .eb { display: flex; gap: 4px; flex: none; }
+    .m-item .eb .mini-btn { width: 32px; height: 32px; }
+    .m-compose { border-color: var(--gold-line); }
+    .m-vars { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+    .m-vars .full { grid-column: 1 / -1; }
     .hidden { display: none !important; }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
@@ -500,6 +527,7 @@
     <button class="tabbtn t-gold" id="btnSync" type="button" title="Googleカレンダーから読み込む"><span data-icon="sync"></span>読み込み</button>
     <button class="tabbtn t-green" id="tabRoute" type="button"><span data-icon="route"></span>ルート</button>
     <button class="tabbtn t-gray" id="tabEdit" type="button"><span data-icon="edit"></span>編集</button>
+    <button class="tabbtn t-mail" id="tabMail" type="button"><span data-icon="mail"></span>メール</button>
     <button class="tabbtn t-blue" id="btnSettings" type="button"><span data-icon="gear"></span>設定</button>
   </nav>
   <section class="toplinks" id="topLinks" aria-label="連携アプリ"></section>
@@ -709,6 +737,21 @@
   </div>
 </section>
 
+<!-- メール定型文 -->
+<section class="sheet tall" id="mailSheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="sheet-head">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <div class="t"><div class="sub">MAIL TEMPLATES</div><h2 id="mTitle">メール定型文</h2></div>
+      <button class="icon-btn" id="mEditToggle" type="button" aria-label="フォルダと定型文を編集"></button>
+      <button class="icon-btn" data-close aria-label="閉じる"></button>
+    </div>
+  </div>
+  <div class="sheet-body" id="mBody"></div>
+</section>
+<datalist id="mailDates"></datalist>
+<datalist id="mailTimes"></datalist>
+
 <div class="dialog-wrap hidden" id="dlgWrap">
   <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlgTitle">
     <h3 id="dlgTitle"></h3>
@@ -759,6 +802,9 @@
     ext: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14L21 3"/>',
     dot: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor"/>',
     swap: '<path d="M7 4v16M7 4L3 8M7 4l4 4M17 20V4M17 20l-4-4M17 20l4-4"/>',
+    mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    send: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
     sms: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   };
   const icon = (name, extra = '') =>
@@ -1428,6 +1474,8 @@
         `<button type="button" class="btn ${b.kind === 'danger' ? 'danger-fill' : (b.kind === 'ghost' ? 'ghost' : '')}" data-i="${i}">${esc(b.label)}</button>`).join('');
       $('#dlgActions').onclick = e => { const b = e.target.closest('button'); if (b) closeDialog(buttons[Number(b.dataset.i)].value); };
       $('#dlgWrap').classList.remove('hidden');
+      const inp = $('#dlgInput');
+      if (inp) { setTimeout(() => inp.focus(), 60); inp.onkeydown = (e) => { if (e.key === 'Enter') closeDialog(buttons[0].value); }; }
     });
   }
   $('#dlgWrap').addEventListener('click', e => { if (e.target.id === 'dlgWrap') closeDialog(null); });
@@ -2006,6 +2054,337 @@
     toast('デモデータを読み込みました');
   }
 
+  /* ================= メール定型文（案件ごとのフォルダ → 定型文 → 差し込み → コピー／メール作成） ================= */
+  const LS_MAIL = 'tj:mail';
+  const mail = Object.assign({ tree: [], vars: {} }, store.get(LS_MAIL, {}));
+  if (!Array.isArray(mail.tree)) mail.tree = [];
+  if (!mail.vars || typeof mail.vars !== 'object') mail.vars = {};
+  const saveMail = () => store.set(LS_MAIL, mail);
+  // 画面の状態: path=開いているフォルダのID列 / selId=選んだ定型文 / view='browse'|'tpl'(定型文の編集)
+  const mst = { path: [], editing: false, selId: null, view: 'browse', editId: null, editPath: [], subjEdited: false, bodyEdited: false, values: {}, lastField: 'tBody' };
+
+  const MAIL_TOKEN_RE = /\{([^{}\s]{1,20})\}/g;
+  const MAIL_BUILTIN = ['日付', '時間1', '時間2', '担当者'];
+  const MAIL_NO_REMEMBER = ['日付', '時間1', '時間2'];   // 毎回変わるものは記憶しない
+
+  function folderAt(path) {
+    let list = mail.tree;
+    for (const id of path) {
+      const f = list.find(x => x.type === 'folder' && x.id === id);
+      if (!f) return null;
+      list = f.children;
+    }
+    return list;
+  }
+  function findNode(id, list = mail.tree) {
+    for (const n of list) {
+      if (n.id === id) return { node: n, list };
+      if (n.type === 'folder') { const r = findNode(id, n.children); if (r) return r; }
+    }
+    return null;
+  }
+  const countTpl = (f) => f.children.reduce((a, n) => a + (n.type === 'tpl' ? 1 : countTpl(n)), 0);
+  function mailTokensOf(t) {
+    const out = [];
+    for (const m of `${t.subject || ''}\n${t.body || ''}`.matchAll(MAIL_TOKEN_RE)) if (!out.includes(m[1])) out.push(m[1]);
+    return out;
+  }
+  // 未入力の項目は {担当者} のように記号のまま残し、入れ忘れに気づけるようにする
+  const fillMail = (text, vals) => String(text || '').replace(MAIL_TOKEN_RE, (m, k) => (k in vals && vals[k] !== '' ? vals[k] : m));
+  const mailDateLabel = (d) => `${d.getMonth() + 1}月${d.getDate()}日(${WEEK[d.getDay()]})`;
+  function mailDateOptions() {
+    const base = parseYmd(current), out = [];
+    for (let i = -1; i <= 30; i++) { const d = new Date(base); d.setDate(d.getDate() + i); out.push(mailDateLabel(d)); }
+    return out;
+  }
+  function mailTimeOptions() {
+    const out = [];
+    for (let h = 7; h <= 23; h++) for (const m of [0, 15, 30, 45]) { if (h === 23 && m > 0) break; out.push(`${pad(h)}:${pad(m)}`); }
+    return out;
+  }
+
+  async function askText(title, label, initial = '', placeholder = '') {
+    const v = await askDialog({
+      title,
+      body: `<label class="fl" for="dlgInput">${esc(label)}</label><input class="input" id="dlgInput" value="${esc(initial)}" placeholder="${esc(placeholder)}">`,
+      buttons: [{ label: 'OK', value: 'ok', kind: 'primary' }, { label: 'キャンセル', value: null, kind: 'ghost' }],
+    });
+    if (v !== 'ok') return null;
+    const t = $('#dlgInput').value.trim();
+    return t || null;
+  }
+
+  function openMail() {
+    $('#mailDates').innerHTML = mailDateOptions().map(o => `<option value="${esc(o)}">`).join('');
+    renderMail();
+    openSheet('#mailSheet');
+  }
+
+  function mailVarValues(t) {
+    const vals = {};
+    mailTokensOf(t).forEach(k => {
+      if (k in mst.values) vals[k] = mst.values[k];
+      else if (k === '日付') vals[k] = mailDateLabel(parseYmd(current));
+      else vals[k] = MAIL_NO_REMEMBER.includes(k) ? '' : (mail.vars[k] || '');
+    });
+    return vals;
+  }
+
+  function renderMail() {
+    const body = $('#mBody');
+    $('#mEditToggle').classList.toggle('on', mst.editing);
+    if (mst.view === 'tpl') { body.innerHTML = tplEditorHtml(); bindTplEditor(); return; }
+
+    let list = folderAt(mst.path);
+    if (!list) { mst.path = []; list = mail.tree; }
+    const crumbs = [{ name: 'TOP' }];
+    { let l = mail.tree; for (const id of mst.path) { const f = l.find(x => x.id === id); crumbs.push({ name: f.name }); l = f.children; } }
+
+    let html = `<div class="m-path"><span class="lb">PATH</span>${crumbs.map((c, i) =>
+      `<button type="button" class="crumb" data-crumb="${i}">${esc(c.name)}</button>`).join('<span class="sep">›</span>')}</div>`;
+    if (mst.editing) html += '<p class="help" style="margin:0 0 10px;">編集モード：↑↓で並び替え、✎で名前・内容の変更、ゴミ箱で削除します。</p>';
+
+    if (!list.length) {
+      html += mail.tree.length
+        ? '<p class="help" style="margin:0 0 10px;">このフォルダは空です。下のボタンから定型文やフォルダを追加できます。</p>'
+        : `<div class="empty" style="padding-top:6px;"><div class="ill">${icon('mail')}</div><h3>メールの定型文はまだありません</h3>
+           <p>案件名でフォルダを作り、その中に「到着連絡」「作業完了報告」などの定型文を登録できます。</p></div>`;
+    }
+    html += '<ul class="m-list">' + list.map((n, i) => {
+      const eb = mst.editing ? `<span class="eb">
+          <button class="mini-btn" type="button" data-mact="up" ${i === 0 ? 'disabled' : ''} aria-label="上へ">${icon('up')}</button>
+          <button class="mini-btn" type="button" data-mact="down" ${i === list.length - 1 ? 'disabled' : ''} aria-label="下へ">${icon('down')}</button>
+          <button class="mini-btn" type="button" data-mact="edit" aria-label="編集">${icon('edit')}</button>
+          <button class="mini-btn" type="button" data-mact="del" aria-label="削除" style="color:var(--danger)">${icon('trash')}</button></span>` : '';
+      if (n.type === 'folder') {
+        return `<li class="m-item folder" data-id="${esc(n.id)}"><span class="ic">${icon('folder')}</span>
+          <span class="tx"><b>${esc(n.name)}</b><small>${countTpl(n)}件の定型文${n.children.some(c => c.type === 'folder') ? '・フォルダあり' : ''}</small></span>
+          ${eb || `<span class="go">${icon('right')}</span>`}</li>`;
+      }
+      const sel = n.id === mst.selId && !mst.editing;
+      return `<li class="m-item tpl${sel ? ' sel' : ''}" data-id="${esc(n.id)}"><span class="ic">${icon(sel ? 'check' : 'mail')}</span>
+        <span class="tx"><b>${esc(n.name)}</b><small>${esc(n.subject || '(件名なし)')}</small></span>
+        ${eb || (n.to ? '<span class="at">@</span>' : '')}</li>`;
+    }).join('') + '</ul>';
+
+    if (mst.editing || !list.length) {
+      html += `<div class="dashrow" style="margin-top:4px;">
+        <button class="dashbtn" type="button" data-m="addFolder">${icon('folder')}フォルダを追加</button>
+        <button class="dashbtn gold" type="button" data-m="addTpl">${icon('plus')}定型文を追加</button></div>`;
+    }
+    if (!mail.tree.length) html += `<button class="btn ghost" type="button" data-m="sample" style="margin-top:8px;">サンプルの定型文を入れて試す</button>`;
+
+    const sel = !mst.editing && mst.selId ? findNode(mst.selId) : null;
+    if (sel && sel.node.type === 'tpl') html += composerHtml(sel.node);
+    body.innerHTML = html;
+    if (sel && sel.node.type === 'tpl') bindComposer(sel.node);
+  }
+
+  function composerHtml(t) {
+    const vals = mailVarValues(t);
+    const order = ['日付', '時間1', '時間2'];
+    const toks = Object.keys(vals).sort((x, y) => (order.includes(x) ? order.indexOf(x) : 9) - (order.includes(y) ? order.indexOf(y) : 9));
+    const field = (k) => {
+      const v = esc(vals[k]);
+      if (k === '日付') return `<div><label class="fl">${esc(k)}</label><input class="input" data-var="${esc(k)}" list="mailDates" value="${v}" placeholder="例: 10月1日(水)"></div>`;
+      if (/^時間/.test(k)) return `<div><label class="fl">${esc(k)}</label><input class="input" data-var="${esc(k)}" list="mailTimes" value="${v}" placeholder="例: 09:00"></div>`;
+      return `<div class="full"><label class="fl">${esc(k === '担当者' ? '担当者（先方のお名前）' : k)}</label><input class="input" data-var="${esc(k)}" value="${v}" placeholder="${k === '担当者' ? '例: 山田' : '自由に入力'}"></div>`;
+    };
+    return `<div class="card m-compose" id="mCompose">
+      <h3>${icon('mail')}${esc(t.name)}</h3>
+      ${toks.length ? `<div class="m-vars">${toks.map(field).join('')}</div>
+        <p class="help">日付・時間は一覧から選ぶか、そのまま入力できます。入力した内容は件名・本文に差し込まれます。</p>` : ''}
+      <label class="fl" for="mTo">宛先メールアドレス</label>
+      <input class="input" id="mTo" type="email" inputmode="email" autocapitalize="off" value="${esc(t.to || '')}" placeholder="複数はカンマ区切り">
+      ${t.cc ? `<label class="fl" for="mCc">CC</label><input class="input" id="mCc" type="email" autocapitalize="off" value="${esc(t.cc)}">` : ''}
+      <label class="fl" for="mSubj">件名</label>
+      <input class="input" id="mSubj" value="${esc(fillMail(t.subject, vals))}">
+      <label class="fl" for="mText">本文（タップして自由に編集できます）</label>
+      <textarea class="input" id="mText" rows="8">${esc(fillMail(t.body, vals))}</textarea>
+      <button class="btn ghost sm hidden" type="button" data-m="regen" id="mRegen">差し込み内容で件名・本文を作り直す</button>
+      <button class="btn block" type="button" data-m="send" style="margin-top:12px;">${icon('send')}メールを作成して送信</button>
+      <div class="row2" style="margin-top:8px;">
+        <button class="btn secondary" type="button" data-m="copy">${icon('copy')}本文だけコピー</button>
+        <button class="btn danger" type="button" data-m="clear">${icon('trash')}クリア</button>
+      </div>
+    </div>`;
+  }
+
+  function bindComposer(t) {
+    const refresh = () => {
+      const vals = mailVarValues(t);
+      if (!mst.subjEdited) $('#mSubj').value = fillMail(t.subject, vals);
+      if (!mst.bodyEdited) $('#mText').value = fillMail(t.body, vals);
+    };
+    document.querySelectorAll('#mCompose [data-var]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const k = inp.dataset.var;
+        mst.values[k] = inp.value;
+        if (!MAIL_NO_REMEMBER.includes(k)) { mail.vars[k] = inp.value; saveMail(); }
+        refresh();
+      });
+    });
+    const edited = () => $('#mRegen').classList.toggle('hidden', !(mst.subjEdited || mst.bodyEdited));
+    $('#mSubj').addEventListener('input', () => { mst.subjEdited = true; edited(); });
+    $('#mText').addEventListener('input', () => { mst.bodyEdited = true; edited(); });
+    edited();
+  }
+
+  function mailtoUrl(to, cc, subject, body) {
+    const addr = (s) => String(s || '').split(/[,;、\s]+/).filter(Boolean).map(a => encodeURIComponent(a).replace(/%40/g, '@')).join(',');
+    const q = [];
+    if (cc && addr(cc)) q.push('cc=' + addr(cc));
+    if (subject) q.push('subject=' + encodeURIComponent(subject));
+    if (body) q.push('body=' + encodeURIComponent(body.replace(/\r?\n/g, '\r\n')));
+    return 'mailto:' + addr(to) + (q.length ? '?' + q.join('&') : '');
+  }
+
+  function tplEditorHtml() {
+    const t = mst.editId ? (findNode(mst.editId) || {}).node || {} : {};
+    const chips = MAIL_BUILTIN.map(k => `<button type="button" data-tok="{${k}}">{${k}}</button>`).join('');
+    return `<div class="card">
+      <h3>${icon('mail')}${mst.editId ? '定型文を編集' : '定型文を追加'}</h3>
+      <label class="fl" for="tName">定型文の名前 <span style="color:var(--danger)">*</span></label>
+      <input class="input" id="tName" value="${esc(t.name || '')}" placeholder="例: 到着連絡">
+      <label class="fl" for="tTo">宛先メールアドレス（任意）</label>
+      <input class="input" id="tTo" type="email" autocapitalize="off" value="${esc(t.to || '')}" placeholder="複数はカンマ区切り">
+      <label class="fl" for="tCc">CC（任意）</label>
+      <input class="input" id="tCc" type="email" autocapitalize="off" value="${esc(t.cc || '')}">
+      <label class="fl" for="tSubj">件名</label>
+      <input class="input" id="tSubj" value="${esc(t.subject || '')}" placeholder="例: {日付} 作業完了報告">
+      <label class="fl" for="tBody">本文</label>
+      <textarea class="input" id="tBody" rows="9" placeholder="例: {担当者}様&#10;&#10;お疲れ様です。&#10;{時間1}に現場へ到着しました。">${esc(t.body || '')}</textarea>
+      <label class="fl">差し込み記号（タップでカーソル位置に入ります）</label>
+      <div class="ph-chips" id="tChips">${chips}<button type="button" class="preset" data-tok="custom">＋ 変数を作る</button></div>
+      <p class="help">{日付}{時間1}{時間2}は一覧から選べる入力欄に、{担当者}や自分で作った変数（例：{作業内容}）は自由入力の欄になります。使うときに入力した内容が件名・本文に差し込まれます。</p>
+    </div>
+    <div class="row2">
+      <button class="btn secondary" type="button" data-m="tplCancel">キャンセル</button>
+      <button class="btn" type="button" data-m="tplSave">保存</button>
+    </div>`;
+  }
+  function bindTplEditor() {
+    ['tSubj', 'tBody'].forEach(id => $('#' + id).addEventListener('focus', () => { mst.lastField = id; }));
+    mst.lastField = 'tBody';
+    $('#tChips').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-tok]'); if (!b) return;
+      let tok = b.dataset.tok;
+      if (tok === 'custom') {
+        const name = await askText('変数を作る', '変数の名前（例：作業内容、部屋番号）', '', '作業内容');
+        if (!name) return;
+        tok = `{${name.replace(/[{}\s]/g, '').slice(0, 20)}}`;
+        if (tok === '{}') return;
+      }
+      const inp = $('#' + mst.lastField);
+      const st = inp.selectionStart ?? inp.value.length, en = inp.selectionEnd ?? inp.value.length;
+      inp.value = inp.value.slice(0, st) + tok + inp.value.slice(en);
+      inp.focus(); inp.setSelectionRange(st + tok.length, st + tok.length);
+    });
+  }
+
+  function addSampleTemplates() {
+    const tpl = (name, subject, body) => ({ type: 'tpl', id: uid(), name, to: '', cc: '', subject, body });
+    mail.tree.push({
+      type: 'folder', id: uid(), name: 'サンプル案件', children: [
+        tpl('到着連絡', '{日付} 現場到着のご連絡', '{担当者}様\n\nお疲れ様です。〇〇です。\n{時間1}に現場へ到着しました。\n本日もよろしくお願いいたします。'),
+        tpl('作業完了報告', '{日付} 作業完了報告', '{担当者}様\n\nお疲れ様です。〇〇です。\n本日の作業が{時間2}に完了しましたので、ご報告いたします。\n\n作業内容：{作業内容}\n\nよろしくお願いいたします。'),
+        { type: 'folder', id: uid(), name: '日程調整', children: [
+          tpl('訪問日程のご連絡', '訪問日程のご連絡', '{担当者}様\n\nお世話になっております。〇〇です。\n訪問日程が決まりましたのでご連絡いたします。\n\n日時：{日付} {時間1}〜{時間2}\n\nご確認のほど、よろしくお願いいたします。'),
+        ] },
+      ],
+    });
+    saveMail();
+  }
+
+  $('#mBody').addEventListener('click', async (e) => {
+    const crumb = e.target.closest('[data-crumb]');
+    if (crumb) { mst.path = mst.path.slice(0, Number(crumb.dataset.crumb)); renderMail(); return; }
+
+    const ea = e.target.closest('[data-mact]');
+    if (ea) {
+      const li = ea.closest('.m-item'); const id = li.dataset.id;
+      const list = folderAt(mst.path); const i = list.findIndex(n => n.id === id); const n = list[i];
+      const a = ea.dataset.mact;
+      if (a === 'up' && i > 0) list.splice(i - 1, 0, list.splice(i, 1)[0]);
+      if (a === 'down' && i < list.length - 1) list.splice(i + 1, 0, list.splice(i, 1)[0]);
+      if (a === 'edit') {
+        if (n.type === 'folder') { const name = await askText('フォルダ名を変更', 'フォルダ名（案件名など）', n.name); if (name) n.name = name; }
+        else { mst.view = 'tpl'; mst.editId = n.id; mst.editPath = mst.path.slice(); renderMail(); $('#mBody').scrollTop = 0; return; }
+      }
+      if (a === 'del') {
+        const msg = n.type === 'folder' ? `フォルダ「${n.name}」と、中の定型文（${countTpl(n)}件）をすべて削除します。よろしいですか？` : `定型文「${n.name}」を削除します。よろしいですか？`;
+        if (!(await askConfirm('削除の確認', msg, '削除する', true))) return;
+        list.splice(i, 1);
+        if (mst.selId && !findNode(mst.selId)) mst.selId = null;
+      }
+      saveMail(); renderMail(); return;
+    }
+
+    const item = e.target.closest('.m-item');
+    if (item) {
+      const r = findNode(item.dataset.id); if (!r) return;
+      if (r.node.type === 'folder') { mst.path.push(r.node.id); renderMail(); $('#mBody').scrollTop = 0; return; }
+      if (mst.editing) { mst.view = 'tpl'; mst.editId = r.node.id; mst.editPath = mst.path.slice(); renderMail(); $('#mBody').scrollTop = 0; return; }
+      if (mst.selId === r.node.id) { mst.selId = null; renderMail(); return; }
+      mst.selId = r.node.id; mst.subjEdited = mst.bodyEdited = false; mst.values = {};
+      renderMail();
+      const c = $('#mCompose'); if (c) setTimeout(() => c.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+      return;
+    }
+
+    const b = e.target.closest('[data-m]'); if (!b) return;
+    const act = b.dataset.m;
+    if (act === 'addFolder') {
+      const name = await askText('フォルダを追加', 'フォルダ名（案件名など）', '', '例: 大宮DC 水冷ドア案件');
+      if (!name) return;
+      folderAt(mst.path).push({ type: 'folder', id: uid(), name, children: [] });
+      saveMail(); renderMail(); toast('フォルダを追加しました');
+    }
+    if (act === 'addTpl') { mst.view = 'tpl'; mst.editId = null; mst.editPath = mst.path.slice(); renderMail(); $('#mBody').scrollTop = 0; }
+    if (act === 'sample') { addSampleTemplates(); renderMail(); toast('サンプルを追加しました。フォルダを開いて試してください'); }
+    if (act === 'tplCancel') { mst.view = 'browse'; renderMail(); }
+    if (act === 'tplSave') {
+      const v = { name: $('#tName').value.trim(), to: $('#tTo').value.trim(), cc: $('#tCc').value.trim(), subject: $('#tSubj').value, body: $('#tBody').value };
+      if (!v.name) { toast('定型文の名前を入力してください'); $('#tName').focus(); return; }
+      if (mst.editId) {
+        const r = findNode(mst.editId); if (r) Object.assign(r.node, v);
+      } else {
+        const list = folderAt(mst.editPath) || mail.tree;
+        list.push(Object.assign({ type: 'tpl', id: uid() }, v));
+      }
+      saveMail(); mst.view = 'browse'; mst.path = mst.editPath.slice(); renderMail();
+      toast(mst.editId ? '定型文を更新しました' : '定型文を追加しました');
+    }
+    if (act === 'regen') {
+      const r = findNode(mst.selId); if (!r) return;
+      mst.subjEdited = mst.bodyEdited = false;
+      const vals = mailVarValues(r.node);
+      $('#mSubj').value = fillMail(r.node.subject, vals); $('#mText').value = fillMail(r.node.body, vals);
+      $('#mRegen').classList.add('hidden');
+    }
+    if (act === 'copy') {
+      const ok = await copyText($('#mText').value);
+      toast(ok ? '本文をコピーしました' : 'コピーできませんでした');
+    }
+    if (act === 'send') {
+      const to = $('#mTo').value.trim();
+      const cc = $('#mCc') ? $('#mCc').value.trim() : '';
+      openUrl(mailtoUrl(to, cc, $('#mSubj').value, $('#mText').value));
+    }
+    if (act === 'clear') {
+      mst.selId = null; mst.values = {}; mst.subjEdited = mst.bodyEdited = false;
+      renderMail(); toast('選択と入力をクリアしました');
+    }
+  });
+  $('#mEditToggle').addEventListener('click', () => { mst.editing = !mst.editing; mst.view = 'browse'; renderMail(); });
+  // 戻るボタン：定型文の編集画面 → 一覧、サブフォルダ → 1つ上へ
+  function mailBack() {
+    if (!$('#mailSheet').classList.contains('show')) return false;
+    if (mst.view === 'tpl') { mst.view = 'browse'; renderMail(); return true; }
+    if (mst.path.length) { mst.path.pop(); renderMail(); return true; }
+    return false;
+  }
+
   /* ================= Route ================= */
   function openRoute() {
     const targets = day.jobs.filter(j => j.location && !(settings.skipDone && j.work === 'done'));
@@ -2046,6 +2425,9 @@
 
   $('#btnSync').addEventListener('click', sync);
   $('#btnSettings').addEventListener('click', openSettings);
+  $('#tabMail').addEventListener('click', openMail);
+  $('#mailTimes').innerHTML = mailTimeOptions().map(o => `<option value="${o}">`).join('');
+  $('#mEditToggle').innerHTML = icon('edit');
   $('#btnPrev').addEventListener('click', () => goTo(addDays(current, -1)));
   $('#btnNext').addEventListener('click', () => goTo(addDays(current, 1)));
   $('#datePicker').addEventListener('change', e => { if (e.target.value) goTo(e.target.value); });
@@ -2065,6 +2447,7 @@
   // Androidの戻るボタン用：開いているシート/編集モードを閉じたら true を返す
   window.__tjBack = () => {
     if (dlgResolve) { closeDialog(null); return true; }
+    if (mailBack()) return true;
     if (document.querySelector('.sheet.show')) { closeSheets(); return true; }
     if (editing) { editing = false; render(); return true; }
     return false;
