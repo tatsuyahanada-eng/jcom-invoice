@@ -91,7 +91,7 @@
     .hero-user svg { width: 16px; height: 16px; }
 
     /* ===== Tabs ===== */
-    .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr 1fr auto 1fr; gap: 6px; margin-top: 12px; }
     .tabbtn {
       --c: var(--muted);
       min-height: 44px; padding: 4px 2px; background: rgba(74, 76, 80, .55); color: var(--c);
@@ -354,7 +354,7 @@
     .toplinks .lk.add { border-style: dashed; color: var(--muted); font-weight: 500; }
     .kv-addr { margin-bottom: 12px; }
     .kv-addr .k { color: var(--muted); font-size: 12px; font-weight: 700; margin-bottom: 2px; }
-    .kv-addr .v { font-size: 15px; word-break: break-word; }
+    .kv-addr .v { font-size: 20px; font-weight: 700; line-height: 1.45; word-break: break-word; }
     .kv-addr .maprow { margin-top: 8px; }
     .applinks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .linkbtn { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(74, 76, 80, .6); font-size: 13px; font-weight: 700; color: var(--text); text-align: left; word-break: break-all; }
@@ -454,6 +454,9 @@
     /* 直前連絡が必要（目立つ印） */
     .urgent-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--urgent); color: #ffffff; font-weight: 800; font-size: 13px; padding: 3px 12px 3px 9px; border-radius: 999px; margin-bottom: 8px; box-shadow: 0 0 0 2px rgba(226, 71, 95, .25), 0 0 14px rgba(226, 71, 95, .55); animation: urgentPulse 1.8s ease-in-out infinite; }
     .urgent-tag svg { width: 15px; height: 15px; }
+    .urgent-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .urgent-tags .urgent-tag { margin-bottom: 8px; }
+    .pin-card .urgent-tags .urgent-tag { margin-bottom: 4px; }
     .urgent-tag.done { background: #23a865; box-shadow: none; animation: none; }
     @keyframes urgentPulse { 50% { box-shadow: 0 0 0 4px rgba(226, 71, 95, .25), 0 0 22px rgba(226, 71, 95, .85); } }
     @media (prefers-reduced-motion: reduce) { .urgent-tag, .urgent-banner { animation: none; } }
@@ -473,7 +476,7 @@
         .pathval { flex-wrap: wrap; gap: 4px 8px; }
     .pathval .d, .pathval .tag, .pathval .urg { white-space: nowrap; flex: none; }
     /* メール定型文 */
-    .tabbtn.t-mail { --c: #e6a873; }
+    .tabbtn.t-mail { --c: #e6a873; padding: 4px 9px; }
     .sheet.tall { height: calc(100vh - 40px - var(--safe-t)); height: calc(100dvh - 40px - var(--safe-t)); }
     .icon-btn.on { background: var(--accent-weak); border-color: var(--cyan); color: var(--cyan); }
     .m-path { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; padding: 2px 2px 10px; }
@@ -527,7 +530,7 @@
     <button class="tabbtn t-gold" id="btnSync" type="button" title="Googleカレンダーから読み込む"><span data-icon="sync"></span>読み込み</button>
     <button class="tabbtn t-green" id="tabRoute" type="button"><span data-icon="route"></span>ルート</button>
     <button class="tabbtn t-gray" id="tabEdit" type="button"><span data-icon="edit"></span>編集</button>
-    <button class="tabbtn t-mail" id="tabMail" type="button"><span data-icon="mail"></span>メール</button>
+    <button class="tabbtn t-mail" id="tabMail" type="button"><span data-icon="mail"></span>Mail</button>
     <button class="tabbtn t-blue" id="btnSettings" type="button"><span data-icon="gear"></span>設定</button>
   </nav>
   <section class="toplinks" id="topLinks" aria-label="連携アプリ"></section>
@@ -817,9 +820,15 @@
     voicemail: { label: '留守電',   short: '留守電', tone: 'purple',  chip: 'purple', icon: 'voicemail' },
     callonly:  { label: 'コールのみ', short: 'コールのみ', tone: 'warn', chip: 'warn',  icon: 'ring' },
     sms:       { label: 'SMS送信',  short: 'SMS',   tone: 'info',    chip: 'info',   icon: 'sms' },
+    mail:      { label: 'Mail送信', short: 'Mail',  tone: 'info',    chip: 'info',   icon: 'mail' },
   };
-  const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms'];
-  const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent' };
+  const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms', 'mail'];
+  const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent', mail: 'accent' };
+  // 直前連絡の完了判定：電話は「通話済」、メールは「Mail送信」が履歴にあれば完了
+  const callDone = (j) => j.contact.log.some(l => l.status === 'talked');
+  const mailDone = (j) => j.contact.log.some(l => l.status === 'mail');
+  const pendingFlags = (j) => [j.needCall && !callDone(j) ? 'call' : null, j.needMail && !mailDone(j) ? 'mail' : null].filter(Boolean);
+  const flaggedAny = (j) => !!(j.needCall || j.needMail);
   const PARKING = {
     unknown: { label: '未確認', tone: 'neutral', chip: '' },
     yes:     { label: 'あり',   tone: 'ok',      chip: 'ok' },
@@ -948,7 +957,7 @@
       location: '', description: '', phone: '', calendar: '', edited: [],
       contact: { status: 'none', log: [] },
       parking: { status: 'unknown', note: '' },
-      memo: '', work: 'todo', missing: false, needCall: false,
+      memo: '', work: 'todo', missing: false, needCall: false, needMail: false,
     }, base);
   }
 
@@ -1033,18 +1042,21 @@
       : 'カレンダーから読み込むか、手動で追加してください。';
 
     // 直前連絡が必要な案件の目立つ印（バナー・日付の横・カード）
-    const flagged = jobs.filter(j => j.needCall);
-    const pendingCall = flagged.filter(j => j.contact.status !== 'talked');
+    const flagged = jobs.filter(flaggedAny);
+    const pCall = jobs.filter(j => pendingFlags(j).includes('call')).length;
+    const pMail = jobs.filter(j => pendingFlags(j).includes('mail')).length;
+    const pTotal = pCall + pMail;
     const ub = $('#urgentBanner');
     if (flagged.length) {
-      ub.classList.remove('hidden'); ub.classList.toggle('done', !pendingCall.length);
-      ub.innerHTML = pendingCall.length
-        ? `${icon('phone')}<span>直前連絡が必要：${pendingCall.length}件<small>${flagged.length}件中・タップで該当の案件へ</small></span>`
+      ub.classList.remove('hidden'); ub.classList.toggle('done', !pTotal);
+      const parts = [pCall ? `電話 ${pCall}件` : '', pMail ? `Mail ${pMail}件` : ''].filter(Boolean).join('・');
+      ub.innerHTML = pTotal
+        ? `${icon(pCall ? 'phone' : 'mail')}<span>直前連絡が必要：${parts}<small>タップで該当の案件へ</small></span>`
         : `${icon('check')}<span>直前連絡はすべて完了<small>${flagged.length}件</small></span>`;
     } else ub.classList.add('hidden');
     const du = $('#dateUrgent');
-    du.classList.toggle('hidden', !pendingCall.length);
-    du.textContent = `直前連絡 ${pendingCall.length}`;
+    du.classList.toggle('hidden', !pTotal);
+    du.textContent = `直前連絡 ${pTotal}`;
 
     // 次の訪問（未完了の先頭）
     const nxt = jobs.find(j => j.work !== 'done');
@@ -1054,10 +1066,17 @@
       nextArea.innerHTML = `<div class="pin-title">★ 次の訪問</div>
         <button class="pin-card" type="button" data-next="${esc(nxt.id)}">
           <span class="star">★</span>
-          <span class="tx">${nxt.needCall && nxt.contact.status !== 'talked' ? `<span class="urgent-tag">${icon('phone')}直前連絡が必要</span>` : ''}<span class="t">${esc(nxt.title || '(件名なし)')}</span><span class="s">${esc(t)}${nxt.location ? ' › ' + esc(nxt.location) : ''}</span></span>
+          <span class="tx">${pendingFlags(nxt).length ? `<span class="urgent-tags">${urgentTagsHtml(nxt, true)}</span>` : ''}<span class="t">${esc(nxt.title || '(件名なし)')}</span><span class="s">${esc(t)}${nxt.location ? ' › ' + esc(nxt.location) : ''}</span></span>
           <span class="go">${icon('right')}</span>
         </button>`;
     } else nextArea.innerHTML = '';
+  }
+
+  function urgentTagsHtml(j, pendingOnly = false) {
+    const out = [];
+    if (j.needCall) { const d = callDone(j); if (!(pendingOnly && d)) out.push(`<span class="urgent-tag${d ? ' done' : ''}">${icon(d ? 'check' : 'phone')}${d ? '直前電話 済' : '直前電話が必要'}</span>`); }
+    if (j.needMail) { const d = mailDone(j); if (!(pendingOnly && d)) out.push(`<span class="urgent-tag${d ? ' done' : ''}">${icon(d ? 'check' : 'mail')}${d ? '直前Mail 済' : '直前Mailが必要'}</span>`); }
+    return out.join('');
   }
 
   function jobHtml(j, i, n) {
@@ -1076,10 +1095,10 @@
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
-      <li class="job${j.needCall ? (j.contact.status === 'talked' ? ' urgent-done' : ' urgent') : ''}" data-id="${esc(j.id)}" data-work="${j.work}">
+      <li class="job${flaggedAny(j) ? (pendingFlags(j).length ? ' urgent' : ' urgent-done') : ''}" data-id="${esc(j.id)}" data-work="${j.work}">
         <button class="del-btn" data-act="del" aria-label="削除">${icon('trash')}</button>
         <div class="job-main">
-          ${j.needCall ? `<div class="urgent-tag${j.contact.status === 'talked' ? ' done' : ''}">${icon(j.contact.status === 'talked' ? 'check' : 'phone')}${j.contact.status === 'talked' ? '直前連絡 済' : '直前連絡が必要'}</div>` : ''}
+          ${flaggedAny(j) ? `<div class="urgent-tags">${urgentTagsHtml(j)}</div>` : ''}
           <div class="job-head">
             <span class="job-num">${pad(i + 1)}</span>
             <span class="job-title">${esc(j.title || '(件名なし)')}</span>
@@ -1134,9 +1153,14 @@
 
       <div class="card needcall">
         <div class="switch-row">
-          <div class="tx"><b>直前連絡が必要</b><small>オンにすると、トップ画面に目立つ赤い印が出ます</small></div>
+          <div class="tx"><b>直前電話が必要</b><small>「通話済」を記録すると完了</small></div>
           <label class="switch"><input type="checkbox" id="dNeedCall" ${j.needCall ? 'checked' : ''}><span></span></label>
         </div>
+        <div class="switch-row" style="margin-top:8px;">
+          <div class="tx"><b>直前Mailが必要</b><small>「Mail送信」を記録すると完了</small></div>
+          <label class="switch"><input type="checkbox" id="dNeedMail" ${j.needMail ? 'checked' : ''}><span></span></label>
+        </div>
+        <p class="help" style="margin-top:6px;">オンにすると、トップ画面に目立つ赤い印が出ます。</p>
       </div>
 
       <div class="card">
@@ -1149,7 +1173,7 @@
       <div class="card">
         <h3>${icon('phone')}事前連絡<span class="aside">${lastLog ? `最終 ${hm(lastLog.at)}・${j.contact.log.length}回` : '未連絡'}</span></h3>
         <div class="ph-call" id="phoneChips">${phoneChipsHtml(j)}</div>
-        <div class="seg c4" data-group="contact">
+        <div class="seg c3" data-group="contact">
           ${CONTACT_BUTTONS.map(k => { const v = CONTACT[k]; return `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.contact.status === k}">${icon(v.icon)}${v.label}</button>`; }).join('')}
         </div>
         <p class="help">タップするたびに連絡履歴に記録されます（時刻つき）。</p>
@@ -1205,7 +1229,8 @@
     const flash = (k) => { const el = $(`[data-saved="${k}"]`); if (!el) return; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1200); };
     const saveParkNote = debounce(() => { j.parking.note = parkNote.value; saveDay(); render(); flash('parking'); $('#phoneChips').innerHTML = phoneChipsHtml(j); }, 400);
     const saveMemo = debounce(() => { j.memo = memo.value; saveDay(); render(); flash('memo'); $('#phoneChips').innerHTML = phoneChipsHtml(j); }, 400);
-    $('#dNeedCall').addEventListener('change', (e) => { j.needCall = e.target.checked; saveDay(); render(); toast(j.needCall ? '直前連絡が必要としてマークしました（トップ画面に表示されます）' : '直前連絡のマークを外しました'); });
+    $('#dNeedMail').addEventListener('change', (e) => { j.needMail = e.target.checked; saveDay(); render(); toast(j.needMail ? '直前Mailが必要としてマークしました（トップ画面に表示されます）' : '直前Mailのマークを外しました'); });
+    $('#dNeedCall').addEventListener('change', (e) => { j.needCall = e.target.checked; saveDay(); render(); toast(j.needCall ? '直前電話が必要としてマークしました（トップ画面に表示されます）' : '直前電話のマークを外しました'); });
     parkNote.addEventListener('input', saveParkNote);
     memo.addEventListener('input', saveMemo);
   }
@@ -2436,7 +2461,7 @@
   $('#tabEdit').addEventListener('click', () => { editing = !editing; render(); });
   $('#btnReorder').addEventListener('click', () => { editing = true; render(); });
   $('#urgentBanner').addEventListener('click', () => {
-    const j = day.jobs.find(x => x.needCall && x.contact.status !== 'talked') || day.jobs.find(x => x.needCall);
+    const j = day.jobs.find(x => pendingFlags(x).length) || day.jobs.find(flaggedAny);
     const el = j && listEl.querySelector(`.job[data-id="${j.id}"]`);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
