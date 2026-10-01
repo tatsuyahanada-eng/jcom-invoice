@@ -831,8 +831,9 @@
   // 直前連絡の完了判定：電話は「通話済」、メールは「Mail送信」が履歴にあれば完了
   const callDone = (j) => j.contact.log.some(l => l.status === 'talked');
   const mailDone = (j) => j.contact.log.some(l => l.status === 'mail');
-  const pendingFlags = (j) => [j.needCall && !callDone(j) ? 'call' : null, j.needMail && !mailDone(j) ? 'mail' : null].filter(Boolean);
-  const flaggedAny = (j) => !!(j.needCall || j.needMail);
+  // 作業が「完了」の案件は、直前連絡の注意（バナー・バッジ・カードの印）を出さない
+  const flaggedAny = (j) => !!(j.needCall || j.needMail) && j.work !== 'done';
+  const pendingFlags = (j) => (j.work === 'done' ? [] : [j.needCall && !callDone(j) ? 'call' : null, j.needMail && !mailDone(j) ? 'mail' : null].filter(Boolean));
   const PARKING = {
     unknown: { label: '未確認', tone: 'neutral', chip: '' },
     yes:     { label: 'あり',   tone: 'ok',      chip: 'ok' },
