@@ -397,26 +397,132 @@
     .codes .code .n { grid-column: 2; }
   }
 
-  /* ---------- 画面幅：どの端末で開いてもスマホ幅の1カラムで表示（PCでは中央にスマホサイズで表示） ---------- */
+  /* ---------- PC表示（html.pc）：左メニュー＋上部タブ＋一覧表＋右詳細＋ステータスバー ---------- */
+  @media (min-width: 900px) {
+    html.pc .app { height: 100vh; height: 100dvh; grid-template-columns: var(--side-w) 1fr; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; }
+    html.pc .brandbar { grid-column: 1; grid-row: 1; border-right: 1px solid var(--line); display: flex; align-items: center; }
+    html.pc .top { grid-column: 2; grid-row: 1; }
+    html.pc .side {
+      grid-column: 1; grid-row: 2; position: static; min-height: 0; overflow-y: auto;
+      flex-direction: column; gap: 6px; padding: 10px; background: var(--bg-2);
+      border-top: 0; border-right: 1px solid var(--line);
+    }
+    html.pc .nav { flex: none; flex-direction: row; gap: 10px; padding: 8px 10px; font-size: 13.5px; text-align: left; }
+    html.pc .nav span.t { flex: 1; }
+    html.pc .nav .ic { width: 32px; height: 30px; }
+    html.pc .nav .ic svg { width: 16px; height: 16px; }
+    html.pc .nav kbd { display: inline; font-family: var(--mono); font-size: 11px; color: var(--faint); }
+    html.pc .nav[aria-selected="true"] { background: linear-gradient(90deg, rgba(223, 255, 79, .14), transparent); }
+    html.pc .nav[aria-selected="true"] kbd { color: var(--accent); }
+    html.pc .nav:hover { border-color: var(--line-strong); color: var(--strong); }
+    html.pc .sys { display: block; margin-top: auto; font-family: var(--mono); font-size: 11.5px; color: var(--faint); border-top: 1px dashed var(--line); padding-top: 10px; line-height: 1.8; }
+    html.pc .sys i { font-style: normal; color: var(--free); }
+    html.pc .main { grid-column: 2; grid-row: 2; padding: 14px 16px 24px; overflow-y: auto; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+    html.pc body[data-tab="search"] .main { padding-bottom: 14px; overflow: hidden; display: flex; flex-direction: column; }
+    html.pc body[data-tab="search"] .main > .foot { display: none; }
+    html.pc #view-search { flex: 1; min-height: 0; }
+    html.pc #view-search .split { height: 100%; }
+    html.pc #view-search .split > div:first-child { min-height: 0; overflow-y: auto; padding-right: 2px; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+    html.pc .toptabs { display: flex; gap: 2px; padding: 8px 14px 0; }
+    html.pc .tab {
+      padding: 7px 16px; border: 1px solid var(--line); border-bottom: 0; border-radius: 6px 6px 0 0;
+      background: var(--panel); color: var(--muted); cursor: pointer; font-size: 13px;
+    }
+    html.pc .tab:hover { color: var(--strong); }
+    html.pc .tab[aria-selected="true"] { background: var(--panel); color: var(--accent); border-color: var(--accent-deep); box-shadow: inset 0 2px 0 var(--accent); }
+    html.pc .search { grid-template-columns: minmax(280px, 1fr) auto; align-items: center; padding: 10px 14px; }
+    html.pc .filterpanel { grid-column: 1 / -1; }
+    html.pc .status {
+      grid-column: 1 / -1; grid-row: 3; display: flex; justify-content: space-between; gap: 12px;
+      padding: 6px 14px; border-top: 1px solid var(--line); background: var(--well);
+      font-family: var(--mono); font-size: 12px; color: var(--muted);
+    }
+    html.pc .status .l { display: flex; gap: 18px; min-width: 0; overflow: hidden; white-space: nowrap; }
+    html.pc .status i { font-style: normal; color: var(--free); }
+    html.pc .status .clk { color: var(--accent); white-space: nowrap; }
+    html.pc .split { grid-template-columns: minmax(0, 1fr) minmax(380px, 440px); align-items: stretch; }
+    html.pc .count .legend { display: flex; }
+    html.pc .count .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; background: currentColor; }
+    html.pc .rtable { display: table; border: 1px solid var(--line); background: var(--panel); }
+    html.pc .rtable thead { display: table-header-group; }
+    html.pc .rtable tbody { display: table-row-group; }
+    html.pc .rtable tr { display: table-row; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; }
+    html.pc .rtable th {
+      position: sticky; top: 0; z-index: 1; background: var(--well); color: var(--accent); font-weight: 600; text-align: left;
+      padding: 8px 10px; border-bottom: 1px solid var(--accent-deep); font-size: 12px; letter-spacing: .06em; white-space: nowrap;
+    }
+    html.pc .rtable td { display: table-cell; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    html.pc .rtable td.mk, html.pc .rtable td.rel { display: table-cell; color: var(--muted); }
+    html.pc .rtable td.rel { font-family: var(--mono); white-space: nowrap; font-size: 12.5px; }
+    html.pc .rtable td.car, html.pc .rtable td.code { font-size: 13px; }
+    html.pc .rtable td.code { white-space: nowrap; }
+    html.pc .rtable tbody tr:nth-child(even) { background: rgba(255, 255, 255, .018); }
+    html.pc .rtable tbody tr:hover { background: rgba(223, 255, 79, .06); }
+    html.pc .rtable tr[aria-current="true"] { background: rgba(223, 255, 79, .13); box-shadow: inset 3px 0 0 var(--accent); }
+    html.pc .rtable tr.generic { background: rgba(143, 200, 255, .04); }
+    html.pc .detail-slot {
+      position: static; inset: auto; z-index: auto; background: none; padding: 0;
+      min-height: 0; overflow-y: auto; border-radius: var(--radius);
+      scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent;
+    }
+    html.pc .detail-slot[data-open="false"] { display: block; }
+    html.pc .back { display: none; }
+    html.pc body.lock { overflow: auto; }
+  }
+  @media (min-width: 1400px) {
+    html.pc .split { grid-template-columns: minmax(0, 1fr) 480px; }
+  }
+  /* ---------- スマホ表示：1カラム。PCで「スマホ表示」を選んだときはスマホ本体の枠の中に表示 ---------- */
   :root { --col: 480px; }
-.app { grid-template-columns: minmax(0, 1fr); width: 100%; overflow-x: clip; }
-.app > *, .main, .filterpanel, .chips, .results { min-width: 0; max-width: 100%; }
-.rtable, .tablewrap { max-width: 100%; }
+  .app { grid-template-columns: minmax(0, 1fr); width: 100%; overflow-x: clip; }
+  .app > *, .main, .filterpanel, .chips, .results { min-width: 0; max-width: 100%; }
+  .rtable, .tablewrap { max-width: 100%; }
   @media (min-width: 481px) {
-    body { background: #1f2226; }
-    .app { max-width: var(--col); margin: 0 auto; background: var(--bg); box-shadow: 0 0 0 1px var(--line), 0 0 40px rgba(0, 0, 0, .45); }
-    .side { left: 50%; right: auto; width: var(--col); transform: translateX(-50%); }
-    .detail-slot { left: 50%; right: auto; width: var(--col); transform: translateX(-50%); }
+    html:not(.pc) body { background: #1f2226; }
+    html:not(.pc) .app { max-width: var(--col); margin: 0 auto; background: var(--bg); box-shadow: 0 0 0 1px var(--line), 0 0 40px rgba(0, 0, 0, .45); }
+    html:not(.pc) .side { left: 50%; right: auto; width: var(--col); transform: translateX(-50%); }
+    html:not(.pc) .detail-slot { left: 50%; right: auto; width: var(--col); transform: translateX(-50%); }
   }
-  @media (min-width: 481px) and (min-height: 900px) {
-    .app { min-height: 100vh; }
+  /* PCブラウザでのスマホ表示：390×844 のスマホ枠。枠に transform を付け、下メニュー・詳細シートを枠の中に固定する */
+  html.spframe body { background: radial-gradient(circle at 50% 30%, #34383e, #1a1c20 70%); min-height: 100vh; }
+  html.spframe .app {
+    width: 390px; max-width: 390px; height: min(844px, calc(100vh - 48px)); min-height: 0; margin: 24px auto;
+    overflow-y: auto; overflow-x: hidden; transform: translateZ(0); border-radius: 34px;
+    border: 10px solid #0d0e10; box-shadow: 0 0 0 2px #4d535c, 0 24px 60px rgba(0, 0, 0, .6);
+    scrollbar-width: none;
   }
+  html.spframe .app::-webkit-scrollbar { display: none; }
+  html.spframe .side, html.spframe .detail-slot { left: 0; right: 0; width: auto; transform: none; }
+  html.spframe .side { border-radius: 0 0 24px 24px; }
+
+  /* 表示切替ボタン（PCブラウザのみ） */
+  .viewtoggle {
+    display: none; position: fixed; top: 10px; right: 14px; z-index: 60; align-items: center; gap: 7px;
+    padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-deep); background: var(--panel);
+    color: var(--accent); font: inherit; font-size: 13px; cursor: pointer; box-shadow: var(--glow);
+  }
+  .viewtoggle:hover { background: var(--panel-2); color: var(--strong); }
+  .viewtoggle svg { width: 16px; height: 16px; }
+  @media (min-width: 900px) { .viewtoggle { display: inline-flex; } }
+  html.pc .toptabs { padding-right: 150px; }
   @media (prefers-reduced-motion: no-preference) {
     .chip, .ctab, .tab, .nav, .rtable tr { transition: background-color .12s, border-color .12s, color .12s; }
   }
 </style>
+<script>
+  /* 表示モード：PCブラウザ（幅900px以上）は「PC表示」と「スマホ表示」を切替（選択は端末に記憶）。スマホ・タブレットは常にスマホ表示 */
+  (function () {
+    var mode = "pc";
+    try { mode = localStorage.getItem("psc-view") || "pc"; } catch (e) {}
+    var wide = matchMedia("(min-width: 900px)").matches;
+    var r = document.documentElement;
+    r.classList.toggle("pc", wide && mode === "pc");
+    r.classList.toggle("spframe", wide && mode === "sp");
+  })();
+</script>
 </head>
 <body data-tab="search">
+<button type="button" class="viewtoggle" id="viewToggle" aria-pressed="false"></button>
 <div class="app">
   <header class="brandbar">
     <h1>
@@ -508,6 +614,38 @@
 <script src="data.js"></script>
 <script src="vendor/qrcode.min.js"></script>
 <script>
+  // ---------- 表示切替（PC表示 ⇄ スマホ表示） ----------
+  function isSP() { return !document.documentElement.classList.contains("pc"); }
+  (function () {
+    const r = document.documentElement, btn = document.getElementById("viewToggle"), wideMQ = matchMedia("(min-width: 900px)");
+    const ICON_SP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg>';
+    const ICON_PC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="1"></rect><path d="M8 21h8M12 17v4"></path></svg>';
+    let mode = "pc";
+    try { mode = localStorage.getItem("psc-view") || "pc"; } catch (e) {}
+    function apply() {
+      const wide = wideMQ.matches;
+      r.classList.toggle("pc", wide && mode === "pc");
+      r.classList.toggle("spframe", wide && mode === "sp");
+      btn.innerHTML = mode === "pc" ? ICON_SP + "<span>スマホ表示</span>" : ICON_PC + "<span>PC表示</span>";
+      btn.setAttribute("aria-pressed", String(mode === "sp"));
+      btn.title = mode === "pc" ? "スマホの画面サイズで表示します" : "PCの横長画面に戻します";
+      const slot = document.getElementById("detailSlot");
+      if (slot) {
+        if (!isSP()) document.body.classList.remove("lock");
+        else if (slot.dataset.open === "true") document.body.classList.add("lock");
+      }
+    }
+    btn.addEventListener("click", () => {
+      mode = mode === "pc" ? "sp" : "pc";
+      try { localStorage.setItem("psc-view", mode); } catch (e) {}
+      // スマホ表示に切り替えたときは一覧から始める（詳細シートは閉じる）
+      const slot = document.getElementById("detailSlot");
+      if (mode === "sp" && slot) slot.dataset.open = "false";
+      apply(); window.scrollTo({ top: 0 }); document.querySelector(".app").scrollTop = 0;
+    });
+    wideMQ.addEventListener("change", apply);
+    apply();
+  })();
 (() => {
   const $ = (s, el = document) => el.querySelector(s);
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1002,7 +1140,7 @@
     renderResults(); renderDetail();
     const slot = $("#detailSlot");
     slot.dataset.open = "true";
-    if (true) { document.body.classList.add("lock"); slot.scrollTop = 0; }
+    if (isSP()) { document.body.classList.add("lock"); slot.scrollTop = 0; }
     try { history.replaceState(null, "", "#" + id + (state.selCarrier ? "." + state.selCarrier : "")); } catch (e) {}
   }
 
@@ -1103,7 +1241,7 @@
     // F1〜F5 でメニュー切替（PCモニター向け）
     const fk = { F1: "search", F2: "table", F3: "mail", F4: "guide", F5: "qr" }[e.key];
     if (fk) { e.preventDefault(); setTab(fk); window.scrollTo({ top: 0 }); $(".main").scrollTop = 0; }
-    if (e.key === "Escape" && $("#detailSlot").dataset.open === "true" && true) {
+    if (e.key === "Escape" && $("#detailSlot").dataset.open === "true" && isSP()) {
       $("#detailSlot").dataset.open = "false"; document.body.classList.remove("lock");
     }
   });
