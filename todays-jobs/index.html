@@ -32,8 +32,8 @@
       --warn: #ffcc33;
       --warn-weak: rgba(255, 204, 51, .11);
       --gold-line: #9a8030;
-      --ok: #3fd07a;
-      --ok-weak: rgba(63, 208, 122, .13);
+      --ok: #2fe6d6;
+      --ok-weak: rgba(47, 230, 214, .13);
       --blue: #4f97ec;
       --danger: #ff6479;
       --danger-weak: rgba(255, 100, 121, .12);
@@ -224,7 +224,7 @@
       background: rgba(255, 255, 255, .04); color: var(--muted); border: 1px solid var(--line); white-space: nowrap;
     }
     .chip svg { width: 12px; height: 12px; }
-    .chip.ok { background: var(--ok-weak); color: var(--ok); border-color: rgba(63, 208, 122, .4); }
+    .chip.ok { background: var(--ok-weak); color: var(--ok); border-color: rgba(47, 230, 214, .4); }
     .chip.warn { background: var(--warn-weak); color: var(--gold); border-color: var(--gold-line); }
     .chip.info { background: var(--accent-weak); color: var(--cyan); border-color: rgba(208, 210, 212, .4); }
     .chip.purple { background: var(--purple-weak); color: var(--purple); border-color: rgba(177, 149, 255, .4); }
@@ -385,7 +385,7 @@
     .seg button svg { width: 18px; height: 18px; }
     .seg button[aria-pressed="true"] { color: #ffffff; border-color: transparent; }
     .seg button[data-tone="neutral"][aria-pressed="true"] { background: #8e9192; }
-    .seg button[data-tone="ok"][aria-pressed="true"] { background: #23a865; }
+    .seg button[data-tone="ok"][aria-pressed="true"] { background: var(--ok); color: var(--ink); box-shadow: 0 0 14px rgba(47, 230, 214, .35); }
     .seg button[data-tone="info"][aria-pressed="true"] { background: var(--cyan); color: var(--ink); box-shadow: 0 0 14px rgba(208, 210, 212, .35); }
     .seg button[data-tone="warn"][aria-pressed="true"] { background: var(--gold); color: var(--ink); box-shadow: 0 0 14px rgba(255, 204, 51, .3); }
     .seg button[data-tone="purple"][aria-pressed="true"] { background: #8d6cf0; }
@@ -460,17 +460,30 @@
     .urgent-tags { display: flex; flex-wrap: wrap; gap: 6px; }
     .urgent-tags .urgent-tag { margin-bottom: 8px; }
     .pin-card .urgent-tags .urgent-tag { margin-bottom: 4px; }
-    .urgent-tag.done { background: #23a865; box-shadow: none; animation: none; }
+    .urgent-tag.done { background: var(--ok); color: var(--ink); box-shadow: none; animation: none; }
     @keyframes urgentPulse { 50% { box-shadow: 0 0 0 4px rgba(226, 71, 95, .25), 0 0 22px rgba(226, 71, 95, .85); } }
     @media (prefers-reduced-motion: reduce) { .urgent-tag, .urgent-banner { animation: none; } }
     .job.urgent { border-left-color: var(--urgent); background: linear-gradient(135deg, rgba(226, 71, 95, .28), rgba(226, 71, 95, .10)); box-shadow: 0 0 0 1px rgba(226, 71, 95, .65), 0 0 18px rgba(226, 71, 95, .30); }
-    .job.urgent-done { border-left-color: #23a865; }
+    .job.urgent-done { border-left-color: var(--ok); }
     .urgent-banner { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--urgent); background: linear-gradient(135deg, rgba(226, 71, 95, .42), rgba(226, 71, 95, .20)); color: #ffffff; font-weight: 800; font-size: 16px; animation: urgentPulse 1.8s ease-in-out infinite; }
     .urgent-banner svg { width: 24px; height: 24px; flex: none; }
     .urgent-banner small { display: block; font-weight: 500; font-size: 12px; opacity: .92; }
-    .urgent-banner.done { border-color: #23a865; background: rgba(35, 168, 101, .22); animation: none; }
+    .urgent-banner.done { border-color: var(--ok); background: rgba(47, 230, 214, .18); animation: none; }
     .pathval .urg { background: var(--urgent); color: #ffffff; font-size: 11px; font-weight: 800; padding: 1px 9px; border-radius: 999px; white-space: nowrap; animation: urgentPulse 1.8s ease-in-out infinite; }
-    .card.needcall { border-color: rgba(226, 71, 95, .55); }
+    .card.needcall { border-color: rgba(226, 71, 95, .55); padding: 10px 12px; }
+    .needcall .nc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .needcall .nc-grid .switch-row { padding: 0; gap: 8px; margin: 0; }
+    .needcall .nc-grid .tx { font-size: 14px; line-height: 1.25; }
+    .needcall .nc-grid .tx small { font-size: 11px; }
+    .needcall .nc-grid .switch { transform: scale(.88); transform-origin: right center; }
+    .needcall .help { margin: 6px 0 0; font-size: 11px; }
+    .who { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+    .who .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    .who .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
+    .who label.ck { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px dashed var(--line-2); border-radius: 8px; font-size: 14px; }
+    .who label.ck input { width: 18px; height: 18px; accent-color: var(--cyan); margin: 0; }
+    .who label.ck:has(input:checked) { border-style: solid; border-color: var(--cyan); background: var(--ok-weak); color: var(--cyan); font-weight: 700; }
+    .who .input { margin-top: 8px; }
     .ph-call { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
     .ph-call:empty { display: none; }
     .ph-call a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--gold-line); background: var(--warn-weak); color: var(--gold-text); font-weight: 800; font-size: 14px; text-decoration: none; }
@@ -826,6 +839,8 @@
     sms:       { label: 'SMS送信',  short: 'SMS',   tone: 'info',    chip: 'info',   icon: 'sms' },
     mail:      { label: 'Mail送信', short: 'Mail',  tone: 'info',    chip: 'info',   icon: 'mail' },
   };
+  const WHO = [['self', 'ご本人様'], ['spouse', '配偶者様'], ['family', 'ご家族様'], ['other', 'その他（別の方）']];
+  const whoText = (c) => { const w = c.who || []; return w.length ? w.map(k => (k === 'other' && c.whoNote ? c.whoNote : (WHO.find(x => x[0] === k) || [0, k])[1])).join('・') : ''; };
   const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms', 'mail'];
   const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent', mail: 'accent' };
   // 直前連絡の完了判定：電話は「通話済」、メールは「Mail送信」が履歴にあれば完了
@@ -1157,15 +1172,17 @@
       </div>
 
       <div class="card needcall">
-        <div class="switch-row">
-          <div class="tx"><b>直前電話が必要</b><small>「通話済」を記録すると完了</small></div>
-          <label class="switch"><input type="checkbox" id="dNeedCall" ${j.needCall ? 'checked' : ''}><span></span></label>
+        <div class="nc-grid">
+          <div class="switch-row">
+            <div class="tx"><b>直前電話</b><small>「通話済」で完了</small></div>
+            <label class="switch"><input type="checkbox" id="dNeedCall" ${j.needCall ? 'checked' : ''}><span></span></label>
+          </div>
+          <div class="switch-row">
+            <div class="tx"><b>直前Mail</b><small>「Mail送信」で完了</small></div>
+            <label class="switch"><input type="checkbox" id="dNeedMail" ${j.needMail ? 'checked' : ''}><span></span></label>
+          </div>
         </div>
-        <div class="switch-row" style="margin-top:8px;">
-          <div class="tx"><b>直前Mailが必要</b><small>「Mail送信」を記録すると完了</small></div>
-          <label class="switch"><input type="checkbox" id="dNeedMail" ${j.needMail ? 'checked' : ''}><span></span></label>
-        </div>
-        <p class="help" style="margin-top:6px;">オンにすると、トップ画面に目立つ赤い印が出ます。</p>
+        <p class="help">オンにすると、トップ画面に赤い印が出ます。</p>
       </div>
 
       <div class="card">
@@ -1182,9 +1199,16 @@
           ${CONTACT_BUTTONS.map(k => { const v = CONTACT[k]; return `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.contact.status === k}">${icon(v.icon)}${v.label}</button>`; }).join('')}
         </div>
         <p class="help">タップするたびに連絡履歴に記録されます（時刻つき）。</p>
+        <div class="who" id="whoBox">
+          <div class="wl">通話できた方（複数選択可）</div>
+          <div class="opts">
+            ${WHO.map(([k, l]) => `<label class="ck"><input type="checkbox" data-who="${k}" ${(j.contact.who || []).includes(k) ? 'checked' : ''}>${l}</label>`).join('')}
+          </div>
+          <input class="input" id="dWhoNote" type="text" placeholder="その他の方のお名前・続柄" value="${esc(j.contact.whoNote || '')}" ${(j.contact.who || []).includes('other') ? '' : 'hidden'}>
+        </div>
         ${j.contact.log.length ? `<ul class="log">${j.contact.log.slice().reverse().map((l, ri) => {
           const li = j.contact.log.length - 1 - ri;
-          return `<li><span class="tm">${hm(l.at)}</span><span class="st" style="color:var(--${LOG_COLOR[l.status] || 'accent'})">${CONTACT[l.status].label}</span><button type="button" data-act="delLog" data-i="${li}" aria-label="この履歴を削除">${icon('close')}</button></li>`;
+          return `<li><span class="tm">${hm(l.at)}</span><span class="st" style="color:var(--${LOG_COLOR[l.status] || 'accent'})">${CONTACT[l.status].label}${l.status === 'talked' && whoText(j.contact) ? `<small style="font-weight:400;color:var(--muted)">（${esc(whoText(j.contact))}）</small>` : ''}</span><button type="button" data-act="delLog" data-i="${li}" aria-label="この履歴を削除">${icon('close')}</button></li>`;
         }).join('')}</ul>` : ''}
       </div>
 
@@ -1270,6 +1294,22 @@
     if (act.dataset.act === 'copyAddr' && j.location) {
       copyText(j.location).then(ok => toast(ok ? '住所をコピーしました' : 'コピーできませんでした'));
     }
+  });
+
+  document.addEventListener('change', (e) => {
+    const cb = e.target.closest && e.target.closest('input[data-who]');
+    if (!cb) return;
+    const j = findJob(openId); if (!j) return;
+    const set = new Set(j.contact.who || []);
+    cb.checked ? set.add(cb.dataset.who) : set.delete(cb.dataset.who);
+    j.contact.who = WHO.map(x => x[0]).filter(k => set.has(k));
+    const note = $('#dWhoNote'); if (note) note.hidden = !set.has('other');
+    saveDay(); renderDetail();
+  });
+  document.addEventListener('input', (e) => {
+    if (e.target.id !== 'dWhoNote') return;
+    const j = findJob(openId); if (!j) return;
+    j.contact.whoNote = e.target.value; saveDay();
   });
 
   /* ================= 地図アプリ / 連携アプリ ================= */
