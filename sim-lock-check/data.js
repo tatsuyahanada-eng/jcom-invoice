@@ -379,7 +379,8 @@ const MFRS = [
   { k: "fsoft",     name: "富士ソフト",         alias: "fujisoft +f" },
   { k: "iodata",    name: "アイ・オー・データ機器", alias: "iodata アイオーデータ" },
   { k: "idy",       name: "IDY",               alias: "" },
-  { k: "nothing",   name: "Nothing",           alias: "ナッシング cmf" }
+  { k: "nothing",   name: "Nothing",           alias: "ナッシング cmf" },
+  { k: "panasonic", name: "Panasonic",         alias: "パナソニック" }
 ];
 /* 確認手順グループ（MAKERS）→ メーカー。機種ごとに mfr を持たせた場合はそちらを優先 */
 const MAKER_MFR = {
@@ -3387,27 +3388,115 @@ const DEVICES = [
     ], note: "eSIMのみ" },
 
   // ---------- ガラホ ----------
-  { id: "aquos-keitai", name: "AQUOSケータイ（ガラホ）", maker: "garaho", brand: "aquos", kana: "アクオス ケータイ ガラホ",
+  { id: "digno-keitai-ky42c", name: "DIGNOケータイ KY-42C", maker: "garaho", brand: "kyocera", kana: "ディグノ ケータイ 京セラ ガラホ",
     variants: [
-      { c: "docomo", code: "SH-02L", rel: "2019年", ship: "locked" },
-      { c: "sb", code: "805SH（AQUOSケータイ3）", rel: "2019年", ship: "locked", note: "My SoftBankでIMEI照会も可" }
-    ] },
-  { id: "gratina", name: "GRATINA（ガラホ）", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ",
+      { c: "docomo", code: "KY-42C", rel: "2023年3月", ship: "free" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-keitai4", name: "AQUOSケータイ4", maker: "garaho", brand: "aquos", kana: "アクオス ケータイ ガラホ シャープ",
     variants: [
-      { c: "au", code: "KYF39", rel: "2019年", ship: "locked", note: "他社SIM挿入でアンテナが立つか／My auで「SIMロック解除可否」確認" }
-    ] },
-  { id: "digno-keitai3", name: "DIGNOケータイ3（ガラホ）", maker: "garaho", brand: "kyocera", kana: "ディグノ ケータイ ガラホ",
+      { c: "sb", rel: "2022年10月", ship: "free" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "digno-keitai4", name: "DIGNOケータイ4", maker: "garaho", brand: "kyocera", kana: "ディグノ ケータイ 京セラ ガラホ",
     variants: [
-      { c: "sb", code: "903KC", rel: "2019年", ship: "locked", note: "My SoftBankでIMEI照会も可" }
-    ] },
-  { id: "m-17368642", name: "カードケータイ", maker: "garaho", brand: "kyocera", kana: "京セラ",
+      { c: "sb", rel: "2022年9月", ship: "free" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "gratina-2", name: "GRATINA KYV48", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
     variants: [
-      { c: "docomo", code: "KY-01L", rel: "2018年", ship: "locked" }
-    ] },
-  { id: "gratina-2", name: "GRATINA", maker: "garaho", brand: "kyocera", kana: "京セラ",
+      { c: "au", code: "KYV48", rel: "2022年", ship: "cond", note: "発売時期が未確認のため「条件付き」表示。他社SIMで要確認" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "gratina-kyf42", name: "GRATINA KYF42", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
     variants: [
-      { c: "au", code: "KYV48", rel: "—", ship: "locked" }
-    ] },
+      { c: "au", code: "KYF42", rel: "2021年8月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "digno-keitai3", name: "DIGNOケータイ3", maker: "garaho", brand: "kyocera", kana: "ディグノ ケータイ 京セラ ガラホ",
+    variants: [
+      { c: "sb", code: "902KC", rel: "2020年3月", ship: "locked", note: "My SoftBankでIMEI照会も可" },
+      { c: "ymobile", code: "903KC", rel: "2020年2月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "rakuraku-f01m", name: "らくらくホン F-01M", maker: "garaho", brand: "fcnt", kana: "らくらくホン 富士通 ガラケー",
+    variants: [
+      { c: "docomo", code: "F-01M", rel: "2019年10月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-keitai3", name: "AQUOSケータイ3", maker: "garaho", brand: "aquos", kana: "アクオス ケータイ ガラホ シャープ",
+    variants: [
+      { c: "sb", code: "805SH", rel: "2019年", ship: "locked" },
+      { c: "ymobile", code: "806SH", rel: "2019年", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "kantan-keitai10", name: "かんたん携帯10", maker: "garaho", brand: "aquos", kana: "かんたん ケータイ 簡単 シャープ ガラホ",
+    variants: [
+      { c: "sb", code: "807SH", rel: "2019年", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "gratina", name: "GRATINA KYF39", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
+    variants: [
+      { c: "au", code: "KYF39", rel: "2019年5月", ship: "locked", note: "他社SIM挿入でアンテナが立つか／My auで「SIMロック解除可否」確認" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-keitai-sh02l", name: "AQUOSケータイ SH-02L", maker: "garaho", brand: "aquos", kana: "アクオス ケータイ ガラホ シャープ",
+    variants: [
+      { c: "docomo", code: "SH-02L", rel: "2019年2月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "card-keitai", name: "カードケータイ", maker: "garaho", brand: "kyocera", kana: "カード ケータイ 京セラ ガラホ",
+    variants: [
+      { c: "docomo", code: "KY-01L", rel: "2018年11月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "infobar-xv", name: "INFOBAR xv", maker: "garaho", brand: "kyocera", kana: "インフォバー ガラホ 京セラ",
+    variants: [
+      { c: "au", code: "KYX01", rel: "2018年11月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "digno-keitai2", name: "DIGNOケータイ2", maker: "garaho", brand: "kyocera", kana: "ディグノ ケータイ 京セラ ガラホ",
+    variants: [
+      { c: "ymobile", code: "701KC", rel: "2018年", ship: "locked" },
+      { c: "sb", code: "702KC", rel: "2018年", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-k-shf34", name: "AQUOS K SHF34", maker: "garaho", brand: "aquos", kana: "アクオス ケー ガラホ シャープ",
+    variants: [
+      { c: "au", code: "SHF34", rel: "2017年12月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "gratina-kyf37", name: "GRATINA KYF37", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
+    variants: [
+      { c: "au", code: "KYF37", rel: "2017年12月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-keitai-sh02k", name: "AQUOSケータイ カメラレスケータイ SH-02K", maker: "garaho", brand: "aquos", kana: "アクオス ケータイ カメラレス 法人",
+    variants: [
+      { c: "docomo", code: "SH-02K", rel: "2017年11月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "gratina-4g-kyf34", name: "GRATINA 4G（KYF34）", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
+    variants: [
+      { c: "au", code: "KYF34", rel: "2017年4月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "p-smart-p01j", name: "P-smartケータイ P-01J", maker: "garaho", mfr: "panasonic", kana: "ピースマート ケータイ パナソニック ガラホ",
+    variants: [
+      { c: "docomo", code: "P-01J", rel: "2016年11月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-keitai-sh01j", name: "AQUOSケータイ SH-01J", maker: "garaho", brand: "aquos", kana: "アクオス ケータイ ガラホ シャープ",
+    variants: [
+      { c: "docomo", code: "SH-01J", rel: "2016年10月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-k-shf33", name: "AQUOS K SHF33", maker: "garaho", brand: "aquos", kana: "アクオス ケー ガラホ シャープ",
+    variants: [
+      { c: "au", code: "SHF33", rel: "2016年7月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-keitai-601sh", name: "AQUOSケータイ 2", maker: "garaho", brand: "aquos", kana: "アクオス ケータイ ガラホ シャープ",
+    variants: [
+      { c: "sb", code: "601SH", rel: "2016年", ship: "locked" },
+      { c: "ymobile", code: "602SH", rel: "2016年", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "gratina-4g-kyf31", name: "GRATINA 4G", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
+    variants: [
+      { c: "au", code: "KYF31", rel: "2016年2月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "digno-keitai", name: "DIGNOケータイ", maker: "garaho", brand: "kyocera", kana: "ディグノ ケータイ 京セラ ガラホ",
+    variants: [
+      { c: "sb", code: "501KC", rel: "2016年2月", ship: "locked" },
+      { c: "ymobile", code: "502KC", rel: "2016年2月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-k-shf32", name: "AQUOS K SHF32", maker: "garaho", brand: "aquos", kana: "アクオス ケー ガラホ シャープ",
+    variants: [
+      { c: "au", code: "SHF32", rel: "2015年", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "aquos-k-shf31", name: "AQUOS K SHF31", maker: "garaho", brand: "aquos", kana: "アクオス ケー ガラホ シャープ",
+    variants: [
+      { c: "au", code: "SHF31", rel: "2015年2月", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
 
   // ---------- 汎用（機種が見つからない時） ----------
   ...["iphone", "pixel", "xperia", "galaxy", "aquos", "kyocera", "oppo", "xiaomi", "fcnt", "motorola", "zte", "asus", "lg", "tcl", "htc", "balmuda", "android", "garaho"].map(m => ({

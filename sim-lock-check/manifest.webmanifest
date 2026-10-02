@@ -1,6 +1,6 @@
 {
-  "name": "PHONE SHIFT Check Tool",
-  "short_name": "PHONE SHIFT",
+  "name": "SMARTPHONE SHIFT CHECK TOOL",
+  "short_name": "SMARTPHONE SHIFT",
   "description": "機種・型番・メーカーで検索し、SIMロックの状態・確認手順・解除方法とキャリアメール持ち運びの要点を一画面で確認できるツール",
   "id": "./",
   "start_url": "./index.html",

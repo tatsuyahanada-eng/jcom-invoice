@@ -82,6 +82,7 @@ def base_models():
         'kantan-sumaho2', 'arrows-be', 'arrows-m-simfree', 'rakuten-hand', 'redmi-free',
         # 誤りが判明したもの（訂正版を models.dsl に記載）
         'oppo-a55s', 'oppo-a5-2020', 'raku-4', 'arrows-u', 'xperia-ace', 'kyocera-kyg04', 'torque-5g', 'basio-active',
+    'aquos-keitai', 'gratina', 'digno-keitai3',   # ガラホは models.dsl で機種ごとに再定義
     'digno',   # 個別の DIGNO 機種（一覧取り込み分）に置き換え
     }
     for d in legacy:
@@ -110,6 +111,7 @@ def base_models():
 
     return models, order
 
+OVERLAY_SKIP = {'m-17368642', 'gratina-2'}
 def overlay_models():
     p = D_DIR + 'jcom_overlay.json'
     return json.load(open(p, encoding='utf-8')) if os.path.exists(p) else []
@@ -118,6 +120,7 @@ def overlay_models():
 def main():
     models, order = base_models()
     for d in overlay_models():
+        if d['id'] in OVERLAY_SKIP: continue   # models.dsl 側で定義済み
         if d['id'] not in models: order.append(d['id'])
         models[d['id']] = d
     write(models, order)

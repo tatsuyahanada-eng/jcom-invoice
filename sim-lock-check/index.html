@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>PHONE SHIFT Check Tool</title>
+<title>SMARTPHONE SHIFT CHECK TOOL</title>
 <meta name="description" content="機種・型番・メーカーで検索し、SIMロックの状態・確認手順・解除方法とキャリアメール持ち運びの要点を一画面で確認できるツール">
 
 <!-- PWA -->
@@ -12,18 +12,18 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PHONE SHIFT">
+<meta name="apple-mobile-web-app-title" content="SMARTPHONE SHIFT">
 <link rel="icon" href="icons/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
-<meta property="og:title" content="PHONE SHIFT Check Tool">
+<meta property="og:title" content="SMARTPHONE SHIFT CHECK TOOL">
 <meta property="og:description" content="SIMロック状態とキャリアメール持ち運びを一画面で確認">
 <meta property="og:image" content="icons/title-lockup.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;600;700&family=Share+Tech+Mono&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;600;700&family=Share+Tech+Mono&family=Anton&display=swap">
 <style>
   /* ============================================================
      近未来コンソール調（濃いグレー基調＋シアン／アンバー）
@@ -43,9 +43,10 @@
     --ng: #ff5d76;    --ng-bg: rgba(255, 93, 118, .12);
     --glow: 0 0 14px rgba(223, 255, 79, .35);
     --radius: 8px;
-    --mono: "Share Tech Mono", "M PLUS 1 Code", ui-monospace, Menlo, Consolas, monospace;
+    --brandfont: Impact, "Haettenschweiler", "Arial Narrow Bold", "Anton", "Oswald", sans-serif;
+  --mono: "Share Tech Mono", "M PLUS 1 Code", ui-monospace, Menlo, Consolas, monospace;
     --sans: "M PLUS 1 Code", "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
-    --side-w: 208px;
+    --side-w: 244px;
   }
   /* 白い強調パネル：中の部品は同じ変数を使うので、ここで明るい配色に切り替える */
   .entry {
@@ -88,8 +89,8 @@
   }
   .brand-icon { width: 42px; height: 42px; border-radius: 10px; flex: none; box-shadow: var(--glow); }
   .brand-text { display: grid; line-height: 1.15; }
-  .brand-title { font-size: 19px; font-weight: 700; letter-spacing: .04em; font-family: var(--mono); white-space: nowrap; color: var(--strong); }
-  .brand-sub { font-family: var(--mono); font-size: 12px; letter-spacing: .3em; color: var(--accent); margin-top: 3px; }
+  .brand-title { font-size: 24px; font-weight: 400; letter-spacing: .03em; font-family: var(--brandfont); white-space: nowrap; color: var(--strong); line-height: 1.05; }
+  .brand-sub { font-family: var(--brandfont); font-size: 15px; font-weight: 400; letter-spacing: .32em; color: var(--accent); margin-top: 3px; }
   .brand:hover .brand-title { text-shadow: 0 0 10px rgba(223, 255, 79, .6); }
 
   .top { background: var(--bg-2); border-bottom: 1px solid var(--line); }
@@ -196,11 +197,12 @@
     background: var(--panel); border: 1px solid var(--line); border-radius: 6px; cursor: pointer;
   }
   .rtable td { padding: 0; }
-  .rtable td.mk { grid-column: 1; grid-row: 1; font-size: 11.5px; letter-spacing: .04em; color: var(--muted); }
-  .rtable td.nm { grid-column: 1; grid-row: 2; color: var(--strong); font-weight: 600; font-size: 14px; }
-  .rtable td.jd { grid-column: 2; grid-row: 1 / 5; align-self: center; }
-  .rtable td.car { grid-column: 1; grid-row: 3; font-size: 12px; }
-  .rtable td.code { grid-column: 1; grid-row: 4; font-family: var(--mono); color: var(--amber); font-size: 12.5px; }
+  .rtable td.mk { display: none; }
+  .mkp { font-weight: 600; font-size: 12px; letter-spacing: .04em; color: var(--accent); margin-right: 7px; text-transform: uppercase; }
+  .rtable td.nm { grid-column: 1; grid-row: 1; color: var(--strong); font-weight: 600; font-size: 14px; }
+  .rtable td.jd { grid-column: 2; grid-row: 1 / 4; align-self: center; }
+  .rtable td.car { grid-column: 1; grid-row: 2; font-size: 12px; }
+  .rtable td.code { grid-column: 1; grid-row: 3; font-family: var(--mono); color: var(--amber); font-size: 12.5px; }
   .rtable td.rel { display: none; }
   .rtable tr:hover { border-color: var(--line-strong); }
   .rtable tr[aria-current="true"] { border-color: var(--accent); background: rgba(223, 255, 79, .10); box-shadow: inset 3px 0 0 var(--accent); }
@@ -452,6 +454,10 @@
       padding: 8px 10px; border-bottom: 1px solid var(--accent-deep); font-size: 12px; letter-spacing: .06em; white-space: nowrap;
     }
     html.pc .rtable td { display: table-cell; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    html.pc .mkp { display: none; }
+    html.pc .brand-title { font-size: 15px; letter-spacing: 0; }
+    html.pc .brand-sub { font-size: 12px; letter-spacing: .26em; }
+    html.pc .brand-icon { width: 36px; height: 36px; }
     html.pc .rtable td.mk, html.pc .rtable td.rel { display: table-cell; color: var(--muted); }
     html.pc .rtable td.rel { font-family: var(--mono); white-space: nowrap; font-size: 12.5px; }
     html.pc .rtable td.car, html.pc .rtable td.code { font-size: 13px; }
@@ -526,10 +532,10 @@
 <div class="app">
   <header class="brandbar">
     <h1>
-      <button type="button" class="brand" id="brandHome" aria-label="PHONE SHIFT Check Tool（タップでトップに戻る）">
+      <button type="button" class="brand" id="brandHome" aria-label="SMARTPHONE SHIFT CHECK TOOL（タップでトップに戻る）">
         <img class="brand-icon" src="icons/icon-192.png" alt="" width="42" height="42">
         <span class="brand-text">
-          <span class="brand-title">PHONE SHIFT</span>
+          <span class="brand-title">SMARTPHONE SHIFT</span>
           <span class="brand-sub">CHECK TOOL</span>
         </span>
       </button>
@@ -793,16 +799,16 @@
       const cur = state.sel === d.id && state.selCarrier === v.c;
       return `<tr data-id="${d.id}" data-vc="${v.c}" aria-current="${cur}">
         <td class="jd"><span class="st ${cls}">${lb}</span></td>
-        <td class="nm">${esc(d.name)}${v.n ? `<small class="pn">${esc(v.n)}</small>` : ""}</td>
         <td class="mk">${esc(mfrLabel(d))}</td>
+        <td class="nm"><span class="mkp">${esc(mfrLabel(d))}</span>${esc(d.name)}${v.n ? `<small class="pn">${esc(v.n)}</small>` : ""}</td>
         <td class="car">${carDot(v.c)}</td>
         <td class="code">${esc(v.code ? v.code.replace(/（.*）/, "") : "—")}</td>
         <td class="rel">${esc(v.rel)}</td></tr>`;
     });
     generic.forEach(d => rows.push(`<tr class="generic" data-id="${d.id}" aria-current="${state.sel === d.id}">
         <td class="jd"><span class="st gd">ガイド</span></td>
-        <td class="nm">${esc(d.name)}</td>
         <td class="mk">${esc(mfrLabel(d))}</td>
+        <td class="nm"><span class="mkp">${esc(mfrLabel(d))}</span>${esc(d.name)}</td>
         <td class="car"><span class="dot" style="--c:#9fd0ff"><i></i>機種が一覧に無いとき用</span></td>
         <td class="code">—</td><td class="rel"></td></tr>`));
     const filteredOn = state.q || state.carrier !== "all" || state.os !== "all" || state.mfr !== "all";
@@ -818,7 +824,7 @@
     const shown = rows.slice(0, state.limit);
     const more = rows.length > shown.length
       ? `<tr class="morerow"><td colspan="6"><button type="button" class="morebtn" data-more="1">さらに表示（残り ${rows.length - shown.length} 件）</button></td></tr>` : "";
-    $("#results").innerHTML = `<thead><tr><th>判定</th><th>機種名</th><th>メーカー</th><th>キャリア</th><th>型番</th><th>発売</th></tr></thead><tbody>${shown.join("")}${more}</tbody>`;
+    $("#results").innerHTML = `<thead><tr><th>判定</th><th>メーカー</th><th>機種名</th><th>キャリア</th><th>型番</th><th>発売</th></tr></thead><tbody>${shown.join("")}${more}</tbody>`;
   }
 
   /* ---------- detail ---------- */
@@ -974,8 +980,8 @@
     box.innerHTML = `
       <div class="d-head">
         <button class="back" id="back">← 一覧へ戻る</button>
-        <h2>${esc(d.name)}</h2>
-        <div class="d-meta"><span>${esc(mfrLabel(d))}</span>${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 ${esc(v.rel)}</span></div>
+        <h2><span class="mkp">${esc(mfrLabel(d))}</span>${esc(d.name)}</h2>
+        <div class="d-meta">${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 ${esc(v.rel)}</span></div>
         ${prodName(d, v) !== d.name ? `<div class="d-pn">${esc(CARRIERS[v.c].name)}での製品名：<b>${esc(prodName(d, v))}</b></div>` : ""}
         <div class="ctabs" role="group" aria-label="販売キャリアを選択">${d.variants.map(x => `<button class="ctab" data-vc="${x.c}" aria-pressed="${x.c === v.c}">${clogo(x.c)}${esc(CARRIERS[x.c].name)}版</button>`).join("")}</div>
       </div>

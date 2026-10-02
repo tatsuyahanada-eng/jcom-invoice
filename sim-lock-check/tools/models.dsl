@@ -243,3 +243,31 @@ rakuten-big | Rakuten BIG | android | 楽天 ラクテン ビッグ | r | 2020 |
 rakuten-hand | Rakuten Hand | android | 楽天 ラクテン ハンド | r:P710 | 2020.12 | mfr=rakuten
 rakuten-big-s | Rakuten BIG s | android | 楽天 ラクテン ビッグ | r | 2021 | mfr=rakuten
 rakuten-hand-5g | Rakuten Hand 5G | android | 楽天 ラクテン ハンド ファイブジー | r:P780 | 2022.02 | mfr=rakuten
+
+# ---------- ガラホ・4Gケータイ（フィーチャーフォン型） ----------
+aquos-keitai-sh01j | AQUOSケータイ SH-01J | garaho | アクオス ケータイ ガラホ シャープ | d:SH-01J | 2016.10 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-keitai-sh02k | AQUOSケータイ カメラレスケータイ SH-02K | garaho | アクオス ケータイ カメラレス 法人 | d:SH-02K | 2017.11 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-keitai-sh02l | AQUOSケータイ SH-02L | garaho | アクオス ケータイ ガラホ シャープ | d:SH-02L | 2019.02 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+p-smart-p01j | P-smartケータイ P-01J | garaho | ピースマート ケータイ パナソニック ガラホ | d:P-01J | 2016.11 | mfr=panasonic ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+card-keitai | カードケータイ | garaho | カード ケータイ 京セラ ガラホ | d:KY-01L | 2018.11 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+digno-keitai-ky42c | DIGNOケータイ KY-42C | garaho | ディグノ ケータイ 京セラ ガラホ | d:KY-42C | 2023.03 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+rakuraku-f01m | らくらくホン F-01M | garaho | らくらくホン 富士通 ガラケー | d:F-01M | 2019.10 | brand=fcnt ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-k-shf31 | AQUOS K SHF31 | garaho | アクオス ケー ガラホ シャープ | a:SHF31 | 2015.02 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-k-shf32 | AQUOS K SHF32 | garaho | アクオス ケー ガラホ シャープ | a:SHF32 | 2015 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-k-shf33 | AQUOS K SHF33 | garaho | アクオス ケー ガラホ シャープ | a:SHF33 | 2016.07 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-k-shf34 | AQUOS K SHF34 | garaho | アクオス ケー ガラホ シャープ | a:SHF34 | 2017.12 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+gratina-4g-kyf31 | GRATINA 4G | garaho | グラティーナ ガラホ 京セラ | a:KYF31 | 2016.02 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+gratina-4g-kyf34 | GRATINA 4G（KYF34） | garaho | グラティーナ ガラホ 京セラ | a:KYF34 | 2017.04 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+gratina-kyf37 | GRATINA KYF37 | garaho | グラティーナ ガラホ 京セラ | a:KYF37 | 2017.12 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+gratina | GRATINA KYF39 | garaho | グラティーナ ガラホ 京セラ | a:KYF39 | 2019.05 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+gratina-kyf42 | GRATINA KYF42 | garaho | グラティーナ ガラホ 京セラ | a:KYF42 | 2021.08 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+gratina-2 | GRATINA KYV48 | garaho | グラティーナ ガラホ 京セラ | a:KYV48@2022!C~発売時期が未確認のため「条件付き」表示。他社SIMで要確認 | 2022 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+infobar-xv | INFOBAR xv | garaho | インフォバー ガラホ 京セラ | a:KYX01 | 2018.11 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+digno-keitai | DIGNOケータイ | garaho | ディグノ ケータイ 京セラ ガラホ | s:501KC@2016.02,y:502KC@2016.02 | 2016.02 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-keitai-601sh | AQUOSケータイ 2 | garaho | アクオス ケータイ ガラホ シャープ | s:601SH,y:602SH | 2016 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+digno-keitai2 | DIGNOケータイ2 | garaho | ディグノ ケータイ 京セラ ガラホ | y:701KC,s:702KC | 2018 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+digno-keitai3 | DIGNOケータイ3 | garaho | ディグノ ケータイ 京セラ ガラホ | s:902KC@2020.03,y:903KC@2020.02 | 2020 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-keitai3 | AQUOSケータイ3 | garaho | アクオス ケータイ ガラホ シャープ | s:805SH,y:806SH | 2019 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+kantan-keitai10 | かんたん携帯10 | garaho | かんたん ケータイ 簡単 シャープ ガラホ | s:807SH | 2019 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+digno-keitai4 | DIGNOケータイ4 | garaho | ディグノ ケータイ 京セラ ガラホ | s | 2022.09 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+aquos-keitai4 | AQUOSケータイ4 | garaho | アクオス ケータイ ガラホ シャープ | s | 2022.10 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
