@@ -193,7 +193,7 @@
     .job {
       position: relative; display: flex; align-items: stretch;
       background: linear-gradient(135deg, #1a304f, #172944);
-      border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 14px;
+      border: 1px solid var(--line); border-left: 4px solid var(--ok); border-radius: 14px;
       margin-bottom: 10px; overflow: hidden;
       -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
       transition: transform .18s ease, box-shadow .18s ease, opacity .2s;
@@ -205,13 +205,14 @@
     }
     .list.is-dragging .job:not(.dragging) { transition: transform .18s ease; }
     .job[data-work="doing"] { border-left-color: var(--gold); box-shadow: inset 0 0 0 1px rgba(255, 204, 51, .25); }
-    .job[data-work="done"] { border-left-color: var(--ok); }
+    .job[data-work="done"] { border-left-color: #d0d2d4; }
     .job[data-work="done"] .job-main { opacity: .5; }
     .job-main { flex: 1; min-width: 0; padding: 13px 4px 12px 14px; }
     .job-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
     .job-num { font-family: var(--mono); font-size: 16px; letter-spacing: .12em; color: var(--dim); flex: none; }
     .job[data-work="doing"] .job-num { color: var(--gold); }
-    .job[data-work="done"] .job-num { color: var(--ok); }
+    .job[data-work="todo"] .job-num { color: var(--ok); }
+    .job[data-work="done"] .job-num { color: #d0d2d4; }
     .job-title { flex: 1 1 55%; min-width: 0; font-size: 17px; font-weight: 800; line-height: 1.35; word-break: break-word; }
     .job-time { font-family: var(--mono); font-size: 17px; font-weight: 700; color: var(--gold-text); flex: none; white-space: nowrap; margin-left: auto; letter-spacing: .02em; }
     .job-sub { padding-left: 40px; }
@@ -470,7 +471,6 @@
     @keyframes urgentPulse { 50% { box-shadow: 0 0 0 4px rgba(226, 71, 95, .25), 0 0 22px rgba(226, 71, 95, .85); } }
     @media (prefers-reduced-motion: reduce) { .urgent-tag, .urgent-banner { animation: none; } }
     .job.urgent { border-left-color: var(--urgent); background: linear-gradient(135deg, rgba(226, 71, 95, .28), rgba(226, 71, 95, .10)); box-shadow: 0 0 0 1px rgba(226, 71, 95, .65), 0 0 18px rgba(226, 71, 95, .30); }
-    .job.urgent-done { border-left-color: var(--ok); }
     .urgent-banner { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--urgent); background: linear-gradient(135deg, rgba(226, 71, 95, .42), rgba(226, 71, 95, .20)); color: #ffffff; font-weight: 800; font-size: 16px; animation: urgentPulse 1.8s ease-in-out infinite; }
     .urgent-banner svg { width: 24px; height: 24px; flex: none; }
     .urgent-banner small { display: block; font-weight: 500; font-size: 12px; opacity: .92; }
