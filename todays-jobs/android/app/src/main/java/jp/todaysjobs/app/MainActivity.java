@@ -39,7 +39,7 @@ import java.util.TimeZone;
 import java.util.concurrent.Callable;
 
 /**
- * Today's Jobs: assets 内のWebアプリをWebViewで表示するだけの薄いラッパー。
+ * Job Board Today: assets 内のWebアプリをWebViewで表示するだけの薄いラッパー。
  * - 地図/電話/SMS/他アプリへのリンクは端末の対応アプリで開く
  * - Googleカレンダーの認可は端末標準のGoogleログイン(play-services-auth)を使い、JSへ橋渡しする
  */

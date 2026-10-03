@@ -7,13 +7,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Today's Jobs">
+  <meta name="apple-mobile-web-app-title" content="Job Board Today">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.png" type="image/png">
   <link rel="apple-touch-icon" href="icon.png">
-  <title>Today's Jobs</title>
+  <title>Job Board Today</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
+    @font-face { font-family: "Anton"; src: url("anton.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
     :root {
       color-scheme: dark;
       --bg: #122136;
@@ -43,7 +44,7 @@
       --urgent: #e2475f;
       --ink: #122036;
       --radius: 14px;
-      --mono: "Courier New", Courier, ui-monospace, "SF Mono", Menlo, monospace;
+      --mono: "Anton", Impact, "Haettenschweiler", "Arial Narrow Bold", sans-serif-condensed, sans-serif;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
     }
@@ -75,7 +76,7 @@
       border: 1px solid var(--line-soft); border-radius: 16px;
     }
     .hero-logo { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 54px; height: 54px; display: block; filter: drop-shadow(0 0 8px rgba(208, 210, 212, .35)); }
-    .hero-title { font-family: var(--mono); font-weight: 700; font-size: clamp(16px, 5vw, 22px); white-space: nowrap; letter-spacing: .12em; color: var(--cyan); text-shadow: 0 0 18px rgba(208, 210, 212, .35); }
+    .hero-title { font-family: var(--mono); font-weight: 700; font-size: clamp(16px, 5vw, 22px); white-space: nowrap; letter-spacing: .1em; text-transform: uppercase; color: var(--cyan); text-shadow: 0 0 18px rgba(208, 210, 212, .35); }
     .hero-title .tj { font-size: 9px; letter-spacing: .1em; margin-left: 6px; padding: 1px 5px; border: 1px solid rgba(208, 210, 212, .45); border-radius: 3px; vertical-align: 4px; color: rgba(208, 210, 212, .8); text-shadow: none; }
     .foot .tj-s { color: var(--cyan); opacity: .7; }
     .hero-sub { text-wrap: balance; font-size: 11px; color: var(--muted); letter-spacing: .06em; margin: 1px 0 8px; }
@@ -547,8 +548,8 @@
 <body>
 <div class="app" id="app">
   <header class="hero">
-    <img class="hero-logo" src="icon.png" alt="Today's Jobs" width="52" height="52">
-    <div class="hero-title">TODAY'S JOBS<span class="tj" aria-hidden="true">TJ</span></div>
+    <img class="hero-logo" src="icon.png" alt="Job Board Today" width="52" height="52">
+    <div class="hero-title">JOB BOARD TODAY<span class="tj" aria-hidden="true">JBT</span></div>
     <div class="hero-sub">"FIELD×VISIT" 訪問業務ナビゲーション・システム</div>
     <div class="pill off" id="statePill"><i></i><span id="stateText">未同期</span></div>
   </header>
@@ -618,7 +619,7 @@
   </main>
 
   <footer class="foot">
-    <div>© Today's Jobs<span class="tj-s"> · TJ</span></div>
+    <div>© JOB BOARD TODAY<span class="tj-s"> · JBT</span></div>
     <div>データはこの端末に保存されます</div>
     <div>v1.1</div>
   </footer>
@@ -781,7 +782,7 @@
         <button class="btn danger" id="sResetAll" type="button">すべてのデータを削除</button>
       </div>
     </div>
-    <p class="help" style="text-align:center;">Today's Jobs v1.0</p>
+    <p class="help" style="text-align:center;">JOB BOARD TODAY v1.0</p>
   </div>
 </section>
 
@@ -1732,7 +1733,7 @@
     const w = nativeWait[id]; delete nativeWait[id];
     if (!w) return;
     if (err) w.reject(new Error(err === 'PERMISSION_DENIED'
-      ? 'カレンダーへのアクセスが許可されていません。端末の「設定 → アプリ → Today\'s Jobs → 権限」から許可してください'
+      ? 'カレンダーへのアクセスが許可されていません。端末の「設定 → アプリ → Job Board Today → 権限」から許可してください'
       : err));
     else w.resolve(data);
   };
