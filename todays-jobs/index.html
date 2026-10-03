@@ -341,18 +341,15 @@
     .action svg { width: 22px; height: 22px; }
     .action.disabled { color: #848789; border-color: var(--line); pointer-events: none; }
 
-    .maprow { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-    .maprow + .maprow { margin-top: 8px; }
-    .mapbtn { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 8px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(18, 33, 54, .6); text-align: left; }
-    .mapbtn .logo { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none; color: #ffffff; font-weight: 800; font-size: 15px; font-family: Arial, sans-serif; }
+    .maprow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .mapgrp { display: flex; gap: 4px; min-width: 0; }
+    .mapbtn { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 4px 8px; border: 1px solid var(--line-2); border-radius: 8px; background: rgba(18, 33, 54, .6); font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; }
+    .mapbtn .logo { width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center; flex: none; color: #ffffff; font-weight: 800; font-size: 11px; font-family: Arial, sans-serif; }
     .mapbtn .logo.g { background: #1a73e8; }
     .mapbtn .logo.y { background: #ff0033; }
-    .mapbtn .nm { font-weight: 700; font-size: 14px; line-height: 1.2; }
-    .mapbtn .nm small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; }
-    .mapbtn .go { margin-left: auto; color: var(--cyan); }
-    .mapbtn .go svg { width: 18px; height: 18px; display: block; }
-    .webbtn { min-width: 64px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(18, 33, 54, .6); font-size: 12px; font-weight: 700; color: var(--cyan); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 8px; }
-    .webbtn svg { width: 16px; height: 16px; }
+    .webbtn { flex: none; min-height: 34px; border: 1px solid var(--line-2); border-radius: 8px; background: rgba(18, 33, 54, .6); font-size: 11.5px; font-weight: 700; color: var(--cyan); display: flex; align-items: center; justify-content: center; gap: 3px; padding: 4px 8px; }
+    .webbtn svg { width: 13px; height: 13px; }
+    .mapbtn:active, .webbtn:active { background: rgba(208, 210, 212, .25); transform: scale(.96); }
     .mapbtn:disabled, .webbtn:disabled, .linkbtn:disabled { opacity: .35; }
     .toplinks { display: flex; align-items: center; gap: 8px; margin-top: 10px; overflow-x: auto; padding: 2px 0 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .toplinks::-webkit-scrollbar { display: none; }
@@ -361,10 +358,9 @@
     .toplinks .lk svg { width: 16px; height: 16px; color: var(--cyan); }
     .toplinks .lk:disabled { opacity: .4; }
     .toplinks .lk.add { border-style: dashed; color: var(--muted); font-weight: 500; }
-    .kv-addr { margin-bottom: 12px; }
+    .card.kv-addr { padding: 10px 12px; }
     .kv-addr .k { color: var(--muted); font-size: 12px; font-weight: 700; margin-bottom: 2px; }
     .kv-addr .v { font-size: 20px; font-weight: 700; line-height: 1.45; word-break: break-word; }
-    .kv-addr .maprow { margin-top: 8px; }
     .applinks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .linkbtn { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(18, 33, 54, .6); font-size: 13px; font-weight: 700; color: var(--text); text-align: left; word-break: break-all; }
     .linkbtn svg { width: 18px; height: 18px; flex: none; color: var(--cyan); }
@@ -1200,6 +1196,22 @@
         <button class="action ${addr ? '' : 'disabled'}" data-act="copyAddr" type="button">${icon('copy')}住所コピー</button>
       </div>
 
+      <div class="card kv-addr">
+        <div class="k">住所</div>
+        <div class="v">${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</div>
+        ${addr ? `
+        <div class="maprow">
+          <div class="mapgrp">
+            <button class="mapbtn" type="button" data-map="google" data-mode="app" title="アプリで開く"><span class="logo g">G</span>Google</button>
+            <button class="webbtn" type="button" data-map="google" data-mode="web" title="ブラウザで開く">${icon('globe')}Web</button>
+          </div>
+          <div class="mapgrp">
+            <button class="mapbtn" type="button" data-map="yahoo" data-mode="app" title="アプリで開く"><span class="logo y">Y!</span>Yahoo!</button>
+            <button class="webbtn" type="button" data-map="yahoo" data-mode="web" title="ブラウザで開く">${icon('globe')}Web</button>
+          </div>
+        </div>` : ''}
+      </div>
+
       <div class="card needcall">
         <div class="nc-grid">
           <div class="switch-row">
@@ -1257,24 +1269,6 @@
 
       <div class="card">
         <h3>${icon('info')}予定の内容</h3>
-        <div class="kv-addr">
-          <div class="k">住所</div>
-          <div class="v">${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</div>
-          ${addr ? `
-          <div class="maprow">
-            <button class="mapbtn" type="button" data-map="google" data-mode="app">
-              <span class="logo g">G</span><span class="nm">Googleマップ<small>アプリで開く</small></span><span class="go">${icon('ext')}</span>
-            </button>
-            <button class="webbtn" type="button" data-map="google" data-mode="web">${icon('globe')}Web</button>
-          </div>
-          <div class="maprow">
-            <button class="mapbtn" type="button" data-map="yahoo" data-mode="app">
-              <span class="logo y">Y!</span><span class="nm">Yahoo!マップ<small>アプリで開く</small></span><span class="go">${icon('ext')}</span>
-            </button>
-            <button class="webbtn" type="button" data-map="yahoo" data-mode="web">${icon('globe')}Web</button>
-          </div>
-          <p class="help">アプリが入っていない場合はブラウザで開きます。</p>` : ''}
-        </div>
         <dl class="kv">
           <dt>電話</dt><dd>${j.phone ? `<a href="${telHref(j.phone)}">${esc(j.phone)}</a>` : '<span style="color:var(--muted)">未設定</span>'}</dd>
           <dt>取込元</dt><dd>${j.eventId ? ((day.source === 'device' ? '端末のカレンダー' : 'Googleカレンダー') + (j.calendar ? '（' + esc(j.calendar) + '）' : '')) : (j.manual ? '手動追加' : 'デモデータ')}</dd>
