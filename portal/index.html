@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>現地作業ポータル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 上部に常設の検索バー。一覧は「作業種別 → 絞り込み → 作業一覧」、詳細は「手順（左）＋進捗と必要物（右・追従）」の2カラム。
+   配色はすべてトークン化しているため、後から共通デザインに差し替え可能。 */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --line: #d9dde4;
+  --line-strong: #b9c0cb;
+  --fg: #1b2230;
+  --muted: #5d6676;
+  --accent: #1f4e9c;
+  --accent-fg: #ffffff;
+  --accent-soft: #e6edf8;
+  --ok: #1e7a4c;
+  --ok-soft: #e3f3ea;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --danger: #b4293b;
+  --danger-soft: #fbe7ea;
+  --font-body: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a1f28; --surface-2: #222835; --line: #2e3542; --line-strong: #434c5c;
+    --fg: #e6e9ef; --muted: #9aa3b2; --accent: #7aa5ec; --accent-fg: #0e1420; --accent-soft: #1e2b44;
+    --ok: #5cc28f; --ok-soft: #173326; --warn: #e3a64b; --warn-soft: #362a14; --danger: #ef7d8c; --danger-soft: #3a1c22;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a1f28; --surface-2: #222835; --line: #2e3542; --line-strong: #434c5c;
+  --fg: #e6e9ef; --muted: #9aa3b2; --accent: #7aa5ec; --accent-fg: #0e1420; --accent-soft: #1e2b44;
+  --ok: #5cc28f; --ok-soft: #173326; --warn: #e3a64b; --warn-soft: #362a14; --danger: #ef7d8c; --danger-soft: #3a1c22;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); font-size: .86em; }
+.num { font-variant-numeric: tabular-nums; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.35; margin: 0; }
+
+/* ===== Top bar ===== */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1200px; margin: 0 auto;
+  padding: 10px 20px;
+  display: flex; align-items: center; gap: 20px;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 16px; white-space: nowrap;
+  background: none; border: 0; padding: 0; cursor: pointer;
+}
+.brand-mark {
+  width: 26px; height: 26px; border-radius: 4px;
+  background: var(--accent); color: var(--accent-fg);
+  display: grid; place-items: center; font-size: 13px;
+}
+.search {
+  flex: 1; min-width: 0; max-width: 560px;
+  position: relative;
+}
+.search input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+.search input:focus { outline: 2px solid var(--accent); outline-offset: -1px; background: var(--surface); }
+.search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.user {
+  margin-left: auto; display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--muted); white-space: nowrap;
+}
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--line);
+  display: grid; place-items: center; font-weight: 700; color: var(--fg); font-size: 12px;
+}
+
+.sample-banner {
+  background: var(--warn-soft); color: var(--warn);
+  font-size: 12.5px; text-align: center; padding: 6px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ===== Page ===== */
+.page { max-width: 1200px; margin: 0 auto; padding: 28px 20px 64px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: baseline; gap: 10px; }
+.section-title small { font-weight: 400; color: var(--muted); font-size: 12.5px; }
+
+/* Home: lead */
+.lead { display: grid; gap: 6px; margin-bottom: 22px; }
+.lead h1 { font-size: 24px; }
+.lead p { margin: 0; color: var(--muted); }
+
+/* Category selector */
+.cats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+  margin-bottom: 28px;
+}
+.cat {
+  text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px 16px; display: grid; gap: 4px;
+  transition: border-color .12s, background .12s;
+}
+.cat:hover { border-color: var(--line-strong); }
+.cat[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.cat-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cat-name { font-weight: 700; }
+.cat-count { font-size: 12px; color: var(--muted); }
+.cat-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+.home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+
+/* Filters */
+.filters {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  margin-bottom: 12px;
+}
+.filters label { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.filters select {
+  padding: 6px 28px 6px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius);
+  background: var(--surface);
+}
+.filters .reset { margin-left: auto; }
+.btn-link { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 4px 0; font-size: 13px; }
+.btn-link:hover { text-decoration: underline; }
+
+/* Task list */
+.task-list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.task {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px;
+  padding: 14px 18px; border-top: 1px solid var(--line);
+  cursor: pointer; text-align: left; width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0;
+}
+.task:first-child { border-top: 0; }
+.task:hover { background: var(--surface-2); }
+.task-title { font-weight: 700; font-size: 15.5px; }
+.task-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.task-side { text-align: right; font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; justify-items: end; align-content: start; }
+.task-id { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); }
+.empty { padding: 36px 18px; text-align: center; color: var(--muted); }
+mark { background: var(--warn-soft); color: inherit; padding: 0 1px; border-radius: 2px; }
+
+/* Chips */
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 700; line-height: 1;
+  padding: 4px 8px; border-radius: 3px; white-space: nowrap;
+  background: var(--surface-2); color: var(--muted);
+}
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.danger { background: var(--danger-soft); color: var(--danger); }
+.chip.accent { background: var(--accent-soft); color: var(--accent); }
+.chip-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* Side panels */
+.side { display: grid; gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.panel-head { padding: 12px 16px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: 14px; }
+.panel-body { padding: 4px 16px 8px; }
+.notice { padding: 10px 0; border-top: 1px solid var(--line); font-size: 13px; display: grid; gap: 4px; }
+.notice:first-child { border-top: 0; }
+.notice time { color: var(--muted); font-size: 12px; }
+.recent { list-style: none; margin: 0; padding: 0; }
+.recent li { border-top: 1px solid var(--line); }
+.recent li:first-child { border-top: 0; }
+.recent button { width: 100%; text-align: left; background: none; border: 0; padding: 10px 0; cursor: pointer; font-size: 13px; display: grid; gap: 2px; }
+.recent button:hover .r-title { color: var(--accent); text-decoration: underline; }
+.recent .r-sub { color: var(--muted); font-size: 12px; }
+.help-line { font-size: 13px; padding: 12px 0; display: grid; gap: 2px; }
+.help-line strong { font-size: 17px; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+
+/* ===== Detail ===== */
+.crumbs { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px; }
+.crumbs button { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; }
+.crumbs button:hover { text-decoration: underline; }
+
+.d-head {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px 22px; margin-bottom: 22px; display: grid; gap: 14px;
+}
+.d-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.d-title-row h1 { font-size: 22px; }
+.d-facts {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0;
+  border-top: 1px solid var(--line); padding-top: 14px;
+}
+.fact { padding: 0 16px; border-left: 1px solid var(--line); display: grid; gap: 2px; min-width: 0; }
+.fact:first-child { padding-left: 0; border-left: 0; }
+.fact dt { font-size: 11.5px; color: var(--muted); letter-spacing: .04em; }
+.fact dd { margin: 0; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+.detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+
+/* Steps */
+.steps { display: grid; gap: 14px; counter-reset: step; }
+.step {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.step-head {
+  display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  padding: 14px 18px;
+}
+.step-no {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1.5px solid var(--line-strong); color: var(--muted);
+  display: grid; place-items: center; font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums;
+}
+.step.done .step-no { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+.step-title { font-weight: 700; font-size: 15.5px; }
+.step-sub { font-size: 12.5px; color: var(--muted); }
+.step-body { padding: 0 18px 18px 62px; display: grid; gap: 12px; }
+.check {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 13px; color: var(--muted); user-select: none; white-space: nowrap;
+}
+.check input { width: 18px; height: 18px; accent-color: var(--ok); margin: 0; cursor: pointer; }
+.step.done .check { color: var(--ok); font-weight: 700; }
+
+.checklist { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 14px; }
+.checklist li { display: flex; gap: 8px; }
+.checklist li::before { content: "□"; color: var(--muted); }
+
+/* Files */
+.files { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.file {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: center;
+  padding: 12px 14px; border-top: 1px solid var(--line);
+}
+.file:first-child { border-top: 0; }
+.file-name { font-family: var(--font-mono); font-size: 13.5px; font-weight: 500; overflow-wrap: anywhere; }
+.file-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); align-items: center; }
+.hash { display: inline-flex; align-items: center; gap: 6px; }
+.file-actions { display: flex; gap: 8px; align-items: center; }
+.bundle {
+  display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between;
+  background: var(--accent-soft); padding: 12px 14px; border-radius: var(--radius);
+}
+.bundle-text { font-size: 13px; display: grid; gap: 2px; }
+.bundle-text strong { font-size: 14px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 8px 14px; border-radius: var(--radius); cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--surface);
+  font-size: 13.5px; font-weight: 700; white-space: nowrap;
+}
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.sm { padding: 5px 10px; font-size: 12.5px; }
+.btn.got { border-color: var(--ok); color: var(--ok); }
+.icon-btn { background: none; border: 0; padding: 2px; cursor: pointer; color: var(--muted); display: inline-grid; place-items: center; border-radius: 3px; }
+.icon-btn:hover { color: var(--accent); background: var(--surface-2); }
+
+.code {
+  position: relative; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius);
+  overflow-x: auto;
+}
+.code pre { margin: 0; padding: 12px 14px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.7; white-space: pre; }
+.code-head { display: flex; justify-content: space-between; align-items: end; gap: 10px; font-size: 12px; color: var(--muted); margin-bottom: -4px; }
+
+.callout {
+  border-left: 3px solid var(--warn); background: var(--warn-soft);
+  padding: 10px 14px; font-size: 13px; border-radius: 0 var(--radius) var(--radius) 0;
+}
+.callout.info { border-left-color: var(--accent); background: var(--accent-soft); }
+.callout strong { display: block; margin-bottom: 2px; }
+
+.manual-list { display: grid; gap: 8px; }
+.manual-item {
+  display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius);
+}
+.doc-ico {
+  width: 34px; height: 40px; border: 1px solid var(--line-strong); border-radius: 3px;
+  display: grid; place-items: end center; padding-bottom: 4px;
+  font-size: 9px; font-weight: 700; color: var(--danger); background: var(--surface);
+}
+.manual-item .m-title { font-weight: 700; font-size: 14px; }
+.manual-item .m-sub { font-size: 12px; color: var(--muted); }
+
+details.old { border: 1px dashed var(--line-strong); border-radius: var(--radius); background: var(--surface); }
+details.old summary { padding: 12px 16px; cursor: pointer; font-size: 13.5px; color: var(--muted); }
+details.old[open] summary { border-bottom: 1px dashed var(--line-strong); }
+.old-body { padding: 12px 16px; display: grid; gap: 10px; font-size: 13px; }
+.old-row { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; color: var(--muted); }
+
+/* Progress */
+.sticky { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); display: grid; gap: 20px; }
+.progress-box { padding: 16px; display: grid; gap: 12px; }
+.bar { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--ok); width: 0; transition: width .25s; }
+.p-row { display: flex; justify-content: space-between; font-size: 13px; }
+.p-row strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.p-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.p-steps li { display: flex; gap: 8px; align-items: center; color: var(--muted); }
+.p-steps li.done { color: var(--ok); }
+.p-steps li .tick { width: 14px; text-align: center; font-weight: 700; }
+.need { list-style: none; margin: 0; padding: 4px 16px 12px; font-size: 13px; display: grid; }
+.need li { padding: 7px 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 10px; }
+.need li:first-child { border-top: 0; }
+.need li span:last-child { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Manual drawer */
+.overlay { position: fixed; inset: 0; background: rgba(10, 14, 22, .45); z-index: 40; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(880px, 100%); z-index: 41;
+  background: var(--surface); border-left: 1px solid var(--line);
+  display: grid; grid-template-rows: auto minmax(0, 1fr);
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.drawer-head { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.drawer-head h2 { font-size: 16px; flex: 1; min-width: 0; }
+.drawer-main { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 0; }
+.toc { border-right: 1px solid var(--line); overflow-y: auto; padding: 14px 0; background: var(--bg); }
+.toc button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 7px 18px; cursor: pointer; font-size: 13px; color: var(--muted); border-left: 3px solid transparent; }
+.toc button:hover { color: var(--fg); }
+.toc button.on { color: var(--accent); border-left-color: var(--accent); font-weight: 700; background: var(--surface); }
+.doc { overflow-y: auto; padding: 22px 28px 48px; }
+.doc article { max-width: 64ch; display: grid; gap: 12px; }
+.doc h3 { font-size: 18px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.doc p, .doc ol { margin: 0; }
+.doc ol { padding-left: 1.4em; display: grid; gap: 6px; }
+.shot {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2);
+  aspect-ratio: 16 / 9; max-width: 100%; display: grid; place-items: center; color: var(--muted); font-size: 12.5px;
+}
+.doc-pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 12px; }
+
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: var(--radius);
+  font-size: 13px; z-index: 60; max-width: calc(100% - 32px); box-shadow: 0 6px 20px rgba(0,0,0,.18);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 960px) {
+  .cats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home-grid, .detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .sticky { position: static; }
+  .d-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 12px; }
+  .fact:nth-child(4) { padding-left: 0; border-left: 0; }
+}
+@media (max-width: 640px) {
+  .topbar-inner { flex-wrap: wrap; gap: 10px 14px; padding: 10px 16px; }
+  .search { order: 3; flex-basis: 100%; max-width: none; }
+  .user-name { display: none; }
+  .page { padding: 20px 16px 56px; }
+  .cats { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .cat-desc { display: none; }
+  .task, .file { grid-template-columns: minmax(0, 1fr); }
+  .task-side { justify-items: start; text-align: left; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .step-body { padding: 0 16px 16px; }
+  .step-head { grid-template-columns: 30px minmax(0, 1fr); }
+  .step-head .check { grid-column: 2; }
+  .d-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fact { padding: 0 12px; }
+  .fact:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .fact:nth-child(4) { padding-left: 12px; border-left: 1px solid var(--line); }
+  .drawer-main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .toc { border-right: 0; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; padding: 0; }
+  .toc button { white-space: nowrap; border-left: 0; border-bottom: 3px solid transparent; padding: 10px 14px; width: auto; }
+  .toc button.on { border-bottom-color: var(--accent); }
+  .doc { padding: 18px 16px 40px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="brand" id="brandBtn" type="button" aria-label="ホームへ戻る">
+      <span class="brand-mark" aria-hidden="true">現</span>
+      <span>現地作業ポータル</span>
+    </button>
+    <div class="search" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input id="q" type="search" placeholder="作業名・機種名・ファイル名・作業IDで検索（例：プリンタ、WK-1042）" autocomplete="off" aria-label="作業を検索">
+    </div>
+    <div class="user">
+      <span class="user-name">技術課 / 山田 様</span>
+      <span class="avatar" aria-hidden="true">山</span>
+    </div>
+  </div>
+  <div class="sample-banner">サンプル画面です。表示されている作業・ファイル・ハッシュ値はすべて架空のもので、ダウンロードは実行されません。</div>
+</header>
+
+<main class="page" id="view-home">
+  <div class="lead">
+    <span class="eyebrow">STEP 1　作業の種類を選ぶ</span>
+    <h1>どの作業を行いますか？</h1>
+    <p>作業の種類を選ぶか、上の検索欄に機種名や作業名を入力してください。表示されるファイルは常に最新版のみです。</p>
+  </div>
+
+  <div class="cats" id="cats" role="group" aria-label="作業の種類"></div>
+
+  <div class="home-grid">
+    <section aria-labelledby="listTitle">
+      <div class="section-title" id="listTitle"><span>STEP 2　作業を選ぶ</span><small id="resultCount"></small></div>
+      <div class="filters">
+        <label for="fModel">対象機種
+          <select id="fModel"></select>
+        </label>
+        <label for="fOs">OS
+          <select id="fOs"></select>
+        </label>
+        <button class="btn-link reset" id="resetBtn" type="button">条件をクリア</button>
+      </div>
+      <div class="task-list" id="taskList"></div>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <div class="panel-head">お知らせ</div>
+        <div class="panel-body" id="notices"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">最近開いた作業</div>
+        <div class="panel-body"><ul class="recent" id="recent"></ul></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">現場で困ったとき</div>
+        <div class="panel-body">
+          <div class="help-line">
+            <span>技術サポート窓口（平日 8:30–19:00）</span>
+            <strong>内線 4410</strong>
+            <span class="mono" style="color:var(--muted)">field-support@example.co.jp</span>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<main class="page" id="view-detail" hidden></main>
+
+<div class="overlay" id="overlay" hidden></div>
+<aside class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+  <div class="drawer-head">
+    <span class="chip accent">マニュアル</span>
+    <h2 id="drawerTitle"></h2>
+    <button class="btn sm" id="drawerClose" type="button">閉じる</button>
+  </div>
+  <div class="drawer-main">
+    <nav class="toc" id="toc" aria-label="目次"></nav>
+    <div class="doc" id="doc"></div>
+  </div>
+</aside>
+
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+
+<script>
+/* =========================================================
+   サンプルデータ（本番ではAPI / CMS から取得する想定）
+   ========================================================= */
+const CATEGORIES = [
+  { id: "new",    name: "新規PCセットアップ", desc: "新しいPCへのOS初期設定・業務アプリ一式の導入" },
+  { id: "swap",   name: "機器の入れ替え",     desc: "旧PCからのデータ移行、周辺機器の付け替え" },
+  { id: "update", name: "ソフトウェア更新",   desc: "業務アプリ・ドライバのバージョンアップ" },
+  { id: "trouble",name: "トラブル対応",       desc: "再インストール・復旧手順、ログの取得" }
+];
+
+const TASKS = [
+  {
+    id: "WK-1001", cat: "new", title: "業務用ノートPC 初期セットアップ（標準構成）",
+    models: ["Latitude 5450", "ThinkPad L14 Gen5"], os: "Windows 11 24H2",
+    version: "2026.09", updated: "2026-09-18", minutes: 90, tags: ["標準イメージ", "必須"],
+    needs: [["空き容量", "40 GB 以上"], ["ネットワーク", "有線LAN推奨"], ["権限", "ローカル管理者"], ["持参物", "USBメモリ 32GB（任意）"]],
+    precheck: ["BIOS が最新版であること（F2 で確認）", "電源アダプタを接続していること", "社内ネットワークまたはVPNに接続できること", "作業票に記載の資産番号とPC本体のラベルが一致していること"],
+    files: [
+      { name: "std-image-w11-24h2_2026.09.zip", size: 18.6, desc: "標準構成イメージ（OS設定・ポリシー）", sha: "9f2c4e7a1b03d58e6c2f9a7b4d1e0c83a5f6b2d9e17c4a08b3f5d6e2c1a9b7f4" },
+      { name: "apps-bundle_v4.2.0.zip", size: 3.4, desc: "業務アプリ一式（販売管理・勤怠・帳票）", sha: "1c7e3a9f5d2b8046e1f3c7a9b5d2e8f04a6c1b3d5e7f9a2c4b6d8e0f1a3c5e7b" },
+      { name: "drivers_latitude5450_A12.zip", size: 1.1, desc: "機種別ドライバ（Latitude 5450 用）", sha: "e4b1d7a3c9f2058b6d4e1a7c3f9b2d5e8a0c6f4b1d7e3a9c5f2b8d4e0a6c1f3b" }
+    ],
+    extractTo: "C:\\Setup\\WK-1001",
+    manuals: [
+      { title: "初期セットアップ手順書", pages: 24, updated: "2026-09-18" },
+      { title: "業務アプリ動作確認チェックシート", pages: 3, updated: "2026-07-02" }
+    ],
+    old: [{ v: "2026.06", date: "2026-06-10", reason: "24H2 非対応のため使用禁止" }, { v: "2026.03", date: "2026-03-04", reason: "旧ポリシー" }]
+  },
+  {
+    id: "WK-1002", cat: "new", title: "受付用デスクトップPC セットアップ（窓口端末）",
+    models: ["OptiPlex 7020"], os: "Windows 11 24H2",
+    version: "2026.08", updated: "2026-08-27", minutes: 60, tags: ["窓口", "キオスクモード"],
+    needs: [["空き容量", "25 GB 以上"], ["ネットワーク", "有線LAN必須"], ["権限", "ローカル管理者"], ["持参物", "バーコードリーダー"]],
+    precheck: ["窓口カウンター用の固定IPが払い出されていること", "バーコードリーダーをまだ接続していないこと"],
+    files: [
+      { name: "kiosk-image-w11_2026.08.zip", size: 12.2, desc: "窓口端末イメージ", sha: "3a5c7e9b1d2f4068a1c3e5f7b9d2a4c6e8f0b1d3a5c7e9f2b4d6a8c0e1f3a5b7" },
+      { name: "reception-app_v3.8.1.zip", size: 0.9, desc: "受付システム クライアント", sha: "b8d0f2a4c6e8013579bdf2a4c6e8b0d1f3a5c7e9b2d4f6a8c0e2b4d6f8a1c3e5" }
+    ],
+    extractTo: "C:\\Setup\\WK-1002",
+    manuals: [{ title: "窓口端末セットアップ手順書", pages: 16, updated: "2026-08-27" }],
+    old: [{ v: "2026.02", date: "2026-02-15", reason: "旧受付システム用" }]
+  },
+  {
+    id: "WK-2010", cat: "swap", title: "PC入れ替え時のユーザーデータ移行",
+    models: ["全機種"], os: "Windows 10 → 11",
+    version: "1.6", updated: "2026-09-02", minutes: 45, tags: ["データ移行"],
+    needs: [["空き容量", "移行データ量 + 10 GB"], ["持参物", "外付けSSD 500GB"], ["権限", "ローカル管理者"]],
+    precheck: ["利用者本人の立ち会いがあること", "旧PCで OneDrive の同期が完了していること"],
+    files: [{ name: "migration-tool_v1.6.zip", size: 0.2, desc: "データ移行ツール（プロファイル・ブラウザ設定）", sha: "c2e4a6b8d0f1357924a6c8e0b2d4f6a8c1e3b5d7f9a0c2e4b6d8f1a3c5e7b9d0" }],
+    extractTo: "C:\\Setup\\WK-2010",
+    manuals: [{ title: "データ移行手順書", pages: 12, updated: "2026-09-02" }],
+    old: []
+  },
+  {
+    id: "WK-2014", cat: "swap", title: "複合機（ネットワークプリンタ）ドライバ導入と登録",
+    models: ["bizhub C360i", "imageRUNNER C3926"], os: "Windows 11 / 10",
+    version: "2026.07", updated: "2026-07-21", minutes: 20, tags: ["プリンタ", "周辺機器"],
+    needs: [["ネットワーク", "同一セグメント"], ["確認事項", "プリンタのIPアドレス"]],
+    precheck: ["複合機の IP アドレスを操作パネルで確認済みであること"],
+    files: [
+      { name: "printer-drivers_2026.07.zip", size: 0.6, desc: "対応複合機のドライバ一式", sha: "f0a2c4e6b8d1357902b4d6f8a0c2e4b6d8f1a3c5e7b9d0f2a4c6e8b1d3f5a7c9" },
+      { name: "add-printer.ps1", size: 0.001, desc: "プリンタ登録スクリプト", sha: "a7c9e1b3d5f70246a8c0e2b4d6f8a1c3e5b7d9f0a2c4e6b8d1f3a5c7e9b0d2f4" }
+    ],
+    extractTo: "C:\\Setup\\WK-2014",
+    manuals: [{ title: "複合機登録手順書", pages: 6, updated: "2026-07-21" }],
+    old: []
+  },
+  {
+    id: "WK-1042", cat: "update", title: "業務アプリ一式 v4.2 への更新",
+    models: ["全機種"], os: "Windows 11 / 10",
+    version: "4.2.0", updated: "2026-09-25", minutes: 25, tags: ["定期更新", "10月末期限"],
+    needs: [["空き容量", "8 GB 以上"], ["作業時間帯", "業務時間外"], ["権限", "ローカル管理者"]],
+    precheck: ["業務アプリをすべて終了していること", "現在のバージョンが 4.0 以上であること（ヘルプ → バージョン情報）"],
+    files: [{ name: "apps-bundle_v4.2.0.zip", size: 3.4, desc: "業務アプリ一式（販売管理・勤怠・帳票）", sha: "1c7e3a9f5d2b8046e1f3c7a9b5d2e8f04a6c1b3d5e7f9a2c4b6d8e0f1a3c5e7b" }],
+    extractTo: "C:\\Setup\\WK-1042",
+    manuals: [{ title: "v4.2 更新手順書", pages: 8, updated: "2026-09-25" }, { title: "v4.2 変更点一覧", pages: 2, updated: "2026-09-25" }],
+    old: [{ v: "4.1.3", date: "2026-05-12", reason: "v4.2 で置き換え" }]
+  },
+  {
+    id: "WK-1050", cat: "update", title: "VPNクライアント更新と接続設定",
+    models: ["全ノートPC"], os: "Windows 11",
+    version: "7.4", updated: "2026-08-08", minutes: 15, tags: ["VPN", "セキュリティ"],
+    needs: [["ネットワーク", "インターネット接続"], ["確認事項", "利用者の社員番号"]],
+    precheck: ["旧 VPN クライアントで接続していないこと"],
+    files: [{ name: "vpn-client_7.4_x64.zip", size: 0.3, desc: "VPN クライアント 7.4（設定ファイル同梱）", sha: "d4f6a8c0e2b4013579ace0b2d4f6a8c1e3b5d7f9a2c4e6b8d0f1a3c5e7b9d2f4" }],
+    extractTo: "C:\\Setup\\WK-1050",
+    manuals: [{ title: "VPN 設定手順書", pages: 5, updated: "2026-08-08" }],
+    old: [{ v: "7.2", date: "2026-01-20", reason: "脆弱性対応のため使用禁止" }]
+  },
+  {
+    id: "WK-3003", cat: "trouble", title: "業務アプリが起動しない場合の再インストール",
+    models: ["全機種"], os: "Windows 11 / 10",
+    version: "4.2.0", updated: "2026-09-25", minutes: 30, tags: ["復旧"],
+    needs: [["空き容量", "8 GB 以上"], ["権限", "ローカル管理者"]],
+    precheck: ["エラー画面のスクリーンショットを取得済みであること", "ログ取得ツールで障害ログを保存済みであること"],
+    files: [
+      { name: "apps-bundle_v4.2.0.zip", size: 3.4, desc: "業務アプリ一式（販売管理・勤怠・帳票）", sha: "1c7e3a9f5d2b8046e1f3c7a9b5d2e8f04a6c1b3d5e7f9a2c4b6d8e0f1a3c5e7b" },
+      { name: "cleanup-tool_v2.1.zip", size: 0.05, desc: "旧設定のクリーンアップツール", sha: "8b0d2f4a6c8e1357902b4d6f8a0c2e4b6d8f1a3c5e7b9d0f2a4c6e8b1d3f5a7c" }
+    ],
+    extractTo: "C:\\Setup\\WK-3003",
+    manuals: [{ title: "再インストール手順書", pages: 7, updated: "2026-09-25" }],
+    old: []
+  },
+  {
+    id: "WK-3008", cat: "trouble", title: "障害ログの取得と送付",
+    models: ["全機種"], os: "Windows 11 / 10",
+    version: "1.3", updated: "2026-04-14", minutes: 10, tags: ["ログ", "問い合わせ前"],
+    needs: [["持参物", "なし"]],
+    precheck: ["障害が発生した日時をメモしていること"],
+    files: [{ name: "log-collector_v1.3.zip", size: 0.02, desc: "ログ取得ツール", sha: "5e7a9c1b3d5f70246e8a0c2b4d6f8a1c3e5b7d9f0a2c4e6b8d1f3a5c7e9b0d2f" }],
+    extractTo: "C:\\Setup\\WK-3008",
+    manuals: [{ title: "ログ取得手順書", pages: 3, updated: "2026-04-14" }],
+    old: []
+  }
+];
+
+const NOTICES = [
+  { date: "2026-09-25", level: "warn", text: "業務アプリ v4.2.0 を公開しました。10月31日までに全拠点で更新してください。", task: "WK-1042" },
+  { date: "2026-09-18", level: "accent", text: "初期セットアップ（標準構成）を Windows 11 24H2 対応版に更新しました。旧版（2026.06）は使用できません。", task: "WK-1001" },
+  { date: "2026-08-08", level: "danger", text: "VPN クライアント 7.2 は脆弱性のため使用禁止です。7.4 へ更新してください。", task: "WK-1050" }
+];
+
+/* 手順書（サンプル本文） */
+function manualSections(task) {
+  return [
+    { h: "1. この手順書について", body: `<p>本書は「${esc(task.title)}」の作業手順を説明します。作業前に「必要なもの」と「事前確認」をすべて満たしていることを確認してください。</p><div class="callout info"><strong>対象</strong>${esc(task.models.join(" / "))}　${esc(task.os)}</div>` },
+    { h: "2. 事前準備", body: `<ol>${task.precheck.map(p => `<li>${esc(p)}</li>`).join("")}</ol><div class="shot">［画面イメージ：事前確認画面］</div>` },
+    { h: "3. ファイルの展開", body: `<p>ダウンロードしたファイルを <span class="mono">${esc(task.extractTo)}</span> に展開します。デスクトップやダウンロードフォルダのまま実行すると、パスが長すぎて失敗する場合があります。</p><div class="shot">［画面イメージ：展開先フォルダ］</div>` },
+    { h: "4. インストール", body: `<ol><li>展開先フォルダの <span class="mono">setup.cmd</span> を右クリックし「管理者として実行」を選びます。</li><li>「続行しますか？」と表示されたら <strong>Y</strong> を入力します。</li><li>完了メッセージが表示されるまで PC の電源を切らないでください（約 ${Math.round(task.minutes * 0.5)} 分）。</li></ol><div class="shot">［画面イメージ：インストール完了画面］</div>` },
+    { h: "5. 動作確認", body: `<ol><li>PC を再起動します。</li><li>業務アプリを起動し、ログイン画面が表示されることを確認します。</li><li>作業票の「完了確認」欄にチェックを入れます。</li></ol>` },
+    { h: "6. 困ったときは", body: `<p>エラーが出た場合は、画面を撮影したうえで作業 <span class="mono">WK-3008</span>（障害ログの取得と送付）を実施し、技術サポート窓口（内線 4410）へ連絡してください。</p>` }
+  ];
+}
+
+/* =========================================================
+   状態
+   ========================================================= */
+const state = { cat: null, model: "", os: "", q: "", taskId: null };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+let recent = store.get("portal.recent", ["WK-1042", "WK-2014"]);
+let progress = store.get("portal.progress", {});
+let downloaded = store.get("portal.downloaded", {});
+
+/* =========================================================
+   ユーティリティ
+   ========================================================= */
+const $ = s => document.querySelector(s);
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function fmtSize(gb) {
+  if (gb >= 1) return gb.toFixed(1) + " GB";
+  const mb = gb * 1024;
+  if (mb >= 1) return Math.round(mb) + " MB";
+  return Math.max(1, Math.round(mb * 1024)) + " KB";
+}
+function dlTime(gb) {
+  // 100Mbps 回線の実効 60Mbps を想定
+  const sec = gb * 8 * 1024 / 60;
+  if (sec < 60) return "1分未満";
+  const m = Math.round(sec / 60);
+  return m < 60 ? `約${m}分` : `約${Math.floor(m / 60)}時間${m % 60}分`;
+}
+function totalSize(t) { return t.files.reduce((a, f) => a + f.size, 0); }
+function fmtDate(d) { const [y, m, dd] = d.split("-"); return `${y}/${m}/${dd}`; }
+function highlight(text, q) {
+  const safe = esc(text);
+  if (!q) return safe;
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return safe;
+  return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
+}
+let toastTimer;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 3200);
+}
+function copy(text, label) {
+  const done = () => toast(`${label}をコピーしました`);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); } catch { toast("コピーできませんでした。手動で選択してください"); }
+  ta.remove();
+}
+const ICON_COPY = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>`;
+const ICON_DL = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"></path></svg>`;
+
+/* =========================================================
+   ホーム（作業検索）
+   ========================================================= */
+function matches(t) {
+  if (state.cat && t.cat !== state.cat) return false;
+  if (state.model && !t.models.includes(state.model)) return false;
+  if (state.os && t.os !== state.os) return false;
+  if (state.q) {
+    const hay = [t.id, t.title, t.os, ...t.models, ...t.tags, ...t.files.map(f => f.name)].join(" ").toLowerCase();
+    if (!hay.includes(state.q.toLowerCase())) return false;
+  }
+  return true;
+}
+
+function renderCats() {
+  $("#cats").innerHTML = CATEGORIES.map(c => {
+    const n = TASKS.filter(t => t.cat === c.id).length;
+    return `<button class="cat" type="button" data-cat="${c.id}" aria-pressed="${state.cat === c.id}">
+      <span class="cat-head"><span class="cat-name">${c.name}</span><span class="cat-count num">${n}件</span></span>
+      <span class="cat-desc">${c.desc}</span></button>`;
+  }).join("");
+}
+
+function renderFilters() {
+  const pool = TASKS.filter(t => !state.cat || t.cat === state.cat);
+  const models = [...new Set(pool.flatMap(t => t.models))];
+  const oses = [...new Set(pool.map(t => t.os))];
+  if (state.model && !models.includes(state.model)) state.model = "";
+  if (state.os && !oses.includes(state.os)) state.os = "";
+  $("#fModel").innerHTML = `<option value="">すべて</option>` + models.map(m => `<option ${m === state.model ? "selected" : ""}>${esc(m)}</option>`).join("");
+  $("#fOs").innerHTML = `<option value="">すべて</option>` + oses.map(o => `<option ${o === state.os ? "selected" : ""}>${esc(o)}</option>`).join("");
+}
+
+function renderList() {
+  const list = TASKS.filter(matches);
+  $("#resultCount").textContent = `${list.length}件`;
+  if (!list.length) {
+    $("#taskList").innerHTML = `<div class="empty">条件に合う作業が見つかりません。<br>キーワードを短くするか、「条件をクリア」を押してください。</div>`;
+    return;
+  }
+  $("#taskList").innerHTML = list.map(t => {
+    const cat = CATEGORIES.find(c => c.id === t.cat).name;
+    const p = progressOf(t);
+    const status = p.done === p.total ? `<span class="chip ok">完了</span>` : p.done > 0 ? `<span class="chip warn">作業中 ${p.done}/${p.total}</span>` : "";
+    return `<button class="task" type="button" data-task="${t.id}">
+      <span style="display:grid;gap:5px;min-width:0">
+        <span class="task-id">${highlight(t.id, state.q)}　${cat}</span>
+        <span class="task-title">${highlight(t.title, state.q)}</span>
+        <span class="task-meta"><span>対象：${highlight(t.models.join(" / "), state.q)}</span><span>${esc(t.os)}</span><span class="num">所要 約${t.minutes}分</span></span>
+      </span>
+      <span class="task-side">
+        <span class="chip ok"><span class="chip-dot"></span>最新版 ${esc(t.version)}</span>
+        ${status}
+        <span class="num">${fmtSize(totalSize(t))}・${t.files.length}ファイル</span>
+        <span class="num">更新 ${fmtDate(t.updated)}</span>
+      </span>
+    </button>`;
+  }).join("");
+}
+
+function renderNotices() {
+  $("#notices").innerHTML = NOTICES.map(n => `<div class="notice">
+    <time class="num">${fmtDate(n.date)}</time>
+    <span><span class="chip ${n.level}">${n.level === "danger" ? "重要" : n.level === "warn" ? "期限あり" : "更新"}</span>　${esc(n.text)}</span>
+    <span><button class="btn-link" type="button" data-task="${n.task}">${n.task} を開く →</button></span>
+  </div>`).join("");
+}
+
+function renderRecent() {
+  const items = recent.map(id => TASKS.find(t => t.id === id)).filter(Boolean).slice(0, 5);
+  $("#recent").innerHTML = items.length ? items.map(t => {
+    const p = progressOf(t);
+    return `<li><button type="button" data-task="${t.id}"><span class="r-title">${esc(t.title)}</span><span class="r-sub num">${t.id}・進捗 ${p.done}/${p.total}</span></button></li>`;
+  }).join("") : `<li class="r-sub" style="padding:10px 0;color:var(--muted)">まだありません</li>`;
+}
+
+function renderHome() {
+  renderCats(); renderFilters(); renderList(); renderNotices(); renderRecent();
+}
+
+/* =========================================================
+   作業詳細
+   ========================================================= */
+const STEP_KEYS = ["pre", "dl", "verify", "extract", "install", "confirm"];
+function progressOf(t) {
+  const p = progress[t.id] || {};
+  return { done: STEP_KEYS.filter(k => p[k]).length, total: STEP_KEYS.length, map: p };
+}
+
+function stepHtml(t, key, no, title, sub, body) {
+  const done = !!(progress[t.id] || {})[key];
+  return `<section class="step ${done ? "done" : ""}" id="step-${key}">
+    <div class="step-head">
+      <span class="step-no">${done ? "✓" : no}</span>
+      <div><div class="step-title">${title}</div>${sub ? `<div class="step-sub">${sub}</div>` : ""}</div>
+      <label class="check"><input type="checkbox" data-step="${key}" ${done ? "checked" : ""}> ${done ? "完了" : "完了にする"}</label>
+    </div>
+    <div class="step-body">${body}</div>
+  </section>`;
+}
+
+function renderDetail() {
+  const t = TASKS.find(x => x.id === state.taskId);
+  const cat = CATEGORIES.find(c => c.id === t.cat);
+  const total = totalSize(t);
+  const zipFiles = t.files.filter(f => f.name.endsWith(".zip"));
+  const p = progressOf(t);
+
+  const expandCmd = zipFiles.map(f => `Expand-Archive -Path "$env:USERPROFILE\\Downloads\\${f.name}" -DestinationPath "${t.extractTo}" -Force`).join("\n");
+  const verifyCmd = t.files.map(f => `Get-FileHash "$env:USERPROFILE\\Downloads\\${f.name}" -Algorithm SHA256`).join("\n");
+
+  const filesHtml = t.files.map(f => {
+    const got = downloaded[t.id + "/" + f.name];
+    return `<div class="file">
+      <div style="display:grid;gap:4px;min-width:0">
+        <span class="file-name">${esc(f.name)}</span>
+        <span class="file-meta">
+          <span>${esc(f.desc)}</span>
+          <span class="num">${fmtSize(f.size)}（${dlTime(f.size)}）</span>
+          <span class="hash">SHA-256 <span class="mono">${f.sha.slice(0, 12)}…</span>
+            <button class="icon-btn" type="button" data-copy="${f.sha}" data-label="ハッシュ値" aria-label="${esc(f.name)} のハッシュ値をコピー" title="ハッシュ値をコピー">${ICON_COPY}</button></span>
+        </span>
+      </div>
+      <div class="file-actions">
+        <button class="btn ${got ? "got" : "primary"}" type="button" data-dl="${esc(f.name)}">${got ? "✓ 取得済み" : ICON_DL + " ダウンロード"}</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  const oldHtml = t.old.length ? `<details class="old">
+      <summary>旧バージョン（${t.old.length}件）— 通常は使用しません</summary>
+      <div class="old-body">
+        <div class="callout"><strong>旧バージョンは使用しないでください</strong>サポート窓口から指示があった場合のみ利用します。ダウンロードには理由の入力が必要です（本番想定）。</div>
+        ${t.old.map(o => `<div class="old-row"><span class="chip">版 ${esc(o.v)}</span><span class="num">公開 ${fmtDate(o.date)}</span><span>${esc(o.reason)}</span></div>`).join("")}
+      </div>
+    </details>` : "";
+
+  $("#view-detail").innerHTML = `
+    <nav class="crumbs" aria-label="現在地">
+      <button type="button" data-home>ホーム</button><span>›</span>
+      <button type="button" data-home-cat="${cat.id}">${cat.name}</button><span>›</span>
+      <span class="mono">${t.id}</span>
+    </nav>
+
+    <div class="d-head">
+      <div class="d-title-row">
+        <h1>${esc(t.title)}</h1>
+        <span class="chip ok"><span class="chip-dot"></span>最新版 ${esc(t.version)}</span>
+        ${t.tags.map(g => `<span class="chip">${esc(g)}</span>`).join("")}
+      </div>
+      <dl class="d-facts">
+        <div class="fact"><dt>作業ID</dt><dd class="mono">${t.id}</dd></div>
+        <div class="fact"><dt>対象機種</dt><dd>${esc(t.models.join(" / "))}</dd></div>
+        <div class="fact"><dt>OS</dt><dd>${esc(t.os)}</dd></div>
+        <div class="fact"><dt>所要時間（目安）</dt><dd>約${t.minutes}分</dd></div>
+        <div class="fact"><dt>ダウンロード合計</dt><dd>${fmtSize(total)}・${dlTime(total)}</dd></div>
+      </dl>
+    </div>
+
+    <div class="detail-grid">
+      <div class="steps">
+        ${stepHtml(t, "pre", 1, "事前確認", "作業を始める前に、次の項目をすべて確認してください", `
+          <ul class="checklist">${t.precheck.map(c => `<li>${esc(c)}</li>`).join("")}</ul>`)}
+
+        ${stepHtml(t, "dl", 2, "ファイルをダウンロード", `${t.files.length}ファイル・合計 ${fmtSize(total)}　100Mbps回線で${dlTime(total)}`, `
+          ${t.files.length > 1 ? `<div class="bundle">
+            <span class="bundle-text"><strong>まとめてダウンロード</strong><span class="num">${t.files.length}ファイルを順番に取得します（${fmtSize(total)}）</span></span>
+            <button class="btn primary" type="button" data-dl-all>${ICON_DL} すべてダウンロード</button>
+          </div>` : ""}
+          <div class="files">${filesHtml}</div>
+          ${total >= 5 ? `<div class="callout"><strong>大容量ファイルがあります</strong>途中で切断されてもブラウザの「再開」で続きから取得できます。モバイル回線での取得は避けてください。</div>` : ""}`)}
+
+        ${stepHtml(t, "verify", 3, "ファイルが壊れていないか確認", "PowerShell でハッシュ値を計算し、上の SHA-256 と一致するか確認します", `
+          <div class="code-head"><span>PowerShell（そのまま貼り付けて実行）</span><button class="btn sm" type="button" data-copy="${esc(verifyCmd)}" data-label="コマンド">${ICON_COPY} コマンドをコピー</button></div>
+          <div class="code"><pre>${esc(verifyCmd)}</pre></div>
+          <div class="callout info"><strong>一致しない場合</strong>ファイルを削除して、もう一度ダウンロードしてください。2回続けて一致しない場合はサポート窓口へ連絡してください。</div>`)}
+
+        ${stepHtml(t, "extract", 4, "ファイルを展開（解凍）", `展開先：<span class="mono">${esc(t.extractTo)}</span>`, zipFiles.length ? `
+          <div class="code-head"><span>PowerShell（そのまま貼り付けて実行）</span><button class="btn sm" type="button" data-copy="${esc(expandCmd)}" data-label="コマンド">${ICON_COPY} コマンドをコピー</button></div>
+          <div class="code"><pre>${esc(expandCmd)}</pre></div>
+          <div class="callout"><strong>展開先を変更しないでください</strong>デスクトップやダウンロードフォルダで展開すると、パスが長すぎてインストールに失敗することがあります。</div>` : `<p style="margin:0">展開が必要なファイルはありません。</p>`)}
+
+        ${stepHtml(t, "install", 5, "手順書に沿って設定・インストール", "手順書は画面上で開けます。印刷や持ち込みは不要です", `
+          <div class="manual-list">${t.manuals.map((m, i) => `<div class="manual-item">
+            <span class="doc-ico" aria-hidden="true">PDF</span>
+            <span style="min-width:0"><span class="m-title">${esc(m.title)}</span><br><span class="m-sub num">${m.pages}ページ・更新 ${fmtDate(m.updated)}</span></span>
+            <button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-manual="${i}">開く</button>
+          </div>`).join("")}</div>`)}
+
+        ${stepHtml(t, "confirm", 6, "完了確認", "動作を確認し、作業票に記録します", `
+          <ul class="checklist"><li>PC を再起動し、業務アプリにログインできる</li><li>展開先フォルダ <span class="mono">${esc(t.extractTo)}</span> を削除した</li><li>作業票に作業ID <span class="mono">${t.id}</span> と版 <span class="mono">${esc(t.version)}</span> を記入した</li></ul>`)}
+
+        ${oldHtml}
+      </div>
+
+      <aside class="sticky">
+        <section class="panel">
+          <div class="panel-head">この作業の進捗</div>
+          <div class="progress-box">
+            <div class="p-row"><span>完了した手順</span><strong id="pCount">${p.done} / ${p.total}</strong></div>
+            <div class="bar"><span id="pBar" style="width:${p.done / p.total * 100}%"></span></div>
+            <ul class="p-steps">${["事前確認", "ダウンロード", "ファイル確認", "展開", "設定・インストール", "完了確認"].map((n, i) => `<li class="${p.map[STEP_KEYS[i]] ? "done" : ""}"><span class="tick">${p.map[STEP_KEYS[i]] ? "✓" : "・"}</span>${n}</li>`).join("")}</ul>
+            <button class="btn-link" type="button" data-reset-progress style="justify-self:start">進捗をリセット</button>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">必要なもの</div>
+          <ul class="need">${t.needs.map(([k, v]) => `<li><span>${esc(k)}</span><span>${esc(v)}</span></li>`).join("")}</ul>
+        </section>
+        <section class="panel">
+          <div class="panel-head">困ったとき</div>
+          <div class="panel-body"><div class="help-line"><span>技術サポート窓口</span><strong>内線 4410</strong><span style="color:var(--muted);font-size:12px">作業ID <span class="mono">${t.id}</span> をお伝えください</span></div></div>
+        </section>
+      </aside>
+    </div>`;
+}
+
+/* =========================================================
+   マニュアルビューア
+   ========================================================= */
+let manualState = null;
+function openManual(t, idx) {
+  manualState = { t, idx, sec: 0, sections: manualSections(t) };
+  $("#drawerTitle").textContent = `${t.manuals[idx].title}（${t.id}）`;
+  renderManual();
+  $("#overlay").hidden = false; $("#drawer").hidden = false;
+  $("#drawerClose").focus();
+}
+function renderManual() {
+  const { sections, sec } = manualState;
+  $("#toc").innerHTML = sections.map((s, i) => `<button type="button" class="${i === sec ? "on" : ""}" data-sec="${i}">${esc(s.h)}</button>`).join("");
+  $("#doc").innerHTML = `<article><h3>${esc(sections[sec].h)}</h3>${sections[sec].body}
+    <div class="doc-pager">
+      ${sec > 0 ? `<button class="btn" type="button" data-sec="${sec - 1}">← 前へ</button>` : "<span></span>"}
+      ${sec < sections.length - 1 ? `<button class="btn primary" type="button" data-sec="${sec + 1}">次へ →</button>` : `<button class="btn" type="button" id="drawerDone">手順書を閉じる</button>`}
+    </div></article>`;
+  $("#doc").scrollTop = 0;
+}
+function closeManual() { $("#overlay").hidden = true; $("#drawer").hidden = true; manualState = null; }
+
+/* =========================================================
+   画面遷移
+   ========================================================= */
+function showHome() {
+  state.taskId = null;
+  $("#view-detail").hidden = true; $("#view-home").hidden = false;
+  renderHome(); window.scrollTo(0, 0);
+}
+function showTask(id) {
+  state.taskId = id;
+  recent = [id, ...recent.filter(r => r !== id)].slice(0, 5); store.set("portal.recent", recent);
+  $("#view-home").hidden = true; $("#view-detail").hidden = false;
+  renderDetail(); window.scrollTo(0, 0);
+}
+
+function markDownloaded(t, names) {
+  names.forEach(n => downloaded[t.id + "/" + n] = true);
+  store.set("portal.downloaded", downloaded);
+  if (t.files.every(f => downloaded[t.id + "/" + f.name])) {
+    progress[t.id] = { ...(progress[t.id] || {}), dl: true }; store.set("portal.progress", progress);
+  }
+  renderDetail();
+}
+
+/* =========================================================
+   イベント
+   ========================================================= */
+$("#brandBtn").addEventListener("click", () => { state.cat = null; showHome(); });
+$("#q").addEventListener("input", e => {
+  state.q = e.target.value.trim();
+  if (state.taskId) showHome(); else renderList();
+});
+$("#fModel").addEventListener("change", e => { state.model = e.target.value; renderList(); });
+$("#fOs").addEventListener("change", e => { state.os = e.target.value; renderList(); });
+$("#resetBtn").addEventListener("click", () => {
+  state.cat = null; state.model = ""; state.os = ""; state.q = ""; $("#q").value = ""; renderHome();
+});
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("button");
+  if (!el) return;
+  if (el.dataset.cat) { state.cat = state.cat === el.dataset.cat ? null : el.dataset.cat; renderCats(); renderFilters(); renderList(); return; }
+  if (el.dataset.task) { showTask(el.dataset.task); return; }
+  if ("home" in el.dataset) { state.cat = null; showHome(); return; }
+  if (el.dataset.homeCat) { state.cat = el.dataset.homeCat; showHome(); return; }
+  if (el.dataset.copy) { copy(el.dataset.copy, el.dataset.label || "内容"); return; }
+  const t = TASKS.find(x => x.id === state.taskId);
+  if (el.dataset.dl && t) { toast(`サンプルのため実際のダウンロードは行いません：${el.dataset.dl}`); markDownloaded(t, [el.dataset.dl]); return; }
+  if ("dlAll" in el.dataset && t) { toast(`サンプルのため実際のダウンロードは行いません（${t.files.length}ファイル）`); markDownloaded(t, t.files.map(f => f.name)); return; }
+  if (el.dataset.manual && t) { openManual(t, +el.dataset.manual); return; }
+  if ("resetProgress" in el.dataset && t) {
+    delete progress[t.id]; store.set("portal.progress", progress);
+    t.files.forEach(f => delete downloaded[t.id + "/" + f.name]); store.set("portal.downloaded", downloaded);
+    renderDetail(); toast("進捗をリセットしました"); return;
+  }
+  if (el.dataset.sec && manualState) { manualState.sec = +el.dataset.sec; renderManual(); return; }
+  if (el.id === "drawerClose" || el.id === "drawerDone") { closeManual(); return; }
+});
+
+document.addEventListener("change", e => {
+  const cb = e.target;
+  if (!cb.dataset || !cb.dataset.step || !state.taskId) return;
+  const id = state.taskId;
+  progress[id] = { ...(progress[id] || {}), [cb.dataset.step]: cb.checked };
+  store.set("portal.progress", progress);
+  renderDetail();
+  const p = progressOf(TASKS.find(x => x.id === id));
+  if (p.done === p.total) toast("すべての手順が完了しました。作業票への記入を忘れずに。");
+});
+
+$("#overlay").addEventListener("click", closeManual);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && manualState) closeManual(); });
+
+renderHome();
+</script>
+</body>
+</html>
