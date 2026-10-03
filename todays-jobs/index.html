@@ -483,6 +483,11 @@
     .needcall .nc-grid .tx small { font-size: 11px; }
     .needcall .nc-grid .switch { transform: scale(.88); transform-origin: right center; }
     .needcall .help { margin: 6px 0 0; font-size: 11px; }
+    .purge { padding: 10px 0 4px; border-bottom: 1px dashed var(--line); margin-bottom: 4px; }
+    .purge .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+    .purge .seg { grid-template-columns: repeat(3, 1fr); }
+    .purge .seg button[aria-pressed="true"] { background: var(--cyan); color: var(--ink); box-shadow: 0 0 14px rgba(208, 210, 212, .35); }
+    .purge .help { margin: 8px 0 10px; }
     .who { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
     .who .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
     .who .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
@@ -752,8 +757,25 @@
     </div>
     <div class="card">
       <h3><span data-icon="db"></span>データ</h3>
-      <p class="help" style="margin:0 0 10px;">入力した連絡状況・駐車場・メモは、この端末のブラウザ内に日付ごとに保存されます（30日経過で自動削除）。</p>
-      <div style="display:grid; gap:8px;">
+      <p class="help" style="margin:0 0 10px;">入力した連絡状況・駐車場・メモは、この端末のブラウザ内に日付ごとに保存されます（30日経過で自動削除）。容量が気になるときは、下で範囲を選んでまとめて削除できます。</p>
+      <div class="purge">
+        <div class="wl">過去のデータをまとめて削除</div>
+        <div class="seg c3" id="purgeRange">
+          <button type="button" data-r="today" aria-pressed="false">今日のみ</button>
+          <button type="button" data-r="week" aria-pressed="false">1週間分</button>
+          <button type="button" data-r="month" aria-pressed="false">1か月分</button>
+          <button type="button" data-r="all" aria-pressed="false">過去すべて</button>
+          <button type="button" data-r="custom" aria-pressed="false">日付を指定</button>
+        </div>
+        <div id="purgeCustom" class="hidden"><label class="fl" for="purgeDate">この日以前のデータを削除</label><input class="input" type="date" id="purgeDate"></div>
+        <div class="switch-row" id="purgeKeepRow" style="margin-top:10px;">
+          <div class="tx">今日の分は残す<small>1週間・1か月・過去すべての場合</small></div>
+          <label class="switch"><input type="checkbox" id="purgeKeep" checked><span></span></label>
+        </div>
+        <p class="help" id="purgeInfo">削除する範囲を選んでください。</p>
+        <button class="btn danger block" id="purgeGo" type="button" disabled>選んだ範囲を削除</button>
+      </div>
+      <div style="display:grid; gap:8px; margin-top:14px;">
         <button class="btn secondary" id="sDemo" type="button">デモデータを読み込む（表示中の日付）</button>
         <button class="btn danger" id="sResetDay" type="button">表示中の日付のデータをリセット</button>
         <button class="btn danger" id="sResetAll" type="button">すべてのデータを削除</button>
@@ -2096,6 +2118,42 @@
     if (day.jobs.length && !(await askConfirm('デモデータに置き換え', '表示中の日付のデータをデモデータで置き換えます。よろしいですか？', '置き換える', true))) return;
     loadDemo(); closeSheets();
   });
+  /* ===== 過去データの範囲削除 ===== */
+  let purgeSel = '';
+  function purgeTargets() {
+    if (!purgeSel) return null;
+    const today = todayStr();
+    const keep = $('#purgeKeep').checked && purgeSel !== 'today' && purgeSel !== 'custom';
+    let from = '', to = '';
+    if (purgeSel === 'today') { from = to = today; }
+    else if (purgeSel === 'custom') { to = $('#purgeDate').value; if (!to) return { keys: [], label: '', pending: true }; }
+    else { to = keep ? addDays(today, -1) : today; if (purgeSel === 'week') from = addDays(today, -6); else if (purgeSel === 'month') from = addDays(today, -29); }
+    const keys = store.keys().filter(k => k.startsWith(LS_PREFIX)).filter(k => { const d = k.slice(LS_PREFIX.length); return (!from || d >= from) && d <= to; });
+    const label = purgeSel === 'today' ? '今日' : purgeSel === 'custom' ? `${to} 以前` : purgeSel === 'all' ? `過去すべて（〜${to}）` : `${from} 〜 ${to}`;
+    return { keys, label };
+  }
+  function purgeRefresh() {
+    document.querySelectorAll('#purgeRange button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.r === purgeSel)));
+    $('#purgeCustom').classList.toggle('hidden', purgeSel !== 'custom');
+    $('#purgeKeepRow').style.opacity = (purgeSel === 'today' || purgeSel === 'custom') ? '.4' : '1';
+    const t = purgeTargets();
+    const info = $('#purgeInfo'), go = $('#purgeGo');
+    if (!t || t.pending) { info.textContent = t ? '日付を選んでください。' : '削除する範囲を選んでください。'; go.disabled = true; return; }
+    const jobs = t.keys.reduce((n, k) => n + ((store.get(k, null) || {}).jobs || []).length, 0);
+    info.textContent = t.keys.length ? `対象：${t.label}　${t.keys.length}日分（案件${jobs}件）` : `対象：${t.label}　削除するデータはありません。`;
+    go.disabled = !t.keys.length;
+  }
+  $('#purgeRange').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; purgeSel = b.dataset.r; purgeRefresh(); });
+  $('#purgeKeep').addEventListener('change', purgeRefresh);
+  $('#purgeDate').addEventListener('input', purgeRefresh);
+  $('#purgeGo').addEventListener('click', async () => {
+    const t = purgeTargets(); if (!t || !t.keys.length) return;
+    if (!(await askConfirm('過去のデータを削除', `${t.label}の ${t.keys.length}日分のデータ（連絡状況・駐車場・メモ・並び順など）を、この端末から削除します。元に戻せません。カレンダーの予定は消えません。`, '削除する', true))) return;
+    t.keys.forEach(k => store.del(k));
+    day = loadDay(current); render(); purgeRefresh(); toast(`${t.keys.length}日分のデータを削除しました`);
+  });
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-open-settings], #btnSettings')) setTimeout(purgeRefresh, 0); });
+
   $('#sResetDay').addEventListener('click', async () => {
     if (!(await askConfirm('この日のデータをリセット', `${fmtDateLabel(current)}のデータ（並び順・連絡状況・メモ・削除した案件）をリセットします。よろしいですか？`, 'リセットする', true))) return;
     store.del(LS_PREFIX + current); day = loadDay(current); render(); closeSheets(); toast('リセットしました');
