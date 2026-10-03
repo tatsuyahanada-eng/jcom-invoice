@@ -3,7 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>現地作業ポータル</title>
+<title>WorkBase Portal</title>
+<meta name="application-name" content="WorkBase Portal">
+<meta name="theme-color" content="#0866b6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#06508f" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WorkBase">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -101,6 +111,7 @@ svg.i { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor;
 .seg button[aria-pressed="true"] { background: var(--on-brand); color: var(--brand-ink); }
 .who { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; white-space: nowrap; }
 .who-av { width: 32px; height: 32px; border-radius: 50%; background: var(--on-brand-soft); border: 1px solid var(--on-brand-line); display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+.offline-note { font-size: 12.5px; text-align: center; padding: 6px 16px; background: var(--fg); color: var(--bg); }
 .sample-note { font-size: 12px; text-align: center; padding: 5px 16px; background: var(--warn-soft); color: var(--warn); }
 
 /* ===== Common parts ===== */
@@ -651,6 +662,8 @@ button.who:hover { background: var(--on-brand-soft); }
 .um-t { flex: 1; min-width: 0; display: grid; line-height: 1.4; }
 .um-t small { color: var(--muted); font-size: 11.5px; }
 .um-it svg.i { color: var(--accent); }
+.um-inst { margin-top: 4px; padding: 10px 12px; border-top: 1px solid var(--line); display: grid; gap: 8px; font-size: 12px; line-height: 1.6; justify-items: start; }
+.um-inst b { font-size: 12.5px; }
 .h-av { width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; }
 
 .modal.wide { width: min(560px, calc(100% - 32px)); max-height: calc(100% - 48px); overflow-y: auto; }
@@ -785,9 +798,9 @@ table.perm .no { color: var(--line-strong); }
 
 <header class="appbar">
   <div class="appbar-in">
-    <button class="brand" type="button" data-act="goHome" aria-label="現場ビューのトップへ">
+    <button class="brand" type="button" data-act="goHome" aria-label="WorkBase Portal のトップへ">
       <span class="brand-mark" id="brandMark"></span>
-      <span class="brand-txt">現地作業ポータル</span>
+      <span class="brand-txt">WorkBase Portal</span>
     </button>
     <div class="seg" role="group" aria-label="表示の切り替え">
       <button type="button" data-act="mode" data-v="work" id="modeWork"></button>
@@ -796,6 +809,7 @@ table.perm .no { color: var(--line-strong); }
     <button class="who" id="who" type="button" data-act="userMenu" aria-haspopup="menu" aria-label="ログインユーザーの切り替え"></button>
   </div>
 </header>
+<div class="offline-note" id="offlineNote" hidden role="status">オフラインです。表示済みの作業とチェックはこの端末に保存され、通信が戻ると使えるようになります。ダウンロードは通信が必要です。</div>
 <div class="sample-note">サンプル画面です。作業・機器・型番・ファイルはすべて架空のデータで、ダウンロードは実行されません。変更はこのブラウザ内にのみ保存されます。権限ごとの表示は、右上のユーザー名から切り替えて確認できます。</div>
 
 <div id="app"></div>
@@ -2135,7 +2149,10 @@ function renderLayer() {
     h += `<div class="scrim top" data-act="pvClose"></div><div class="pv-modal"><div class="phone"><div class="phone-scr" id="pvScr2">${wkDetail(S.a.draft, true)}</div></div><button class="btn" type="button" data-act="pvClose">プレビューを閉じる</button></div>`;
   }
   if (S.menuOpen) {
-    h += `<div class="scrim clear" data-act="userMenuClose"></div><div class="umenu" role="menu"><div class="um-h">ログインユーザーの切り替え<small>サンプル用の機能です。本番では、ログインしたユーザーの権限が自動で適用されます。</small></div>${DATA.users.filter(u => u.active).map(u => `<button class="um-it ${u.id === S.me ? "on" : ""}" role="menuitem" type="button" data-act="setMe" data-id="${u.id}"><span class="h-av">${esc(u.name.slice(0, 1))}</span><span class="um-t"><b>${esc(u.name)}</b><small>${esc(u.dept)}</small></span><span class="chip ${ROLES[u.role].cls}">${ROLES[u.role].label}</span>${u.id === S.me ? ic("check") : ""}</button>`).join("")}</div>`;
+    const inst = window.__bip ? `<button class="btn sm primary" type="button" data-act="installApp">${ic("dl")}アプリとしてインストール</button>`
+      : matchMedia("(display-mode: standalone)").matches ? `<span class="muted">インストール済みのアプリとして開いています。</span>`
+      : `<span class="muted">スマホでは、ブラウザのメニューの「ホーム画面に追加」（iPhone は共有ボタンから）でインストールできます。</span>`;
+    h += `<div class="scrim clear" data-act="userMenuClose"></div><div class="umenu" role="menu"><div class="um-h">ログインユーザーの切り替え<small>サンプル用の機能です。本番では、ログインしたユーザーの権限が自動で適用されます。</small></div>${DATA.users.filter(u => u.active).map(u => `<button class="um-it ${u.id === S.me ? "on" : ""}" role="menuitem" type="button" data-act="setMe" data-id="${u.id}"><span class="h-av">${esc(u.name.slice(0, 1))}</span><span class="um-t"><b>${esc(u.name)}</b><small>${esc(u.dept)}</small></span><span class="chip ${ROLES[u.role].cls}">${ROLES[u.role].label}</span>${u.id === S.me ? ic("check") : ""}</button>`).join("")}<div class="um-inst"><b>WorkBase Portal をアプリとして使う</b>${inst}</div></div>`;
   }
   if (L?.type === "modal") {
     h += `<div class="scrim top"></div><div class="modal ${L.wide ? "wide" : ""}" role="alertdialog" aria-modal="true" aria-labelledby="mT"><h2 id="mT">${esc(L.title)}</h2>${L.text ? `<p>${esc(L.text)}</p>` : ""}${L.body || ""}
@@ -2507,6 +2524,7 @@ const ACT = {
   },
 
   /* ユーザー切替 */
+  installApp: async () => { const e = window.__bip; if (!e) return; e.prompt(); await e.userChoice; window.__bip = null; renderLayer(); },
   userMenu: () => { S.menuOpen = !S.menuOpen; renderLayer(); },
   userMenuClose: () => { S.menuOpen = false; renderLayer(); },
   setMe: el => guard(() => {
@@ -2705,6 +2723,15 @@ document.addEventListener("drop", e => {
   const d = e.target.closest?.("#drop"); if (!d) return; e.preventDefault(); d.classList.remove("over"); addFiles(e.dataTransfer.files);
 });
 window.addEventListener("beforeunload", e => { if (S.a.dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+/* PWA: インストールとオフライン対応 */
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); window.__bip = e; if (S.menuOpen) renderLayer(); });
+window.addEventListener("appinstalled", () => { window.__bip = null; toast("WorkBase Portal をインストールしました"); });
+const syncOnline = () => { $("#offlineNote").hidden = navigator.onLine; };
+window.addEventListener("online", syncOnline); window.addEventListener("offline", syncOnline); syncOnline();
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
 
 if (S.mode === "admin" && can.admin()) select({ type: "task", id: "WK-1101" }); else { S.mode = "work"; render(); }
 </script>
