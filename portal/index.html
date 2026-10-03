@@ -637,6 +637,147 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .res-side .chip.ok:not(:first-child), .res-side .num { display: none; }
   .savebar .msg small { display: none; }
 }
+/* ===== v3: users / approval / history / notices / checklist ===== */
+button.who { margin-left: auto; background: none; border: 0; color: inherit; display: flex; align-items: center; gap: 10px; border-radius: 999px; padding: 3px 4px 3px 12px; }
+button.who:hover { background: var(--on-brand-soft); }
+.who-role { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px; background: var(--on-brand-soft); border: 1px solid var(--on-brand-line); }
+.scrim.clear { background: transparent; z-index: 51; }
+.umenu { position: fixed; z-index: 52; top: calc(var(--bar-h) + env(safe-area-inset-top, 0px) + 6px); right: 12px; width: min(340px, calc(100% - 24px)); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 6px; display: grid; gap: 2px; }
+.um-h { padding: 10px 12px 8px; font-size: 13px; font-weight: 700; display: grid; gap: 3px; }
+.um-h small { font-weight: 400; color: var(--muted); font-size: 11.5px; line-height: 1.55; }
+.um-it { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; background: none; border-radius: 10px; text-align: left; width: 100%; }
+.um-it:hover { background: var(--surface-2); }
+.um-it.on { background: var(--accent-soft); }
+.um-t { flex: 1; min-width: 0; display: grid; line-height: 1.4; }
+.um-t small { color: var(--muted); font-size: 11.5px; }
+.um-it svg.i { color: var(--accent); }
+.h-av { width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; }
+
+.modal.wide { width: min(560px, calc(100% - 32px)); max-height: calc(100% - 48px); overflow-y: auto; }
+.modal.wide .modal-f { position: sticky; bottom: -22px; background: var(--surface); padding: 10px 0 2px; }
+.miss-sec { display: grid; gap: 6px; }
+.miss-sec + .miss-sec { margin-top: 10px; }
+.miss-sec > b { font-size: 12.5px; color: var(--muted); }
+.miss-it { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 11px 14px; font-size: 14.5px; font-weight: 500; width: 100%; }
+.miss-it:hover { border-color: var(--accent); }
+.miss-it svg.i { color: var(--muted); }
+em.req { font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--danger); background: var(--danger-soft); border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+
+.wk-nav button.go.solid { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.ck-mini { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; font-size: 12.5px; font-weight: 700; color: var(--fg); cursor: pointer; }
+.ck-mini input { width: 17px; height: 17px; accent-color: var(--ok); margin: 0; }
+@container (max-width: 760px) {
+  .prog-rows { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+}
+
+.rec { display: flex; align-items: flex-start; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+.rec-b { flex: 1; min-width: 0; display: grid; gap: 3px; justify-items: start; font-size: 13px; line-height: 1.55; }
+.rec-b small { color: var(--muted); font-size: 12px; }
+
+/* checklist (mobile first) */
+.sheet-bar { position: sticky; top: calc(var(--bar-h) + env(safe-area-inset-top, 0px)); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line); }
+.sheet-bar-in { max-width: 760px; margin: 0 auto; padding: 10px 16px 12px; display: grid; gap: 8px; }
+.sheet-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sheet-prog { display: flex; align-items: baseline; gap: 10px; }
+.sheet-prog b { font-size: 22px; line-height: 1.2; }
+.sheet-prog span { font-size: 13px; color: var(--muted); }
+.sheet-in { max-width: 760px; margin: 0 auto; padding: 16px 16px 150px; display: grid; gap: 14px; }
+.sheet-head { padding: 16px 18px; display: grid; gap: 10px; }
+.sheet-head h1 { font-size: 18px; }
+.sheet-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sheet-opts { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.shsec { overflow: hidden; }
+.shsec-h { width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: none; border: 0; text-align: left; }
+.shsec-h .t { font-weight: 700; font-size: 15.5px; flex: 1; }
+.shsec-h .c { font-size: 13px; color: var(--muted); font-weight: 700; }
+.shsec-h svg.i:last-child { color: var(--muted); }
+.shsec.done .c { color: var(--ok); }
+.shsec.done .ico-tile { background: var(--ok-soft); color: var(--ok); }
+.ico-tile.sm { width: 34px; height: 34px; border-radius: 9px; }
+.ico-tile.sm svg.i { width: 18px; height: 18px; }
+.shitems { display: grid; border-top: 1px solid var(--line); }
+.shit { position: relative; display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; min-height: 60px; border-top: 1px solid var(--line); cursor: pointer; }
+.shit:first-child { border-top: 0; }
+.shit input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.shbox { width: 30px; height: 30px; flex: none; border-radius: 9px; border: 2px solid var(--line-strong); display: grid; place-items: center; color: transparent; background: var(--surface); margin-top: 1px; transition: background .12s, border-color .12s; }
+.shbox svg.i { stroke-width: 3.2; width: 18px; height: 18px; }
+.shit.on .shbox { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+.shit input:focus-visible + .shbox { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shtx { display: grid; gap: 3px; min-width: 0; flex: 1; }
+.shtx b { font-size: 15.5px; font-weight: 700; line-height: 1.55; overflow-wrap: anywhere; }
+.shit.on .shtx b { color: var(--muted); font-weight: 500; }
+.shtx small { font-size: 13px; color: var(--muted); white-space: pre-line; line-height: 1.7; }
+.shcaution { display: flex; gap: 8px; font-size: 12.5px; background: var(--warn-soft); border-radius: 8px; padding: 7px 10px; margin-top: 4px; line-height: 1.6; }
+.shcaution svg.i { color: var(--warn); width: 15px; height: 15px; margin-top: 3px; }
+.shit .btn { position: relative; z-index: 2; flex: none; align-self: center; }
+.sheet-end { padding: 20px 18px; display: grid; gap: 10px; text-align: center; justify-items: center; }
+.sheet-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--surface); border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -4px 20px rgba(13, 37, 55, .08); }
+.sheet-foot-in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sf-rem { font-size: 14px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.sf-rem b { font-size: 22px; }
+.btn.big { padding: 13px 22px; font-size: 15px; border-radius: 12px; }
+@keyframes flash { 0% { background: var(--warn-soft); } 100% { background: transparent; } }
+.shit.flash { animation: flash 1.8s ease-out; }
+.row-btns { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: center; }
+
+/* admin additions */
+.tree-menu { display: grid; gap: 2px; padding-bottom: 8px; }
+.tree-home .nm { flex: 1; min-width: 0; text-align: left; }
+.tree-home .ct { font-size: 11.5px; font-weight: 700; background: var(--warn-soft); color: var(--warn); border-radius: 99px; padding: 0 8px; }
+.tt .dot.rev, .order-row .dot.rev, .tree-legend .rev { color: var(--warn); }
+.status-pill.rev { background: var(--warn-soft); color: var(--warn); }
+.ed-h { font-size: 22px; flex: 1; min-width: 200px; }
+.banner { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 12px 16px; border-radius: var(--r); font-size: 13px; margin-bottom: 16px; line-height: 1.65; }
+.banner.warn { background: var(--warn-soft); }
+.banner.info { background: var(--accent-soft); }
+.banner.danger { background: var(--danger-soft); }
+.banner > svg.i { align-self: flex-start; margin-top: 2px; }
+.banner.warn > svg.i { color: var(--warn); }
+.banner.info > svg.i { color: var(--accent); }
+.banner.danger > svg.i { color: var(--danger); }
+.bn-body { flex: 1; min-width: 220px; }
+.bn-body b { display: block; font-size: 13.5px; }
+.bn-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.tbl-wrap { overflow-x: auto; margin: 0 -4px; }
+table.perm { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+table.perm th, table.perm td { padding: 10px 12px; border-top: 1px solid var(--line); text-align: center; }
+table.perm th:first-child, table.perm td:first-child { text-align: left; }
+table.perm thead th { border-top: 0; font-size: 12px; color: var(--muted); }
+table.perm .ok { color: var(--ok); display: inline-grid; }
+table.perm .no { color: var(--line-strong); }
+.role-list { display: grid; gap: 6px; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+.role-list b { color: var(--fg); }
+.row-user { grid-template-columns: 34px minmax(0, 1.1fr) minmax(0, 1.5fr) minmax(0, 1fr) 124px 74px; }
+.row-user.off { opacity: .62; }
+.row-user .ls { font-size: 11px; color: var(--muted); }
+.req-tg:disabled { opacity: .4; pointer-events: none; }
+.hfilter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.hfilter .sel, .hfilter .inp { width: auto; min-width: 150px; }
+.hfilter .inp { flex: 1; min-width: 200px; }
+.hlist { overflow: hidden; }
+.hrow { display: flex; gap: 12px; padding: 14px 18px; border-top: 1px solid var(--line); }
+.hrow:first-child { border-top: 0; }
+.h-body { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.h-top { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 13px; }
+.h-top time { margin-left: auto; font-size: 12px; }
+.h-tgt { font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.h-det { font-size: 13px; color: var(--muted); line-height: 1.65; }
+.nrow .n-top { display: flex; align-items: center; gap: 10px; }
+.n-prev .notice { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; background: var(--bg); }
+.toggles button:disabled { opacity: .4; pointer-events: none; }
+@container (max-width: 680px) {
+  .row-user { grid-template-columns: 34px minmax(0, 1fr); }
+  .row-user > :nth-child(n+3) { grid-column: 1 / -1; }
+  .hfilter .sel, .hfilter .inp { width: 100%; flex-basis: 100%; }
+  .hrow { padding: 12px 14px; }
+}
+@media (max-width: 640px) {
+  .sheet-meta { grid-template-columns: 1fr; }
+  .sheet-in { padding: 12px 12px 150px; }
+  .sheet-bar-in { padding: 8px 12px 10px; }
+  .who-role { display: none; }
+  button.who { padding-left: 4px; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 </style>
 </head>
@@ -652,10 +793,10 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
       <button type="button" data-act="mode" data-v="work" id="modeWork"></button>
       <button type="button" data-act="mode" data-v="admin" id="modeAdmin"></button>
     </div>
-    <div class="who"><span class="who-name">技術課　山田</span><span class="who-av" aria-hidden="true">山</span></div>
+    <button class="who" id="who" type="button" data-act="userMenu" aria-haspopup="menu" aria-label="ログインユーザーの切り替え"></button>
   </div>
 </header>
-<div class="sample-note">サンプル画面です。作業・機器・型番・ファイルはすべて架空のデータで、ダウンロードは実行されません。設定画面での変更はこのブラウザ内にのみ保存されます。</div>
+<div class="sample-note">サンプル画面です。作業・機器・型番・ファイルはすべて架空のデータで、ダウンロードは実行されません。変更はこのブラウザ内にのみ保存されます。権限ごとの表示は、右上のユーザー名から切り替えて確認できます。</div>
 
 <div id="app"></div>
 <div id="layer"></div>
@@ -703,6 +844,12 @@ const ICONS = {
   grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
   logo: '<path d="M4 5h16v11H4z"/><path d="M9 20h6M12 16v4M8 10.5l2.5 2.5L16 8"/>'
 };
+Object.assign(ICONS, {
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
+  sheet: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 12.5l2.5 2.5 4.5-5"/>',
+  shield: '<path d="M12 3 4.5 6v5.5c0 4.5 3 8 7.5 9.5 4.5-1.5 7.5-5 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/>',
+  history: '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 4v4.5H8M12 7.5V12l3 2"/>'
+});
 const CAT_ICONS = ["register", "kiosk", "card", "hotel", "clinic", "network", "printer", "laptop", "wrench", "box"];
 const ic = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ICONS.box}</svg>`;
 
@@ -955,11 +1102,64 @@ const DEFAULT_DATA = {
     }
   ],
   notices: [
-    { date: "2026-09-22", level: "warn", text: "POS アプリ 5.3.1 を公開しました。10月末までに既存店舗の更新をお願いします。", task: "WK-5101" },
-    { date: "2026-09-12", level: "accent", text: "KIOSK 設置手順を 3.0 に更新しました。旧版（2.4）は使用できません。", task: "WK-2101" },
-    { date: "2026-09-05", level: "danger", text: "ルーター設定 2.4 は脆弱性のため使用禁止です。必ず 2.6 を使用してください。", task: "WK-4101" }
+    { id: "n1", date: "2026-09-22", level: "warn", text: "POS アプリ 5.3.1 を公開しました。10月末までに既存店舗の更新をお願いします。", task: "WK-5101", status: "published", until: "2026-10-31" },
+    { id: "n2", date: "2026-09-12", level: "accent", text: "KIOSK 設置手順を 3.0 に更新しました。旧版（2.4）は使用できません。", task: "WK-2101", status: "published", until: "" },
+    { id: "n3", date: "2026-09-05", level: "danger", text: "ルーター設定 2.4 は脆弱性のため使用禁止です。必ず 2.6 を使用してください。", task: "WK-4101", status: "published", until: "" },
+    { id: "n4", date: "2026-10-01", level: "accent", text: "11月から、作業の完了時にチェックシートの記録を残す運用になります。", task: "", status: "draft", until: "" }
+  ],
+  users: [
+    { id: "u1", name: "山田 太郎", email: "yamada@example.co.jp", dept: "技術課", role: "admin", active: true, last: "2026-10-03 09:12" },
+    { id: "u2", name: "佐藤 花子", email: "sato@example.co.jp", dept: "技術課", role: "approver", active: true, last: "2026-10-02 17:45" },
+    { id: "u3", name: "鈴木 一郎", email: "suzuki@example.co.jp", dept: "技術課", role: "editor", active: true, last: "2026-10-02 10:30" },
+    { id: "u4", name: "高橋 健", email: "takahashi@example.co.jp", dept: "サポート課", role: "editor", active: true, last: "2026-10-02 17:20" },
+    { id: "u5", name: "田中 美咲", email: "tanaka@example.co.jp", dept: "施工チーム A", role: "viewer", active: true, last: "2026-10-03 08:05" },
+    { id: "u6", name: "伊藤 大輔", email: "ito@example.co.jp", dept: "施工チーム B", role: "viewer", active: false, last: "2026-06-30 18:00" }
+  ],
+  history: [
+    { id: "h1", at: "2026-10-02 17:20", user: "u4", action: "request", type: "task", tid: "WK-2102", name: "自動釣銭機の接続と動作確認", detail: "公開中の内容への変更を申請（変更箇所：準備・持参品、作業手順、公開設定）　メモ：テスト後に準備金を確認する手順を追加しました。" },
+    { id: "h2", at: "2026-10-01 14:10", user: "u1", action: "create", type: "notice", tid: "", name: "11月から、作業の完了時にチェックシートの記録を残す運用になります。", detail: "下書きで作成" },
+    { id: "h3", at: "2026-09-28 16:40", user: "u3", action: "create", type: "task", tid: "WK-3102", name: "自動チェックイン機の設置", detail: "下書きとして新規作成" },
+    { id: "h4", at: "2026-09-25 11:05", user: "u2", action: "publish", type: "task", tid: "WK-1101", name: "POSレジ本体 初期セットアップ（飲食店向け）", detail: "鈴木 一郎さんの申請を承認して公開（変更箇所：対象機器、ファイル、作業手順）。版 5.2 → 5.3、旧版は「旧バージョン」へ移動" },
+    { id: "h5", at: "2026-09-24 15:30", user: "u3", action: "request", type: "task", tid: "WK-1101", name: "POSレジ本体 初期セットアップ（飲食店向け）", detail: "公開中の内容への変更を申請（変更箇所：対象機器、ファイル、作業手順、公開設定）" },
+    { id: "h6", at: "2026-09-22 10:15", user: "u2", action: "publish", type: "task", tid: "WK-5101", name: "POSアプリが起動しない場合の再インストール", detail: "POS アプリ 5.3.1 に更新して公開" },
+    { id: "h7", at: "2026-09-20 09:40", user: "u2", action: "reject", type: "task", tid: "WK-2101", name: "セルフオーダーKIOSK 設置と初期設定", detail: "差し戻し：「注意点にアンカー固定の許可を追記してください」（申請者：鈴木 一郎）" },
+    { id: "h8", at: "2026-09-12 13:00", user: "u2", action: "publish", type: "task", tid: "WK-2101", name: "セルフオーダーKIOSK 設置と初期設定", detail: "版 2.4 → 3.0 を公開" },
+    { id: "h9", at: "2026-08-30 10:05", user: "u1", action: "create", type: "user", tid: "", name: "田中 美咲", detail: "ユーザーを追加（閲覧のみ）" },
+    { id: "h10", at: "2026-08-18 16:50", user: "u1", action: "update", type: "user", tid: "", name: "高橋 健", detail: "権限を変更：閲覧のみ → 編集" }
   ]
 };
+
+(function () {
+  const t = DEFAULT_DATA.tasks.find(x => x.id === "WK-2102");
+  const snap = JSON.parse(JSON.stringify(t));
+  snap.version = "1.5"; snap.changelog = "釣銭準備金の確認手順を追加";
+  snap.bring.push({ name: "釣銭準備金の確認表", qty: "1枚", required: false });
+  snap.steps.push({ title: "釣銭準備金の確認", body: "テスト後、釣銭機内の金額が作業前と同じであることを店舗担当者と一緒に確認し、確認表に記入します。", caution: "" });
+  t.review = { by: "u4", at: "2026-10-02 17:20", note: "テスト後に準備金を確認する手順を追加しました。", snapshot: snap };
+})();
+
+const SEED_RECORDS = [
+  { id: "r1", taskId: "WK-4101", title: "店舗ルーターの設定と本部VPN接続", version: "2.6", place: "〇〇店（新規）", by: "田中 美咲", at: "2026-10-02 15:42", notes: "", total: 12, done: 12, skipped: [], reason: "" }
+];
+
+/* 権限 */
+const ROLES = {
+  viewer: { label: "閲覧のみ", lv: 0, cls: "", desc: "現場ビューで作業の検索・ダウンロード・チェックシートを使えます。設定画面は開けません。" },
+  editor: { label: "編集", lv: 1, cls: "accent", desc: "作業・大項目・お知らせを編集し、下書き保存と公開の申請ができます。公開はできません。" },
+  approver: { label: "公開承認", lv: 2, cls: "ok", desc: "編集に加えて、申請の承認・差し戻し、公開／非公開の切り替え、削除ができます。" },
+  admin: { label: "管理者", lv: 3, cls: "warn", desc: "公開承認の権限に加えて、ユーザーの登録と権限の変更ができます。" }
+};
+const PERMS = [
+  ["現場ビューで作業を探す・ダウンロード・チェックシート", [1, 1, 1, 1]],
+  ["設定画面を開く・変更履歴を見る", [0, 1, 1, 1]],
+  ["作業・大項目・お知らせの編集（下書き保存）", [0, 1, 1, 1]],
+  ["公開の申請", [0, 1, 1, 1]],
+  ["申請の承認・差し戻し、公開／非公開の切り替え、削除", [0, 0, 1, 1]],
+  ["ユーザーの登録・権限の変更", [0, 0, 0, 1]]
+];
+const HACT = { create: ["新規作成", "accent"], update: ["更新", ""], request: ["承認申請", "warn"], publish: ["公開", "ok"], reject: ["差し戻し", "danger"], delete: ["削除", "danger"] };
+const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー" };
+const LEVELS = { danger: "重要", warn: "期限あり", accent: "更新" };
 
 /* =========================================================
    状態・保存
@@ -969,16 +1169,19 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 const clone = o => JSON.parse(JSON.stringify(o));
-let DATA = store.get("portal2.data", null) || clone(DEFAULT_DATA);
-let PROG = store.get("portal2.prog", {});
+let DATA = store.get("portal3.data", null) || clone(DEFAULT_DATA);
+let PROG = store.get("portal3.prog", {});
+let RECORDS = store.get("portal3.records", null) || clone(SEED_RECORDS);
 let RECENT = store.get("portal2.recent", ["WK-1101", "WK-4101"]);
-const saveData = () => store.set("portal2.data", DATA);
-const saveProg = () => store.set("portal2.prog", PROG);
+const saveData = () => store.set("portal3.data", DATA);
+const saveProg = () => store.set("portal3.prog", PROG);
+const saveRecords = () => store.set("portal3.records", RECORDS);
 
 const S = {
   mode: location.hash === "#admin" ? "admin" : "work",
-  w: { view: "home", taskId: null, cat: null, ind: null, q: "" },
-  a: { sel: null, tab: "basic", draft: null, dirty: false, open: { pos: true }, treeQ: "", stepOpen: new Set(), pending: null, pvModal: false },
+  me: store.get("portal3.me", "u1"), menuOpen: false,
+  w: { view: "home", taskId: null, cat: null, ind: null, q: "", shClosed: {}, shOnly: false },
+  a: { sel: null, tab: "basic", draft: null, dirty: false, open: { pos: true }, treeQ: "", stepOpen: new Set(), pending: null, pvModal: false, reviewing: false, note: "", hist: { type: "", user: "", q: "" } },
   layer: null   // {type:'focus'|'manual'|'modal', ...}
 };
 
@@ -987,7 +1190,9 @@ const S = {
    ========================================================= */
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const today = () => new Date().toISOString().slice(0, 10);
+const pad2 = n => String(n).padStart(2, "0");
+const nowStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+const today = () => nowStr().slice(0, 10);
 const fmtDate = d => d ? d.replaceAll("-", "/") : "—";
 function fmtBytes(b) {
   if (!b && b !== 0) return "—";
@@ -1030,7 +1235,7 @@ function setPath(o, path, v) { const k = path.split("."); let x = o; for (let i 
 /* 入力状況の判定（設定画面のタブ表示・ツリー・ダッシュボードで共通利用） */
 const TABS = [
   ["basic", "基本情報"], ["dev", "対象機器"], ["prep", "準備・持参品"], ["files", "ファイル"],
-  ["steps", "作業手順"], ["man", "マニュアル"], ["pub", "公開設定"]
+  ["steps", "作業手順"], ["man", "マニュアル"], ["pub", "公開設定"], ["hist", "変更履歴"]
 ];
 function sectionState(t) {
   const n = t.precheck.length + t.bring.length;
@@ -1041,12 +1246,32 @@ function sectionState(t) {
     files: t.files.length || "opt",
     steps: t.steps.length || "need",
     man: t.manuals.length || "opt",
-    pub: t.status === "published" ? "ok" : "draft"
+    pub: t.status === "published" ? "ok" : "draft",
+    hist: DATA.history.filter(x => x.tid === t.id).length || "opt"
   };
 }
 function missing(t) {
   const s = sectionState(t);
   return TABS.filter(([k]) => s[k] === "need").map(([, n]) => n);
+}
+
+/* ユーザー・権限・履歴 */
+const me = () => DATA.users.find(u => u.id === S.me) || DATA.users[0];
+const can = { admin: () => ROLES[me().role].lv >= 1, approve: () => ROLES[me().role].lv >= 2, users: () => ROLES[me().role].lv >= 3 };
+const userName = id => DATA.users.find(u => u.id === id)?.name || "（削除済み）";
+function log(action, type, tid, name, detail = "") {
+  DATA.history.unshift({ id: "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: nowStr(), user: S.me, action, type, tid: tid || "", name, detail });
+  DATA.history = DATA.history.slice(0, 300);
+}
+const TABGROUPS = { basic: ["title", "summary", "cat", "minutes", "people", "industries", "tags"], dev: ["devices", "os"], prep: ["precheck", "bring"], files: ["files", "extractTo"], steps: ["steps"], man: ["manuals"], pub: ["version", "changelog"] };
+function changedTabs(a, b) {
+  return TABS.filter(([k]) => TABGROUPS[k] && TABGROUPS[k].some(f => JSON.stringify(a[f]) !== JSON.stringify(b[f]))).map(([, n]) => n);
+}
+function statusPill(id) {
+  const t = taskById(id);
+  if (!t) return `<span class="status-pill draft"><span class="dot"></span>未保存</span>`;
+  if (t.review) return `<span class="status-pill rev"><span class="dot"></span>${t.status === "published" ? "公開中・変更を承認待ち" : "承認待ち"}</span>`;
+  return `<span class="status-pill ${t.status === "published" ? "pub" : "draft"}"><span class="dot"></span>${t.status === "published" ? "公開中" : "下書き"}</span>`;
 }
 
 /* =========================================================
@@ -1066,16 +1291,36 @@ function searchHit(t, q) {
   if (t.bring.some(b => has(b.name))) return { hit: true, why: "持参品に一致" };
   return { hit: false };
 }
-function progOf(t) {
-  const p = PROG[t.id] || {};
-  const cnt = (o, n) => Object.entries(o || {}).filter(([k, v]) => v && +k < n).length;
-  const prepT = t.precheck.length + t.bring.length;
-  const prepD = cnt(p.prep, t.precheck.length) + cnt(p.bring, t.bring.length);
-  const fileD = t.files.filter(x => (p.files || {})[x.name]).length;
-  const stepD = cnt(p.steps, t.steps.length);
-  const total = prepT + t.files.length + t.steps.length;
-  const done = prepD + fileD + stepD;
-  return { p, prepT, prepD, fileD, stepD, total, done, started: done > 0, complete: total > 0 && done === total };
+const chk = (t, k) => !!(((PROG[t.id] || {}).c || {})[k]);
+function setChk(t, k, v) { const p = (PROG[t.id] ||= {}); (p.c ||= {})[k] = v; saveProg(); }
+function sheetOf(t) {
+  const secs = [];
+  if (t.bring.length) secs.push({ key: "bring", title: "出発前：持参品", icon: "box", items: t.bring.map((b, i) => ({ id: "bring:" + i, label: b.name || "（未入力）", sub: b.qty ? "数量 " + b.qty : "", req: !!b.required })) });
+  if (t.precheck.length) secs.push({ key: "prep", title: "作業前：事前確認", icon: "check", items: t.precheck.map((x, i) => ({ id: "prep:" + i, label: x || "（未入力）" })) });
+  if (t.files.length) {
+    const items = t.files.map(x => ({ id: "file:" + x.name, label: "ダウンロード：" + x.name, sub: fmtBytes(x.size), dl: x.name }));
+    items.push({ id: "hash", label: "ハッシュ値が一致することを確認した", sub: "表示された SHA-256 と、PowerShell の結果を比べます" });
+    if (t.files.some(x => /\.zip$/i.test(x.name))) items.push({ id: "extract", label: "指定のフォルダに展開した", sub: t.extractTo });
+    secs.push({ key: "files", title: "ファイルの準備", icon: "dl", items });
+  }
+  if (t.steps.length) secs.push({ key: "steps", title: "作業手順", icon: "steps", items: t.steps.map((s, i) => ({ id: "steps:" + i, label: s.title || "（手順名未入力）", sub: s.body, caution: s.caution })) });
+  const fin = [{ id: "final:0", label: "動作確認を実施した", sub: "ログイン・印字・接続など、この作業の目的が達成できていることを確認します" }];
+  if (t.files.length) fin.push({ id: "final:1", label: "展開したフォルダと一時ファイルを削除した" });
+  fin.push({ id: "final:2", label: `作業票に作業ID（${t.id}）と版（${t.version}）を記入した` });
+  secs.push({ key: "final", title: "完了確認", icon: "shield", items: fin });
+  return secs;
+}
+function calc(t, isOn) {
+  const map = {}; let total = 0, done = 0;
+  sheetOf(t).forEach(s => { const d = s.items.filter(it => isOn(it.id)).length; map[s.key] = { d, n: s.items.length }; total += s.items.length; done += d; });
+  const grp = (label, keys) => ({ label, d: keys.reduce((a, k) => a + (map[k]?.d || 0), 0), n: keys.reduce((a, k) => a + (map[k]?.n || 0), 0) });
+  const rows = [grp("準備", ["bring", "prep"]), grp("ファイル", ["files"]), grp("手順", ["steps"]), grp("完了確認", ["final"])].filter(r => r.n);
+  return { rows, total, done, started: done > 0, complete: total > 0 && done === total };
+}
+const progOf = t => calc(t, k => chk(t, k));
+const visibleNotices = () => DATA.notices.filter(n => n.status === "published" && (!n.until || n.until >= today())).sort((a, b) => b.date.localeCompare(a.date));
+function recordsCard() {
+  return `<section class="card"><h3>${ic("sheet")} 最近の作業記録</h3>${RECORDS.slice(0, 4).map(r => `<div class="rec"><div class="rec-b"><b>${esc(r.title)}</b><small class="num">${esc(r.place || "—")}・${r.at.replaceAll("-", "/")}</small>${r.skipped.length ? `<span class="chip warn">未完了 ${r.skipped.length}件</span>` : `<span class="chip ok">${ic("check")}全${r.total}件 完了</span>`}</div><button class="icon-btn" type="button" data-act="recCopy" data-id="${r.id}" aria-label="作業記録をコピー">${ic("copy")}</button></div>`).join("") || `<p class="muted" style="font-size:13px;padding:8px 0">まだありません</p>`}</section>`;
 }
 
 function workHome() {
@@ -1105,7 +1350,7 @@ function workHome() {
   <div class="home">
     <section aria-label="作業カテゴリ">
       <div class="cats">
-        ${catsSorted().map(c => {
+        ${catsSorted().filter(c => pub.some(t => t.cat === c.id)).map(c => {
           const n = pub.filter(t => t.cat === c.id).length;
           return `<button class="card cat" type="button" data-act="wCat" data-id="${c.id}" aria-pressed="${S.w.cat === c.id}">
             <span class="ico-tile">${ic(c.icon)}</span>
@@ -1123,11 +1368,11 @@ function workHome() {
       <aside class="side">
         <section class="card">
           <h3>${ic("bell")} お知らせ</h3>
-          ${DATA.notices.map(n => `<div class="notice">
+          ${visibleNotices().map(n => `<div class="notice">
             <time class="num">${fmtDate(n.date)}</time>
             <span><span class="chip ${n.level}">${n.level === "danger" ? "重要" : n.level === "warn" ? "期限あり" : "更新"}</span> ${esc(n.text)}</span>
             ${taskById(n.task) ? `<button class="link" type="button" data-act="openTask" data-id="${n.task}">${n.task} を開く →</button>` : ""}
-          </div>`).join("")}
+          </div>`).join("") || `<p class="muted" style="font-size:13px;padding:8px 0">お知らせはありません</p>`}
         </section>
         <section class="card">
           <h3>${ic("clock")} 最近開いた作業</h3>
@@ -1136,6 +1381,7 @@ function workHome() {
             return `<button class="recent-item" type="button" data-act="openTask" data-id="${t.id}"><b>${esc(t.title)}</b><small class="num">${t.id}・進み具合 ${p.done}/${p.total}</small></button>`;
           }).join("") || `<p class="muted" style="font-size:13px;padding:8px 0">まだありません</p>`}
         </section>
+        ${recordsCard()}
         <section class="card support">
           <h3>${ic("info")} 現場で困ったとき</h3>
           <div style="padding:2px 0 8px;font-size:13px">技術サポート窓口（平日 8:30–19:00）<strong>内線 4410</strong><span class="muted">作業IDをお伝えください</span></div>
@@ -1185,8 +1431,8 @@ function resCard(t, h, q) {
    ========================================================= */
 function wkDetail(t, preview = false) {
   const c = catOf(t.cat);
-  const pr = preview ? { p: {}, prepT: t.precheck.length + t.bring.length, prepD: 0, fileD: 0, stepD: 0, total: 0, done: 0 } : progOf(t);
-  const p = pr.p;
+  const pr = preview ? calc(t, () => false) : progOf(t);
+  const on_ = k => !preview && chk(t, k);
   const dis = preview ? "disabled" : "";
   const total = totalSize(t);
   const zips = t.files.filter(x => /\.zip$/i.test(x.name));
@@ -1194,7 +1440,7 @@ function wkDetail(t, preview = false) {
   const hashCmd = t.files.map(x => `Get-FileHash "$env:USERPROFILE\\Downloads\\${x.name}"`).join("\n");
   const pct = pr.total ? Math.round(pr.done / pr.total * 100) : 0;
   const none = s => `<p class="muted" style="font-size:13px">${s}</p>`;
-  const navItems = [["prep", "準備", pr.prepT], ["dev", "機器", t.devices.length], ["files", "ファイル", t.files.length], ["steps", "手順", t.steps.length], ["man", "マニュアル", t.manuals.length]];
+  const navItems = [["prep", "準備", t.precheck.length + t.bring.length], ["dev", "機器", t.devices.length], ["files", "ファイル", t.files.length], ["steps", "手順", t.steps.length], ["man", "マニュアル", t.manuals.length]];
 
   return `<div class="wk-c"><div class="wk">
     ${preview ? "" : `<button class="back" type="button" data-act="goHome">${ic("chev")}作業一覧へ戻る</button>`}
@@ -1211,6 +1457,7 @@ function wkDetail(t, preview = false) {
     </header>
 
     <nav class="wk-nav" aria-label="この作業の目次">
+      <button class="go solid" type="button" data-act="shOpen" data-id="${esc(t.id)}" ${dis}>${ic("sheet")}チェックシート</button>
       ${navItems.map(([k, n, cnt]) => `<button type="button" data-act="jump" data-to="${k}">${n}<span class="n">${cnt}</span></button>`).join("")}
       ${t.steps.length ? `<button class="go" type="button" data-act="focusStart" data-id="${esc(t.id)}" ${dis}>${ic("steps")}1手順ずつ表示</button>` : ""}
     </nav>
@@ -1223,14 +1470,14 @@ function wkDetail(t, preview = false) {
             <div>
               <div class="sub-h">${ic("check")} 事前確認</div>
               <div class="cks">${t.precheck.length ? t.precheck.map((x, i) => {
-                const on = (p.prep || {})[i];
+                const on = on_("prep:" + i);
                 return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="prep:${i}" ${on ? "checked" : ""} ${dis}><span>${x ? esc(x) : "<span class='muted'>（未入力）</span>"}</span></label>`;
               }).join("") : none("事前確認はありません")}</div>
             </div>
             <div>
               <div class="sub-h">${ic("box")} 現地持参品</div>
               <div class="cks">${t.bring.length ? t.bring.map((x, i) => {
-                const on = (p.bring || {})[i];
+                const on = on_("bring:" + i);
                 return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="bring:${i}" ${on ? "checked" : ""} ${dis}><span>${x.name ? esc(x.name) : "<span class='muted'>（未入力）</span>"}${x.required ? `<span class="req">必須</span>` : ""}</span><span class="qty">${esc(x.qty)}</span></label>`;
               }).join("") : none("持参品はありません")}</div>
             </div>
@@ -1254,7 +1501,7 @@ function wkDetail(t, preview = false) {
             ${t.files.length > 1 ? `<div class="bundle"><span><b>まとめてダウンロード</b><small class="num">${t.files.length}ファイル（${fmtBytes(total)}）・100Mbps回線で${dlTime(total)}</small></span>
               <button class="btn primary" type="button" data-act="dlAll" ${dis}>${ic("dl")}すべてダウンロード</button></div>` : ""}
             <div class="files">${t.files.map(x => {
-              const got = (p.files || {})[x.name];
+              const got = on_("file:" + x.name);
               return `<div class="file">
                 <span class="file-ico">${ic(/\.zip$/i.test(x.name) ? "zip" : "file")}</span>
                 <span style="display:grid;gap:3px;min-width:0">
@@ -1265,9 +1512,9 @@ function wkDetail(t, preview = false) {
                 <button class="btn ${got ? "done" : "primary"}" type="button" data-act="dl" data-v="${esc(x.name)}" ${dis}>${got ? ic("check") + "取得済み" : ic("dl") + "ダウンロード"}</button>
               </div>`;
             }).join("")}</div>
-            <div class="code-h"><span>ファイル確認（表示される値が上の SHA-256 と一致するか）</span><button class="btn sm" type="button" data-act="copy" data-v="${esc(hashCmd)}" data-l="コマンド">${ic("copy")}コピー</button></div>
+            <div class="code-h"><span>ファイル確認（表示される値が上の SHA-256 と一致するか）<label class="ck-mini"><input type="checkbox" data-wck="hash" ${on_("hash") ? "checked" : ""} ${dis}>確認した</label></span><button class="btn sm" type="button" data-act="copy" data-v="${esc(hashCmd)}" data-l="コマンド">${ic("copy")}コピー</button></div>
             <div class="code"><pre>${esc(hashCmd)}</pre></div>
-            ${zips.length ? `<div class="code-h"><span>展開（解凍）先：<span class="mono">${esc(t.extractTo)}</span></span><button class="btn sm" type="button" data-act="copy" data-v="${esc(expandCmd)}" data-l="コマンド">${ic("copy")}コピー</button></div>
+            ${zips.length ? `<div class="code-h"><span>展開（解凍）先：<span class="mono">${esc(t.extractTo)}</span><label class="ck-mini"><input type="checkbox" data-wck="extract" ${on_("extract") ? "checked" : ""} ${dis}>展開した</label></span><button class="btn sm" type="button" data-act="copy" data-v="${esc(expandCmd)}" data-l="コマンド">${ic("copy")}コピー</button></div>
             <div class="code"><pre>${esc(expandCmd)}</pre></div>` : ""}
             ${total >= GB ? `<div class="note">${ic("alert")}<span><b>大容量のファイルがあります</b>モバイル回線での取得は避け、事務所または店舗の有線LANで取得してください。途中で切れてもブラウザの「再開」で続きから取得できます。</span></div>` : ""}
           ` : none("この作業で使うファイルはありません")}
@@ -1276,13 +1523,14 @@ function wkDetail(t, preview = false) {
         <section class="card wsec" data-sec="steps">
           <div class="wsec-h"><h2>作業手順</h2><span class="sub">${t.steps.length}ステップ・番号を押すと完了にできます</span></div>
           <div class="wsteps">${t.steps.length ? t.steps.map((s, i) => {
-            const on = (p.steps || {})[i];
+            const on = on_("steps:" + i);
             return `<div class="wstep ${on ? "on" : ""}">
               <label class="wnum" title="完了にする"><input type="checkbox" data-wck="steps:${i}" ${on ? "checked" : ""} ${dis} aria-label="手順${i + 1}を完了にする">${on ? ic("check") : i + 1}</label>
               <div><h3>${s.title ? esc(s.title) : "<span class='muted'>（手順名未入力）</span>"}</h3>${s.body ? `<p>${esc(s.body)}</p>` : ""}
               ${s.caution ? `<div class="note">${ic("alert")}<span>${esc(s.caution)}</span></div>` : ""}</div>
             </div>`;
           }).join("") : none("作業手順が登録されていません")}</div>
+          <div><div class="sub-h">${ic("shield")} 完了確認</div><div class="cks">${sheetOf(t).find(s => s.key === "final").items.map(it => { const on = on_(it.id); return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="${it.id}" ${on ? "checked" : ""} ${dis}><span>${esc(it.label)}</span></label>`; }).join("")}</div></div>
         </section>
 
         <section class="card wsec" data-sec="man">
@@ -1304,12 +1552,8 @@ function wkDetail(t, preview = false) {
         <section class="card prog">
           <div class="prog-top"><b>この作業の進み具合</b><strong>${pct}%</strong></div>
           <div class="bar"><span style="width:${pct}%"></span></div>
-          <div class="prog-rows">
-            <div><span>準備・持参品</span><span class="v ${pr.prepT && pr.prepD === pr.prepT ? "ok" : ""}">${pr.prepD}/${pr.prepT}</span></div>
-            <div><span>ダウンロード</span><span class="v ${t.files.length && pr.fileD === t.files.length ? "ok" : ""}">${pr.fileD}/${t.files.length}</span></div>
-            <div><span>作業手順</span><span class="v ${t.steps.length && pr.stepD === t.steps.length ? "ok" : ""}">${pr.stepD}/${t.steps.length}</span></div>
-          </div>
-          ${preview ? "" : `<div class="prog-actions">${t.steps.length ? `<button class="btn sm primary" type="button" data-act="focusStart" data-id="${esc(t.id)}">${ic("steps")}1手順ずつ表示</button>` : ""}<button class="btn sm ghost" type="button" data-act="resetProg">リセット</button></div>`}
+          <div class="prog-rows">${pr.rows.map(r => `<div><span>${r.label}</span><span class="v ${r.d === r.n ? "ok" : ""}">${r.d}/${r.n}</span></div>`).join("")}</div>
+          ${preview ? "" : `<div class="prog-actions"><button class="btn sm primary" type="button" data-act="shOpen" data-id="${esc(t.id)}">${ic("sheet")}チェックシートで進める</button>${t.steps.length ? `<button class="btn sm" type="button" data-act="focusStart" data-id="${esc(t.id)}">${ic("steps")}1手順ずつ表示</button>` : ""}<button class="btn sm ghost" type="button" data-act="resetProg">リセット</button></div>`}
         </section>
         <section class="card prog support-card">
           <b style="font-size:14px">困ったとき</b>
@@ -1321,18 +1565,84 @@ function wkDetail(t, preview = false) {
 }
 
 function renderWork() {
-  if (S.w.view === "task") {
-    const t = taskById(S.w.taskId);
-    if (t && t.status === "published") return wkDetail(t);
-    S.w.view = "home";
+  const t = S.w.taskId && taskById(S.w.taskId);
+  if (t && t.status === "published") {
+    if (S.w.view === "sheet") return sheetHtml(t);
+    if (S.w.view === "task") return wkDetail(t);
   }
+  S.w.view = "home";
   return workHome();
+}
+
+function sheetHtml(t) {
+  const secs = sheetOf(t), pr = progOf(t), P = PROG[t.id] || {}, rec = P.rec, meta = P.meta || {};
+  const all = secs.flatMap(s => s.items), left = all.filter(it => !chk(t, it.id));
+  const dis = rec ? "disabled" : "";
+  const pct = pr.total ? Math.round(pr.done / pr.total * 100) : 0;
+  const item = it => {
+    const on = chk(t, it.id);
+    return `<label class="shit ${on ? "on" : ""}" data-item="${esc(it.id)}">
+      <input type="checkbox" data-wck="${esc(it.id)}" ${on ? "checked" : ""} ${dis}>
+      <span class="shbox">${ic("check")}</span>
+      <span class="shtx"><b>${esc(it.label)}${it.req ? `<em class="req">必須</em>` : ""}</b>${it.sub ? `<small>${esc(it.sub)}</small>` : ""}${it.caution ? `<span class="shcaution">${ic("alert")}<span>${esc(it.caution)}</span></span>` : ""}</span>
+      ${it.dl && !on ? `<button class="btn sm" type="button" data-act="dl" data-v="${esc(it.dl)}" ${dis}>${ic("dl")}取得</button>` : ""}
+    </label>`;
+  };
+  const sec = s => {
+    const d = s.items.filter(it => chk(t, it.id)).length, n = s.items.length, done = d === n;
+    const closed = !!S.w.shClosed[t.id + ":" + s.key];
+    const list = S.w.shOnly ? s.items.filter(it => !chk(t, it.id)) : s.items;
+    return `<section class="card shsec ${done ? "done" : ""}">
+      <button class="shsec-h" type="button" data-act="shTog" data-k="${s.key}" aria-expanded="${!closed}">
+        <span class="ico-tile sm">${done ? ic("check") : ic(s.icon)}</span><span class="t">${s.title}</span><span class="c num">${d}/${n}</span>${ic(closed ? "down" : "up")}
+      </button>
+      ${closed ? "" : `<div class="shitems">${list.map(item).join("") || `<p class="muted" style="padding:12px 16px;font-size:13px">このセクションは完了しています</p>`}</div>`}
+    </section>`;
+  };
+  return `<div class="sheet">
+    <div class="sheet-bar"><div class="sheet-bar-in">
+      <div class="sheet-top">
+        <button class="back" type="button" data-act="toTask">${ic("chev")}作業の詳細</button>
+        <div class="sheet-prog"><b class="num">${pr.done} / ${pr.total}</b><span>${left.length ? `残り ${left.length}件` : "すべて完了"}</span></div>
+      </div>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+    </div></div>
+    <div class="sheet-in">
+      <header class="card sheet-head">
+        <span class="mono muted">${esc(t.id)}　版 ${esc(t.version)}</span>
+        <h1>${esc(t.title)}</h1>
+        ${rec ? `<div class="note info">${ic("check")}<span><b>この作業は記録済みです</b>${rec.at.replaceAll("-", "/")} に作業記録を残しました。やり直す場合は「新しく始める」を押してください。</span></div>` : ""}
+        <div class="sheet-meta">
+          <div class="fld"><label for="sh-place">店舗・案件名</label><input class="inp" id="sh-place" data-meta="place" value="${esc(meta.place || "")}" placeholder="例：〇〇店（新規）" ${dis}></div>
+          <div class="fld"><label for="sh-by">作業者</label><input class="inp" id="sh-by" data-meta="by" value="${esc(meta.by ?? me().name)}" ${dis}></div>
+        </div>
+        <div class="sheet-opts"><span>項目をタップしてチェックします</span><div class="toggles"><button type="button" data-act="shOnly" aria-pressed="${S.w.shOnly}">未完了だけ表示</button></div></div>
+      </header>
+      ${secs.map(sec).join("")}
+      <section class="card sheet-end">
+        ${rec ? `<b>記録済み</b><button class="btn" type="button" data-act="shAgain">新しく始める</button>`
+          : left.length ? `<b>未完了が ${left.length}件 あります</b><span class="muted" style="font-size:13px">抜けがないか確認してから完了してください。</span><div class="row-btns"><button class="btn primary" type="button" data-act="shMissing">${ic("search")}抜けを確認</button><button class="link" type="button" data-act="shFinish">未完了のまま記録する</button></div>`
+          : `<b style="color:var(--ok)">すべて完了しました</b><button class="btn primary big" type="button" data-act="shFinish">${ic("check")}作業を完了して記録する</button>`}
+      </section>
+    </div>
+    <div class="sheet-foot"><div class="sheet-foot-in">
+      ${rec ? `<span class="chip ok">${ic("check")}記録済み</span><button class="btn big" type="button" data-act="shAgain">新しく始める</button>`
+        : left.length ? `<span class="sf-rem"><b class="num">${left.length}</b>件 未完了</span><button class="btn primary big" type="button" data-act="shMissing">${ic("search")}抜けを確認</button>`
+        : `<span class="sf-rem" style="color:var(--ok)">${ic("check")}すべて完了</span><button class="btn primary big" type="button" data-act="shFinish">作業を完了して記録する</button>`}
+    </div></div>
+  </div>`;
+}
+function missingBody(t) {
+  return sheetOf(t).map(s => {
+    const m = s.items.filter(it => !chk(t, it.id));
+    return m.length ? `<div class="miss-sec"><b>${esc(s.title)}</b>${m.map(it => `<button class="miss-it" type="button" data-act="shJump" data-id="${esc(it.id)}" data-k="${s.key}"><span>${esc(it.label)}${it.req ? `<em class="req">必須</em>` : ""}</span>${ic("chev")}</button>`).join("")}</div>` : "";
+  }).join("");
 }
 
 /* 1手順ずつ表示・マニュアル */
 function focusHtml() {
   const t = taskById(S.layer.id); const i = S.layer.i; const s = t.steps[i];
-  const on = ((PROG[t.id] || {}).steps || {})[i];
+  const on = chk(t, "steps:" + i);
   return `<div class="scrim" data-act="closeLayer"></div>
   <div class="focus" role="dialog" aria-modal="true" aria-label="作業手順">
     <div class="focus-top"><span class="t">${esc(t.id)}　${esc(t.title)}</span><button class="btn sm" type="button" data-act="closeLayer">閉じる</button></div>
@@ -1373,23 +1683,33 @@ function manualHtml() {
    設定画面
    ========================================================= */
 function renderAdmin() {
-  const sel = S.a.sel;
-  const isTask = sel && sel.type === "task";
+  const sel = S.a.sel, isTask = sel && sel.type === "task";
+  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, history: historyHtml, users: usersHtml, review: reviewHtml }[sel.type]();
   return `<div class="adm ${sel ? "has-sel" : ""} ${isTask ? "pv-on" : ""}">
     <aside class="tree" id="tree">${treeHtml()}</aside>
-    <main class="ed"><div class="ed-in" id="edIn">${!sel ? dashHtml() : sel.type === "cat" ? catEditor() : taskEditor()}</div></main>
+    <main class="ed"><div class="ed-in" id="edIn">${body}</div></main>
     <aside class="pv" aria-label="スマホでの表示プレビュー">${isTask ? pvInner() : ""}</aside>
   </div>`;
 }
 
+const edHead = (crumb, title, acts = "") => `<div class="ed-head"><div class="ed-crumb"><button class="back ed-back" type="button" data-act="selHome">${ic("chev")}メニュー</button><span>${crumb}</span></div><div class="ed-title-row"><h1 class="ed-h">${title}</h1><div class="ed-acts">${acts}</div></div></div>`;
+
 function treeHtml() {
   const a = S.a, q = a.treeQ.trim().toLowerCase();
   const match = t => !q || t.title.toLowerCase().includes(q) || t.id.toLowerCase().includes(q) || t.devices.some(d => d.model.toLowerCase().includes(q));
+  const pend = DATA.tasks.filter(t => t.review).length, st = a.sel?.type;
+  const mi = (v, icon, label, ct, on) => `<button class="tree-home ${on ? "on" : ""}" type="button" data-act="selMenu" data-v="${v}">${ic(icon)}<span class="nm">${label}</span>${ct ? `<span class="ct">${ct}</span>` : ""}</button>`;
   return `
+    <div class="tree-h"><h2>管理メニュー</h2></div>
+    <div class="tree-menu">
+      ${mi("home", "grid", "概要・入力状況", 0, !a.sel)}
+      ${can.approve() ? mi("review", "shield", "承認待ち", pend, st === "review") : ""}
+      ${mi("notices", "bell", "お知らせ", 0, st === "notices")}
+      ${mi("history", "history", "変更履歴", 0, st === "history")}
+      ${can.users() ? mi("users", "users", "ユーザー・権限", 0, st === "users") : ""}
+    </div>
     <div class="tree-h"><h2>作業マスタ</h2><button class="btn sm" type="button" data-act="addCat">${ic("plus")}大項目</button></div>
     <div class="tree-q"><input id="treeQ" type="search" placeholder="作業名・作業ID・型番で絞り込み" value="${esc(a.treeQ)}" aria-label="作業を絞り込み"></div>
-    <button class="tree-home ${!a.sel ? "on" : ""}" type="button" data-act="selHome">${ic("grid")}概要・入力状況</button>
-    <div class="tree-label">大項目 ／ 小項目</div>
     <div class="tree-list">
       ${catsSorted().map(c => {
         const ts = tasksOf(c.id).filter(match);
@@ -1405,36 +1725,47 @@ function treeHtml() {
             ${ts.map(t => {
               const ton = a.sel && a.sel.type === "task" && a.sel.id === t.id;
               const miss = missing(t).length;
-              return `<button class="tt ${ton ? "on" : ""}" type="button" data-act="selTask" data-id="${t.id}"><span class="dot ${t.status === "published" ? "pub" : "draft"}"></span><span class="nm">${esc(t.title)}</span>${miss ? `<span class="warn" title="未入力の項目があります">未入力 ${miss}</span>` : ""}</button>`;
+              return `<button class="tt ${ton ? "on" : ""}" type="button" data-act="selTask" data-id="${t.id}"><span class="dot ${t.review ? "rev" : t.status === "published" ? "pub" : "draft"}"></span><span class="nm">${esc(t.title)}</span>${t.review ? `<span class="warn">承認待ち</span>` : miss ? `<span class="warn" title="未入力の項目があります">未入力 ${miss}</span>` : ""}</button>`;
             }).join("")}
             <button class="tt-add" type="button" data-act="addTask" data-id="${c.id}">${ic("plus")}小項目を追加</button>
           </div>` : ""}
         </div>`;
       }).join("")}
     </div>
-    <div class="tree-legend"><span><span class="dot pub"></span>公開中</span><span><span class="dot draft"></span>下書き（現場に非表示）</span></div>`;
+    <div class="tree-legend"><span><span class="dot pub"></span>公開中</span><span><span class="dot draft"></span>下書き</span><span><span class="dot rev"></span>承認待ち</span></div>`;
+}
+
+function pendingRows(list) {
+  return `<div class="todo">${list.map(t => {
+    const r = t.review, chg = r.snapshot ? changedTabs(t, r.snapshot) : [];
+    return `<button class="todo-row" type="button" data-act="openReviewTask" data-id="${t.id}">
+      <span style="display:grid;gap:4px;min-width:0"><b>${esc(t.title)}</b><span class="miss">${chg.length ? chg.map(x => `<span class="chip warn">${x}</span>`).join("") : `<span class="chip accent">新規の公開申請</span>`}</span><small>${esc(userName(r.by))}さんが申請${r.note ? "：「" + esc(r.note) + "」" : ""}</small></span>
+      <small class="num">${r.at.replaceAll("-", "/")}</small></button>`;
+  }).join("")}</div>`;
 }
 
 function dashHtml() {
-  const ts = DATA.tasks;
+  const ts = DATA.tasks, m = me();
   const pub = ts.filter(t => t.status === "published").length;
+  const pend = ts.filter(t => t.review);
   const need = ts.filter(t => missing(t).length);
   const recent = [...ts].sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, 5);
   return `<div class="dash">
     <div class="dash-h">
       <h1>作業マスタの管理</h1>
-      <p>左の一覧から大項目・小項目を選んで編集します。小項目の編集中は、右側に現場のスマホでの見え方がそのまま表示されます。</p>
+      <p>${esc(m.name)}さん（${ROLES[m.role].label}）としてログインしています。${can.approve() ? "承認待ちの申請と、入力が足りない作業を確認できます。" : "作業を編集して下書き保存し、公開を申請できます。公開は、公開承認の権限を持つ人が行います。"}</p>
     </div>
     <div class="stats">
-      <div class="card stat"><small>大項目</small><b>${DATA.categories.length}</b></div>
       <div class="card stat ok"><small>公開中の作業</small><b>${pub}</b></div>
-      <div class="card stat"><small>下書き</small><b>${ts.length - pub}</b></div>
+      <div class="card stat warn"><small>承認待ち</small><b>${pend.length}</b></div>
+      <div class="card stat"><small>下書き</small><b>${ts.filter(t => t.status !== "published").length}</b></div>
       <div class="card stat warn"><small>入力が足りない作業</small><b>${need.length}</b></div>
     </div>
+    ${pend.length ? `<section class="card"><div class="blk-h" style="padding:16px 18px 8px"><h3>承認待ち</h3></div>${pendingRows(pend)}</section>` : ""}
     <section class="card">
       <div class="blk-h" style="padding:16px 18px 8px"><h3>入力が足りない作業</h3></div>
       <div class="todo">${need.length ? need.map(t => `<button class="todo-row" type="button" data-act="selTask" data-id="${t.id}">
-        <span style="display:grid;gap:4px;min-width:0"><b>${esc(t.title)}</b><span class="miss">${missing(t).map(m => `<span class="chip warn">${m}</span>`).join("")}</span></span>
+        <span style="display:grid;gap:4px;min-width:0"><b>${esc(t.title)}</b><span class="miss">${missing(t).map(x => `<span class="chip warn">${x}</span>`).join("")}</span></span>
         <small class="num">${t.id}・${t.status === "published" ? "公開中" : "下書き"}</small>
       </button>`).join("") : `<p class="muted" style="padding:4px 18px 12px;font-size:13px">すべての作業で必要な項目が入力されています。</p>`}</div>
     </section>
@@ -1446,12 +1777,101 @@ function dashHtml() {
       </button>`).join("")}</div>
     </section>
     <div class="flow">
-      <div class="card flow-i"><b><span class="n">1</span>大項目を作る</b>「POSレジ 設置」のような作業のまとまりです。アイコンを選ぶと、現場のカテゴリに表示されます。</div>
-      <div class="card flow-i"><b><span class="n">2</span>小項目を登録する</b>機器・型番、準備、持参品、ファイル、手順、マニュアルをタブごとに入力します。</div>
-      <div class="card flow-i"><b><span class="n">3</span>公開する</b>「公開設定」で公開にして保存すると、現場の検索結果にすぐ表示されます。</div>
+      <div class="card flow-i"><b><span class="n">1</span>登録する</b>大項目を作り、小項目に機器・型番、準備、持参品、ファイル、手順、マニュアルを入力します。</div>
+      <div class="card flow-i"><b><span class="n">2</span>申請する</b>編集の権限の人は「承認を申請」まで行えます。公開中の作業の変更も、承認されるまで現場には反映されません。</div>
+      <div class="card flow-i"><b><span class="n">3</span>承認して公開</b>公開承認の権限を持つ人が内容を確認し、公開または差し戻します。すべて変更履歴に残ります。</div>
     </div>
     <p style="font-size:12.5px"><button class="link" type="button" data-act="resetData">サンプルデータに戻す</button></p>
   </div>`;
+}
+
+function reviewHtml() {
+  const pend = DATA.tasks.filter(t => t.review);
+  return edHead("承認待ち", "承認待ちの申請") + `<div class="sect"><p class="sect-intro">編集者から申請された作業です。内容を確認して、承認（公開）または差し戻しをします。</p>
+    <section class="card">${pend.length ? pendingRows(pend) : `<div class="empty-row" style="margin:16px">承認待ちの申請はありません</div>`}</section></div>`;
+}
+
+/* 変更履歴 */
+function histRow(x) {
+  const u = userName(x.user), A = HACT[x.action] || [x.action, ""];
+  return `<div class="hrow"><span class="h-av">${esc(u.slice(0, 1))}</span><div class="h-body">
+    <div class="h-top"><b>${esc(u)}</b><span class="chip ${A[1]}">${A[0]}</span><span class="chip">${HTYPE[x.type] || ""}</span><time class="num muted">${x.at.replaceAll("-", "/")}</time></div>
+    <div class="h-tgt">${x.tid ? `<span class="mono muted">${esc(x.tid)}</span> ` : ""}${esc(x.name)}</div>
+    ${x.detail ? `<div class="h-det">${esc(x.detail)}</div>` : ""}</div></div>`;
+}
+function histListHtml() {
+  const h = S.a.hist, q = h.q.trim().toLowerCase();
+  const rows = DATA.history.filter(x => (!h.type || x.type === h.type) && (!h.user || x.user === h.user) && (!q || (x.name + x.tid + x.detail).toLowerCase().includes(q)));
+  return rows.length ? rows.slice(0, 60).map(histRow).join("") + (rows.length > 60 ? `<div class="empty-row" style="margin:12px">古い記録は省略しています（${rows.length}件中 60件を表示）</div>` : "") : `<div class="empty-row" style="margin:16px">条件に合う履歴はありません</div>`;
+}
+function historyHtml() {
+  const h = S.a.hist;
+  return edHead("変更履歴", "変更履歴") + `<div class="sect">
+    <p class="sect-intro">作業・大項目・お知らせ・ユーザーの変更が、いつ・誰が・何をしたかの記録です。記録の編集や削除はできません。</p>
+    <div class="hfilter">
+      <div class="toggles" role="group" aria-label="対象で絞り込み">${[["", "すべて"], ...Object.entries(HTYPE)].map(([k, n]) => `<button type="button" data-act="histType" data-v="${k}" aria-pressed="${h.type === k}">${n}</button>`).join("")}</div>
+      <select class="sel" id="histUser" data-hist="user" aria-label="操作したユーザー"><option value="">全員</option>${DATA.users.map(u => `<option value="${u.id}" ${h.user === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
+      <input class="inp" id="histQ" type="search" placeholder="作業名・作業ID・内容で検索" value="${esc(h.q)}" aria-label="履歴を検索">
+    </div>
+    <section class="card hlist" id="histList">${histListHtml()}</section></div>`;
+}
+
+/* お知らせ */
+function noticesHtml() {
+  const d = S.a.draft, appr = can.approve();
+  const stOf = n => n.status !== "published" ? ["下書き", ""] : n.until && n.until < today() ? ["掲載期限切れ", "warn"] : ["公開中", "ok"];
+  const taskOpts = v => `<option value="">なし</option>` + DATA.tasks.filter(t => t.status === "published").map(t => `<option value="${t.id}" ${t.id === v ? "selected" : ""}>${t.id}　${esc(t.title)}</option>`).join("");
+  return edHead("お知らせ", "お知らせの管理", `<button class="btn sm primary" type="button" data-act="nAdd">${ic("plus")}お知らせを追加</button>`) + `<div class="sect">
+    <p class="sect-intro">現場ビューのトップに表示するお知らせです。掲載期限を入れると、期限の翌日から自動で非表示になります。${appr ? "" : "公開・公開の停止ができるのは、公開承認の権限を持つ人だけです。"}</p>
+    ${d.map((n, i) => {
+      const [sl, sc] = stOf(n), ro = !appr && n.status === "published", dis = ro ? "disabled" : "";
+      return `<section class="card blk nrow">
+        <div class="n-top"><span class="chip ${sc}">${sl}</span><span class="muted num" style="font-size:12px">掲載日 ${fmtDate(n.date)}</span><span class="tools" style="margin-left:auto"><button class="icon-btn del" type="button" data-act="nRm" data-i="${i}" aria-label="お知らせを削除" ${dis}>${ic("trash")}</button></span></div>
+        <div class="fgrid">
+          <div class="fld"><label for="${fid(`${i}.level`)}">種類</label><select class="sel" id="${fid(`${i}.level`)}" data-bind="${i}.level" ${dis}>${Object.entries(LEVELS).map(([k, v]) => `<option value="${k}" ${k === n.level ? "selected" : ""}>${v}</option>`).join("")}</select></div>
+          <div class="fld"><label for="${fid(`${i}.date`)}">掲載日</label><input class="inp num" type="date" id="${fid(`${i}.date`)}" data-bind="${i}.date" value="${esc(n.date)}" ${dis}></div>
+          <div class="fld full"><label for="${fid(`${i}.text`)}">内容<em>必須</em></label><textarea class="ta ${n.text.trim() ? "" : "err"}" id="${fid(`${i}.text`)}" data-bind="${i}.text" rows="2" placeholder="例：POS アプリ 5.3.1 を公開しました。10月末までに更新をお願いします。" ${dis}>${esc(n.text)}</textarea></div>
+          <div class="fld"><label for="${fid(`${i}.task`)}">関連する作業</label><select class="sel" id="${fid(`${i}.task`)}" data-bind="${i}.task" ${dis}>${taskOpts(n.task)}</select><p class="hint">選ぶと、現場のお知らせに「作業を開く」リンクが付きます。</p></div>
+          <div class="fld"><label for="${fid(`${i}.until`)}">掲載期限（任意）</label><input class="inp num" type="date" id="${fid(`${i}.until`)}" data-bind="${i}.until" value="${esc(n.until)}" ${dis}><p class="hint">空欄なら、公開を停止するまで表示されます。</p></div>
+          <div class="fld full"><span class="lb">公開状態</span><div class="toggles" role="group" aria-label="公開状態">
+            <button type="button" data-act="nStatus" data-i="${i}" data-v="draft" aria-pressed="${n.status !== "published"}" ${ro ? "disabled" : ""}>下書き</button>
+            <button type="button" data-act="nStatus" data-i="${i}" data-v="published" aria-pressed="${n.status === "published"}" ${appr ? "" : "disabled"}>公開</button></div>
+            ${appr ? "" : `<p class="hint">公開・公開の停止は、公開承認の権限を持つ人が行います。</p>`}</div>
+        </div>
+        <div class="n-prev"><div class="sub-h">現場での表示イメージ</div><div class="notice"><time class="num">${fmtDate(n.date)}</time><span><span class="chip ${n.level}">${LEVELS[n.level]}</span> ${esc(n.text) || "（内容が未入力です）"}</span>${taskById(n.task) ? `<span class="link">${n.task} を開く →</span>` : ""}</div></div>
+      </section>`;
+    }).join("") || `<div class="empty-row">お知らせはまだありません</div>`}
+  </div>`;
+}
+
+/* ユーザー・権限 */
+function usersHtml() {
+  const d = S.a.draft, act = d.filter(u => u.active).length;
+  const roleOpts = r => Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === r ? "selected" : ""}>${v.label}</option>`).join("");
+  return edHead("ユーザー・権限", "ユーザー・権限", `<button class="btn sm primary" type="button" data-act="uAdd">${ic("plus")}ユーザーを追加</button>`) + `<div class="sect">
+    <p class="sect-intro">ユーザーの登録と権限の変更ができるのは管理者だけです。使わなくなったユーザーは削除せず「無効」にします（ログインできなくなり、変更履歴の記録は残ります）。</p>
+    <section class="card blk">
+      <div class="blk-h"><h3>権限でできること</h3></div>
+      <div class="tbl-wrap"><table class="perm"><thead><tr><th scope="col">できること</th>${Object.values(ROLES).map(r => `<th scope="col"><span class="chip ${r.cls}">${r.label}</span></th>`).join("")}</tr></thead>
+      <tbody>${PERMS.map(([n, v]) => `<tr><td>${n}</td>${v.map(x => `<td>${x ? `<span class="ok" role="img" aria-label="できる">${ic("check")}</span>` : `<span class="no" role="img" aria-label="できない">—</span>`}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <div class="role-list">${Object.values(ROLES).map(r => `<span><b>${r.label}</b>：${r.desc}</span>`).join("")}</div>
+    </section>
+    <section class="card blk">
+      <div class="blk-h"><h3>ユーザー</h3><span class="chip right num">${act}名が有効</span></div>
+      ${d.length ? `<div class="cols-h row-user"><span></span><span>氏名</span><span>メールアドレス</span><span>部署</span><span>権限</span><span>状態</span></div>` : ""}
+      <div class="rows">${d.map((u, i) => {
+        const self = u.id === S.me;
+        return `<div class="row row-user ${u.active ? "" : "off"}">
+          <span class="h-av">${esc((u.name || "?").slice(0, 1))}</span>
+          <span style="display:grid;gap:2px;min-width:0">${inp(`${i}.name`, u.name, "氏名")}<span class="ls">${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン（案内メール送信前）"}${self ? "・ログイン中" : ""}</span></span>
+          ${inp(`${i}.email`, u.email, "name@example.co.jp")}
+          ${inp(`${i}.dept`, u.dept, "部署")}
+          <select class="sel" id="${fid(`${i}.role`)}" data-bind="${i}.role" aria-label="権限" ${self ? "disabled" : ""}>${roleOpts(u.role)}</select>
+          <button class="req-tg ${u.active ? "" : "on"}" type="button" data-act="togActive" data-i="${i}" ${self ? "disabled" : ""} aria-label="${u.active ? "有効（押すと無効にします）" : "無効（押すと有効にします）"}">${u.active ? "有効" : "無効"}</button>
+        </div>`;
+      }).join("")}</div>
+      <p class="hint">登録したユーザーには、初回ログイン用の案内メールが送られます（本番）。自分自身の権限と状態は変更できません。</p>
+    </section></div>`;
 }
 
 function catEditor() {
@@ -1461,7 +1881,7 @@ function catEditor() {
       <div class="ed-crumb"><button class="back ed-back" type="button" data-act="selHome">${ic("chev")}一覧</button><span>大項目</span></div>
       <div class="ed-title-row">
         <input class="ed-title" id="f-name" data-bind="name" value="${esc(d.name)}" placeholder="大項目の名前" aria-label="大項目の名前">
-        <div class="ed-acts"><button class="btn sm ghost danger" type="button" data-act="delCat">${ic("trash")}削除</button></div>
+        <div class="ed-acts">${can.approve() ? `<button class="btn sm ghost danger" type="button" data-act="delCat">${ic("trash")}削除</button>` : ""}</div>
       </div>
     </div>
     <div class="sect">
@@ -1505,15 +1925,35 @@ function taskEditor() {
       <div class="ed-title-row">
         <input class="ed-title ${d.title.trim() ? "" : "err"}" id="f-title" data-bind="title" value="${esc(d.title)}" placeholder="作業名を入力" aria-label="作業名">
         <div class="ed-acts">
-          <span class="status-pill ${d.status === "published" ? "pub" : "draft"}" id="statusPill"><span class="dot"></span>${d.status === "published" ? "公開中" : "下書き"}</span>
+          ${statusPill(d.id)}
           <button class="btn sm pv-btn" type="button" data-act="pvOpen">${ic("phone")}スマホで確認</button>
           <button class="btn sm ghost" type="button" data-act="dupTask">${ic("dup")}複製</button>
-          <button class="btn sm ghost danger" type="button" data-act="delTask" aria-label="この作業を削除">${ic("trash")}</button>
+          ${can.approve() ? `<button class="btn sm ghost danger" type="button" data-act="delTask" aria-label="この作業を削除">${ic("trash")}</button>` : ""}
         </div>
       </div>
     </div>
+    ${reviewBanner()}
     <nav class="tabs" role="tablist" id="tabs">${tabsHtml()}</nav>
     <div id="secBody">${sectionHtml()}</div>`;
+}
+
+function reviewBanner() {
+  const d = S.a.draft, t = taskById(d.id);
+  if (!t) return "";
+  if (t.review) {
+    const r = t.review, chg = r.snapshot ? changedTabs(t, r.snapshot) : [];
+    const info = `${esc(userName(r.by))}さんが ${r.at.replaceAll("-", "/")} に申請${chg.length ? "（変更箇所：" + chg.join("、") + "）" : "（新規の公開申請）"}${r.note ? "　メモ：「" + esc(r.note) + "」" : ""}`;
+    if (can.approve()) {
+      if (S.a.reviewing) return `<div class="banner info">${ic("shield")}<div class="bn-body"><b>申請内容を表示中です</b>${info}。右のプレビューで現場での見え方を確認できます。</div><div class="bn-acts"><button class="btn sm primary" type="button" data-act="approve">承認して公開</button><button class="btn sm danger" type="button" data-act="rejectAsk">差し戻す</button><button class="btn sm" type="button" data-act="reviewOff">公開中の内容に戻る</button></div></div>`;
+      return `<div class="banner warn">${ic("alert")}<div class="bn-body"><b>承認待ちの申請があります</b>${info}</div><div class="bn-acts"><button class="btn sm primary" type="button" data-act="reviewOn">申請内容を確認する</button></div></div>`;
+    }
+    return `<div class="banner warn">${ic("clock")}<div class="bn-body"><b>承認待ちです</b>${info}。承認されるまで、現場には反映されません。再度保存すると、申請内容が置き換わります。</div></div>`;
+  }
+  if (t.rejected) {
+    const j = t.rejected;
+    return `<div class="banner danger">${ic("alert")}<div class="bn-body"><b>差し戻されました</b>${esc(userName(j.by))}さん（${j.at.replaceAll("-", "/")}）：「${esc(j.reason)}」。内容を直して、もう一度申請してください。</div></div>`;
+  }
+  return "";
 }
 
 /* 入力部品 */
@@ -1633,23 +2073,33 @@ function sectionHtml() {
       </section></div>`;
 
     case "pub": {
-      const miss = missing(d);
+      const miss = missing(d), orig = taskById(d.id), isPub = orig?.status === "published", appr = can.approve();
+      const noteBox = `<div class="fld"><label for="reviewNote">申請メモ（任意）</label><textarea class="ta" id="reviewNote" rows="2" placeholder="承認する人へ伝えたいこと（変更の理由など）">${esc(S.a.note)}</textarea></div>`;
+      let state;
+      if (appr) state = `<div class="radio-cards">
+          <button class="rc" type="button" data-act="setStatus" data-v="draft" aria-pressed="${d.status === "draft"}"><b><span class="dot draft"></span>下書き</b><span>現場には表示されません。準備中の作業はこちらにします。</span></button>
+          <button class="rc pub" type="button" data-act="setStatus" data-v="published" aria-pressed="${d.status === "published"}"><b><span class="dot pub"></span>公開</b><span>保存すると、現場の検索結果にすぐ表示されます。</span></button></div>`;
+      else if (isPub) state = `<div class="note info">${ic("info")}<span><b>この作業は公開中です</b>保存すると、変更内容が「承認待ち」になります。承認されるまで、現場には現在の内容が表示されます。</span></div>${noteBox}`;
+      else state = `<div class="radio-cards">
+          <button class="rc" type="button" data-act="setStatus" data-v="draft" aria-pressed="${d.status !== "published"}"><b><span class="dot draft"></span>下書きのまま保存</b><span>現場には表示されません。準備中の作業はこちらにします。</span></button>
+          <button class="rc pub" type="button" data-act="setStatus" data-v="published" aria-pressed="${d.status === "published"}"><b><span class="dot pub"></span>承認を申請</b><span>公開承認の権限を持つ人が確認し、承認されると現場に表示されます。</span></button></div>${d.status === "published" ? noteBox : ""}`;
       return `<div class="sect">
       <section class="card blk">
-        <div class="blk-h"><h3>公開状態</h3></div>
-        <div class="radio-cards">
-          <button class="rc" type="button" data-act="setStatus" data-v="draft" aria-pressed="${d.status === "draft"}"><b><span class="dot draft"></span>下書き</b><span>現場には表示されません。準備中の作業はこちらにします。</span></button>
-          <button class="rc pub" type="button" data-act="setStatus" data-v="published" aria-pressed="${d.status === "published"}"><b><span class="dot pub"></span>公開</b><span>保存すると、現場の検索結果にすぐ表示されます。</span></button>
-        </div>
-        ${miss.length ? `<div class="note">${ic("alert")}<span><b>公開する前に入力が必要です</b>${miss.join("、")} が未入力です。</span></div>` : `<div class="note info">${ic("check")}<span>公開に必要な項目はすべて入力されています。</span></div>`}
+        <div class="blk-h"><h3>${appr ? "公開状態" : "公開の申請"}</h3></div>
+        ${state}
+        ${miss.length ? `<div class="note">${ic("alert")}<span><b>公開（申請）する前に入力が必要です</b>${miss.join("、")} が未入力です。</span></div>` : `<div class="note info">${ic("check")}<span>公開に必要な項目はすべて入力されています。</span></div>`}
       </section>
       <section class="card blk"><div class="fgrid">
-        ${fld("版（バージョン）", "version", inp("version", d.version, "例：5.3", "mono"), { hint: "公開中の作業で版を変えて保存すると、前の版は「旧バージョン」として現場で折りたたみ表示されます。" })}
+        ${fld("版（バージョン）", "version", inp("version", d.version, "例：5.3", "mono"), { hint: "公開中の作業で版を変えて承認されると、前の版は「旧バージョン」として現場で折りたたみ表示されます。" })}
         <div class="fld"><label for="f-updated">最終更新日</label><input class="inp num" id="f-updated" value="${fmtDate(d.updated)}" disabled></div>
         ${fld("変更内容のメモ", "changelog", `<textarea class="ta" id="f-changelog" data-bind="changelog" rows="2" placeholder="例：POS アプリ 5.3.1 に更新。イメージ適用手順を簡略化。">${esc(d.changelog)}</textarea>`, { full: true })}
       </div>
       ${d.old.length ? `<div class="fld"><span class="lb">旧バージョン</span><div class="rows">${d.old.map(o => `<div class="row" style="grid-template-columns:auto auto minmax(0,1fr);font-size:13px"><span class="chip">版 ${esc(o.v)}</span><span class="num muted">${fmtDate(o.date)}</span><span class="muted">${esc(o.reason)}</span></div>`).join("")}</div></div>` : ""}
       </section></div>`;
+    }
+    case "hist": {
+      const list = DATA.history.filter(x => x.tid === d.id);
+      return `<div class="sect"><p class="sect-intro">この作業に対する変更・申請・承認の記録です。</p><section class="card hlist">${list.length ? list.map(histRow).join("") : `<div class="empty-row" style="margin:16px">まだ履歴はありません</div>`}</section></div>`;
     }
   }
   return "";
@@ -1669,6 +2119,9 @@ function render() {
   $("#modeAdmin").innerHTML = ic("gear") + "設定";
   $("#modeWork").setAttribute("aria-pressed", S.mode === "work");
   $("#modeAdmin").setAttribute("aria-pressed", S.mode === "admin");
+  $("#modeAdmin").hidden = !can.admin();
+  const m = me();
+  $("#who").innerHTML = `<span class="who-name">${esc(m.name)}</span><span class="who-role">${ROLES[m.role].label}</span><span class="who-av" aria-hidden="true">${esc(m.name.slice(0, 1))}</span>`;
   const treeScroll = $("#tree")?.scrollTop || 0;
   $("#app").innerHTML = S.mode === "work" ? renderWork() : renderAdmin();
   if ($("#tree")) $("#tree").scrollTop = treeScroll;
@@ -1681,8 +2134,11 @@ function renderLayer() {
   if (S.a.pvModal && S.mode === "admin" && S.a.draft && S.a.sel?.type === "task") {
     h += `<div class="scrim top" data-act="pvClose"></div><div class="pv-modal"><div class="phone"><div class="phone-scr" id="pvScr2">${wkDetail(S.a.draft, true)}</div></div><button class="btn" type="button" data-act="pvClose">プレビューを閉じる</button></div>`;
   }
+  if (S.menuOpen) {
+    h += `<div class="scrim clear" data-act="userMenuClose"></div><div class="umenu" role="menu"><div class="um-h">ログインユーザーの切り替え<small>サンプル用の機能です。本番では、ログインしたユーザーの権限が自動で適用されます。</small></div>${DATA.users.filter(u => u.active).map(u => `<button class="um-it ${u.id === S.me ? "on" : ""}" role="menuitem" type="button" data-act="setMe" data-id="${u.id}"><span class="h-av">${esc(u.name.slice(0, 1))}</span><span class="um-t"><b>${esc(u.name)}</b><small>${esc(u.dept)}</small></span><span class="chip ${ROLES[u.role].cls}">${ROLES[u.role].label}</span>${u.id === S.me ? ic("check") : ""}</button>`).join("")}</div>`;
+  }
   if (L?.type === "modal") {
-    h += `<div class="scrim top"></div><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mT"><h2 id="mT">${esc(L.title)}</h2><p>${esc(L.text)}</p>
+    h += `<div class="scrim top"></div><div class="modal ${L.wide ? "wide" : ""}" role="alertdialog" aria-modal="true" aria-labelledby="mT"><h2 id="mT">${esc(L.title)}</h2>${L.text ? `<p>${esc(L.text)}</p>` : ""}${L.body || ""}
       <div class="modal-f">${L.buttons.map(b => `<button class="btn ${b.cls || ""}" type="button" data-act="${b.act}">${esc(b.label)}</button>`).join("")}</div></div>`;
   }
   $("#layer").innerHTML = h;
@@ -1690,11 +2146,18 @@ function renderLayer() {
 function renderSavebar() {
   const a = S.a;
   if (S.mode !== "admin" || !a.dirty) { $("#savebar").innerHTML = ""; return; }
-  const pub = a.sel?.type === "task" && a.draft.status === "published";
+  let sub = "保存するまで現場には反映されません。", label = "保存";
+  if (a.sel?.type === "task") {
+    const orig = taskById(a.draft.id);
+    if (a.reviewing) { sub = "保存すると、申請内容を承認して公開します。"; label = "承認して公開"; }
+    else if (!can.approve() && orig?.status === "published") { sub = "保存すると変更が「承認待ち」になります。承認されるまで現場には反映されません。"; label = "承認を申請"; }
+    else if (!can.approve() && a.draft.status === "published") { sub = "保存すると公開を申請します。"; label = "承認を申請"; }
+    else if (can.approve() && a.draft.status === "published") sub = "公開する作業です。保存すると現場にすぐ反映されます。";
+  }
   $("#savebar").innerHTML = `<div class="savebar" role="region" aria-label="保存">
-    <span class="msg">未保存の変更があります<small>${pub ? "公開中の作業です。保存すると現場にすぐ反映されます。" : "保存するまで現場には反映されません。"}</small></span>
+    <span class="msg">未保存の変更があります<small>${sub}</small></span>
     <button class="btn ghost" type="button" data-act="discard">変更を破棄</button>
-    <button class="btn primary" type="button" data-act="save">${ic("check")}保存</button>
+    <button class="btn primary" type="button" data-act="save">${ic("check")}${label}</button>
   </div>`;
 }
 
@@ -1729,12 +2192,29 @@ function guard(fn) {
   ] };
   renderLayer();
 }
+function allowed(sel) {
+  if (!sel) return true;
+  if (sel.type === "users") return can.users();
+  if (sel.type === "review") return can.approve();
+  return can.admin();
+}
+function selValid(sel) {
+  if (!sel || !allowed(sel)) return false;
+  if (sel.type === "cat") return DATA.categories.some(c => c.id === sel.id);
+  if (sel.type === "task") return !!taskById(sel.id);
+  return true;
+}
 function select(sel) {
-  S.a.sel = sel; S.a.dirty = false; S.a.pvModal = false;
-  if (!sel) S.a.draft = null;
-  else if (sel.type === "cat") S.a.draft = clone(DATA.categories.find(c => c.id === sel.id));
-  else { const t = taskById(sel.id); S.a.draft = clone(t); S.a.open[t.cat] = true; S.a.stepOpen = new Set(); }
+  if (sel && !selValid(sel)) sel = null;
+  Object.assign(S.a, { sel, dirty: false, pvModal: false, reviewing: false, note: "", draft: null });
+  if (sel?.type === "cat") S.a.draft = clone(DATA.categories.find(c => c.id === sel.id));
+  else if (sel?.type === "task") { const t = taskById(sel.id); S.a.draft = clone(t); S.a.open[t.cat] = true; S.a.stepOpen = new Set(); }
+  else if (sel?.type === "notices") S.a.draft = clone(DATA.notices);
+  else if (sel?.type === "users") S.a.draft = clone(DATA.users);
   render(); window.scrollTo(0, 0);
+}
+function reload() {
+  S.a.draft = clone(taskById(S.a.sel.id)); S.a.reviewing = false; S.a.note = ""; S.a.dirty = false; render();
 }
 function nextId(cat) {
   const base = { pos: 1100, self: 2100, hotel: 3100, net: 4100, care: 5100 }[cat] || 9000;
@@ -1749,30 +2229,99 @@ function newTask(cat) {
     version: "1.0", updated: today(), os: "", devices: [], precheck: [], bring: [], files: [], extractTo: "C:\\Setup\\" + id, steps: [], manuals: [], changelog: "", old: [] };
 }
 function save() {
+  const t = S.a.sel?.type;
+  if (t === "task") return saveTask();
+  if (t === "cat") return saveCat();
+  if (t === "notices") return saveNotices();
+  if (t === "users") return saveUsers();
+  return true;
+}
+function saveCat() {
   const a = S.a, d = a.draft;
-  if (a.sel.type === "task") {
-    if (!d.title.trim()) { a.tab = "basic"; render(); toast("作業名を入力してください"); $("#f-title")?.focus(); return false; }
-    const miss = missing(d);
-    if (d.status === "published" && miss.length) {
-      a.tab = TABS.find(([, n]) => n === miss[0])[0]; render();
-      toast(`公開するには「${miss.join("・")}」の入力が必要です。準備中なら公開設定を「下書き」にして保存してください`);
-      return false;
-    }
-    const orig = taskById(d.id);
-    if (orig && orig.status === "published" && d.status === "published" && orig.version !== d.version) {
-      d.old = [{ v: orig.version, date: orig.updated, reason: "新しい版の公開により置き換え" }, ...d.old];
-    }
-    if (orig && orig.cat !== d.cat) d.order = tasksOf(d.cat).length + 1;
-    d.updated = today();
-    DATA.tasks = DATA.tasks.map(t => t.id === d.id ? clone(d) : t);
-    a.open[d.cat] = true;
-  } else {
-    if (!d.name.trim()) { toast("大項目の名前を入力してください"); return false; }
-    DATA.categories = DATA.categories.map(c => c.id === d.id ? clone(d) : c);
+  if (!d.name.trim()) { toast("大項目の名前を入力してください"); return false; }
+  const o = DATA.categories.find(c => c.id === d.id), ch = [];
+  if (o.name !== d.name) ch.push(`名前「${o.name}」→「${d.name}」`);
+  if (o.desc !== d.desc) ch.push("説明を変更");
+  if (o.icon !== d.icon) ch.push("アイコンを変更");
+  if (ch.length) log("update", "category", "", d.name, ch.join("、"));
+  DATA.categories = DATA.categories.map(c => c.id === d.id ? clone(d) : c);
+  saveData(); a.dirty = false; render(); toast("保存しました");
+  return true;
+}
+function saveTask() {
+  const a = S.a, d = a.draft, orig = taskById(d.id), approver = can.approve();
+  if (!d.title.trim()) { a.tab = "basic"; render(); toast("作業名を入力してください"); $("#f-title")?.focus(); return false; }
+  const miss = missing(d);
+  if (d.status === "published" && miss.length) {
+    a.tab = TABS.find(([, n]) => n === miss[0])[0]; render();
+    toast(`公開するには「${miss.join("・")}」の入力が必要です。準備中なら公開設定を「下書き」にして保存してください`);
+    return false;
   }
-  saveData(); a.dirty = false;
-  render();
-  toast(a.sel.type === "task" && d.status === "published" ? "保存しました。現場ビューに反映されています" : "保存しました");
+  const chg = changedTabs(orig, d), chgTxt = chg.length ? `（変更箇所：${chg.join("、")}）` : "";
+  const reviewing = a.reviewing, r0 = orig.review, note = a.note.trim();
+  let msg = "保存しました";
+  if (approver) {
+    const nd = clone(d);
+    if (orig.status === "published" && nd.status === "published" && orig.version !== nd.version) nd.old = [{ v: orig.version, date: orig.updated, reason: "新しい版の公開により置き換え" }, ...nd.old];
+    if (orig.cat !== nd.cat) nd.order = tasksOf(nd.cat).length + 1;
+    nd.updated = today();
+    nd.review = reviewing ? null : (r0 || null);
+    nd.rejected = reviewing ? null : (orig.rejected || null);
+    DATA.tasks = DATA.tasks.map(x => x.id === nd.id ? nd : x);
+    a.open[nd.cat] = true;
+    if (reviewing) { log("publish", "task", nd.id, nd.title, `${userName(r0.by)}さんの申請を承認して公開${chgTxt}${orig.version !== nd.version ? "。版 " + orig.version + " → " + nd.version : ""}`); msg = "承認して公開しました。現場ビューに反映されています"; }
+    else if (orig.status !== "published" && nd.status === "published") { log("publish", "task", nd.id, nd.title, `公開しました（版 ${nd.version}）`); msg = "公開しました。現場ビューに反映されています"; }
+    else if (orig.status === "published" && nd.status !== "published") { log("update", "task", nd.id, nd.title, "公開を停止（下書きに変更）"); msg = "下書きに戻しました。現場には表示されません"; }
+    else { log("update", "task", nd.id, nd.title, chg.length ? `内容を更新${chgTxt}` : "更新"); if (nd.status === "published") msg = "保存しました。現場ビューに反映されています"; }
+  } else if (orig.status === "published") {
+    if (!chg.length) { a.dirty = false; renderSavebar(); toast("変更がありません"); return true; }
+    const snap = clone(d); delete snap.review; delete snap.rejected; snap.status = "published";
+    orig.review = { by: S.me, at: nowStr(), note, snapshot: snap };
+    orig.rejected = null;
+    log("request", "task", d.id, d.title, `公開中の内容への変更を申請${chgTxt}${note ? "　メモ：" + note : ""}`);
+    msg = "変更を承認待ちにしました。承認されるまで現場には反映されません";
+  } else {
+    const nd = clone(d); nd.status = "draft"; nd.updated = today(); nd.rejected = null;
+    if (orig.cat !== nd.cat) nd.order = tasksOf(nd.cat).length + 1;
+    nd.review = d.status === "published" ? { by: S.me, at: nowStr(), note, snapshot: null } : null;
+    DATA.tasks = DATA.tasks.map(x => x.id === nd.id ? nd : x);
+    a.open[nd.cat] = true;
+    if (nd.review) { log("request", "task", nd.id, nd.title, `公開を申請${note ? "　メモ：" + note : ""}`); msg = "公開を申請しました。承認されると現場に表示されます"; }
+    else { log("update", "task", nd.id, nd.title, chg.length ? `下書きを更新${chgTxt}` : "下書きを更新"); msg = "下書きとして保存しました"; }
+  }
+  saveData(); reload(); toast(msg);
+  return true;
+}
+function saveNotices() {
+  const a = S.a, d = a.draft, old = DATA.notices, short = x => x.length > 30 ? x.slice(0, 30) + "…" : x;
+  if (d.some(n => !n.text.trim())) { toast("内容が空のお知らせがあります。入力するか、削除してください"); return false; }
+  if (!can.approve() && d.some(n => n.status === "published" && old.find(x => x.id === n.id)?.status !== "published")) { toast("お知らせを公開できるのは、公開承認の権限を持つ人だけです"); return false; }
+  d.forEach(n => {
+    const o = old.find(x => x.id === n.id);
+    if (!o) log(n.status === "published" ? "publish" : "create", "notice", "", short(n.text), n.status === "published" ? "お知らせを公開" : "下書きで作成");
+    else if (o.status !== n.status) log(n.status === "published" ? "publish" : "update", "notice", "", short(n.text), n.status === "published" ? "お知らせを公開" : "お知らせの公開を停止");
+    else if (JSON.stringify(o) !== JSON.stringify(n)) log("update", "notice", "", short(n.text), "内容を更新");
+  });
+  old.forEach(o => { if (!d.some(n => n.id === o.id)) log("delete", "notice", "", short(o.text), "お知らせを削除"); });
+  DATA.notices = clone(d); saveData(); a.dirty = false; a.draft = clone(DATA.notices); render(); toast("お知らせを保存しました");
+  return true;
+}
+function saveUsers() {
+  const a = S.a, d = a.draft, old = DATA.users;
+  if (d.some(u => !u.name.trim() || !u.email.trim())) { toast("氏名とメールアドレスは必須です"); return false; }
+  if (d.some(u => !/^\S+@\S+\.\S+$/.test(u.email.trim()))) { toast("メールアドレスの形式を確認してください"); return false; }
+  const em = d.map(u => u.email.trim().toLowerCase());
+  if (new Set(em).size !== em.length) { toast("同じメールアドレスのユーザーが重複しています"); return false; }
+  if (!d.some(u => u.role === "admin" && u.active)) { toast("有効な管理者が1人以上必要です"); return false; }
+  d.forEach(u => { u.name = u.name.trim(); u.email = u.email.trim(); u.dept = u.dept.trim(); });
+  d.forEach(u => {
+    const o = old.find(x => x.id === u.id);
+    if (!o) { log("create", "user", "", u.name, `ユーザーを追加（${ROLES[u.role].label}）`); return; }
+    if (o.role !== u.role) log("update", "user", "", u.name, `権限を変更：${ROLES[o.role].label} → ${ROLES[u.role].label}`);
+    if (o.active !== u.active) log("update", "user", "", u.name, u.active ? "ユーザーを有効にしました" : "ユーザーを無効にしました");
+    if (o.name !== u.name || o.email !== u.email || o.dept !== u.dept) log("update", "user", "", u.name, "登録情報を変更");
+  });
+  DATA.users = clone(d); saveData(); a.dirty = false; a.draft = clone(DATA.users); render(); toast("ユーザー情報を保存しました");
   return true;
 }
 function discard() { select(S.a.sel); toast("変更を破棄しました"); }
@@ -1825,16 +2374,17 @@ const ACT = {
   /* 共通 */
   mode: el => {
     const v = el.dataset.v; if (v === S.mode) return;
+    if (v === "admin" && !can.admin()) return;
     guard(() => {
       S.mode = v; S.a.dirty = false; S.layer = null;
-      if (v === "admin" && S.a.sel && (S.a.sel.type === "cat" ? DATA.categories.some(c => c.id === S.a.sel.id) : taskById(S.a.sel.id))) select(S.a.sel);
+      if (v === "admin" && S.a.sel && selValid(S.a.sel)) select(S.a.sel);
       else { if (v === "admin") { S.a.sel = null; S.a.draft = null; } render(); }
       window.scrollTo(0, 0);
     });
   },
   goHome: () => guard(() => { S.mode = "work"; S.w.view = "home"; S.a.dirty = false; S.layer = null; render(); window.scrollTo(0, 0); }),
   copy: el => copyText(el.dataset.v, el.dataset.l || "内容"),
-  closeLayer: () => { S.layer = null; render(); },
+  closeLayer: () => { S.layer = null; S.menuOpen = false; render(); },
 
   /* 現場ビュー */
   setQ: el => { S.w.q = el.dataset.v; render(); },
@@ -1857,12 +2407,12 @@ const ACT = {
   },
   dl: el => {
     const t = taskById(S.w.taskId); if (!t) return;
-    const p = PROG[t.id] ||= {}; (p.files ||= {})[el.dataset.v] = true; saveProg();
+    setChk(t, "file:" + el.dataset.v, true);
     toast(`サンプルのためダウンロードは行いません：${el.dataset.v}`); refreshWork();
   },
   dlAll: () => {
     const t = taskById(S.w.taskId); if (!t) return;
-    const p = PROG[t.id] ||= {}; p.files ||= {}; t.files.forEach(x => p.files[x.name] = true); saveProg();
+    t.files.forEach(x => setChk(t, "file:" + x.name, true));
     toast(`サンプルのためダウンロードは行いません（${t.files.length}ファイル）`); refreshWork();
   },
   resetProg: () => { delete PROG[S.w.taskId]; saveProg(); refreshWork(); toast("進み具合をリセットしました"); },
@@ -1884,12 +2434,13 @@ const ACT = {
   addCat: () => guard(() => {
     const id = "c" + Date.now().toString(36);
     DATA.categories.push({ id, order: Math.max(0, ...DATA.categories.map(c => c.order)) + 1, name: "新しい大項目", icon: "box", desc: "" });
+    log("create", "category", "", "新しい大項目", "大項目を追加");
     saveData(); S.a.open[id] = true; select({ type: "cat", id });
     setTimeout(() => { const n = $("#f-name"); n?.focus(); n?.select(); }, 0);
     toast("大項目を追加しました。名前とアイコンを設定してください");
   }),
   addTask: el => guard(() => {
-    const t = newTask(el.dataset.id); DATA.tasks.push(t); saveData();
+    const t = newTask(el.dataset.id); DATA.tasks.push(t); log("create", "task", t.id, t.title, "下書きとして新規作成"); saveData();
     S.a.tab = "basic"; select({ type: "task", id: t.id });
     setTimeout(() => { const n = $("#f-title"); n?.focus(); n?.select(); }, 0);
     toast(`小項目 ${t.id} を下書きで追加しました`);
@@ -1936,15 +2487,11 @@ const ACT = {
   togInd: el => { const d = S.a.draft, v = el.dataset.v; d.industries = d.industries.includes(v) ? d.industries.filter(x => x !== v) : [...d.industries, v]; rerenderSection(); },
   rmTag: el => { S.a.draft.tags.splice(+el.dataset.i, 1); rerenderSection(); $("#tagIn")?.focus(); },
   stepTog: el => { const i = +el.dataset.i, o = S.a.stepOpen; o.has(i) ? o.delete(i) : o.add(i); $("#secBody").innerHTML = sectionHtml(); },
-  setStatus: el => {
-    S.a.draft.status = el.dataset.v; rerenderSection();
-    const p = $("#statusPill"); const pub = el.dataset.v === "published";
-    if (p) { p.className = `status-pill ${pub ? "pub" : "draft"}`; p.innerHTML = `<span class="dot"></span>${pub ? "公開中" : "下書き"}`; }
-  },
+  setStatus: el => { S.a.draft.status = el.dataset.v; rerenderSection(); },
   dupTask: () => guard(() => {
     const src = taskById(S.a.sel.id); const t = clone(src); const id = nextId(src.cat);
     Object.assign(t, { id, title: src.title + "（コピー）", status: "draft", order: tasksOf(src.cat).length + 1, updated: today(), old: [], extractTo: "C:\\Setup\\" + id });
-    DATA.tasks.push(t); saveData(); select({ type: "task", id }); toast(`${src.id} を複製して ${id} を作成しました（下書き）`);
+    DATA.tasks.push(t); log("create", "task", id, t.title, `${src.id} を複製して下書きを作成`); saveData(); select({ type: "task", id }); toast(`${src.id} を複製して ${id} を作成しました（下書き）`);
   }),
   delTask: () => {
     S.layer = { type: "modal", title: `「${S.a.draft.title}」を削除しますか？`, text: "現場ビューからも消え、元に戻せません。一時的に隠したい場合は、公開設定を「下書き」に戻してください。", buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "削除する", act: "mDelTask", cls: "danger solid" }] };
@@ -1959,16 +2506,106 @@ const ACT = {
     renderLayer();
   },
 
+  /* ユーザー切替 */
+  userMenu: () => { S.menuOpen = !S.menuOpen; renderLayer(); },
+  userMenuClose: () => { S.menuOpen = false; renderLayer(); },
+  setMe: el => guard(() => {
+    S.me = el.dataset.id; store.set("portal3.me", S.me); S.menuOpen = false; S.a.dirty = false; S.layer = null;
+    if (S.mode === "admin" && !can.admin()) S.mode = "work";
+    if (S.mode === "admin" && S.a.sel && selValid(S.a.sel)) select(S.a.sel);
+    else { if (!selValid(S.a.sel)) { S.a.sel = null; S.a.draft = null; } render(); }
+    toast(`${me().name}（${ROLES[me().role].label}）として表示しています`);
+  }),
+
+  /* チェックシート */
+  shOpen: el => {
+    const id = el.dataset.id; S.w.view = "sheet"; S.w.taskId = id;
+    RECENT = [id, ...RECENT.filter(r => r !== id)].slice(0, 6); store.set("portal2.recent", RECENT);
+    render(); window.scrollTo(0, 0);
+  },
+  toTask: () => { S.w.view = "task"; render(); window.scrollTo(0, 0); },
+  shTog: el => { const k = S.w.taskId + ":" + el.dataset.k; S.w.shClosed[k] = !S.w.shClosed[k]; refreshWork(); },
+  shOnly: () => { S.w.shOnly = !S.w.shOnly; refreshWork(); },
+  shMissing: () => {
+    const t = taskById(S.w.taskId), n = sheetOf(t).flatMap(x => x.items).filter(it => !chk(t, it.id)).length;
+    S.layer = { type: "modal", title: `未完了の項目（${n}件）`, text: "タップすると、その項目へ移動します。", body: missingBody(t), wide: true, buttons: [{ label: "閉じる", act: "mCancel" }] };
+    renderLayer();
+  },
+  shJump: el => {
+    const t = taskById(S.w.taskId); delete S.w.shClosed[t.id + ":" + el.dataset.k]; S.w.shOnly = false; S.layer = null; render();
+    setTimeout(() => { const n = document.querySelector(`[data-item="${CSS.escape(el.dataset.id)}"]`); if (n) { n.scrollIntoView({ behavior: "smooth", block: "center" }); n.classList.add("flash"); } }, 60);
+  },
+  shFinish: () => {
+    const t = taskById(S.w.taskId), left = sheetOf(t).flatMap(x => x.items).filter(it => !chk(t, it.id));
+    const body = (left.length
+      ? `<div class="note">${ic("alert")}<span><b>未完了が ${left.length}件 あります</b>${left.slice(0, 6).map(it => "・" + esc(it.label)).join("<br>")}${left.length > 6 ? `<br>ほか ${left.length - 6}件` : ""}</span></div><div class="fld"><label for="mReason">未完了のまま記録する理由<em>必須</em></label><textarea class="ta" id="mReason" rows="2" placeholder="例：お客様の都合で、釣銭機の入出金テストは後日実施"></textarea></div>`
+      : `<div class="note info">${ic("check")}<span><b>すべての項目が完了しています</b>記録を残すと、チェックシートは「記録済み」になります。</span></div>`)
+      + `<div class="fld"><label for="mNote">備考（任意）</label><textarea class="ta" id="mNote" rows="2" placeholder="気づいたこと・引き継ぎ事項など"></textarea></div>`;
+    S.layer = { type: "modal", title: left.length ? "未完了のまま記録しますか？" : "作業を完了して記録します", body, wide: true, reason: "", note: "", buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "記録する", act: "finishDo", cls: "primary" }] };
+    renderLayer();
+  },
+  finishDo: () => {
+    const L = S.layer, t = taskById(S.w.taskId), all = sheetOf(t).flatMap(x => x.items), left = all.filter(it => !chk(t, it.id));
+    if (left.length && !(L.reason || "").trim()) { toast("未完了のまま記録する理由を入力してください"); $("#mReason")?.focus(); return; }
+    const P = (PROG[t.id] ||= {}), meta = P.meta || {};
+    const r = { id: "r" + Date.now().toString(36), taskId: t.id, title: t.title, version: t.version, place: meta.place || "", by: meta.by ?? me().name, at: nowStr(), notes: (L.note || "").trim(), total: all.length, done: all.length - left.length, skipped: left.map(it => it.label), reason: (L.reason || "").trim() };
+    RECORDS.unshift(r); RECORDS = RECORDS.slice(0, 50); saveRecords();
+    P.rec = { id: r.id, at: r.at }; saveProg();
+    S.layer = null; render(); toast(left.length ? "未完了の項目と理由を含めて記録しました" : "作業記録を残しました。お疲れさまでした");
+  },
+  shAgain: () => { delete PROG[S.w.taskId]; saveProg(); render(); toast("チェックシートをリセットしました"); },
+  recCopy: el => {
+    const r = RECORDS.find(x => x.id === el.dataset.id); if (!r) return;
+    const txt = [`【作業記録】${r.title}（${r.taskId} 版${r.version}）`, `店舗・案件：${r.place || "—"}　作業者：${r.by}　完了：${r.at}`,
+      `結果：${r.total}件中 ${r.done}件 完了${r.skipped.length ? `／未完了 ${r.skipped.length}件` : ""}`,
+      ...(r.skipped.length ? ["未完了：", ...r.skipped.map(x => "・" + x), "理由：" + r.reason] : []), ...(r.notes ? ["備考：" + r.notes] : [])].join("\n");
+    copyText(txt, "作業記録");
+  },
+
+  /* 承認 */
+  selMenu: el => guard(() => select(el.dataset.v === "home" ? null : { type: el.dataset.v })),
+  openReviewTask: el => guard(() => { select({ type: "task", id: el.dataset.id }); if (can.approve() && taskById(el.dataset.id)?.review) ACT.reviewOn(); }),
+  reviewOn: () => {
+    const t = taskById(S.a.sel.id), r = t.review, snap = r.snapshot ? clone(r.snapshot) : clone(t);
+    snap.status = "published"; S.a.draft = snap; S.a.reviewing = true; S.a.dirty = false; render();
+  },
+  reviewOff: () => guard(() => { S.a.draft = clone(taskById(S.a.sel.id)); S.a.reviewing = false; S.a.dirty = false; render(); }),
+  approve: () => save(),
+  rejectAsk: () => {
+    S.layer = { type: "modal", title: "申請を差し戻しますか？", text: "理由は、申請した人の画面に表示されます。", body: `<textarea class="ta" id="mText" rows="3" placeholder="例：注意点にアンカー固定の許可を追記してください"></textarea>`, value: "", buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "差し戻す", act: "rejectDo", cls: "danger solid" }] };
+    renderLayer();
+  },
+  rejectDo: () => {
+    const reason = (S.layer.value || "").trim();
+    if (!reason) { toast("差し戻しの理由を入力してください"); $("#mText")?.focus(); return; }
+    const t = taskById(S.a.sel.id), by = t.review.by;
+    t.review = null; t.rejected = { by: S.me, to: by, at: nowStr(), reason };
+    log("reject", "task", t.id, t.title, `差し戻し：「${reason}」（申請者：${userName(by)}）`); saveData();
+    S.layer = null; select({ type: "task", id: t.id }); toast("差し戻しました");
+  },
+
+  /* お知らせ・ユーザー・履歴 */
+  nAdd: () => { S.a.draft.unshift({ id: "n" + Date.now().toString(36), date: today(), level: "accent", text: "", task: "", status: "draft", until: "" }); $("#edIn").innerHTML = noticesHtml(); touched(); $("#f-0-text")?.focus(); },
+  nRm: el => { S.a.draft.splice(+el.dataset.i, 1); $("#edIn").innerHTML = noticesHtml(); touched(); },
+  nStatus: el => { S.a.draft[+el.dataset.i].status = el.dataset.v; $("#edIn").innerHTML = noticesHtml(); touched(); },
+  uAdd: () => {
+    S.a.draft.push({ id: "u" + Date.now().toString(36), name: "", email: "", dept: "", role: "viewer", active: true, last: "" });
+    $("#edIn").innerHTML = usersHtml(); touched();
+    const n = document.querySelector(`[data-bind="${S.a.draft.length - 1}.name"]`); n?.focus(); n?.scrollIntoView({ block: "center" });
+  },
+  togActive: el => { const u = S.a.draft[+el.dataset.i]; u.active = !u.active; $("#edIn").innerHTML = usersHtml(); touched(); },
+  histType: el => { S.a.hist.type = el.dataset.v; $("#edIn").innerHTML = historyHtml(); },
+
   /* モーダル */
   mCancel: () => { S.layer = null; S.a.pending = null; renderLayer(); },
   mDiscardGo: () => { const fn = S.a.pending; S.layer = null; S.a.pending = null; S.a.dirty = false; renderLayer(); fn && fn(); },
   mSaveGo: () => { const fn = S.a.pending; S.layer = null; S.a.pending = null; renderLayer(); if (save()) fn && fn(); },
   mDelTask: () => {
-    const id = S.a.draft.id; DATA.tasks = DATA.tasks.filter(t => t.id !== id); delete PROG[id]; saveData(); saveProg();
+    const id = S.a.draft.id; log("delete", "task", id, S.a.draft.title, "作業を削除"); DATA.tasks = DATA.tasks.filter(t => t.id !== id); delete PROG[id]; saveData(); saveProg();
     S.layer = null; select(null); toast(`${id} を削除しました`);
   },
-  mDelCat: () => { const id = S.a.draft.id; DATA.categories = DATA.categories.filter(c => c.id !== id); saveData(); S.layer = null; select(null); toast("大項目を削除しました"); },
-  mReset: () => { DATA = clone(DEFAULT_DATA); PROG = {}; saveData(); saveProg(); S.layer = null; select(null); toast("サンプルデータに戻しました"); }
+  mDelCat: () => { const id = S.a.draft.id; log("delete", "category", "", S.a.draft.name, "大項目を削除"); DATA.categories = DATA.categories.filter(c => c.id !== id); saveData(); S.layer = null; select(null); toast("大項目を削除しました"); },
+  mReset: () => { DATA = clone(DEFAULT_DATA); PROG = {}; RECORDS = clone(SEED_RECORDS); saveData(); saveProg(); saveRecords(); S.layer = null; select(null); toast("サンプルデータに戻しました"); }
 };
 
 document.addEventListener("click", e => {
@@ -1990,6 +2627,12 @@ function onSearch(el) {
 document.addEventListener("input", e => {
   const el = e.target;
   if (el.id === "wq" || el.id === "treeQ") { if (!e.isComposing) onSearch(el); return; }
+  if (el.id === "histQ") { S.a.hist.q = el.value; if (!e.isComposing) $("#histList").innerHTML = histListHtml(); return; }
+  if (el.id === "mText") { S.layer.value = el.value; return; }
+  if (el.id === "mReason") { S.layer.reason = el.value; return; }
+  if (el.id === "mNote") { S.layer.note = el.value; return; }
+  if (el.id === "reviewNote") { S.a.note = el.value; touched(); return; }
+  if (el.dataset.meta) { const p = (PROG[S.w.taskId] ||= {}); (p.meta ||= {})[el.dataset.meta] = el.value; saveProg(); return; }
   const b = el.dataset.bind;
   if (b && S.a.draft) {
     let v = el.value;
@@ -2006,17 +2649,21 @@ document.addEventListener("change", e => {
   const ck = el.dataset.wck;
   if (ck) {
     const inFocus = S.layer?.type === "focus";
-    const id = inFocus ? S.layer.id : S.w.taskId;
-    const [k, i] = ck.split(":");
-    const p = PROG[id] ||= {}; (p[k] ||= {})[i] = el.checked; saveProg();
+    const id = inFocus ? S.layer.id : S.w.taskId, t = taskById(id);
+    setChk(t, ck, el.checked);
     if (inFocus) {
       renderLayer();
-      const t = taskById(id);
       if (el.checked && S.layer.i < t.steps.length - 1) setTimeout(() => { if (S.layer?.type === "focus") { S.layer.i++; renderLayer(); } }, 350);
     }
     refreshWork();
-    if (progOf(taskById(id)).complete) toast("すべての項目が完了しました。作業票への記入を忘れずに");
+    if (S.w.view === "sheet" && el.checked) {
+      const sec = sheetOf(t).find(x => x.items.some(it => it.id === ck));
+      if (sec && sec.items.every(it => chk(t, it.id))) setTimeout(() => { if (S.w.view === "sheet" && S.w.taskId === id) { S.w.shClosed[id + ":" + sec.key] = true; refreshWork(); } }, 700);
+    }
+    if (progOf(t).complete) toast("すべての項目が完了しました。作業票への記入を忘れずに");
+    return;
   }
+  if (el.dataset.hist) { S.a.hist[el.dataset.hist] = el.value; $("#edIn").innerHTML = historyHtml(); }
 });
 
 document.addEventListener("focusin", e => {
@@ -2042,7 +2689,8 @@ document.addEventListener("keydown", e => {
     document.querySelector(".results")?.scrollIntoView({ behavior: "smooth", block: "start" }); e.target.blur();
   }
   if (e.key === "Escape") {
-    if (S.layer?.type === "modal") ACT.mCancel();
+    if (S.menuOpen) { S.menuOpen = false; renderLayer(); }
+    else if (S.layer?.type === "modal") ACT.mCancel();
     else if (S.layer) ACT.closeLayer();
     else if (S.a.pvModal) ACT.pvClose();
   }
@@ -2058,7 +2706,7 @@ document.addEventListener("drop", e => {
 });
 window.addEventListener("beforeunload", e => { if (S.a.dirty) { e.preventDefault(); e.returnValue = ""; } });
 
-if (S.mode === "admin") select({ type: "task", id: "WK-1101" }); else render();
+if (S.mode === "admin" && can.admin()) select({ type: "task", id: "WK-1101" }); else { S.mode = "work"; render(); }
 </script>
 </body>
 </html>
