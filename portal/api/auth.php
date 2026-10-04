@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 function route_session(): never
 {
+    if (!config_ready()) json_out(['ok' => true, 'authenticated' => false, 'setupNeeded' => true]);   // 初期設定がまだ
+    try { db(); } catch (Throwable $e) { error_log('[WorkBase] DB: ' . $e->getMessage()); json_out(['ok' => true, 'authenticated' => false, 'dbError' => true]); }
     $u = current_user();
     json_out(['ok' => true, 'authenticated' => (bool)$u, 'user' => $u ? public_user($u) : null]);
 }

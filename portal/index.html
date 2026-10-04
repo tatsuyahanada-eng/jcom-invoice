@@ -1296,7 +1296,7 @@ const PERMS = [
   ["ユーザーの登録・権限の変更", [0, 0, 0, 1]]
 ];
 const HACT = { create: ["新規作成", "accent"], update: ["更新", ""], request: ["承認申請", "warn"], publish: ["公開", "ok"], reject: ["差し戻し", "danger"], delete: ["削除", "danger"] };
-const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー" };
+const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー", file: "ファイル" };
 const LEVELS = { danger: "重要", warn: "期限あり", accent: "更新" };
 
 /* サーバーに接続できないときの確認用に、サンプルの作業記録を作る（サーバーには送らない） */
@@ -1331,7 +1331,7 @@ const store = {
 };
 const clone = o => JSON.parse(JSON.stringify(o));
 /* mode: boot（確認中）／ server（サーバーにログイン）／ demo（サーバーなし・この端末内のサンプル） */
-const AUTH = { mode: "boot", user: null, offline: false };
+const AUTH = { mode: "boot", user: null, offline: false, notice: "" };
 const isSrv = () => AUTH.mode === "server";
 let DATA = store.get("portal3.data", null) || clone(DEFAULT_DATA);
 let PROG = store.get("portal3.prog", {});
@@ -1346,6 +1346,7 @@ const S = {
   mode: location.hash === "#admin" ? "admin" : "work",
   me: store.get("portal3.me", "u1"), menuOpen: false,
   up: { limits: null, loading: false, items: [], incoming: null, importing: null },
+  fl: { items: null, totals: null, err: "", filter: "" },
   w: { view: "home", taskId: null, cat: null, ind: null, q: "", shClosed: {}, shOnly: false, recId: null },
   rc: { f: { q: "", task: "", status: "", from: "", to: "", days: 90 }, list: [], srv: [], srvLoaded: 0, total: 0, hasMore: false, loading: false, busy: false, again: false, err: "", stats: null, detail: null, detailErr: "", recent: null },
   a: { sel: null, tab: "basic", draft: null, dirty: false, open: { pos: true }, treeQ: "", stepOpen: new Set(), pending: null, pvModal: false, reviewing: false, note: "", hist: { type: "", user: "", q: "" } },
@@ -1511,7 +1512,7 @@ async function boot() {
   let sess = null, netErr = false;
   try { sess = await api("session", {}, { timeout: 6000, noExpire: true }); } catch (e) { netErr = !e.status || e.status >= 500; }
   if (sess && sess.ok) {
-    AUTH.mode = "server";
+    AUTH.mode = "server"; AUTH.notice = sess.setupNeeded ? "setup" : sess.dbError ? "db" : "";
     if (sess.authenticated) { try { applyBootstrap(await api("bootstrap", {}, { noExpire: true })); } catch (e) { AUTH.user = null; } }
   } else if (netErr && store.get("portal4.cache", null)) {   // 通信できないが、以前ログインした端末：最後に取得したデータを表示する
     const c = store.get("portal4.cache", null);
@@ -1531,6 +1532,8 @@ function loginHtml() {
     <div class="login-logo">${logo}</div>
     <h1 class="login-title"><b>WorkBase</b><span>Portal</span></h1>
     <p class="login-sub">現地作業のファイル・手順・チェックシート</p>
+    ${AUTH.notice === "setup" ? `<div class="note">${ic("alert")}<span><b>初期設定がまだ終わっていません</b>サーバーに置いた <a href="api/setup.php">api/setup.php</a> を開いて、データベースの接続と管理者の登録を行ってください。</span></div>`
+      : AUTH.notice === "db" ? `<div class="note">${ic("alert")}<span><b>データベースに接続できません</b>サーバー側の接続設定（api/config.php）と、データベースの状態を確認してください。</span></div>` : ""}
     <div class="fld"><label for="lgUser">ユーザー名</label><input class="inp" id="lgUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
     <div class="fld"><label for="lgPass">パスワード</label><input class="inp" id="lgPass" name="password" type="password" autocomplete="current-password" required></div>
     <div class="login-err" id="lgErr" role="alert" hidden></div>
@@ -1551,6 +1554,7 @@ async function doLogin() {
     btn.disabled = false; $("#lgPass").value = ""; $("#lgPass").focus();
   }
 }
+async function refreshHistory() { try { applyBootstrap(await api("bootstrap")); } catch (e) { /* 履歴は次回の更新で追いつく */ } }
 /** 通信が戻ったら最新のデータを読み直す。他の人の変更（承認待ちなど）にも気づける */
 async function refreshData(force = false) {
   if (!isSrv() || !AUTH.user || S.a.dirty || (S.layer && S.layer.type !== "modal")) return;
@@ -2202,7 +2206,7 @@ function manualHtml() {
    ========================================================= */
 function renderAdmin() {
   const sel = S.a.sel, isTask = sel && sel.type === "task";
-  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, history: historyHtml, users: usersHtml, review: reviewHtml }[sel.type]();
+  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, history: historyHtml, users: usersHtml, review: reviewHtml, files: filesAdminHtml }[sel.type]();
   return `<div class="adm ${sel ? "has-sel" : ""} ${isTask ? "pv-on" : ""}">
     <aside class="tree" id="tree">${treeHtml()}</aside>
     <main class="ed"><div class="ed-in" id="edIn">${body}</div></main>
@@ -2224,6 +2228,7 @@ function treeHtml() {
       ${can.approve() ? mi("review", "shield", "承認待ち", pend, st === "review") : ""}
       ${mi("notices", "bell", "お知らせ", 0, st === "notices")}
       ${mi("history", "history", "変更履歴", 0, st === "history")}
+      ${isSrv() ? mi("files", "zip", "ファイル管理", 0, st === "files") : ""}
       ${can.users() ? mi("users", "users", "ユーザー・権限", 0, st === "users") : ""}
     </div>
     <div class="tree-h"><h2>作業マスタ</h2><button class="btn sm" type="button" data-act="addCat">${ic("plus")}大項目</button></div>
@@ -2741,6 +2746,7 @@ function guard(fn) {
 }
 function allowed(sel) {
   if (!sel) return true;
+  if (sel.type === "files") return isSrv() && can.admin();
   if (sel.type === "users") return can.users();
   if (sel.type === "review") return can.approve();
   return can.admin();
@@ -2759,6 +2765,7 @@ function select(sel) {
   else if (sel?.type === "notices") S.a.draft = clone(DATA.notices);
   else if (sel?.type === "users") S.a.draft = clone(DATA.users);
   render(); window.scrollTo(0, 0);
+  if (sel?.type === "files") loadFileList();
 }
 function reload() {
   S.a.draft = clone(taskById(S.a.sel.id)); S.a.reviewing = false; S.a.note = ""; S.a.dirty = false; render();
@@ -2888,6 +2895,46 @@ async function saveUsers() {
   return true;
 }
 function discard() { select(S.a.sel); toast("変更を破棄しました"); }
+
+/* ---- ファイル管理（アップロード済みファイルの一覧・削除） ---- */
+async function loadFileList() {
+  const F = S.fl;
+  F.err = "";
+  try { const r = await api("files/list"); F.items = r.files; F.totals = r.totals; } catch (e) { F.err = e.message; if (!F.items) F.items = []; }
+  paintFiles();
+}
+function paintFiles() { if (S.mode === "admin" && S.a.sel?.type === "files" && $("#edIn")) $("#edIn").innerHTML = filesAdminHtml(); }
+function filesAdminHtml() {
+  const F = S.fl, canDel = can.approve();
+  const head = edHead("ファイル管理", "アップロードしたファイル", `<button class="btn sm" type="button" data-act="flRefresh">${ic("clock")}更新</button>`);
+  if (!F.items) return head + `<div class="sect"><div class="card empty">読み込み中…</div></div>`;
+  const T = F.totals || { count: 0, size: 0, unusedCount: 0, unusedSize: 0, free: 0 };
+  const list = F.items.filter(f => !F.filter || (F.filter === "unused" ? !f.used.length : f.used.length));
+  const flt = (v, n) => `<button type="button" data-act="flFilter" data-v="${v}" aria-pressed="${F.filter === v}">${n}</button>`;
+  return head + `<div class="sect">
+    <p class="sect-intro">サーバーに保存されている、ダウンロード用のファイルの一覧です。作業で使われているファイルは削除できません（先に、その作業の「ファイル」タブから外して保存してください）。削除できるのは公開承認以上の権限で、元に戻せません。</p>
+    ${F.err ? `<div class="note">${ic("alert")}<span>${esc(F.err)}</span></div>` : ""}
+    <div class="rv-tiles">
+      <div class="tile"><small>ファイル</small><b class="num">${T.count}<span>件・${fmtBytes(T.size)}</span></b></div>
+      <div class="tile ${T.unusedCount ? "warn" : "ok"}"><small>どの作業にも使われていない</small><b class="num">${T.unusedCount}<span>件・${fmtBytes(T.unusedSize)}</span></b></div>
+      <div class="tile"><small>サーバーの空き容量</small><b class="num">${T.free ? fmtBytes(T.free) : "—"}</b></div>
+    </div>
+    <section class="card blk">
+      <div class="blk-h"><h3>ファイルの一覧</h3><span class="chip right num">${list.length}件</span></div>
+      <div class="hfilter"><div class="toggles" role="group" aria-label="使用状況で絞り込み">${flt("", "すべて")}${flt("used", "使用中")}${flt("unused", "未使用")}</div>
+        ${canDel && T.unusedCount ? `<button class="btn sm danger" type="button" data-act="flPurge" style="margin-left:auto">${ic("trash")}未使用の ${T.unusedCount}件をすべて削除</button>` : ""}</div>
+      <div class="rows">${list.map(f => `<div class="row" style="grid-template-columns:minmax(0,1fr) auto;gap:6px 12px">
+        <span style="display:grid;gap:3px;min-width:0">
+          <span class="up-name">${esc(f.name)}${f.missing ? ` <span class="chip danger">実ファイルがありません</span>` : ""}</span>
+          <span class="up-st num">${fmtBytes(f.size)}・${esc(f.at.replaceAll("-", "/"))}・${esc(f.by)}・${f.source === "ftp" ? "FTP" : "ブラウザ"}・SHA-256 <span class="mono">${esc(f.sha.slice(0, 10))}…</span></span>
+          <span style="display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center">${f.used.length ? f.used.map(u => `<button class="chip accent" type="button" data-act="selTask" data-id="${esc(u.id)}" title="この作業を開く">${esc(u.id)}・${esc(u.where)}</button>`).join("") : `<span class="chip warn">未使用</span>`}</span>
+        </span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <a class="btn sm" href="api/?r=files/${esc(f.fid)}" download title="ダウンロードして確認">${ic("dl")}</a>
+          <button class="btn sm ${f.used.length || !canDel ? "" : "danger"}" type="button" data-act="flDel" data-id="${esc(f.fid)}" ${f.used.length || !canDel ? "disabled" : ""} title="${f.used.length ? "作業で使われているため、削除できません" : canDel ? "" : "削除には公開承認以上の権限が必要です"}">${ic("trash")}削除</button>
+        </span></div>`).join("") || `<div class="empty-row">${F.items.length ? "該当するファイルはありません" : "アップロードされたファイルはありません"}</div>`}</div>
+    </section></div>`;
+}
 
 /* ---- ファイル（サーバー）：アップロード・FTP取り込み・ダウンロード ---- */
 async function startDownload(f) {
@@ -3281,6 +3328,32 @@ const ACT = {
   },
   uPwDo: async () => {
     try { const r = await srvOp("users.password", { id: S.layer.uid, password: $("#pwN").value }); S.layer = null; renderLayer(); toast(r.message); } catch (e) { failToast(e); }
+  },
+
+  /* ファイル管理 */
+  flRefresh: () => loadFileList(),
+  flFilter: el => { S.fl.filter = el.dataset.v; paintFiles(); },
+  flDel: el => {
+    const f = S.fl.items.find(x => x.fid === el.dataset.id); if (!f) return;
+    S.layer = { type: "modal", title: "このファイルを削除しますか？", text: "サーバーから完全に削除され、元に戻せません。", ids: [f.fid],
+      body: `<div class="note">${ic("alert")}<span><b>${esc(f.name)}</b>${fmtBytes(f.size)}・${esc(f.at.replaceAll("-", "/"))}・${esc(f.by)}</span></div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "削除する", act: "flDelDo", cls: "danger solid" }] };
+    renderLayer();
+  },
+  flPurge: () => {
+    const un = S.fl.items.filter(f => !f.used.length);
+    S.layer = { type: "modal", title: `未使用の ${un.length}件のファイルを削除しますか？`, text: "どの作業にも使われていないファイルを、すべて削除します。サーバーから完全に削除され、元に戻せません。", ids: un.map(f => f.fid), wide: true,
+      body: `<div class="note">${ic("alert")}<span>${un.slice(0, 8).map(f => esc(f.name) + "（" + fmtBytes(f.size) + "）").join("<br>")}${un.length > 8 ? `<br>ほか ${un.length - 8}件` : ""}</span></div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "すべて削除する", act: "flDelDo", cls: "danger solid" }] };
+    renderLayer();
+  },
+  flDelDo: async () => {
+    const ids = S.layer.ids;
+    try {
+      const r = await api("files/delete", {}, { method: "POST", body: { ids } });
+      S.layer = null; renderLayer(); await loadFileList(); refreshHistory();
+      toast(r.skipped.length ? `${r.deleted}件を削除しました。${r.skipped.length}件は削除できませんでした：${r.skipped[0].reason}` : `${r.deleted}件のファイルを削除しました（${fmtBytes(r.freedBytes)}の空きが増えました）`);
+    } catch (e) { failToast(e); S.layer = null; renderLayer(); }
   },
 
   /* ファイル */

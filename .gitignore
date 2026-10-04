@@ -7,3 +7,4 @@ portal/storage/incoming/*
 !portal/storage/files/.gitkeep
 !portal/storage/tmp/.gitkeep
 !portal/storage/incoming/.gitkeep
+dist/

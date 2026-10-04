@@ -267,3 +267,68 @@ function route_download(string $fid): never
     fclose($fp);
     exit;
 }
+
+/* ------------------------------------------------------------ 一覧・削除 */
+
+/** どのファイルが、どの作業で使われているか（公開中の内容・下書き・承認待ちの申請のすべてを見る） */
+function file_usage(): array
+{
+    $used = [];
+    foreach (db()->query('SELECT id, title, status, body, review FROM tasks')->fetchAll() as $t) {
+        $add = function (string $json, string $where) use (&$used, $t) {
+            if (preg_match_all('/"fid":"([a-f0-9]{32})"/', $json, $m)) {
+                foreach (array_unique($m[1]) as $fid) $used[$fid][] = ['id' => $t['id'], 'title' => $t['title'], 'where' => $where];
+            }
+        };
+        $add((string)$t['body'], $t['status'] === 'published' ? '公開中' : '下書き');
+        if ($t['review']) $add((string)$t['review'], '承認待ちの申請');
+    }
+    return $used;
+}
+
+function route_file_list(): never
+{
+    require_role('editor');
+    $used = file_usage();
+    $dir = storage_sub('files');
+    $q = db()->query('SELECT f.*, u.display_name AS who FROM files f LEFT JOIN users u ON u.id = f.uploaded_by ORDER BY f.uploaded_at DESC LIMIT 2000');
+    $files = [];
+    $tot = ['count' => 0, 'size' => 0, 'unusedCount' => 0, 'unusedSize' => 0];
+    foreach ($q->fetchAll() as $r) {
+        $u = $used[$r['id']] ?? [];
+        $size = (int)$r['size'];
+        $files[] = ['fid' => $r['id'], 'name' => $r['orig_name'], 'size' => $size, 'sha' => $r['sha256'], 'by' => $r['who'] ?? '（削除済み）',
+            'at' => substr($r['uploaded_at'], 0, 16), 'source' => $r['source'], 'used' => $u, 'missing' => !is_file($dir . '/' . $r['id'])];
+        $tot['count']++; $tot['size'] += $size;
+        if (!$u) { $tot['unusedCount']++; $tot['unusedSize'] += $size; }
+    }
+    $tot['free'] = (int)(@disk_free_space($dir) ?: 0);
+    json_out(['ok' => true, 'files' => $files, 'totals' => $tot]);
+}
+
+/** ファイルの削除（公開承認以上）。作業で使われているファイルは削除できない */
+function route_file_delete(): never
+{
+    require_same_site_write();
+    $u = require_role('approver');
+    $b = read_json(65536);
+    $ids = [];
+    foreach ((array)($b['ids'] ?? []) as $x) if (is_string($x) && preg_match('/^[a-f0-9]{32}$/', $x)) $ids[$x] = true;
+    $ids = array_keys($ids);
+    if (!$ids || count($ids) > 500) fail(422, '削除するファイルを選んでください');
+    $used = file_usage();
+    $deleted = 0;
+    $freed = 0;
+    $skipped = [];
+    foreach ($ids as $id) {
+        $r = file_row($id);
+        if (!$r) { $skipped[] = ['fid' => $id, 'name' => '', 'reason' => 'ファイルが見つかりません']; continue; }
+        if (isset($used[$id])) { $skipped[] = ['fid' => $id, 'name' => $r['orig_name'], 'reason' => '作業「' . $used[$id][0]['title'] . '」で使われています']; continue; }
+        $path = storage_sub('files') . '/' . $id;
+        if (is_file($path) && !@unlink($path)) { $skipped[] = ['fid' => $id, 'name' => $r['orig_name'], 'reason' => 'サーバー上のファイルを削除できませんでした']; continue; }
+        db()->prepare('DELETE FROM files WHERE id = ?')->execute([$id]);
+        log_history($u['id'], 'delete', 'file', '', $r['orig_name'], 'ファイルを削除（' . fmt_bytes((int)$r['size']) . '）');
+        $deleted++; $freed += (int)$r['size'];
+    }
+    json_out(['ok' => true, 'deleted' => $deleted, 'freedBytes' => $freed, 'skipped' => $skipped]);
+}

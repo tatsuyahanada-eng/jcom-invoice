@@ -3,6 +3,12 @@ declare(strict_types=1);
 
 /* WorkBase Portal API: 共通処理 */
 
+/** 設定（config.php か環境変数）が用意されているか */
+function config_ready(): bool
+{
+    return is_file(__DIR__ . '/config.php') || getenv('WB_DB_PASS') !== false;
+}
+
 function cfg(): array
 {
     static $c = null;
@@ -29,12 +35,10 @@ function cfg(): array
     return $c;
 }
 
-function db(bool $multi = false): PDO
+/** 接続情報を指定して DB に接続する（セットアップ画面でも使う） */
+function connect_db(array $d, bool $multi = false): PDO
 {
-    static $pdo = null;
-    if ($pdo !== null && !$multi) return $pdo;
-    $d = cfg()['db'];
-    $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $d['host'], $d['port'], $d['name']);
+    $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $d['host'], (int)$d['port'], $d['name']);
     $h = new PDO($dsn, $d['user'], $d['pass'], [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -42,6 +46,14 @@ function db(bool $multi = false): PDO
     ]);
     $h->exec("SET time_zone = '+09:00'");
     $h->exec('SET SESSION group_concat_max_len = 8192');
+    return $h;
+}
+
+function db(bool $multi = false): PDO
+{
+    static $pdo = null;
+    if ($pdo !== null && !$multi) return $pdo;
+    $h = connect_db(cfg()['db'], $multi);
     if (!$multi) $pdo = $h;
     return $h;
 }

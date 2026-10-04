@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '0');   // エラーの詳細を画面（JSON）に混ぜない。ログには残る
+
 require __DIR__ . '/lib.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/users.php';
@@ -15,7 +17,7 @@ require __DIR__ . '/files.php';
  *   GET  ?r=bootstrap              画面に必要なデータ一式（権限に応じて内容が変わる）
  *   POST ?r=data/{op}              作業・大項目・お知らせ・ユーザーの変更（権限はサーバーで判定）
  *   POST ?r=upload/{init|chunk|finish|cancel}  GET ?r=upload/status   ファイルのアップロード（分割・再開）
- *   GET  ?r=files/limits | files/incoming | files/{id}   POST ?r=files/import
+ *   GET  ?r=files/limits | files/incoming | files/list | files/{id}   POST ?r=files/import | files/delete
  *   POST ?r=records                作業記録の登録（同じ id は二重登録しない）
  *   GET  ?r=records                一覧  q, task, worker, status(ok|skipped), from, to, limit, offset
  *   GET  ?r=records/{id}           詳細（項目ごとのチェック結果つき）
@@ -246,6 +248,8 @@ function main(): void
         if ($route === 'upload/status' && $method === 'GET') route_upload('status');
         if ($route === 'files/limits' && $method === 'GET') { require_role('editor'); json_out(['ok' => true, 'limits' => upload_limits()]); }
         if ($route === 'files/incoming' && $method === 'GET') route_incoming();
+        if ($route === 'files/list' && $method === 'GET') route_file_list();
+        if ($route === 'files/delete' && $method === 'POST') route_file_delete();
         if ($route === 'files/import' && $method === 'POST') route_import();
         if (preg_match('#^files/([a-f0-9]{32})$#', $route, $m) && $method === 'GET') route_download($m[1]);
         if ($route === 'records' && $method === 'POST') { require_same_site_write(); create_record(); }

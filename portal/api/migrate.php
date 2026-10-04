@@ -11,47 +11,24 @@ declare(strict_types=1);
  * 指定しない場合は初期パスワード「Welsys@1234」になり、ログイン後に変更するよう案内が出ます。
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
-require __DIR__ . '/lib.php';
-require __DIR__ . '/users.php';
-require __DIR__ . '/data.php';
+require __DIR__ . '/install.php';
 require __DIR__ . '/files.php';
 
-const DEFAULT_ADMIN_PASSWORD = 'Welsys@1234';
-
-db(true)->exec(file_get_contents(__DIR__ . '/schema.sql'));
+install_schema();
 echo "テーブルを作成しました（または既に存在します）\n";
 $pdo = db();
 
 /* 管理者 */
-if ((int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn() === 0) {
-    $pw = getenv('WB_ADMIN_PASSWORD') ?: DEFAULT_ADMIN_PASSWORD;
-    foreach ($argv as $a) if (strpos($a, '--admin-password=') === 0) $pw = substr($a, 17);
-    if ($err = check_password($pw, 'admin')) { fwrite(STDERR, "管理者のパスワードが使えません：$err\n"); exit(1); }
-    $pdo->prepare('INSERT INTO users (id, username, display_name, email, dept, role, active, password_hash, must_change) VALUES (?,?,?,?,?,?,1,?,?)')
-        ->execute(['u1', 'admin', '管理者', 'admin@example.co.jp', '', 'admin', password_hash($pw, PASSWORD_DEFAULT), $pw === DEFAULT_ADMIN_PASSWORD ? 1 : 0]);
-    echo "管理者を登録しました（ユーザー名：admin）" . ($pw === DEFAULT_ADMIN_PASSWORD ? "。初期パスワードのため、ログイン後に変更してください" : '') . "\n";
-} else {
-    echo "ユーザーは登録済みです（管理者は追加しません）\n";
-}
+$pw = getenv('WB_ADMIN_PASSWORD') ?: DEFAULT_ADMIN_PASSWORD;
+foreach ($argv as $a) if (strpos($a, '--admin-password=') === 0) $pw = substr($a, 17);
+if ($err = check_password($pw, 'admin')) { fwrite(STDERR, "管理者のパスワードが使えません：$err\n"); exit(1); }
+if (install_admin($pw)) echo "管理者を登録しました（ユーザー名：admin）" . ($pw === DEFAULT_ADMIN_PASSWORD ? "。初期パスワードのため、ログイン後に変更してください" : '') . "\n";
+else echo "ユーザーは登録済みです（管理者は追加しません）\n";
 
 /* サンプルの作業データ */
-if (!in_array('--no-sample', $argv, true) && (int)$pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn() === 0) {
-    $seed = json_decode((string)file_get_contents(__DIR__ . '/seed.json'), true);
-    $pdo->beginTransaction();
-    foreach ($seed['categories'] as $c) {
-        $pdo->prepare('INSERT INTO categories (id, ord, name, icon, descr) VALUES (?,?,?,?,?)')->execute([$c['id'], $c['order'], $c['name'], $c['icon'], $c['desc']]);
-    }
-    foreach ($seed['tasks'] as $t) {
-        $pdo->prepare('INSERT INTO tasks (id, cat, ord, status, title, body, updated) VALUES (?,?,?,?,?,?,?)')
-            ->execute([$t['id'], $t['cat'], $t['order'], $t['status'], $t['title'], body_of($t), $t['updated']]);
-    }
-    foreach ($seed['notices'] as $n) {
-        $pdo->prepare('INSERT INTO notices (id, notice_date, lvl, body, task, status, until_date) VALUES (?,?,?,?,?,?,?)')
-            ->execute([$n['id'], $n['date'], $n['level'], $n['text'], $n['task'], $n['status'], $n['until'] ?: null]);
-    }
-    log_history('u1', 'create', 'task', '', 'サンプルの作業データ', '初期データとして ' . count($seed['tasks']) . ' 件の作業を登録');
-    $pdo->commit();
-    echo 'サンプルの作業データを登録しました（' . count($seed['categories']) . ' 大項目・' . count($seed['tasks']) . " 作業）。サンプルのファイルは実体がないため、ダウンロードできません\n";
+if (!in_array('--no-sample', $argv, true)) {
+    $n = install_sample();
+    if ($n >= 0) echo "サンプルの作業データを登録しました（{$n} 作業）。サンプルのファイルは実体がないため、ダウンロードできません\n";
 }
 
 /* デモの作業記録 */

@@ -1,1 +1,9 @@
-Require all denied
+# アップロードされたファイルは、必ず api 経由（ログインが必要）でだけ配信する
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>
+Options -Indexes
