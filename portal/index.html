@@ -155,12 +155,12 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .ico-tile svg.i { width: 22px; height: 22px; }
 
 /* ===== Worker: home ===== */
-.hero { background: var(--grad); color: var(--on-brand); padding: 30px 20px 72px; position: relative; overflow: hidden; }
+.hero { background: var(--grad); color: var(--on-brand); padding: 26px 20px 30px; position: relative; overflow: hidden; }
 .hero::after {
   content: ""; position: absolute; right: -120px; top: -160px; width: 520px; height: 520px; border-radius: 50%;
   background: radial-gradient(closest-side, rgba(255,255,255,.14), rgba(255,255,255,0)); pointer-events: none;
 }
-.hero-in { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; position: relative; z-index: 1; }
+.hero-in { max-width: 1060px; margin: 0 auto; display: grid; gap: 14px; position: relative; z-index: 1; }
 .hero h1 { font-size: 26px; letter-spacing: .02em; }
 .hero p { opacity: .92; font-size: 14px; }
 .bigsearch { display: flex; align-items: center; gap: 10px; background: var(--surface); color: var(--fg); border-radius: 12px; padding: 0 8px 0 16px; box-shadow: var(--shadow-lg); max-width: 760px; }
@@ -172,35 +172,40 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .suggest button { border: 1px solid var(--on-brand-line); background: var(--on-brand-soft); color: var(--on-brand); border-radius: 999px; padding: 3px 12px; font-size: 12.5px; }
 .suggest button:hover { background: var(--on-brand); color: var(--brand-ink); }
 
-.home { max-width: 1100px; margin: -44px auto 0; padding: 0 20px 72px; position: relative; z-index: 2; display: grid; gap: 28px; }
-.cats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-.cat { text-align: left; padding: 16px; display: grid; gap: 10px; align-content: start; transition: border-color .15s, transform .15s; }
-.cat:hover { border-color: var(--accent); transform: translateY(-1px); }
-.cat[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
-.cat-name { font-weight: 700; font-size: 14.5px; line-height: 1.45; }
-.cat-sub { font-size: 12px; color: var(--muted); line-height: 1.55; }
-.cat-count { font-size: 12px; color: var(--accent); font-weight: 700; }
-
-.home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
-.list-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 12px; }
-.list-head h2 { font-size: 17px; }
+.home { max-width: 1100px; margin: 0 auto; padding: 22px 20px 72px; display: grid; gap: 18px; }
+.notices { padding: 4px 18px; }
+.nt { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 10px 0; font-size: 13.5px; line-height: 1.6; }
+.nt + .nt { border-top: 1px solid var(--line); }
+.nt-tx { flex: 1; min-width: 12em; }
+.nt time { color: var(--muted); font-size: 12px; }
+.home-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start; }
+.catnav { position: sticky; top: calc(var(--bar-h) + 16px); display: grid; gap: 2px; }
+.catnav-h { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .06em; padding: 0 10px 6px; }
+.catnav button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; background: none; border-radius: 9px; padding: 9px 10px; font-size: 14px; color: var(--fg); }
+.catnav button svg.i { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.catnav button .nm { flex: 1; min-width: 0; line-height: 1.45; }
+.catnav button .n { font-size: 12px; color: var(--muted); }
+.catnav button:hover { background: var(--surface-2); }
+.catnav button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.catnav button[aria-pressed="true"] svg.i, .catnav button[aria-pressed="true"] .n { color: var(--accent); }
+.list-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 12px; }
+.list-head h2 { font-size: 18px; }
 .list-head .count { color: var(--muted); font-size: 13px; }
-.ind { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
-.ind button { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 3px 12px; font-size: 12.5px; color: var(--muted); }
-.ind button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 700; }
+.list-desc { font-size: 13px; color: var(--muted); margin: -4px 0 12px; }
 .results { display: grid; gap: 10px; scroll-margin-top: calc(var(--bar-h) + 12px); }
-.res {
-  display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 14px; align-items: center;
-  padding: 14px 16px; text-align: left; width: 100%;
-}
+.res { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 18px; text-align: left; width: 100%; }
 .res:hover { border-color: var(--accent); }
 .res-body { display: grid; gap: 4px; min-width: 0; }
 .res-top { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 12px; color: var(--muted); }
 .res-title { font-weight: 700; font-size: 15.5px; line-height: 1.5; }
 .res-sum { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.res-models { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.res-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.res-meta > span { display: inline-flex; align-items: center; gap: 4px; }
+.res-meta svg.i { width: 14px; height: 14px; color: var(--accent); }
+.res-meta b { color: var(--fg); }
+.res-meta .zero { opacity: .55; }
+.res-meta .zero svg.i { color: var(--muted); }
 .res-why { font-size: 12px; color: var(--warn); font-weight: 700; }
-.res-side { display: grid; gap: 6px; justify-items: end; font-size: 12px; color: var(--muted); }
 .res-chev { color: var(--line-strong); }
 .res:hover .res-chev { color: var(--accent); }
 .empty { padding: 40px 20px; text-align: center; color: var(--muted); display: grid; gap: 6px; justify-items: center; }
@@ -617,8 +622,7 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .adm.pv-on .pv-btn { display: none; }
 }
 @media (max-width: 1080px) {
-  .cats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .home-grid { grid-template-columns: minmax(0, 1fr); }
+  .home-grid { grid-template-columns: 200px minmax(0, 1fr); gap: 18px; }
 }
 @media (max-width: 900px) {
   .adm { grid-template-columns: minmax(0, 1fr); }
@@ -634,21 +638,23 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .seg { margin-left: auto; }
   .seg button { padding: 6px 12px; }
   .who { margin-left: 0; }
-  .hero { padding: 22px 16px 64px; }
-  .hero h1 { font-size: 21px; }
+  .hero { padding: 18px 16px 20px; }
+  .hero h1 { font-size: 19px; }
   .bigsearch input { height: 50px; font-size: 16px; }
-  .home { padding: 0 16px 56px; gap: 22px; }
-  .cats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .cat { padding: 12px; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 2px 10px; }
-  .cat .ico-tile { width: 36px; height: 36px; grid-row: span 2; }
-  .cat .ico-tile svg.i { width: 19px; height: 19px; }
-  .cat-name { font-size: 13px; }
-  .cat-sub { display: none; }
-  .ind { margin-left: 0; width: 100%; overflow-x: auto; flex-wrap: nowrap; }
-  .ind button { flex: none; }
-  .res { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 14px; gap: 10px; }
-  .res > .ico-tile { display: none; }
-  .res-side .chip.ok:not(:first-child), .res-side .num { display: none; }
+  .home { padding: 14px 16px 56px; gap: 14px; }
+  .home-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .catnav { position: static; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+  .catnav::-webkit-scrollbar { display: none; }
+  .catnav-h { display: none; }
+  .catnav button { flex: none; width: auto; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 13px; gap: 6px; }
+  .catnav button svg.i { width: 15px; height: 15px; }
+  .catnav button[aria-pressed="true"] { border-color: var(--accent); }
+  .res { padding: 12px 14px; gap: 10px; }
+  .notices { padding: 2px 14px; }
+  .nt { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 8px; font-size: 13px; padding: 9px 0; }
+  .nt-tx { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nt time { display: none; }
+  .nt .link { font-size: 12.5px; }
   .savebar .msg small { display: none; }
 }
 /* ===== v3: users / approval / history / notices / checklist ===== */
@@ -1431,7 +1437,7 @@ function log(action, type, tid, name, detail = "") {
   DATA.history.unshift({ id: "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: nowStr(), user: S.me, action, type, tid: tid || "", name, detail });
   DATA.history = DATA.history.slice(0, 300);
 }
-const TABGROUPS = { basic: ["title", "summary", "cat", "minutes", "people", "industries", "tags"], dev: ["devices", "os"], prep: ["precheck", "bring"], files: ["files", "extractTo"], steps: ["steps"], man: ["manuals"], pub: ["version", "changelog"] };
+const TABGROUPS = { basic: ["title", "summary", "cat", "minutes", "people", "tags"], dev: ["devices", "os"], prep: ["precheck", "bring"], files: ["files", "extractTo"], steps: ["steps"], man: ["manuals"], pub: ["version", "changelog"] };
 function changedTabs(a, b) {
   return TABS.filter(([k]) => TABGROUPS[k] && TABGROUPS[k].some(f => JSON.stringify(a[f]) !== JSON.stringify(b[f]))).map(([, n]) => n);
 }
@@ -1622,106 +1628,83 @@ function recCardInner() {
 const recordsCard = () => `<section class="card" id="recCard">${recCardInner()}</section>`;
 const refreshRecCard = () => { const c = $("#recCard"); if (c) c.innerHTML = recCardInner(); };
 
-function workHome() {
+function pubTasks() { return DATA.tasks.filter(t => t.status === "published"); }
+function workList() {
   const q = S.w.q;
-  const pub = DATA.tasks.filter(t => t.status === "published");
-  const list = pub
+  return pubTasks()
     .filter(t => !S.w.cat || t.cat === S.w.cat)
-    .filter(t => !S.w.ind || t.industries.includes(S.w.ind))
     .map(t => ({ t, h: searchHit(t, q) })).filter(x => x.h.hit)
     .sort((a, b) => catOf(a.t.cat).order - catOf(b.t.cat).order || a.t.order - b.t.order);
-  const cat = S.w.cat ? catOf(S.w.cat) : null;
+}
+function catNavHtml() {
+  const pub = pubTasks();
+  const cats = catsSorted().filter(c => pub.some(t => t.cat === c.id));
+  const b = (id, icon, name, n) => `<button type="button" data-act="wCat" data-id="${id}" aria-pressed="${(S.w.cat || "") === id}">${ic(icon)}<span class="nm">${esc(name)}</span><span class="n num">${n}</span></button>`;
+  return `<div class="catnav-h">大項目</div>` + b("", "grid", "すべて", pub.length) + cats.map(c => b(c.id, c.icon, c.name, pub.filter(t => t.cat === c.id).length)).join("");
+}
 
+function workHome() {
+  const q = S.w.q;
+  const notices = visibleNotices().slice(0, 3);
+  const pend = RECORDS.some(r => r.sync === "pending" || r.sync === "error");
   return `
   <section class="hero">
     <div class="hero-in">
-      <h1>対象の作業を検索</h1>
-      <p>作業名・機器の型番・ファイル名・作業IDのどれでも探せます。表示されるのは公開中の最新版だけです。</p>
+      <h1>作業を検索</h1>
       <label class="bigsearch" for="wq">
         ${ic("search")}
-        <input id="wq" type="search" placeholder="例：PT-1500A、釣銭機、キッチンプリンタ、WK-2101" value="${esc(q)}" autocomplete="off" enterkeyhint="search">
+        <input id="wq" type="search" placeholder="作業名・型番・ファイル名・作業IDで検索" value="${esc(q)}" autocomplete="off" enterkeyhint="search">
         <button class="icon-btn" type="button" data-act="clearQ" aria-label="検索語を消す" ${q ? "" : "hidden"}>${ic("x")}</button>
       </label>
-      <div class="suggest"><span>よく使う検索：</span>${["PT-1500A", "自動釣銭機", "KS-2150", "VPN", "障害ログ"].map(s => `<button type="button" data-act="setQ" data-v="${esc(s)}">${esc(s)}</button>`).join("")}</div>
     </div>
   </section>
 
   <div class="home">
-    <section aria-label="作業カテゴリ">
-      <div class="cats">
-        ${catsSorted().filter(c => pub.some(t => t.cat === c.id)).map(c => {
-          const n = pub.filter(t => t.cat === c.id).length;
-          return `<button class="card cat" type="button" data-act="wCat" data-id="${c.id}" aria-pressed="${S.w.cat === c.id}">
-            <span class="ico-tile">${ic(c.icon)}</span>
-            <span class="cat-name">${esc(c.name)}</span>
-            <span class="cat-sub">${esc(c.desc)}</span>
-            <span class="cat-count num">${n}件の作業</span>
-          </button>`;
-        }).join("")}
-      </div>
-    </section>
+    ${notices.length ? `<section class="card notices" aria-label="お知らせ">
+      ${notices.map(n => `<div class="nt">
+        <span class="chip ${n.level}">${n.level === "danger" ? "重要" : n.level === "warn" ? "期限あり" : "お知らせ"}</span>
+        <span class="nt-tx">${esc(n.text)}</span>
+        <time class="num">${fmtDate(n.date)}</time>
+        ${taskById(n.task) ? `<button class="link" type="button" data-act="openTask" data-id="${n.task}">開く →</button>` : ""}
+      </div>`).join("")}
+    </section>` : ""}
+    ${pend ? `<div class="syncrow" data-sync>${syncChipHtml()}</div>` : ""}
 
     <div class="home-grid">
-      <section aria-labelledby="resH" id="resSec">${resultsHtml(list, q, cat)}</section>
-
-      <aside class="side">
-        <section class="card">
-          <h3>${ic("bell")} お知らせ</h3>
-          ${visibleNotices().map(n => `<div class="notice">
-            <time class="num">${fmtDate(n.date)}</time>
-            <span><span class="chip ${n.level}">${n.level === "danger" ? "重要" : n.level === "warn" ? "期限あり" : "更新"}</span> ${esc(n.text)}</span>
-            ${taskById(n.task) ? `<button class="link" type="button" data-act="openTask" data-id="${n.task}">${n.task} を開く →</button>` : ""}
-          </div>`).join("") || `<p class="muted" style="font-size:13px;padding:8px 0">お知らせはありません</p>`}
-        </section>
-        <section class="card">
-          <h3>${ic("clock")} 最近開いた作業</h3>
-          ${RECENT.map(taskById).filter(t => t && t.status === "published").slice(0, 4).map(t => {
-            const p = progOf(t);
-            return `<button class="recent-item" type="button" data-act="openTask" data-id="${t.id}"><b>${esc(t.title)}</b><small class="num">${t.id}・進み具合 ${p.done}/${p.total}</small></button>`;
-          }).join("") || `<p class="muted" style="font-size:13px;padding:8px 0">まだありません</p>`}
-        </section>
-        ${recordsCard()}
-        <section class="card support">
-          <h3>${ic("info")} 現場で困ったとき</h3>
-          <div style="padding:2px 0 8px;font-size:13px">技術サポート窓口（平日 8:30–19:00）<strong>内線 4410</strong><span class="muted">作業IDをお伝えください</span></div>
-        </section>
-      </aside>
+      <nav class="catnav" aria-label="大項目" id="catNav">${catNavHtml()}</nav>
+      <section aria-labelledby="resH" id="resSec">${resultsHtml(workList(), q)}</section>
     </div>
   </div>`;
 }
 
-function resultsHtml(list, q, cat) {
+function resultsHtml(list, q) {
+  const cat = S.w.cat ? catOf(S.w.cat) : null;
+  const none = !pubTasks().length;
   return `
     <div class="list-head">
       <h2 id="resH">${q ? `「${esc(q)}」の検索結果` : cat ? esc(cat.name) : "すべての作業"}</h2>
       <span class="count num">${list.length}件</span>
-      ${S.w.cat || q || S.w.ind ? `<button class="link" type="button" data-act="wReset">条件をクリア</button>` : ""}
-      <div class="ind" role="group" aria-label="業種で絞り込み">
-        ${INDUSTRIES.map(i => `<button type="button" data-act="wInd" data-v="${i}" aria-pressed="${S.w.ind === i}">${i}</button>`).join("")}
-      </div>
+      ${S.w.cat || q ? `<button class="link" type="button" data-act="wReset">条件をクリア</button>` : ""}
     </div>
+    ${cat && !q && cat.desc ? `<p class="list-desc">${esc(cat.desc)}</p>` : ""}
     <div class="results">
-      ${list.length ? list.map(({ t, h }) => resCard(t, h, q)).join("") : `<div class="card empty">${ic("search")}<b>該当する作業が見つかりません</b><span>型番は「PT-15」のように一部だけでも検索できます。条件をクリアしてもう一度お試しください。</span></div>`}
+      ${list.length ? list.map(({ t, h }) => resCard(t, h, q)).join("")
+        : none ? `<div class="card empty">${ic("info")}<b>公開中の作業はまだありません</b><span>${can.admin() ? "「設定」から大項目と作業を登録し、公開してください。" : "作業が公開されるとここに表示されます。"}</span>${can.admin() ? `<button class="btn primary sm" type="button" data-act="mode" data-v="admin">${ic("gear")}設定を開く</button>` : ""}</div>`
+        : `<div class="card empty">${ic("search")}<b>該当する作業が見つかりません</b><span>型番は「PT-15」のように一部だけでも検索できます。</span></div>`}
     </div>`;
 }
 
 function resCard(t, h, q) {
-  const c = catOf(t.cat), p = progOf(t);
-  const st = p.complete ? `<span class="chip ok">${ic("check")}完了</span>` : p.started ? `<span class="chip warn">作業中 ${p.done}/${p.total}</span>` : "";
+  const c = catOf(t.cat);
+  const meta = [["steps", "手順", t.steps.length], ["file", "マニュアル", t.manuals.length], ["dl", "設定データ", t.files.length]];
   return `<button class="card res" type="button" data-act="openTask" data-id="${t.id}">
-    <span class="ico-tile">${ic(c.icon)}</span>
     <span class="res-body">
-      <span class="res-top"><span class="mono">${hl(t.id, q)}</span><span>${esc(c.name)}</span><span class="num">約${t.minutes}分・${t.people}名</span></span>
+      <span class="res-top"><span class="mono">${hl(t.id, q)}</span>${S.w.cat ? "" : `<span>${esc(c.name)}</span>`}</span>
       <span class="res-title">${hl(t.title, q)}</span>
-      <span class="res-sum">${esc(t.summary)}</span>
-      <span class="res-models">${t.devices.slice(0, 3).map(d => `<span class="model">${hl(d.model, q)}</span>`).join("")}${h.why ? `<span class="res-why">${esc(h.why)}</span>` : ""}</span>
+      ${t.summary ? `<span class="res-sum">${esc(t.summary)}</span>` : ""}
+      <span class="res-meta">${meta.map(([i, n, v]) => `<span class="${v ? "" : "zero"}">${ic(i)}${n} <b class="num">${v}</b></span>`).join("")}${h.why ? `<span class="res-why">${esc(h.why)}</span>` : ""}</span>
     </span>
-    <span class="res-side">
-      ${st}
-      <span class="chip ok"><span class="dot"></span>最新版 ${esc(t.version)}</span>
-      <span class="num">${t.files.length ? fmtBytes(totalSize(t)) : "ファイルなし"}</span>
-      ${ic("chev", "res-chev")}
-    </span>
+    ${ic("chev", "res-chev")}
   </button>`;
 }
 
@@ -1739,7 +1722,7 @@ function wkDetail(t, preview = false) {
   const hashCmd = t.files.map(x => `Get-FileHash "$env:USERPROFILE\\Downloads\\${x.name}"`).join("\n");
   const pct = pr.total ? Math.round(pr.done / pr.total * 100) : 0;
   const none = s => `<p class="muted" style="font-size:13px">${s}</p>`;
-  const navItems = [["prep", "準備", t.precheck.length + t.bring.length], ["dev", "機器", t.devices.length], ["files", "ファイル", t.files.length], ["steps", "手順", t.steps.length], ["man", "マニュアル", t.manuals.length]];
+  const navItems = [["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ["files", "設定データ", t.files.length], ["dev", "機器", t.devices.length], ["prep", "準備・持参品", t.precheck.length + t.bring.length]];
 
   return `<div class="wk-c"><div class="wk">
     ${preview ? "" : `<button class="back" type="button" data-act="goHome">${ic("chev")}作業一覧へ戻る</button>`}
@@ -1763,39 +1746,30 @@ function wkDetail(t, preview = false) {
 
     <div class="wk-grid">
       <div class="wk-main">
-        <section class="card wsec" data-sec="prep">
-          <div class="wsec-h"><h2>事前準備と持参品</h2><span class="sub">出発前と作業前にチェック</span></div>
-          <div class="two">
-            <div>
-              <div class="sub-h">${ic("check")} 事前確認</div>
-              <div class="cks">${t.precheck.length ? t.precheck.map((x, i) => {
-                const on = on_("prep:" + i);
-                return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="prep:${i}" ${on ? "checked" : ""} ${dis}><span>${x ? esc(x) : "<span class='muted'>（未入力）</span>"}</span></label>`;
-              }).join("") : none("事前確認はありません")}</div>
-            </div>
-            <div>
-              <div class="sub-h">${ic("box")} 現地持参品</div>
-              <div class="cks">${t.bring.length ? t.bring.map((x, i) => {
-                const on = on_("bring:" + i);
-                return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="bring:${i}" ${on ? "checked" : ""} ${dis}><span>${x.name ? esc(x.name) : "<span class='muted'>（未入力）</span>"}${x.required ? `<span class="req">必須</span>` : ""}</span><span class="qty">${esc(x.qty)}</span></label>`;
-              }).join("") : none("持参品はありません")}</div>
-            </div>
-          </div>
+        <section class="card wsec" data-sec="steps">
+          <div class="wsec-h"><h2>作業手順</h2><span class="sub">${t.steps.length}ステップ・番号を押すと完了にできます</span></div>
+          <div class="wsteps">${t.steps.length ? t.steps.map((s, i) => {
+            const on = on_("steps:" + i);
+            return `<div class="wstep ${on ? "on" : ""}">
+              <label class="wnum" title="完了にする"><input type="checkbox" data-wck="steps:${i}" ${on ? "checked" : ""} ${dis} aria-label="手順${i + 1}を完了にする">${on ? ic("check") : i + 1}</label>
+              <div><h3>${s.title ? esc(s.title) : "<span class='muted'>（手順名未入力）</span>"}</h3>${s.body ? `<p>${esc(s.body)}</p>` : ""}
+              ${s.caution ? `<div class="note">${ic("alert")}<span>${esc(s.caution)}</span></div>` : ""}</div>
+            </div>`;
+          }).join("") : none("作業手順が登録されていません")}</div>
+          <div><div class="sub-h">${ic("shield")} 完了確認</div><div class="cks">${sheetOf(t).find(s => s.key === "final").items.map(it => { const on = on_(it.id); return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="${it.id}" ${on ? "checked" : ""} ${dis}><span>${esc(it.label)}</span></label>`; }).join("")}</div></div>
         </section>
 
-        <section class="card wsec" data-sec="dev">
-          <div class="wsec-h"><h2>対象機器</h2><span class="sub">現地の機器ラベルと型番が一致しているか確認してください</span></div>
-          ${t.devices.length ? `<div class="devs">${t.devices.map(d => `<div class="dev">
-            <span class="dev-type">${esc(d.type) || "—"}</span>
-            <span class="dev-name">${d.name ? esc(d.name) : "<span class='muted'>（機器名未入力）</span>"}</span>
-            <span class="dev-model">${esc(d.model) || "—"}</span>
-            ${d.note ? `<span class="dev-note">${esc(d.note)}</span>` : ""}
-          </div>`).join("")}</div>` : none("対象機器が登録されていません")}
-          ${t.os ? `<p class="os-line">OS・ソフトウェア：<b style="color:var(--fg)">${esc(t.os)}</b></p>` : ""}
+        <section class="card wsec" data-sec="man">
+          <div class="wsec-h"><h2>マニュアル</h2><span class="sub">印刷・持ち込みは不要です</span></div>
+          <div class="mans">${t.manuals.length ? t.manuals.map((m, i) => `<div class="man">
+            <span class="man-ico ${m.kind === "動画" ? "mov" : m.kind === "Web" ? "web" : "pdf"}">${m.kind === "動画" ? ic("play") : m.kind === "Web" ? "WEB" : "PDF"}</span>
+            <span style="min-width:0"><b>${m.title ? esc(m.title) : "（タイトル未入力）"}</b><small class="num">${esc(m.meta || "—")}・更新 ${fmtDate(m.updated)}</small></span>
+            <button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-act="manual" data-i="${i}" ${dis}>${m.kind === "動画" ? "再生" : "開く"}</button>
+          </div>`).join("") : none("マニュアルは登録されていません")}</div>
         </section>
 
         <section class="card wsec" data-sec="files">
-          <div class="wsec-h"><h2>ファイルのダウンロードと展開</h2><span class="sub num">${t.files.length}ファイル・合計 ${fmtBytes(total)}</span></div>
+          <div class="wsec-h"><h2>設定データのダウンロード</h2><span class="sub num">${t.files.length}ファイル・合計 ${fmtBytes(total)}</span></div>
           ${t.files.length ? `
             ${t.files.length > 1 ? `<div class="bundle"><span><b>まとめてダウンロード</b><small class="num">${t.files.length}ファイル（${fmtBytes(total)}）・100Mbps回線で${dlTime(total)}</small></span>
               <button class="btn primary" type="button" data-act="dlAll" ${dis}>${ic("dl")}すべてダウンロード</button></div>` : ""}
@@ -1819,26 +1793,35 @@ function wkDetail(t, preview = false) {
           ` : none("この作業で使うファイルはありません")}
         </section>
 
-        <section class="card wsec" data-sec="steps">
-          <div class="wsec-h"><h2>作業手順</h2><span class="sub">${t.steps.length}ステップ・番号を押すと完了にできます</span></div>
-          <div class="wsteps">${t.steps.length ? t.steps.map((s, i) => {
-            const on = on_("steps:" + i);
-            return `<div class="wstep ${on ? "on" : ""}">
-              <label class="wnum" title="完了にする"><input type="checkbox" data-wck="steps:${i}" ${on ? "checked" : ""} ${dis} aria-label="手順${i + 1}を完了にする">${on ? ic("check") : i + 1}</label>
-              <div><h3>${s.title ? esc(s.title) : "<span class='muted'>（手順名未入力）</span>"}</h3>${s.body ? `<p>${esc(s.body)}</p>` : ""}
-              ${s.caution ? `<div class="note">${ic("alert")}<span>${esc(s.caution)}</span></div>` : ""}</div>
-            </div>`;
-          }).join("") : none("作業手順が登録されていません")}</div>
-          <div><div class="sub-h">${ic("shield")} 完了確認</div><div class="cks">${sheetOf(t).find(s => s.key === "final").items.map(it => { const on = on_(it.id); return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="${it.id}" ${on ? "checked" : ""} ${dis}><span>${esc(it.label)}</span></label>`; }).join("")}</div></div>
+        <section class="card wsec" data-sec="dev">
+          <div class="wsec-h"><h2>対象機器</h2><span class="sub">現地の機器ラベルと型番が一致しているか確認してください</span></div>
+          ${t.devices.length ? `<div class="devs">${t.devices.map(d => `<div class="dev">
+            <span class="dev-type">${esc(d.type) || "—"}</span>
+            <span class="dev-name">${d.name ? esc(d.name) : "<span class='muted'>（機器名未入力）</span>"}</span>
+            <span class="dev-model">${esc(d.model) || "—"}</span>
+            ${d.note ? `<span class="dev-note">${esc(d.note)}</span>` : ""}
+          </div>`).join("")}</div>` : none("対象機器が登録されていません")}
+          ${t.os ? `<p class="os-line">OS・ソフトウェア：<b style="color:var(--fg)">${esc(t.os)}</b></p>` : ""}
         </section>
 
-        <section class="card wsec" data-sec="man">
-          <div class="wsec-h"><h2>マニュアル</h2><span class="sub">印刷・持ち込みは不要です</span></div>
-          <div class="mans">${t.manuals.length ? t.manuals.map((m, i) => `<div class="man">
-            <span class="man-ico ${m.kind === "動画" ? "mov" : m.kind === "Web" ? "web" : "pdf"}">${m.kind === "動画" ? ic("play") : m.kind === "Web" ? "WEB" : "PDF"}</span>
-            <span style="min-width:0"><b>${m.title ? esc(m.title) : "（タイトル未入力）"}</b><small class="num">${esc(m.meta || "—")}・更新 ${fmtDate(m.updated)}</small></span>
-            <button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-act="manual" data-i="${i}" ${dis}>${m.kind === "動画" ? "再生" : "開く"}</button>
-          </div>`).join("") : none("マニュアルは登録されていません")}</div>
+        <section class="card wsec" data-sec="prep">
+          <div class="wsec-h"><h2>事前準備と持参品</h2><span class="sub">出発前と作業前にチェック</span></div>
+          <div class="two">
+            <div>
+              <div class="sub-h">${ic("check")} 事前確認</div>
+              <div class="cks">${t.precheck.length ? t.precheck.map((x, i) => {
+                const on = on_("prep:" + i);
+                return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="prep:${i}" ${on ? "checked" : ""} ${dis}><span>${x ? esc(x) : "<span class='muted'>（未入力）</span>"}</span></label>`;
+              }).join("") : none("事前確認はありません")}</div>
+            </div>
+            <div>
+              <div class="sub-h">${ic("box")} 現地持参品</div>
+              <div class="cks">${t.bring.length ? t.bring.map((x, i) => {
+                const on = on_("bring:" + i);
+                return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="bring:${i}" ${on ? "checked" : ""} ${dis}><span>${x.name ? esc(x.name) : "<span class='muted'>（未入力）</span>"}${x.required ? `<span class="req">必須</span>` : ""}</span><span class="qty">${esc(x.qty)}</span></label>`;
+              }).join("") : none("持参品はありません")}</div>
+            </div>
+          </div>
         </section>
 
         ${t.old.length ? `<details class="old"><summary>旧バージョン（${t.old.length}件）— 通常は使用しません</summary><div class="old-body">
@@ -2509,7 +2492,6 @@ function sectionHtml() {
         <div class="fld"><label for="f-id">作業ID</label><input class="inp mono" id="f-id" value="${esc(d.id)}" disabled><p class="hint">自動で採番されます。電話での問い合わせ時に使います。</p></div>
         ${fld("所要時間（目安）", "minutes", `<div class="with-unit"><input class="inp num" type="number" min="0" step="5" id="f-minutes" data-bind="minutes" data-type="num" value="${esc(d.minutes)}"><span>分</span></div>`)}
         ${fld("作業人数", "people", `<div class="with-unit"><input class="inp num" type="number" min="1" id="f-people" data-bind="people" data-type="num" value="${esc(d.people)}"><span>名</span></div>`)}
-        <div class="fld full"><span class="lb">対象業種</span><div class="toggles" role="group" aria-label="対象業種">${INDUSTRIES.map(i => `<button type="button" data-act="togInd" data-v="${i}" aria-pressed="${d.industries.includes(i)}">${i}</button>`).join("")}</div><p class="hint">現場ビューの業種フィルタに使われます。</p></div>
         <div class="fld full"><label for="tagIn">検索キーワード</label>
           <div class="tags">${d.tags.map((t, i) => `<span class="tag">${esc(t)}<button type="button" data-act="rmTag" data-i="${i}" aria-label="${esc(t)}を削除">${ic("x")}</button></span>`).join("")}<input id="tagIn" placeholder="入力して Enter で追加" enterkeyhint="enter"></div>
           <p class="hint">作業名や型番以外で探されそうな言葉（例：新規導入、入れ替え、釣銭機）を登録します。</p></div>
@@ -3117,12 +3099,9 @@ function refreshWork() {
 }
 function refreshResults() {
   const sec = $("#resSec"); if (!sec) { render(); return; }
-  const q = S.w.q, pub = DATA.tasks.filter(t => t.status === "published");
-  const list = pub.filter(t => !S.w.cat || t.cat === S.w.cat).filter(t => !S.w.ind || t.industries.includes(S.w.ind))
-    .map(t => ({ t, h: searchHit(t, q) })).filter(x => x.h.hit)
-    .sort((a, b) => catOf(a.t.cat).order - catOf(b.t.cat).order || a.t.order - b.t.order);
-  sec.innerHTML = resultsHtml(list, q, S.w.cat ? catOf(S.w.cat) : null);
-  const clr = document.querySelector('[data-act="clearQ"]'); if (clr) clr.hidden = !q;
+  sec.innerHTML = resultsHtml(workList(), S.w.q);
+  const nav = $("#catNav"); if (nav) nav.innerHTML = catNavHtml();
+  const clr = document.querySelector('[data-act="clearQ"]'); if (clr) clr.hidden = !S.w.q;
 }
 
 const ACT = {
@@ -3147,9 +3126,8 @@ const ACT = {
   /* 現場ビュー */
   setQ: el => { S.w.q = el.dataset.v; render(); },
   clearQ: () => { S.w.q = ""; const n = $("#wq"); if (n) n.value = ""; refreshResults(); n?.focus(); },
-  wCat: el => { S.w.cat = S.w.cat === el.dataset.id ? null : el.dataset.id; refreshWork(); },
-  wInd: el => { S.w.ind = S.w.ind === el.dataset.v ? null : el.dataset.v; refreshResults(); },
-  wReset: () => { S.w.cat = null; S.w.ind = null; S.w.q = ""; refreshWork(); },
+  wCat: el => { S.w.cat = el.dataset.id || null; refreshResults(); },
+  wReset: () => { S.w.cat = null; S.w.q = ""; refreshWork(); },
   openTask: el => {
     const id = el.dataset.id;
     S.mode = "work"; S.w.view = "task"; S.w.taskId = id;
@@ -3503,7 +3481,7 @@ document.addEventListener("click", e => {
 /* 検索欄（日本語入力の変換中は更新しない） */
 let rvT;
 function onSearch(el) {
-  if (el.id === "wq") { S.w.q = el.value.trim(); refreshResults(); }
+  if (el.id === "wq") { S.w.q = el.value.trim(); if (S.w.q) S.w.cat = null; refreshResults(); }
   else if (el.id === "rvQ") { S.rc.f.q = el.value; clearTimeout(rvT); rvT = setTimeout(() => loadRecords(true), 250); }
   else if (el.id === "treeQ") {
     S.a.treeQ = el.value; const pos = el.selectionStart;
