@@ -891,6 +891,16 @@ button.rec-b:hover b { color: var(--accent); text-decoration: underline; }
 .brand-txt { font-family: var(--font-logo); font-size: 19px; letter-spacing: -.01em; line-height: 1; white-space: nowrap; }
 .brand-txt b { font-weight: 700; color: var(--logo-a); }
 .brand-txt span { font-weight: 400; color: var(--logo-b); margin-left: .28em; }
+@media (max-width: 640px) {
+  :root { --bar-h: 100px; }
+  .appbar-in { flex-wrap: wrap; align-content: center; padding: 6px 14px 8px; gap: 6px 10px; }
+  .brand { order: 1; gap: 8px; }
+  .brand-mark, .brand-mark svg { height: 28px; }
+  .appbar .brand-txt { display: inline; font-size: 17px; }
+  .who { order: 2; margin-left: auto; }
+  .seg { order: 3; flex-basis: 100%; margin-left: 0; }
+  .seg button { flex: 1; justify-content: center; padding: 7px 6px; font-size: 13px; }
+}
 .seg { background: var(--surface-2); }
 .seg button { color: var(--muted); }
 .seg button:hover { color: var(--fg); }
