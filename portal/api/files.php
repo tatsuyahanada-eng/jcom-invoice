@@ -285,7 +285,6 @@ function file_usage(): array
             }
         };
         $add((string)$t['body'], $t['status'] === 'published' ? '公開中' : '下書き');
-        if ($t['review']) $add((string)$t['review'], '承認待ちの申請');
     }
     return $used;
 }
@@ -310,11 +309,11 @@ function route_file_list(): never
     json_out(['ok' => true, 'files' => $files, 'totals' => $tot]);
 }
 
-/** ファイルの削除（公開承認以上）。作業で使われているファイルは削除できない */
+/** ファイルの削除（編集以上）。作業で使われているファイルは削除できない */
 function route_file_delete(): never
 {
     require_same_site_write();
-    $u = require_role('approver');
+    $u = require_role('editor');
     $b = read_json(65536);
     $ids = [];
     foreach ((array)($b['ids'] ?? []) as $x) if (is_string($x) && preg_match('/^[a-f0-9]{32}$/', $x)) $ids[$x] = true;

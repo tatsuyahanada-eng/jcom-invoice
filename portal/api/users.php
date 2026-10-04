@@ -30,7 +30,8 @@ function op_users_save(array $me, array $b): array
         $role = (string)($x['role'] ?? 'viewer');
         if ($name === '' || $email === '') fail(422, '氏名とメールアドレスは必須です');
         if (!preg_match('/^\S+@\S+\.\S+$/', $email)) fail(422, 'メールアドレスの形式を確認してください');
-        if (!isset(ROLE_LV[$role])) fail(422, '権限の指定が正しくありません');
+        if ($role === 'approver') $role = 'editor';   // 旧版の「公開承認」は「編集」にまとめた
+        if (!in_array($role, ['viewer', 'editor', 'admin'], true)) fail(422, '権限の指定が正しくありません');
         $username = $isNew ? strtolower(str($x['username'] ?? '', 50)) : $old[$id]['username'];
         if ($isNew) {
             if (!preg_match('/^[a-z0-9._-]{3,50}$/', $username)) fail(422, 'ユーザー名は、英数字と . _ - の3〜50文字で入力してください');

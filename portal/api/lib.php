@@ -111,8 +111,8 @@ function like_escape(string $s): string
 
 /* ------------------------------------------------------------ 認証・権限 */
 
-const ROLE_LV = ['viewer' => 0, 'editor' => 1, 'approver' => 2, 'admin' => 3];
-const ROLE_LABEL = ['viewer' => '閲覧のみ', 'editor' => '編集', 'approver' => '公開承認', 'admin' => '管理者'];
+const ROLE_LV = ['viewer' => 0, 'editor' => 1, 'approver' => 1, 'admin' => 3];   // approver は旧版の権限（今は「編集」と同じ）
+const ROLE_LABEL = ['viewer' => '閲覧のみ', 'editor' => '編集', 'approver' => '編集', 'admin' => '管理者'];
 
 function client_ip(): string
 {
@@ -187,7 +187,7 @@ function role_lv(array $u): int
 
 function public_user(array $r, bool $full = true): array
 {
-    $o = ['id' => $r['id'], 'name' => $r['display_name'], 'dept' => $r['dept'], 'role' => $r['role'], 'active' => (bool)$r['active']];
+    $o = ['id' => $r['id'], 'name' => $r['display_name'], 'dept' => $r['dept'], 'role' => $r['role'] === 'approver' ? 'editor' : $r['role'], 'active' => (bool)$r['active']];
     if ($full) $o += ['username' => $r['username'], 'email' => $r['email'], 'last' => $r['last_login'] ? substr((string)$r['last_login'], 0, 16) : '', 'mustChange' => (bool)$r['must_change']];
     return $o;
 }

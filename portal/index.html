@@ -178,6 +178,56 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .nt + .nt { border-top: 1px solid var(--line); }
 .nt-tx { flex: 1; min-width: 12em; }
 .nt time { color: var(--muted); font-size: 12px; }
+.vtog { display: inline-flex; margin-left: auto; background: var(--surface-2); border-radius: 999px; padding: 3px; }
+.vtog button { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.vtog button svg.i { width: 14px; height: 14px; }
+.vtog button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+.reg { display: grid; overflow: hidden; }
+.reg-h, .reg-r { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.2fr) minmax(0, 1.4fr) 54px 76px 76px 50px 108px; gap: 10px; align-items: center; padding: 10px 16px; }
+.reg.fl .reg-h, .reg.fl .reg-r { grid-template-columns: minmax(0, 2.6fr) minmax(0, 1.2fr) minmax(0, 1.4fr) 76px 76px 50px 92px; }
+.reg-h { font-size: 11.5px; font-weight: 700; color: var(--muted); background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.reg-r { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--fg); }
+.reg-r:last-child { border-bottom: 0; }
+.reg-r:hover { background: var(--surface-2); }
+.reg-r:hover .reg-t b { color: var(--accent); }
+.reg .c { text-align: center; }
+.reg-t { display: grid; gap: 1px; min-width: 0; }
+.reg-t b { font-size: 14px; line-height: 1.5; }
+.reg-t small { font-size: 11.5px; color: var(--muted); }
+.reg-c { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; min-width: 0; }
+.reg-c svg.i { width: 15px; height: 15px; flex: none; }
+.reg-m { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; min-width: 0; }
+.reg-s { display: grid; gap: 3px; justify-items: start; font-size: 12px; color: var(--muted); }
+.reg-count { font-size: 12px; padding: 10px 16px 0; }
+.reg-top { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+.reg-f { display: flex; flex-wrap: wrap; gap: 8px; }
+.reg-q { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; padding: 0 12px; }
+.reg-q svg.i { color: var(--accent); }
+.reg-q input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; height: 40px; font-size: 14px; }
+.reg-f .sel { width: auto; }
+@media (max-width: 900px) {
+  .reg-h { display: none; }
+  .reg-r, .reg.fl .reg-r { grid-template-columns: minmax(0, 1fr) auto; grid-auto-flow: row; gap: 4px 10px; padding: 12px 14px; }
+  .reg-r .reg-t { grid-column: 1 / -1; }
+  .reg-r .reg-c, .reg-r .reg-m { grid-column: 1 / -1; }
+  .reg-r .c { display: none; }
+  .reg-r .reg-s { grid-column: 1 / -1; grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; }
+}
+.esec { display: grid; gap: 10px; scroll-margin-top: calc(var(--bar-h) + 60px); margin-bottom: 26px; }
+.esec-h { display: flex; align-items: center; gap: 10px; font-size: 17px; }
+.esec-h small { font-size: 12px; color: var(--muted); font-weight: 400; }
+.esec-h em { font-style: normal; font-size: 11.5px; color: var(--danger); font-weight: 700; }
+.esec-n { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--surface); display: grid; place-items: center; font-size: 13px; flex: none; }
+.esec .sect { gap: 10px; }
+details.more { border-top: 1px solid var(--line); padding-top: 10px; }
+details.more summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--accent); }
+details.more[open] summary { margin-bottom: 10px; }
+.pubck { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.pubck input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--ok); flex: none; }
+.pubck span { display: grid; gap: 2px; }
+.pubck b { font-size: 15px; }
+.pubck small { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+.dash-add { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 12.5px; }
 .hero-help { justify-self: start; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--on-brand-line); background: var(--on-brand-soft); color: var(--on-brand); border-radius: 999px; padding: 5px 14px; font-size: 13px; font-weight: 700; }
 .hero-help svg.i { width: 15px; height: 15px; }
 .hero-help:hover { background: var(--on-brand); color: var(--brand-ink); }
@@ -642,6 +692,8 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
 
 .dash { display: grid; gap: 22px; }
 .dash-h { display: grid; gap: 6px; }
+.dash-h.reg-top { display: flex; }
+.reg-top .btn { flex: none; }
 .dash-h h1 { font-size: 22px; }
 .dash-h p { color: var(--muted); font-size: 14px; max-width: 64ch; }
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
@@ -1368,7 +1420,7 @@ const DEFAULT_DATA = {
   ],
   users: [
     { id: "u1", name: "山田 太郎", email: "yamada@example.co.jp", dept: "技術課", role: "admin", active: true, last: "2026-10-03 09:12" },
-    { id: "u2", name: "佐藤 花子", email: "sato@example.co.jp", dept: "技術課", role: "approver", active: true, last: "2026-10-02 17:45" },
+    { id: "u2", name: "佐藤 花子", email: "sato@example.co.jp", dept: "技術課", role: "editor", active: true, last: "2026-10-02 17:45" },
     { id: "u3", name: "鈴木 一郎", email: "suzuki@example.co.jp", dept: "技術課", role: "editor", active: true, last: "2026-10-02 10:30" },
     { id: "u4", name: "高橋 健", email: "takahashi@example.co.jp", dept: "サポート課", role: "editor", active: true, last: "2026-10-02 17:20" },
     { id: "u5", name: "田中 美咲", email: "tanaka@example.co.jp", dept: "施工チーム A", role: "viewer", active: true, last: "2026-10-03 08:05" },
@@ -1394,24 +1446,19 @@ const DEFAULT_DATA = {
   snap.version = "1.5"; snap.changelog = "釣銭準備金の確認手順を追加";
   snap.bring.push({ name: "釣銭準備金の確認表", qty: "1枚", required: false });
   snap.steps.push({ title: "釣銭準備金の確認", body: "テスト後、釣銭機内の金額が作業前と同じであることを店舗担当者と一緒に確認し、確認表に記入します。", caution: "" });
-  t.review = { by: "u4", at: "2026-10-02 17:20", note: "テスト後に準備金を確認する手順を追加しました。", snapshot: snap };
 })();
 
 
 /* 権限 */
 const ROLES = {
   viewer: { label: "閲覧のみ", lv: 0, cls: "", desc: "現場ビューで作業の検索・ダウンロード・チェックシートを使えます。設定画面は開けません。" },
-  editor: { label: "編集", lv: 1, cls: "accent", desc: "作業・大項目・お知らせを編集し、下書き保存と公開の申請ができます。公開はできません。" },
-  approver: { label: "公開承認", lv: 2, cls: "ok", desc: "編集に加えて、申請の承認・差し戻し、公開／非公開の切り替え、削除ができます。" },
-  admin: { label: "管理者", lv: 3, cls: "warn", desc: "公開承認の権限に加えて、ユーザーの登録と権限の変更ができます。" }
+  editor: { label: "編集", lv: 1, cls: "accent", desc: "作業・大項目・お知らせ・連絡先を登録・編集できます。保存するとすぐ現場に反映されます。" },
+  admin: { label: "管理者", lv: 3, cls: "warn", desc: "編集に加えて、ユーザーの登録と権限の変更ができます。" }
 };
 const PERMS = [
-  ["現場ビューで作業を探す・ダウンロード・チェックシート", [1, 1, 1, 1]],
-  ["設定画面を開く・変更履歴を見る", [0, 1, 1, 1]],
-  ["作業・大項目・お知らせの編集（下書き保存）", [0, 1, 1, 1]],
-  ["公開の申請", [0, 1, 1, 1]],
-  ["申請の承認・差し戻し、公開／非公開の切り替え、削除", [0, 0, 1, 1]],
-  ["ユーザーの登録・権限の変更", [0, 0, 0, 1]]
+  ["現場ビューで作業を探す・ダウンロード・チェックシート", [1, 1, 1]],
+  ["作業・大項目・お知らせ・連絡先の登録と編集（保存するとすぐ反映）", [0, 1, 1]],
+  ["ユーザーの登録・権限の変更", [0, 0, 1]]
 ];
 const HACT = { create: ["新規作成", "accent"], update: ["更新", ""], request: ["承認申請", "warn"], publish: ["公開", "ok"], reject: ["差し戻し", "danger"], delete: ["削除", "danger"] };
 const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー", file: "ファイル", contact: "連絡先" };
@@ -1454,7 +1501,8 @@ const isSrv = () => AUTH.mode === "server";
 /** 以前の版で保存したデータにも、新しい項目（書類・連絡先）を補う */
 function fixData(d) {
   d.contacts ||= (AUTH.mode === "server" ? [] : clone(DEFAULT_DATA.contacts));
-  (d.tasks || []).forEach(t => { t.docs ||= []; if (t.review?.snapshot) t.review.snapshot.docs ||= []; });
+  (d.tasks || []).forEach(t => { t.docs ||= []; t.review = null; t.rejected = null; });   // 承認の仕組みは廃止した
+  (d.users || []).forEach(u => { if (!ROLES[u.role]) u.role = "editor"; });   // 旧版の「公開承認」は「編集」に
   return d;
 }
 let DATA = fixData(store.get("portal3.data", null) || clone(DEFAULT_DATA));
@@ -1471,9 +1519,9 @@ const S = {
   me: store.get("portal3.me", "u1"), menuOpen: false,
   up: { limits: null, loading: false, items: [], incoming: null, importing: null },
   fl: { items: null, totals: null, err: "", filter: "" },
-  w: { view: "home", taskId: null, cat: null, ind: null, q: "", shClosed: {}, shOnly: false, recId: null },
+  w: { view: "home", listMode: store.get("portal4.listMode", false), taskId: null, cat: null, ind: null, q: "", shClosed: {}, shOnly: false, recId: null },
   rc: { f: { q: "", task: "", status: "", from: "", to: "", days: 90 }, list: [], srv: [], srvLoaded: 0, total: 0, hasMore: false, loading: false, busy: false, again: false, err: "", stats: null, detail: null, detailErr: "", recent: null },
-  a: { sel: null, tab: "basic", draft: null, dirty: false, open: { pos: true }, treeQ: "", stepOpen: new Set(), pending: null, pvModal: false, reviewing: false, note: "", hist: { type: "", user: "", q: "" } },
+  a: { list: { q: "", cat: "", st: "" }, sel: null, tab: "basic", draft: null, dirty: false, open: { pos: true }, treeQ: "", stepOpen: new Set(), pending: null, pvModal: false, reviewing: false, note: "", hist: { type: "", user: "", q: "" } },
   layer: null   // {type:'focus'|'manual'|'modal', ...}
 };
 
@@ -1526,8 +1574,8 @@ function setPath(o, path, v) { const k = path.split("."); let x = o; for (let i 
 
 /* 入力状況の判定（設定画面のタブ表示・ツリー・ダッシュボードで共通利用） */
 const TABS = [
-  ["basic", "基本情報"], ["dev", "対象機器"], ["prep", "準備・持参品"], ["files", "ファイル"],
-  ["steps", "作業手順"], ["man", "マニュアル"], ["docs", "書類"], ["pub", "公開設定"], ["hist", "変更履歴"]
+  ["basic", "作業名・内容"], ["dev", "対象機器"], ["prep", "準備・持参品"], ["files", "設定データ"],
+  ["steps", "作業手順"], ["man", "マニュアル"], ["docs", "書類"]
 ];
 function sectionState(t) {
   const n = t.precheck.length + t.bring.length;
@@ -1543,28 +1591,24 @@ function sectionState(t) {
     hist: DATA.history.filter(x => x.tid === t.id).length || "opt"
   };
 }
-function missing(t) {
-  const s = sectionState(t);
-  return TABS.filter(([k]) => s[k] === "need").map(([, n]) => n);
-}
+function missing(t) { return t.title.trim() ? [] : ["作業名"]; }
 
 /* ユーザー・権限・履歴 */
 const me = () => DATA.users.find(u => u.id === S.me) || DATA.users[0] || { id: "", name: "", role: "viewer", dept: "" };
-const can = { admin: () => ROLES[me().role].lv >= 1, approve: () => ROLES[me().role].lv >= 2, users: () => ROLES[me().role].lv >= 3 };
+const can = { admin: () => ROLES[me().role].lv >= 1, approve: () => ROLES[me().role].lv >= 1, users: () => ROLES[me().role].lv >= 3 };
 const userName = id => DATA.users.find(u => u.id === id)?.name || "（削除済み）";
 function log(action, type, tid, name, detail = "") {
   DATA.history.unshift({ id: "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: nowStr(), user: S.me, action, type, tid: tid || "", name, detail });
   DATA.history = DATA.history.slice(0, 300);
 }
-const TABGROUPS = { basic: ["title", "summary", "cat", "minutes", "people", "tags"], dev: ["devices", "os"], prep: ["precheck", "bring"], files: ["files", "extractTo"], steps: ["steps"], man: ["manuals"], docs: ["docs"], pub: ["version", "changelog"] };
+const TABGROUPS = { basic: ["title", "summary", "cat", "tags"], dev: ["devices"], prep: ["precheck", "bring"], files: ["files", "extractTo"], steps: ["steps"], man: ["manuals"], docs: ["docs"] };
 function changedTabs(a, b) {
   return TABS.filter(([k]) => TABGROUPS[k] && TABGROUPS[k].some(f => JSON.stringify(a[f]) !== JSON.stringify(b[f]))).map(([, n]) => n);
 }
 function statusPill(id) {
   const t = taskById(id);
-  if (!t) return `<span class="status-pill draft"><span class="dot"></span>未保存</span>`;
-  if (t.review) return `<span class="status-pill rev"><span class="dot"></span>${t.status === "published" ? "公開中・変更を承認待ち" : "承認待ち"}</span>`;
-  return `<span class="status-pill ${t.status === "published" ? "pub" : "draft"}"><span class="dot"></span>${t.status === "published" ? "公開中" : "下書き"}</span>`;
+  if (!t) return `<span class="status-pill draft"><span class="dot"></span>未登録</span>`;
+  return `<span class="status-pill ${t.status === "published" ? "pub" : "draft"}"><span class="dot"></span>${t.status === "published" ? "公開中" : "非公開"}</span>`;
 }
 
 /* =========================================================
@@ -1584,6 +1628,11 @@ function searchHit(t, q) {
   const dc = t.docs.find(x => has(x.title));
   if (dc) return { hit: true, why: `書類「${dc.title}」に一致` };
   if (t.bring.some(b => has(b.name))) return { hit: true, why: "持参品に一致" };
+  const mn = t.manuals.find(m => has(m.title));
+  if (mn) return { hit: true, why: `マニュアル「${mn.title}」に一致` };
+  const st = t.steps.find(x => has(x.title) || has(x.body));
+  if (st) return { hit: true, why: `作業手順「${st.title}」に一致` };
+  if (t.precheck.some(has)) return { hit: true, why: "事前確認に一致" };
   return { hit: false };
 }
 const chk = (t, k) => !!(((PROG[t.id] || {}).c || {})[k]);
@@ -1601,7 +1650,7 @@ function sheetOf(t) {
   if (t.steps.length) secs.push({ key: "steps", title: "作業手順", icon: "steps", items: t.steps.map((s, i) => ({ id: "steps:" + i, label: s.title || "（手順名未入力）", sub: s.body, caution: s.caution })) });
   const fin = [{ id: "final:0", label: "動作確認を実施した", sub: "ログイン・印字・接続など、この作業の目的が達成できていることを確認します" }];
   if (t.files.length) fin.push({ id: "final:1", label: "展開したフォルダと一時ファイルを削除した" });
-  fin.push({ id: "final:2", label: `作業票に作業ID（${t.id}）と版（${t.version}）を記入した` });
+  fin.push({ id: "final:2", label: `作業票に作業ID（${t.id}）を記入した` });
   secs.push({ key: "final", title: "完了確認", icon: "shield", items: fin });
   return secs;
 }
@@ -1786,11 +1835,31 @@ function workList() {
     .sort((a, b) => catOf(a.t.cat).order - catOf(b.t.cat).order || a.t.order - b.t.order);
 }
 /* トップ：大項目ごとに作業を並べ、1回のタップで作業ページへ */
+function viewToggle() {
+  return `<div class="vtog" role="group" aria-label="表示の切り替え"><button type="button" data-act="wView" data-v="cat" aria-pressed="${!S.w.listMode}">${ic("grid")}大項目ごと</button><button type="button" data-act="wView" data-v="list" aria-pressed="${!!S.w.listMode}">${ic("steps")}一覧</button></div>`;
+}
+function fieldListHtml() {
+  const rows = workList();
+  return `<div class="sec-h"><h2>登録されている作業の一覧</h2><span class="muted num">${rows.length}件</span>${viewToggle()}</div>
+  <div class="card reg fl">
+    <div class="reg-h"><span>作業名</span><span>大項目</span><span>対象機器・型番</span><span class="c">設定データ</span><span class="c">マニュアル</span><span class="c">書類</span><span>更新日</span></div>
+    ${rows.map(({ t }) => `<button class="reg-r" type="button" data-act="openTask" data-id="${t.id}">
+      <span class="reg-t"><b>${esc(t.title)}</b><small class="mono">${esc(t.id)}</small></span>
+      <span class="reg-c">${ic(catOf(t.cat).icon)}${esc(catOf(t.cat).name)}</span>
+      <span class="reg-m">${t.devices.slice(0, 2).map(d => `<span class="model">${esc(d.model || d.name || "—")}</span>`).join("")}</span>
+      <span class="c num" data-l="設定データ">${t.files.length || "—"}</span>
+      <span class="c num" data-l="マニュアル">${t.manuals.length || "—"}</span>
+      <span class="c num" data-l="書類">${t.docs.length || "—"}</span>
+      <span class="reg-s"><small class="num">${fmtDate(t.updated)}</small></span>
+    </button>`).join("") || `<div class="empty-row">公開中の作業はまだありません</div>`}
+  </div>`;
+}
 function catGridHtml() {
   const pub = pubTasks();
   const cats = catsSorted().filter(c => pub.some(t => t.cat === c.id));
   if (!cats.length) return resultsHtml([], "");
-  return `<div class="sec-h"><h2>大項目から探す</h2><span class="muted num">${cats.length}項目・${pub.length}件の作業</span></div>
+  if (S.w.listMode) return fieldListHtml();
+  return `<div class="sec-h"><h2>大項目から探す</h2><span class="muted num">${cats.length}項目・${pub.length}件の作業</span>${viewToggle()}</div>
   <div class="cgrid">${cats.map(c => {
     const ts = pub.filter(t => t.cat === c.id).sort((a, b) => a.order - b.order), MAX = 5;
     return `<article class="card cbox">
@@ -1900,12 +1969,10 @@ function wkDetail(t, preview = false) {
   return `<div class="wk-c"><div class="wk">
     ${preview ? "" : `<nav class="crumb" aria-label="現在の位置"><button type="button" data-act="goHome">${ic("grid")}トップ</button>${ic("chev")}<button type="button" data-act="openCat" data-id="${esc(t.cat)}">${esc(c.name)}</button>${ic("chev")}<span class="mono">${esc(t.id)}</span></nav>`}
     <header class="wk-head">
-      <div class="wk-crumb"><span class="pill-w">${ic(c.icon)}${esc(c.name)}</span><span class="mono">${esc(t.id)}</span><span class="pill-w" style="padding-left:10px">最新版 ${esc(t.version)}</span></div>
+      <div class="wk-crumb"><span class="pill-w">${ic(c.icon)}${esc(c.name)}</span><span class="mono">${esc(t.id || "（登録時に付きます）")}</span></div>
       <h1>${t.title.trim() ? esc(t.title) : "（作業名が未入力です）"}</h1>
-      <p>${t.summary.trim() ? esc(t.summary) : "（作業内容の概要が未入力です）"}</p>
+      ${t.summary.trim() ? `<p>${esc(t.summary)}</p>` : ""}
       <dl class="wk-facts">
-        <div><dt>所要時間</dt><dd>約${t.minutes || "—"}分</dd></div>
-        <div><dt>作業人数</dt><dd>${t.people || "—"}名</dd></div>
         <div><dt>ダウンロード</dt><dd>${t.files.length ? fmtBytes(total) : "なし"}</dd></div>
         <div><dt>更新日</dt><dd>${fmtDate(t.updated)}</dd></div>
       </dl>
@@ -2002,19 +2069,10 @@ function wkDetail(t, preview = false) {
           </div>
         </section>
 
-        ${t.old.length ? `<details class="old"><summary>旧バージョン（${t.old.length}件）— 通常は使用しません</summary><div class="old-body">
-          <div class="note">${ic("alert")}<span><b>旧バージョンは使用しないでください</b>サポート窓口から指示があった場合のみ使用します。</span></div>
-          ${t.old.map(o => `<div class="old-row"><span class="chip">版 ${esc(o.v)}</span><span class="num">公開 ${fmtDate(o.date)}</span><span>${esc(o.reason)}</span></div>`).join("")}
-        </div></details>` : ""}
+
       </div>
 
       <aside class="wk-side">
-        <section class="card prog">
-          <div class="prog-top"><b>この作業の進み具合</b><strong>${pct}%</strong></div>
-          <div class="bar"><span style="width:${pct}%"></span></div>
-          <div class="prog-rows">${pr.rows.map(r => `<div><span>${r.label}</span><span class="v ${r.d === r.n ? "ok" : ""}">${r.d}/${r.n}</span></div>`).join("")}</div>
-          ${preview ? "" : `<div class="prog-actions"><button class="btn sm primary" type="button" data-act="shOpen" data-id="${esc(t.id)}">${ic("sheet")}チェックシートで進める</button>${t.steps.length ? `<button class="btn sm" type="button" data-act="focusStart" data-id="${esc(t.id)}">${ic("steps")}1手順ずつ表示</button>` : ""}<button class="btn sm ghost" type="button" data-act="resetProg">リセット</button></div>`}
-        </section>
         ${preview ? "" : siblingsBox(t)}
         ${contactsBox(t.cat, t.id)}
       </aside>
@@ -2400,7 +2458,7 @@ function manualHtml() {
    ========================================================= */
 function renderAdmin() {
   const sel = S.a.sel, isTask = sel && sel.type === "task";
-  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, contacts: contactsHtml, history: historyHtml, users: usersHtml, review: reviewHtml, files: filesAdminHtml }[sel.type]();
+  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, contacts: contactsHtml, history: historyHtml, users: usersHtml, files: filesAdminHtml }[sel.type]();
   return `<div class="adm ${sel ? "has-sel" : ""} ${isTask ? "pv-on" : ""}">
     <aside class="tree" id="tree">${treeHtml()}</aside>
     <main class="ed"><div class="ed-in" id="edIn">${body}</div></main>
@@ -2418,8 +2476,7 @@ function treeHtml() {
   return `
     <div class="tree-h"><h2>管理メニュー</h2></div>
     <div class="tree-menu">
-      ${mi("home", "grid", "概要・入力状況", 0, !a.sel)}
-      ${can.approve() ? mi("review", "shield", "承認待ち", pend, st === "review") : ""}
+      ${mi("home", "grid", "登録内容の一覧", DATA.tasks.length, !a.sel)}
       ${mi("notices", "bell", "お知らせ", 0, st === "notices")}
       ${mi("contacts", "phone", "困ったときの連絡先", 0, st === "contacts")}
       ${mi("history", "history", "変更履歴", 0, st === "history")}
@@ -2450,64 +2507,53 @@ function treeHtml() {
         </div>`;
       }).join("")}
     </div>
-    <div class="tree-legend"><span><span class="dot pub"></span>公開中</span><span><span class="dot draft"></span>下書き</span><span><span class="dot rev"></span>承認待ち</span></div>`;
+    <div class="tree-legend"><span><span class="dot pub"></span>公開中</span><span><span class="dot draft"></span>非公開</span></div>`;
 }
 
-function pendingRows(list) {
-  return `<div class="todo">${list.map(t => {
-    const r = t.review, chg = r.snapshot ? changedTabs(t, r.snapshot) : [];
-    return `<button class="todo-row" type="button" data-act="openReviewTask" data-id="${t.id}">
-      <span style="display:grid;gap:4px;min-width:0"><b>${esc(t.title)}</b><span class="miss">${chg.length ? chg.map(x => `<span class="chip warn">${x}</span>`).join("") : `<span class="chip accent">新規の公開申請</span>`}</span><small>${esc(userName(r.by))}さんが申請${r.note ? "：「" + esc(r.note) + "」" : ""}</small></span>
-      <small class="num">${r.at.replaceAll("-", "/")}</small></button>`;
-  }).join("")}</div>`;
+/* 設定のホーム：登録してある内容を一覧で確認・検索する */
+function admRows() {
+  const L = S.a.list, q = L.q.trim();
+  return DATA.tasks
+    .filter(t => !L.cat || t.cat === L.cat)
+    .filter(t => !L.st || (L.st === "pub" ? t.status === "published" : t.status !== "published"))
+    .map(t => ({ t, h: searchHit(t, q) })).filter(x => x.h.hit)
+    .sort((a, b) => catOf(a.t.cat).order - catOf(b.t.cat).order || a.t.order - b.t.order);
 }
-
+function admListHtml() {
+  const rows = admRows(), q = S.a.list.q.trim();
+  if (!rows.length) return `<div class="empty-row">${DATA.tasks.length ? "条件に合うものがありません" : "まだ何も登録されていません。「新しく登録」から始めてください。"}</div>`;
+  return `<div class="reg-count muted num">${rows.length}件</div>
+  <div class="reg">
+    <div class="reg-h"><span>作業名</span><span>大項目</span><span>対象機器・型番</span><span class="c">手順</span><span class="c">設定データ</span><span class="c">マニュアル</span><span class="c">書類</span><span>状態・更新日</span></div>
+    ${rows.map(({ t, h }) => `<button class="reg-r" type="button" data-act="selTask" data-id="${t.id}">
+      <span class="reg-t"><b>${hl(t.title || "（作業名なし）", q)}</b><small class="mono">${hl(t.id, q)}</small>${h.why ? `<small class="res-why">${esc(h.why)}</small>` : ""}</span>
+      <span class="reg-c">${ic(catOf(t.cat).icon)}${esc(catOf(t.cat).name)}</span>
+      <span class="reg-m">${t.devices.slice(0, 2).map(d => `<span class="model">${hl(d.model || d.name || "—", q)}</span>`).join("")}${t.devices.length > 2 ? `<small class="muted">他${t.devices.length - 2}</small>` : ""}</span>
+      <span class="c num" data-l="手順">${t.steps.length || "—"}</span>
+      <span class="c num" data-l="設定データ">${t.files.length || "—"}</span>
+      <span class="c num" data-l="マニュアル">${t.manuals.length || "—"}</span>
+      <span class="c num" data-l="書類">${t.docs.length || "—"}</span>
+      <span class="reg-s"><span class="chip ${t.status === "published" ? "ok" : ""}">${t.status === "published" ? "公開中" : "非公開"}</span><small class="num">${fmtDate(t.updated)}</small></span>
+    </button>`).join("")}
+  </div>`;
+}
 function dashHtml() {
-  const ts = DATA.tasks, m = me();
-  const pub = ts.filter(t => t.status === "published").length;
-  const pend = ts.filter(t => t.review);
-  const need = ts.filter(t => missing(t).length);
-  const recent = [...ts].sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, 5);
+  const L = S.a.list, first = catsSorted()[0];
   return `<div class="dash">
-    <div class="dash-h">
-      <h1>作業マスタの管理</h1>
-      <p>${esc(m.name)}さん（${ROLES[m.role].label}）としてログインしています。${can.approve() ? "承認待ちの申請と、入力が足りない作業を確認できます。" : "作業を編集して下書き保存し、公開を申請できます。公開は、公開承認の権限を持つ人が行います。"}</p>
+    <div class="dash-h reg-top">
+      <div><h1>登録内容の一覧</h1><p>登録してある作業・設定データ・マニュアル・書類を確認できます。行を押すと、その内容を編集できます。</p></div>
+      ${first ? `<button class="btn primary" type="button" data-act="addTask" data-id="${first.id}">${ic("plus")}新しく登録</button>` : `<button class="btn primary" type="button" data-act="addCat">${ic("plus")}まず大項目を作る</button>`}
     </div>
-    <div class="stats">
-      <div class="card stat ok"><small>公開中の作業</small><b>${pub}</b></div>
-      <div class="card stat warn"><small>承認待ち</small><b>${pend.length}</b></div>
-      <div class="card stat"><small>下書き</small><b>${ts.filter(t => t.status !== "published").length}</b></div>
-      <div class="card stat warn"><small>入力が足りない作業</small><b>${need.length}</b></div>
+    <div class="reg-f">
+      <label class="reg-q">${ic("search")}<input id="admQ" type="search" placeholder="作業名・型番・ファイル名・マニュアル名で検索" value="${esc(L.q)}" autocomplete="off"></label>
+      <select class="sel" id="admCat" aria-label="大項目で絞り込み"><option value="">すべての大項目</option>${catsSorted().map(c => `<option value="${c.id}" ${L.cat === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
+      <select class="sel" id="admSt" aria-label="公開状態で絞り込み"><option value="">公開・非公開すべて</option><option value="pub" ${L.st === "pub" ? "selected" : ""}>公開中のみ</option><option value="draft" ${L.st === "draft" ? "selected" : ""}>非公開のみ</option></select>
     </div>
-    ${pend.length ? `<section class="card"><div class="blk-h" style="padding:16px 18px 8px"><h3>承認待ち</h3></div>${pendingRows(pend)}</section>` : ""}
-    <section class="card">
-      <div class="blk-h" style="padding:16px 18px 8px"><h3>入力が足りない作業</h3></div>
-      <div class="todo">${need.length ? need.map(t => `<button class="todo-row" type="button" data-act="selTask" data-id="${t.id}">
-        <span style="display:grid;gap:4px;min-width:0"><b>${esc(t.title)}</b><span class="miss">${missing(t).map(x => `<span class="chip warn">${x}</span>`).join("")}</span></span>
-        <small class="num">${t.id}・${t.status === "published" ? "公開中" : "下書き"}</small>
-      </button>`).join("") : `<p class="muted" style="padding:4px 18px 12px;font-size:13px">すべての作業で必要な項目が入力されています。</p>`}</div>
-    </section>
-    <section class="card">
-      <div class="blk-h" style="padding:16px 18px 8px"><h3>最近更新した作業</h3></div>
-      <div class="todo">${recent.map(t => `<button class="todo-row" type="button" data-act="selTask" data-id="${t.id}">
-        <span style="display:grid;gap:2px;min-width:0"><b>${esc(t.title)}</b><small>${esc(catOf(t.cat).name)}</small></span>
-        <small class="num">${fmtDate(t.updated)}</small>
-      </button>`).join("")}</div>
-    </section>
-    <div class="flow">
-      <div class="card flow-i"><b><span class="n">1</span>登録する</b>大項目を作り、小項目に機器・型番、準備、持参品、ファイル、手順、マニュアルを入力します。</div>
-      <div class="card flow-i"><b><span class="n">2</span>申請する</b>編集の権限の人は「承認を申請」まで行えます。公開中の作業の変更も、承認されるまで現場には反映されません。</div>
-      <div class="card flow-i"><b><span class="n">3</span>承認して公開</b>公開承認の権限を持つ人が内容を確認し、公開または差し戻します。すべて変更履歴に残ります。</div>
-    </div>
+    <section class="card" id="admList">${admListHtml()}</section>
     ${isSrv() ? "" : `<p style="font-size:12.5px"><button class="link" type="button" data-act="resetData">サンプルデータに戻す</button></p>`}
   </div>`;
 }
 
-function reviewHtml() {
-  const pend = DATA.tasks.filter(t => t.review);
-  return edHead("承認待ち", "承認待ちの申請") + `<div class="sect"><p class="sect-intro">編集者から申請された作業です。内容を確認して、承認（公開）または差し戻しをします。</p>
-    <section class="card">${pend.length ? pendingRows(pend) : `<div class="empty-row" style="margin:16px">承認待ちの申請はありません</div>`}</section></div>`;
-}
 
 /* 変更履歴 */
 function histRow(x) {
@@ -2554,7 +2600,7 @@ function noticesHtml() {
           <div class="fld full"><span class="lb">公開状態</span><div class="toggles" role="group" aria-label="公開状態">
             <button type="button" data-act="nStatus" data-i="${i}" data-v="draft" aria-pressed="${n.status !== "published"}" ${ro ? "disabled" : ""}>下書き</button>
             <button type="button" data-act="nStatus" data-i="${i}" data-v="published" aria-pressed="${n.status === "published"}" ${appr ? "" : "disabled"}>公開</button></div>
-            ${appr ? "" : `<p class="hint">公開・公開の停止は、公開承認の権限を持つ人が行います。</p>`}</div>
+</div>
         </div>
         <div class="n-prev"><div class="sub-h">現場での表示イメージ</div><div class="notice"><time class="num">${fmtDate(n.date)}</time><span><span class="chip ${n.level}">${LEVELS[n.level]}</span> ${esc(n.text) || "（内容が未入力です）"}</span>${taskById(n.task) ? `<span class="link">${n.task} を開く →</span>` : ""}</div></div>
       </section>`;
@@ -2660,55 +2706,43 @@ function catEditor() {
     </div>`;
 }
 
+/* 作業の入力：1ページにすべての項目を並べる（上の目次から各項目へ移動できる） */
+const ED_SECS = [["basic", "作業名・内容"], ["dev", "対象機器"], ["steps", "作業手順"], ["files", "設定データ"], ["man", "マニュアル"], ["docs", "書類"], ["prep", "準備・持参品"], ["pub", "表示"]];
+function edCount(d, k) {
+  return { dev: d.devices.length, steps: d.steps.length, files: d.files.length, man: d.manuals.length, docs: d.docs.length, prep: d.precheck.length + d.bring.length }[k];
+}
 function tabsHtml() {
-  const s = sectionState(S.a.draft);
-  return TABS.map(([k, n]) => {
-    const v = s[k];
-    const badge = v === "ok" ? `<span class="tb ok">${ic("check")}</span>`
-      : v === "need" ? `<span class="tb need">未入力</span>`
-      : v === "draft" ? `<span class="tb n">下書き</span>`
-      : typeof v === "number" ? `<span class="tb n">${v}</span>` : "";
-    return `<button class="tab ${S.a.tab === k ? "on" : ""}" type="button" data-act="tab" data-v="${k}" role="tab" aria-selected="${S.a.tab === k}">${n}${badge}</button>`;
+  const d = S.a.draft;
+  return ED_SECS.map(([k, n]) => {
+    const c = edCount(d, k);
+    const badge = k === "basic" ? (d.title.trim() ? `<span class="tb ok">${ic("check")}</span>` : `<span class="tb need">必須</span>`)
+      : k === "pub" ? `<span class="tb n">${d.status === "published" ? "公開" : "非公開"}</span>`
+      : c ? `<span class="tb n">${c}</span>` : "";
+    return `<button class="tab" type="button" data-act="edJump" data-v="${k}">${n}${badge}</button>`;
   }).join("");
+}
+function allSectionsHtml() {
+  return ED_SECS.map(([k, n], i) => `<section class="esec" id="es-${k}"><h2 class="esec-h"><span class="esec-n">${i + 1}</span>${n}${k === "basic" ? `<em>作業名は必須</em>` : k === "pub" ? "" : `<small>任意</small>`}</h2>${sectionHtml(k)}</section>`).join("");
 }
 
 function taskEditor() {
-  const d = S.a.draft, c = catOf(d.cat);
+  const d = S.a.draft, c = catOf(d.cat), isNew = !d.id;
   return `
     <div class="ed-head">
-      <div class="ed-crumb"><button class="back ed-back" type="button" data-act="selHome">${ic("chev")}一覧</button><span>${esc(c.name)}</span><span>/</span><span class="mono">${esc(d.id)}</span></div>
+      <div class="ed-crumb"><button class="back ed-back" type="button" data-act="selHome">${ic("chev")}一覧</button><span>${esc(c.name)}</span><span>/</span><span class="mono">${isNew ? "新規" : esc(d.id)}</span></div>
       <div class="ed-title-row">
-        <input class="ed-title ${d.title.trim() ? "" : "err"}" id="f-title" data-bind="title" value="${esc(d.title)}" placeholder="作業名を入力" aria-label="作業名">
+        <h1 class="ed-h">${isNew ? "作業の登録" : esc(d.title || "（作業名が未入力です）")}</h1>
         <div class="ed-acts">
           ${statusPill(d.id)}
           <button class="btn sm pv-btn" type="button" data-act="pvOpen">${ic("phone")}スマホで確認</button>
-          <button class="btn sm ghost" type="button" data-act="dupTask">${ic("dup")}複製</button>
-          ${can.approve() ? `<button class="btn sm ghost danger" type="button" data-act="delTask" aria-label="この作業を削除">${ic("trash")}</button>` : ""}
+          ${isNew ? "" : `<button class="btn sm ghost" type="button" data-act="dupTask">${ic("dup")}複製</button>
+          <button class="btn sm ghost danger" type="button" data-act="delTask" aria-label="この作業を削除">${ic("trash")}</button>`}
         </div>
       </div>
+      ${isNew ? `<p class="sect-intro" style="margin:6px 0 0">上から順に入力して、最後に「登録」を押してください。作業名以外は空欄のままでも登録でき、あとから追加できます。</p>` : ""}
     </div>
-    ${reviewBanner()}
-    <nav class="tabs" role="tablist" id="tabs">${tabsHtml()}</nav>
-    <div id="secBody">${sectionHtml()}</div>`;
-}
-
-function reviewBanner() {
-  const d = S.a.draft, t = taskById(d.id);
-  if (!t) return "";
-  if (t.review) {
-    const r = t.review, chg = r.snapshot ? changedTabs(t, r.snapshot) : [];
-    const info = `${esc(userName(r.by))}さんが ${r.at.replaceAll("-", "/")} に申請${chg.length ? "（変更箇所：" + chg.join("、") + "）" : "（新規の公開申請）"}${r.note ? "　メモ：「" + esc(r.note) + "」" : ""}`;
-    if (can.approve()) {
-      if (S.a.reviewing) return `<div class="banner info">${ic("shield")}<div class="bn-body"><b>申請内容を表示中です</b>${info}。右のプレビューで現場での見え方を確認できます。</div><div class="bn-acts"><button class="btn sm primary" type="button" data-act="approve">承認して公開</button><button class="btn sm danger" type="button" data-act="rejectAsk">差し戻す</button><button class="btn sm" type="button" data-act="reviewOff">公開中の内容に戻る</button></div></div>`;
-      return `<div class="banner warn">${ic("alert")}<div class="bn-body"><b>承認待ちの申請があります</b>${info}</div><div class="bn-acts"><button class="btn sm primary" type="button" data-act="reviewOn">申請内容を確認する</button></div></div>`;
-    }
-    return `<div class="banner warn">${ic("clock")}<div class="bn-body"><b>承認待ちです</b>${info}。承認されるまで、現場には反映されません。再度保存すると、申請内容が置き換わります。</div></div>`;
-  }
-  if (t.rejected) {
-    const j = t.rejected;
-    return `<div class="banner danger">${ic("alert")}<div class="bn-body"><b>差し戻されました</b>${esc(userName(j.by))}さん（${j.at.replaceAll("-", "/")}）：「${esc(j.reason)}」。内容を直して、もう一度申請してください。</div></div>`;
-  }
-  return "";
+    <nav class="tabs" id="tabs" aria-label="入力項目へ移動">${tabsHtml()}</nav>
+    <div id="secBody">${allSectionsHtml()}</div>`;
 }
 
 /* 入力部品 */
@@ -2722,20 +2756,18 @@ const toolBtns = (list, i, len) => `
 const tools = (list, i, len) => `<span class="tools">${toolBtns(list, i, len)}</span>`;
 const addBtn = (list, label) => `<button class="add-row" type="button" data-act="add" data-l="${list}">${ic("plus")}${label}</button>`;
 
-function sectionHtml() {
+function sectionHtml(tab) {
   const d = S.a.draft;
-  switch (S.a.tab) {
+  switch (tab) {
     case "basic": return `<div class="sect">
-      <p class="sect-intro">現場担当者が検索結果で最初に目にする情報です。</p>
       <section class="card blk"><div class="fgrid">
-        ${fld("作業内容の概要", "summary", `<textarea class="ta ${d.summary.trim() ? "" : "err"}" id="f-summary" data-bind="summary" rows="3" placeholder="例：新規導入店舗で POS 端末にイメージを適用し、印字とドロア開閉までを確認します。">${esc(d.summary)}</textarea>`, { full: true, req: true, hint: "2〜3行が目安です。「何を」「どこまで」行う作業かを書きます。" })}
+        ${fld("作業名", "title", `<input class="inp ${d.title.trim() ? "" : "err"}" id="f-title" data-bind="title" value="${esc(d.title)}" placeholder="例：POSレジ本体 初期セットアップ">`, { full: true, req: true })}
         ${fld("大項目", "cat", `<select class="sel" id="f-cat" data-bind="cat">${catsSorted().map(c => `<option value="${c.id}" ${c.id === d.cat ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>`)}
-        <div class="fld"><label for="f-id">作業ID</label><input class="inp mono" id="f-id" value="${esc(d.id)}" disabled><p class="hint">自動で採番されます。電話での問い合わせ時に使います。</p></div>
-        ${fld("所要時間（目安）", "minutes", `<div class="with-unit"><input class="inp num" type="number" min="0" step="5" id="f-minutes" data-bind="minutes" data-type="num" value="${esc(d.minutes)}"><span>分</span></div>`)}
-        ${fld("作業人数", "people", `<div class="with-unit"><input class="inp num" type="number" min="1" id="f-people" data-bind="people" data-type="num" value="${esc(d.people)}"><span>名</span></div>`)}
-        <div class="fld full"><label for="tagIn">検索キーワード</label>
+        <div class="fld"><label for="f-id">作業ID</label><input class="inp mono" id="f-id" value="${d.id ? esc(d.id) : "登録すると自動で付きます"}" disabled></div>
+        ${fld("作業内容", "summary", `<textarea class="ta" id="f-summary" data-bind="summary" rows="3" placeholder="例：新規導入店舗で POS 端末にイメージを適用し、印字とドロア開閉までを確認します。">${esc(d.summary)}</textarea>`, { full: true, hint: "TOPページの一覧と、作業ページの先頭に表示されます。" })}
+        <div class="fld full"><label for="tagIn">検索キーワード（任意）</label>
           <div class="tags">${d.tags.map((t, i) => `<span class="tag">${esc(t)}<button type="button" data-act="rmTag" data-i="${i}" aria-label="${esc(t)}を削除">${ic("x")}</button></span>`).join("")}<input id="tagIn" placeholder="入力して Enter で追加" enterkeyhint="enter"></div>
-          <p class="hint">作業名や型番以外で探されそうな言葉（例：新規導入、入れ替え、釣銭機）を登録します。</p></div>
+          <p class="hint">作業名・型番・ファイル名・マニュアル名・手順は、登録しなくても検索できます。それ以外の言葉で探されそうなときに追加します。</p></div>
       </div></section></div>`;
 
     case "dev": return `<div class="sect">
@@ -2752,9 +2784,7 @@ function sectionHtml() {
         </div>`).join("") || `<div class="empty-row">対象機器がまだありません</div>`}</div>
         ${addBtn("devices", "機器を追加")}
       </section>
-      <section class="card blk"><div class="fgrid">
-        ${fld("OS・ソフトウェアの版", "os", inp("os", d.os, "例：POS OS 5（Windows IoT Enterprise ベース）"), { full: true, hint: "対象となる OS や、前提となるソフトウェアのバージョンを入力します。" })}
-      </div></section></div>`;
+      </div>`;
 
     case "prep": return `<div class="sect">
       <p class="sect-intro">現場ではチェックリストとして表示されます。1行に1項目ずつ、短く書いてください。</p>
@@ -2829,35 +2859,9 @@ function sectionHtml() {
 
     case "docs": return docsTab(d);
 
-    case "pub": {
-      const miss = missing(d), orig = taskById(d.id), isPub = orig?.status === "published", appr = can.approve();
-      const noteBox = `<div class="fld"><label for="reviewNote">申請メモ（任意）</label><textarea class="ta" id="reviewNote" rows="2" placeholder="承認する人へ伝えたいこと（変更の理由など）">${esc(S.a.note)}</textarea></div>`;
-      let state;
-      if (appr) state = `<div class="radio-cards">
-          <button class="rc" type="button" data-act="setStatus" data-v="draft" aria-pressed="${d.status === "draft"}"><b><span class="dot draft"></span>下書き</b><span>現場には表示されません。準備中の作業はこちらにします。</span></button>
-          <button class="rc pub" type="button" data-act="setStatus" data-v="published" aria-pressed="${d.status === "published"}"><b><span class="dot pub"></span>公開</b><span>保存すると、現場の検索結果にすぐ表示されます。</span></button></div>`;
-      else if (isPub) state = `<div class="note info">${ic("info")}<span><b>この作業は公開中です</b>保存すると、変更内容が「承認待ち」になります。承認されるまで、現場には現在の内容が表示されます。</span></div>${noteBox}`;
-      else state = `<div class="radio-cards">
-          <button class="rc" type="button" data-act="setStatus" data-v="draft" aria-pressed="${d.status !== "published"}"><b><span class="dot draft"></span>下書きのまま保存</b><span>現場には表示されません。準備中の作業はこちらにします。</span></button>
-          <button class="rc pub" type="button" data-act="setStatus" data-v="published" aria-pressed="${d.status === "published"}"><b><span class="dot pub"></span>承認を申請</b><span>公開承認の権限を持つ人が確認し、承認されると現場に表示されます。</span></button></div>${d.status === "published" ? noteBox : ""}`;
-      return `<div class="sect">
-      <section class="card blk">
-        <div class="blk-h"><h3>${appr ? "公開状態" : "公開の申請"}</h3></div>
-        ${state}
-        ${miss.length ? `<div class="note">${ic("alert")}<span><b>公開（申請）する前に入力が必要です</b>${miss.join("、")} が未入力です。</span></div>` : `<div class="note info">${ic("check")}<span>公開に必要な項目はすべて入力されています。</span></div>`}
-      </section>
-      <section class="card blk"><div class="fgrid">
-        ${fld("版（バージョン）", "version", inp("version", d.version, "例：5.3", "mono"), { hint: "公開中の作業で版を変えて承認されると、前の版は「旧バージョン」として現場で折りたたみ表示されます。" })}
-        <div class="fld"><label for="f-updated">最終更新日</label><input class="inp num" id="f-updated" value="${fmtDate(d.updated)}" disabled></div>
-        ${fld("変更内容のメモ", "changelog", `<textarea class="ta" id="f-changelog" data-bind="changelog" rows="2" placeholder="例：POS アプリ 5.3.1 に更新。イメージ適用手順を簡略化。">${esc(d.changelog)}</textarea>`, { full: true })}
-      </div>
-      ${d.old.length ? `<div class="fld"><span class="lb">旧バージョン</span><div class="rows">${d.old.map(o => `<div class="row" style="grid-template-columns:auto auto minmax(0,1fr);font-size:13px"><span class="chip">版 ${esc(o.v)}</span><span class="num muted">${fmtDate(o.date)}</span><span class="muted">${esc(o.reason)}</span></div>`).join("")}</div></div>` : ""}
-      </section></div>`;
-    }
-    case "hist": {
-      const list = DATA.history.filter(x => x.tid === d.id);
-      return `<div class="sect"><p class="sect-intro">この作業に対する変更・申請・承認の記録です。</p><section class="card hlist">${list.length ? list.map(histRow).join("") : `<div class="empty-row" style="margin:16px">まだ履歴はありません</div>`}</section></div>`;
-    }
+    case "pub": return `<div class="sect"><section class="card blk">
+      <label class="pubck"><input type="checkbox" id="f-pub" ${d.status === "published" ? "checked" : ""}><span><b>TOPページに表示する</b><small>保存するとすぐにTOPページと検索に反映されます。準備中で、まだ現場に見せたくないときはチェックを外します。</small></span></label>
+    </section></div>`;
   }
   return "";
 }
@@ -2926,11 +2930,8 @@ function renderSavebar() {
   if (S.mode !== "admin" || !a.dirty) { $("#savebar").innerHTML = ""; return; }
   let sub = "保存するまで現場には反映されません。", label = "保存";
   if (a.sel?.type === "task") {
-    const orig = taskById(a.draft.id);
-    if (a.reviewing) { sub = "保存すると、申請内容を承認して公開します。"; label = "承認して公開"; }
-    else if (!can.approve() && orig?.status === "published") { sub = "保存すると変更が「承認待ち」になります。承認されるまで現場には反映されません。"; label = "承認を申請"; }
-    else if (!can.approve() && a.draft.status === "published") { sub = "保存すると公開を申請します。"; label = "承認を申請"; }
-    else if (can.approve() && a.draft.status === "published") sub = "公開する作業です。保存すると現場にすぐ反映されます。";
+    if (!a.draft.id) { label = "登録"; sub = a.draft.status === "published" ? "登録すると、すぐにTOPページと検索に表示されます。" : "非公開で登録します（現場には表示されません）。"; }
+    else sub = a.draft.status === "published" ? "保存すると、すぐにTOPページと検索に反映されます。" : "非公開の作業です。現場には表示されません。";
   }
   $("#savebar").innerHTML = `<div class="savebar" role="region" aria-label="保存">
     <span class="msg">未保存の変更があります<small>${sub}</small></span>
@@ -2947,7 +2948,6 @@ function touched() {
   if (S.a.sel?.type === "task") {
     const tabs = $("#tabs"); if (tabs) tabs.innerHTML = tabsHtml();
     $("#f-title")?.classList.toggle("err", !S.a.draft.title.trim());
-    $("#f-summary")?.classList.toggle("err", !S.a.draft.summary.trim());
     clearTimeout(pvTimer);
     pvTimer = setTimeout(() => {
       [$("#pvScr"), $("#pvScr2")].forEach(el => { if (el) { const st = el.scrollTop; el.innerHTML = wkDetail(S.a.draft, true); el.scrollTop = st; } });
@@ -2955,7 +2955,7 @@ function touched() {
   }
 }
 function rerenderSection() {
-  const b = $("#secBody"); if (b) b.innerHTML = sectionHtml();
+  const b = $("#secBody"); if (b) b.innerHTML = allSectionsHtml();
   touched();
 }
 
@@ -2974,19 +2974,20 @@ function allowed(sel) {
   if (!sel) return true;
   if (sel.type === "files") return isSrv() && can.admin();
   if (sel.type === "users") return can.users();
-  if (sel.type === "review") return can.approve();
+  if (sel.type === "review") return false;
   return can.admin();
 }
 function selValid(sel) {
   if (!sel || !allowed(sel)) return false;
   if (sel.type === "cat") return DATA.categories.some(c => c.id === sel.id);
-  if (sel.type === "task") return !!taskById(sel.id);
+  if (sel.type === "task") return sel.isNew ? DATA.categories.some(c => c.id === sel.cat) : !!taskById(sel.id);
   return true;
 }
 function select(sel) {
   if (sel && !selValid(sel)) sel = null;
   Object.assign(S.a, { sel, dirty: false, pvModal: false, reviewing: false, note: "", draft: null });
   if (sel?.type === "cat") S.a.draft = clone(DATA.categories.find(c => c.id === sel.id));
+  else if (sel?.type === "task" && sel.isNew) { S.a.draft = newTask(sel.cat); S.a.open[sel.cat] = true; S.a.stepOpen = new Set(); }
   else if (sel?.type === "task") { const t = taskById(sel.id); S.a.draft = clone(t); S.a.open[t.cat] = true; S.a.stepOpen = new Set(); }
   else if (sel?.type === "notices") S.a.draft = clone(DATA.notices);
   else if (sel?.type === "contacts") S.a.draft = clone(DATA.contacts);
@@ -3004,10 +3005,9 @@ function nextId(cat) {
   while (DATA.tasks.some(t => t.id === "WK-" + n)) n++;
   return "WK-" + n;
 }
-function newTask(cat) {
-  const id = nextId(cat);
-  return { id, cat, order: tasksOf(cat).length + 1, status: "draft", title: "新しい作業", summary: "", minutes: 30, people: 1, industries: [], tags: [],
-    version: "1.0", updated: today(), os: "", devices: [], precheck: [], bring: [], files: [], extractTo: "C:\\Setup\\" + id, steps: [], manuals: [], docs: [], changelog: "", old: [] };
+function newTask(cat) {   // 登録するまではサーバーに作らない（id は登録時に付く）
+  return { id: "", cat, order: 0, status: "published", title: "", summary: "", minutes: 0, people: 1, industries: [], tags: [],
+    version: "1.0", updated: today(), os: "", devices: [], precheck: [], bring: [], files: [], extractTo: "C:\\Setup", steps: [], manuals: [], docs: [], changelog: "", old: [] };
 }
 async function save() {
   const t = S.a.sel?.type;
@@ -3034,54 +3034,28 @@ async function saveCat() {
   return true;
 }
 async function saveTask() {
-  const a = S.a, d = a.draft, orig = taskById(d.id), approver = can.approve();
-  if (!d.title.trim()) { a.tab = "basic"; render(); toast("作業名を入力してください"); $("#f-title")?.focus(); return false; }
-  const miss = missing(d);
-  if (d.status === "published" && miss.length) {
-    a.tab = TABS.find(([, n]) => n === miss[0])[0]; render();
-    toast(`公開するには「${miss.join("・")}」の入力が必要です。準備中なら公開設定を「下書き」にして保存してください`);
-    return false;
-  }
+  const a = S.a, d = a.draft, isNew = !d.id;
+  if (!d.title.trim()) { toast("作業名を入力してください"); $("#f-title")?.focus(); return false; }
+  const okMsg = nd => nd.status === "published" ? (isNew ? "登録しました。TOPページと検索に反映されています" : "保存しました。TOPページに反映されています") : (isNew ? "登録しました（非公開）" : "保存しました（非公開）");
   if (isSrv()) {
     try {
-      const r = await srvOp("task.save", { task: d, note: a.note, reviewing: a.reviewing });
-      if (r.unchanged) { a.dirty = false; renderSavebar(); toast(r.message); return true; }
+      if (isNew) { const r = await srvOp("task.create", { cat: d.cat, task: d }); a.dirty = false; a.open[d.cat] = true; select({ type: "task", id: r.id }); toast(r.message); return true; }
+      const r = await srvOp("task.save", { task: d });
       a.open[(taskById(d.id) || d).cat] = true; reload(); toast(r.message); return true;
     } catch (e) { failToast(e); return false; }
   }
-  const chg = changedTabs(orig, d), chgTxt = chg.length ? `（変更箇所：${chg.join("、")}）` : "";
-  const reviewing = a.reviewing, r0 = orig.review, note = a.note.trim();
-  let msg = "保存しました";
-  if (approver) {
-    const nd = clone(d);
-    if (orig.status === "published" && nd.status === "published" && orig.version !== nd.version) nd.old = [{ v: orig.version, date: orig.updated, reason: "新しい版の公開により置き換え" }, ...nd.old];
-    if (orig.cat !== nd.cat) nd.order = tasksOf(nd.cat).length + 1;
-    nd.updated = today();
-    nd.review = reviewing ? null : (r0 || null);
-    nd.rejected = reviewing ? null : (orig.rejected || null);
-    DATA.tasks = DATA.tasks.map(x => x.id === nd.id ? nd : x);
-    a.open[nd.cat] = true;
-    if (reviewing) { log("publish", "task", nd.id, nd.title, `${userName(r0.by)}さんの申請を承認して公開${chgTxt}${orig.version !== nd.version ? "。版 " + orig.version + " → " + nd.version : ""}`); msg = "承認して公開しました。現場ビューに反映されています"; }
-    else if (orig.status !== "published" && nd.status === "published") { log("publish", "task", nd.id, nd.title, `公開しました（版 ${nd.version}）`); msg = "公開しました。現場ビューに反映されています"; }
-    else if (orig.status === "published" && nd.status !== "published") { log("update", "task", nd.id, nd.title, "公開を停止（下書きに変更）"); msg = "下書きに戻しました。現場には表示されません"; }
-    else { log("update", "task", nd.id, nd.title, chg.length ? `内容を更新${chgTxt}` : "更新"); if (nd.status === "published") msg = "保存しました。現場ビューに反映されています"; }
-  } else if (orig.status === "published") {
-    if (!chg.length) { a.dirty = false; renderSavebar(); toast("変更がありません"); return true; }
-    const snap = clone(d); delete snap.review; delete snap.rejected; snap.status = "published";
-    orig.review = { by: S.me, at: nowStr(), note, snapshot: snap };
-    orig.rejected = null;
-    log("request", "task", d.id, d.title, `公開中の内容への変更を申請${chgTxt}${note ? "　メモ：" + note : ""}`);
-    msg = "変更を承認待ちにしました。承認されるまで現場には反映されません";
-  } else {
-    const nd = clone(d); nd.status = "draft"; nd.updated = today(); nd.rejected = null;
-    if (orig.cat !== nd.cat) nd.order = tasksOf(nd.cat).length + 1;
-    nd.review = d.status === "published" ? { by: S.me, at: nowStr(), note, snapshot: null } : null;
-    DATA.tasks = DATA.tasks.map(x => x.id === nd.id ? nd : x);
-    a.open[nd.cat] = true;
-    if (nd.review) { log("request", "task", nd.id, nd.title, `公開を申請${note ? "　メモ：" + note : ""}`); msg = "公開を申請しました。承認されると現場に表示されます"; }
-    else { log("update", "task", nd.id, nd.title, chg.length ? `下書きを更新${chgTxt}` : "下書きを更新"); msg = "下書きとして保存しました"; }
+  const nd = clone(d); nd.updated = today(); nd.review = null; nd.rejected = null;
+  if (isNew) {
+    nd.id = nextId(nd.cat); nd.order = tasksOf(nd.cat).length + 1; if (nd.extractTo === "C:\\Setup") nd.extractTo = "C:\\Setup\\" + nd.id;
+    DATA.tasks.push(nd); log("create", "task", nd.id, nd.title, "作業を登録");
+    saveData(); a.dirty = false; a.open[nd.cat] = true; select({ type: "task", id: nd.id }); toast(okMsg(nd)); return true;
   }
-  saveData(); reload(); toast(msg);
+  const orig = taskById(d.id), chg = changedTabs(orig, nd);
+  if (orig.cat !== nd.cat) nd.order = tasksOf(nd.cat).length + 1;
+  DATA.tasks = DATA.tasks.map(x => x.id === nd.id ? nd : x);
+  if (orig.status !== nd.status) log(nd.status === "published" ? "publish" : "update", "task", nd.id, nd.title, nd.status === "published" ? "公開しました" : "非公開にしました");
+  else log("update", "task", nd.id, nd.title, chg.length ? `内容を更新（変更箇所：${chg.join("、")}）` : "更新");
+  saveData(); a.open[nd.cat] = true; reload(); toast(okMsg(nd));
   return true;
 }
 async function saveNotices() {
@@ -3103,7 +3077,7 @@ async function saveNotices() {
 }
 async function saveContacts() {
   const a = S.a, d = a.draft;
-  if (!can.approve()) { toast("連絡先を変更できるのは、公開承認の権限を持つ人だけです"); return false; }
+  if (!can.approve()) { toast("連絡先を変更する権限がありません"); return false; }
   const bad = d.find(c => !c.name.trim() || (!c.phone.trim() && !c.email.trim()));
   if (bad) { toast(bad.name.trim() ? `「${bad.name}」の電話番号かメールアドレスを入力してください` : "名前（窓口名）が空の連絡先があります。入力するか、削除してください"); return false; }
   if (isSrv()) {
@@ -3217,7 +3191,7 @@ function incomingHtml() {
 }
 function paintUp() {
   S.up.items.forEach(it => { const e = it.target && document.querySelector(`[data-upk="${it.key}"]`); if (!e) return;
-    if (it.state === "err" || it.state === "cancel") { if (S.a.tab === "docs") { S.up.items = S.up.items.filter(x => x !== it); rerenderSection(); toast(it.err ? `アップロードできませんでした：${it.err}` : "アップロードを中止しました"); } }
+    if (it.state === "err" || it.state === "cancel") { if (S.a.sel?.type === "task") { S.up.items = S.up.items.filter(x => x !== it); rerenderSection(); toast(it.err ? `アップロードできませんでした：${it.err}` : "アップロードを中止しました"); } }
     else e.textContent = it.state === "fin" ? "仕上げ中…" : `アップロード中 ${it.size ? Math.floor(it.sent / it.size * 100) : 0}%`; });
   const a = $("#upList"); if (a) a.innerHTML = upListHtml();
   const b = $("#inList"); if (b) b.innerHTML = incomingHtml();
@@ -3288,7 +3262,7 @@ async function uploadOne(it) {
       if (d && d.id === it.taskId && S.a.sel?.type === "task" && d.docs.includes(it.target.doc)) {
         it.target.doc[it.target.slot] = { name: fin.file.name, size: fin.file.size, sha: fin.file.sha, fid: fin.file.fid };
         S.up.items = S.up.items.filter(x => x !== it);
-        if (S.a.tab === "docs") rerenderSection(); else touched();
+        rerenderSection();
         toast(`${fin.file.name} をアップロードしました。「保存」すると作業に反映されます`);
       } else toast(`${fin.file.name} のアップロードは完了しましたが、編集画面から離れたため、書類には設定されていません`);
     } else if (d && d.id === it.taskId && S.a.sel?.type === "task") {
@@ -3350,16 +3324,15 @@ async function addDocFile(i, slot, file) {
 function filesTabServer(d) {
   if (!S.up.limits && !S.up.loading) loadFilesInfo();
   return `<div class="sect">
-    <p class="sect-intro">現場でダウンロードするファイルです。ブラウザからアップロードするか、大きなファイルは FTP で転送して取り込みます。追加したあと「保存」すると、作業に反映されます。</p>
+    <p class="sect-intro">現場でダウンロードする設定ファイルなどです。</p>
     <section class="card blk">
-      <div class="blk-h"><h3>ブラウザからアップロード</h3></div>
-      <div id="upLimits">${upLimitsHtml()}</div>
       <label class="drop" for="fileIn" id="drop">${ic("upload")}<b>ここにファイルをドラッグ＆ドロップ</b><span>またはクリックしてファイルを選択（複数選べます）</span></label>
       <div class="up-list" id="upList">${upListHtml()}</div>
-    </section>
-    <section class="card blk">
-      <div class="blk-h"><h3>FTP で転送したファイルを取り込む</h3><button class="btn sm right" type="button" data-act="inRefresh">${ic("clock")}更新</button><p>FTP で受け取りフォルダに置いたファイルを、この作業のファイルとして登録します（転送が終わって1分ほどしてから）。</p></div>
-      <div class="in-list" id="inList">${incomingHtml()}</div>
+      <details class="more"><summary>アップロードの上限・大きなファイル（FTP）の取り込み</summary>
+        <div id="upLimits">${upLimitsHtml()}</div>
+        <div class="blk-h" style="margin-top:10px"><h3>FTP で転送したファイルを取り込む</h3><button class="btn sm right" type="button" data-act="inRefresh">${ic("clock")}更新</button><p>FTP で受け取りフォルダに置いたファイルを、この作業のファイルとして登録します（転送が終わって1分ほどしてから）。</p></div>
+        <div class="in-list" id="inList">${incomingHtml()}</div>
+      </details>
     </section>
     <section class="card blk">
       <div class="blk-h"><h3>この作業のファイル</h3><span class="chip right">${d.files.length}件</span></div>
@@ -3392,7 +3365,7 @@ async function addFiles(list) {
       const h = await crypto.subtle.digest("SHA-256", buf);
       row.sha = [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join("");
     } catch { row.sha = "アップロード時に計算"; }
-    if (S.a.draft === d && S.a.tab === "files") rerenderSection();
+    if (S.a.draft === d) rerenderSection();
   }
 }
 
@@ -3448,6 +3421,7 @@ const ACT = {
   clearQ: () => { S.w.q = ""; const n = $("#wq"); if (n) n.value = ""; refreshResults(); n?.focus(); },
   wCat: el => { S.w.cat = el.dataset.id || null; S.w.q = ""; const n = $("#wq"); if (n) n.value = ""; refreshResults(); scrollToMain(); },
   wReset: () => { S.w.cat = null; S.w.q = ""; const n = $("#wq"); if (n) n.value = ""; refreshResults(); scrollToMain(); },
+  wView: el => { S.w.listMode = el.dataset.v === "list"; store.set("portal4.listMode", S.w.listMode); refreshResults(); },
   toContacts: () => { const b = $("#ctBox"); if (!b) return; const top = b.getBoundingClientRect().top + window.scrollY - (parseInt(getComputedStyle(document.documentElement).getPropertyValue("--bar-h")) || 60) - 12; window.scrollTo({ top, behavior: "smooth" }); },
   openCat: el => { S.mode = "work"; S.w.view = "home"; S.w.cat = el.dataset.id; S.w.q = ""; S.layer = null; render(); window.scrollTo(0, 0); },
   openTask: el => {
@@ -3522,16 +3496,15 @@ const ACT = {
     setTimeout(() => { const n = $("#f-name"); n?.focus(); n?.select(); }, 0);
     toast("大項目を追加しました。名前とアイコンを設定してください");
   }),
-  addTask: el => guard(async () => {
-    if (isSrv()) {
-      try { const r = await srvOp("task.create", { cat: el.dataset.id }); S.a.tab = "basic"; select({ type: "task", id: r.id }); setTimeout(() => { const n = $("#f-title"); n?.focus(); n?.select(); }, 0); toast(r.message); } catch (e) { failToast(e); }
-      return;
-    }
-    const t = newTask(el.dataset.id); DATA.tasks.push(t); log("create", "task", t.id, t.title, "下書きとして新規作成"); saveData();
-    S.a.tab = "basic"; select({ type: "task", id: t.id });
-    setTimeout(() => { const n = $("#f-title"); n?.focus(); n?.select(); }, 0);
-    toast(`小項目 ${t.id} を下書きで追加しました`);
+  addTask: el => guard(() => {
+    select({ type: "task", id: "", isNew: true, cat: el.dataset.id });
+    setTimeout(() => $("#f-title")?.focus(), 0);
   }),
+  edJump: el => {
+    const sec = $("#es-" + el.dataset.v); if (!sec) return;
+    const off = (parseInt(getComputedStyle(document.documentElement).getPropertyValue("--bar-h")) || 60) + ($("#tabs")?.offsetHeight || 0) + 12;
+    window.scrollTo({ top: sec.getBoundingClientRect().top + window.scrollY - off, behavior: "smooth" });
+  },
   taskMv: async el => {
     if (isSrv()) { try { await srvOp("task.move", { id: el.dataset.id, d: +el.dataset.d }); $("#tree").innerHTML = treeHtml(); $("#edIn").innerHTML = catEditor(); } catch (e) { failToast(e); } return; }
     const t = taskById(el.dataset.id); const list = tasksOf(t.cat); const i = list.indexOf(t); const j = i + +el.dataset.d;
@@ -3550,7 +3523,7 @@ const ACT = {
   },
 
   /* 設定：小項目 */
-  tab: el => { S.a.tab = el.dataset.v; $("#tabs").innerHTML = tabsHtml(); $("#secBody").innerHTML = sectionHtml(); if (isSrv() && el.dataset.v === "files") loadIncoming(); },
+
   add: el => {
     const l = el.dataset.l; S.a.draft[l].push(ADD_DEFAULTS[l]());
     const last = S.a.draft[l].length - 1;
@@ -3574,7 +3547,7 @@ const ACT = {
   togReq: el => { const b = S.a.draft.bring[+el.dataset.i]; b.required = !b.required; rerenderSection(); },
   togInd: el => { const d = S.a.draft, v = el.dataset.v; d.industries = d.industries.includes(v) ? d.industries.filter(x => x !== v) : [...d.industries, v]; rerenderSection(); },
   rmTag: el => { S.a.draft.tags.splice(+el.dataset.i, 1); rerenderSection(); $("#tagIn")?.focus(); },
-  stepTog: el => { const i = +el.dataset.i, o = S.a.stepOpen; o.has(i) ? o.delete(i) : o.add(i); $("#secBody").innerHTML = sectionHtml(); },
+  stepTog: el => { const i = +el.dataset.i, o = S.a.stepOpen; o.has(i) ? o.delete(i) : o.add(i); $("#secBody").innerHTML = allSectionsHtml(); },
   setStatus: el => { S.a.draft.status = el.dataset.v; rerenderSection(); },
   dupTask: () => guard(async () => {
     if (isSrv()) { try { const r = await srvOp("task.duplicate", { id: S.a.sel.id }); select({ type: "task", id: r.id }); toast(r.message); } catch (e) { failToast(e); } return; }
@@ -3831,6 +3804,7 @@ function onSearch(el) {
 document.addEventListener("input", e => {
   const el = e.target;
   if (el.id === "wq" || el.id === "treeQ" || el.id === "rvQ") { if (!e.isComposing) onSearch(el); return; }
+  if (el.id === "admQ") { S.a.list.q = el.value; if (!e.isComposing) $("#admList").innerHTML = admListHtml(); return; }
   if (el.id === "histQ") { S.a.hist.q = el.value; if (!e.isComposing) $("#histList").innerHTML = histListHtml(); return; }
   if (el.id === "mText") { S.layer.value = el.value; return; }
   if (el.id === "mReason") { S.layer.reason = el.value; return; }
@@ -3845,11 +3819,14 @@ document.addEventListener("input", e => {
     touched();
   }
 });
+document.addEventListener("compositionend", e => { if (e.target.id === "admQ") { S.a.list.q = e.target.value; $("#admList").innerHTML = admListHtml(); } });
 document.addEventListener("compositionend", e => { if (e.target.id === "wq" || e.target.id === "treeQ" || e.target.id === "rvQ") onSearch(e.target); });
 
 document.addEventListener("change", e => {
   const el = e.target;
   if (el.id === "fileIn") { addFiles(el.files); el.value = ""; return; }
+  if (el.id === "admCat" || el.id === "admSt") { S.a.list[el.id === "admCat" ? "cat" : "st"] = el.value; $("#admList").innerHTML = admListHtml(); return; }
+  if (el.id === "f-pub" && S.a.draft) { S.a.draft.status = el.checked ? "published" : "draft"; touched(); renderSavebar(); return; }
   if (el.dataset.doc != null && el.type === "file") { addDocFile(+el.dataset.doc, el.dataset.slot, el.files[0]); el.value = ""; return; }
   if (el.id === "rvTask") { S.rc.f.task = el.value; loadRecords(true); return; }
   if (el.id === "rvFrom" || el.id === "rvTo") { S.rc.f[el.id === "rvFrom" ? "from" : "to"] = el.value; loadRecords(true); return; }
@@ -3880,7 +3857,7 @@ document.addEventListener("focusin", e => {
   if (i !== undefined && !S.a.stepOpen.has(+i)) {
     S.a.stepOpen.add(+i);
     const id = el.id, pos = el.selectionStart;
-    $("#secBody").innerHTML = sectionHtml();
+    $("#secBody").innerHTML = allSectionsHtml();
     const n = document.getElementById(id); n?.focus(); try { n.setSelectionRange(pos, pos); } catch {}
   }
 });

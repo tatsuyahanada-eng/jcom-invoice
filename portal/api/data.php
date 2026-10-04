@@ -4,14 +4,12 @@ declare(strict_types=1);
 /* 作業マスタ（大項目・作業・お知らせ）と、承認の流れ・変更履歴。権限の判定はすべてここで行う。 */
 
 const TAB_GROUPS = [
-    '基本情報' => ['title', 'summary', 'cat', 'minutes', 'people', 'industries', 'tags'],
-    '対象機器' => ['devices', 'os'],
-    '準備・持参品' => ['precheck', 'bring'],
-    'ファイル' => ['files', 'extractTo'],
+    '基本情報' => ['title', 'summary', 'cat', 'tags'],
+    '機器・準備' => ['devices', 'precheck', 'bring'],
+    '設定データ' => ['files', 'extractTo'],
     '作業手順' => ['steps'],
     'マニュアル' => ['manuals'],
     '書類' => ['docs'],
-    '公開設定' => ['version', 'changelog'],
 ];
 
 function now_dt(): string { return date('Y-m-d H:i'); }
@@ -35,6 +33,8 @@ function task_out(array $r, bool $full): array
     $t['status'] = $r['status'];
     $t['updated'] = $r['updated'];
     $t['docs'] = $t['docs'] ?? [];
+    $t['review'] = null;
+    $t['rejected'] = null;
     if ($full) {
         $t['review'] = $r['review'] ? json_decode((string)$r['review'], true) : null;
         $t['rejected'] = $r['rejected'] ? json_decode((string)$r['rejected'], true) : null;
@@ -245,8 +245,18 @@ function op_task_create(array $u, array $b): array
     $blank = ['title' => '新しい作業', 'summary' => '', 'minutes' => 30, 'people' => 1, 'industries' => [], 'tags' => [], 'version' => '1.0', 'os' => '', 'devices' => [], 'precheck' => [], 'bring' => [], 'files' => [], 'extractTo' => 'C:\\Setup\\' . $id, 'steps' => [], 'manuals' => [], 'changelog' => '', 'old' => []];
     db()->prepare('INSERT INTO tasks (id, cat, ord, status, title, body, updated) VALUES (?,?,?,?,?,?,?)')
         ->execute([$id, $cat, next_order($cat), 'draft', $blank['title'], json_encode($blank, JSON_UNESCAPED_UNICODE), today_d()]);
-    log_history($u['id'], 'create', 'task', $id, $blank['title'], '下書きとして新規作成');
-    return ['id' => $id, 'message' => "小項目 {$id} を下書きで追加しました"];
+    if (is_array($b['task'] ?? null)) {   // 1ページの入力画面から、内容ごと登録する（既定は公開＝すぐにTOPに表示）
+        $in = $b['task'];
+        $in['id'] = $id;
+        $in['cat'] = $cat;
+        if (!isset($in['status'])) $in['status'] = 'published';
+        if (str($in['title'] ?? '', 255) === '') fail(422, '作業名を入力してください');
+        log_history($u['id'], 'create', 'task', $id, str($in['title'], 255), '作業を登録');
+        op_task_save($u, ['task' => $in], true);
+        return ['id' => $id, 'message' => ($in['status'] === 'published' ? '登録しました。TOPページと検索に反映されています' : '登録しました（非公開）')];
+    }
+    log_history($u['id'], 'create', 'task', $id, $blank['title'], '新規作成');
+    return ['id' => $id, 'message' => "小項目 {$id} を追加しました"];
 }
 
 function op_task_duplicate(array $u, array $b): array
@@ -276,8 +286,9 @@ function op_task_move(array $u, array $b): array
     return [];
 }
 
-function op_task_save(array $u, array $b): array
+function op_task_save(array $u, array $b, bool $quiet = false): array
 {
+    // 承認の仕組みはなし：編集の権限があれば、保存した内容がそのまま反映される
     $in = $b['task'] ?? null;
     if (!is_array($in)) fail(422, '作業の形式が正しくありません');
     $row = fetch_task((string)($in['id'] ?? '')) ?? fail(404, '作業が見つかりません');
@@ -288,50 +299,21 @@ function op_task_save(array $u, array $b): array
     $n = normalize_task($in, $orig);
     if ($n['title'] === '') fail(422, '作業名を入力してください');
     $view = $n + ['cat' => $cat];
-    if ($status === 'published' && ($miss = missing_tabs($view))) fail(422, '公開するには「' . implode('・', $miss) . '」の入力が必要です。準備中なら公開設定を「下書き」にして保存してください');
     $chg = changed_tabs($orig, $view);
     $chgTxt = $chg ? '（変更箇所：' . implode('、', $chg) . '）' : '';
-    $note = str($b['note'] ?? '', 500);
-    $reviewing = !empty($b['reviewing']);
     $id = $row['id'];
-    $approver = role_lv($u) >= 2;
-    $r0 = $orig['review'];
     $ord = $orig['cat'] !== $cat ? next_order($cat) : (int)$orig['order'];
-    $name = fn($uid) => (user_by_id((string)$uid)['display_name'] ?? '（削除済み）');
-    $msg = '保存しました';
-
-    if ($reviewing && !$r0) fail(409, '承認待ちの申請が見つかりません（すでに処理された可能性があります）');
-    if ($approver) {
-        $old = $orig['old'] ?? [];
-        if ($orig['status'] === 'published' && $status === 'published' && $orig['version'] !== $n['version']) array_unshift($old, ['v' => $orig['version'], 'date' => $orig['updated'], 'reason' => '新しい版の公開により置き換え']);
-        $view['old'] = array_slice($old, 0, 50);
-        write_task($id, $cat, $ord, $status, $view, $reviewing ? null : $r0, $reviewing ? null : $orig['rejected']);
-        if ($reviewing) {
-            log_history($u['id'], 'publish', 'task', $id, $view['title'], $name($r0['by']) . 'さんの申請を承認して公開' . $chgTxt . ($orig['version'] !== $n['version'] ? '。版 ' . $orig['version'] . ' → ' . $n['version'] : ''));
-            $msg = '承認して公開しました。現場ビューに反映されています';
-        } elseif ($orig['status'] !== 'published' && $status === 'published') {
-            log_history($u['id'], 'publish', 'task', $id, $view['title'], "公開しました（版 {$n['version']}）");
-            $msg = '公開しました。現場ビューに反映されています';
-        } elseif ($orig['status'] === 'published' && $status !== 'published') {
-            log_history($u['id'], 'update', 'task', $id, $view['title'], '公開を停止（下書きに変更）');
-            $msg = '下書きに戻しました。現場には表示されません';
-        } else {
-            log_history($u['id'], 'update', 'task', $id, $view['title'], $chg ? '内容を更新' . $chgTxt : '更新');
-            if ($status === 'published') $msg = '保存しました。現場ビューに反映されています';
-        }
-    } elseif ($orig['status'] === 'published') {
-        if (!$chg) return ['message' => '変更がありません', 'unchanged' => true];
-        $snap = $view + ['id' => $id, 'status' => 'published', 'order' => (int)$orig['order'], 'updated' => $orig['updated']];
-        $review = ['by' => $u['id'], 'at' => now_dt(), 'note' => $note, 'snapshot' => $snap];
-        write_task($id, $orig['cat'], (int)$orig['order'], 'published', $orig, $review, null);   // 公開中の内容はそのまま
-        log_history($u['id'], 'request', 'task', $id, $view['title'], '公開中の内容への変更を申請' . $chgTxt . ($note !== '' ? "　メモ：{$note}" : ''));
-        $msg = '変更を承認待ちにしました。承認されるまで現場には反映されません';
+    write_task($id, $cat, $ord, $status, $view, null, null);
+    if ($quiet) return ['id' => $id];
+    if ($orig['status'] !== 'published' && $status === 'published') {
+        log_history($u['id'], 'publish', 'task', $id, $view['title'], '公開しました');
+        $msg = '公開しました。現場ビューに反映されています';
+    } elseif ($orig['status'] === 'published' && $status !== 'published') {
+        log_history($u['id'], 'update', 'task', $id, $view['title'], '非公開にしました');
+        $msg = '非公開にしました。現場には表示されません';
     } else {
-        $review = $status === 'published' ? ['by' => $u['id'], 'at' => now_dt(), 'note' => $note, 'snapshot' => null] : null;
-        $view['old'] = $orig['old'] ?? [];
-        write_task($id, $cat, $ord, 'draft', $view, $review, null);
-        if ($review) { log_history($u['id'], 'request', 'task', $id, $view['title'], '公開を申請' . ($note !== '' ? "　メモ：{$note}" : '')); $msg = '公開を申請しました。承認されると現場に表示されます'; }
-        else { log_history($u['id'], 'update', 'task', $id, $view['title'], $chg ? '下書きを更新' . $chgTxt : '下書きを更新'); $msg = '下書きとして保存しました'; }
+        log_history($u['id'], 'update', 'task', $id, $view['title'], $chg ? '内容を更新' . $chgTxt : '更新');
+        $msg = $status === 'published' ? '保存しました。現場ビューに反映されています' : '保存しました（非公開）';
     }
     return ['message' => $msg, 'id' => $id];
 }
@@ -342,19 +324,6 @@ function op_task_delete(array $u, array $b): array
     db()->prepare('DELETE FROM tasks WHERE id = ?')->execute([$t['id']]);
     log_history($u['id'], 'delete', 'task', $t['id'], $t['title'], '作業を削除');
     return ['message' => "{$t['id']} を削除しました"];
-}
-
-function op_task_reject(array $u, array $b): array
-{
-    $row = fetch_task((string)($b['id'] ?? '')) ?? fail(404, '作業が見つかりません');
-    $review = $row['review'] ? json_decode($row['review'], true) : null;
-    if (!$review) fail(409, '承認待ちの申請が見つかりません（すでに処理された可能性があります）');
-    $reason = str($b['reason'] ?? '', 500);
-    if ($reason === '') fail(422, '差し戻しの理由を入力してください');
-    $rej = ['by' => $u['id'], 'to' => $review['by'], 'at' => now_dt(), 'reason' => $reason];
-    db()->prepare('UPDATE tasks SET review = NULL, rejected = ? WHERE id = ?')->execute([json_encode($rej, JSON_UNESCAPED_UNICODE), $row['id']]);
-    log_history($u['id'], 'reject', 'task', $row['id'], $row['title'], "差し戻し：「{$reason}」（申請者：" . (user_by_id($review['by'])['display_name'] ?? '（削除済み）') . '）');
-    return ['message' => '差し戻しました'];
 }
 
 /* ------------------------------------------------------------ 大項目 */
@@ -407,7 +376,7 @@ function op_notices_save(array $u, array $b): array
 {
     $in = $b['notices'] ?? null;
     if (!is_array($in) || count($in) > 200) fail(422, 'お知らせの形式が正しくありません');
-    $approver = role_lv($u) >= 2;
+    $approver = true;   // 承認の仕組みはなし：編集の権限で公開できる
     $old = [];
     foreach (db()->query('SELECT * FROM notices')->fetchAll() as $r) $old[$r['id']] = notice_out($r);
     $new = [];
@@ -520,11 +489,11 @@ function run_data_op(string $op): never
     require_same_site_write();
     $u = require_role('editor');
     $b = read_json();
-    $need = ['contacts.save' => 2, 'task.delete' => 2, 'task.reject' => 2, 'cat.delete' => 2, 'users.save' => 3, 'users.password' => 3];
+    $need = ['users.save' => 3, 'users.password' => 3];
     if (role_lv($u) < ($need[$op] ?? 1)) fail(403, 'この操作を行う権限がありません');
     $handlers = [
         'task.create' => 'op_task_create', 'task.duplicate' => 'op_task_duplicate', 'task.move' => 'op_task_move', 'task.save' => 'op_task_save',
-        'task.delete' => 'op_task_delete', 'task.reject' => 'op_task_reject', 'cat.create' => 'op_cat_create', 'cat.save' => 'op_cat_save',
+        'task.delete' => 'op_task_delete', 'cat.create' => 'op_cat_create', 'cat.save' => 'op_cat_save',
         'cat.delete' => 'op_cat_delete', 'notices.save' => 'op_notices_save', 'contacts.save' => 'op_contacts_save', 'users.save' => 'op_users_save', 'users.password' => 'op_users_password',
     ];
     if (!isset($handlers[$op])) fail(404, '不明な操作です');
