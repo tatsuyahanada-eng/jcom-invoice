@@ -892,10 +892,33 @@ button.rec-b:hover b { color: var(--accent); text-decoration: underline; }
 button.who:hover { background: var(--surface-2); }
 .who-role { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
 .who-av { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+/* ===== v5: login, server-side data, uploads ===== */
+.booting .appbar, .booting .sample-note { visibility: hidden; }
+.is-login .appbar, .is-login .sample-note, .is-login .pw-banner, .is-login .offline-note { display: none !important; }
+.boot { min-height: 60vh; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+.login { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); background-image: radial-gradient(900px 500px at 85% -10%, rgba(39,179,232,.18), transparent 60%), radial-gradient(700px 480px at -10% 105%, rgba(8,102,182,.14), transparent 60%); }
+.login-card { width: min(400px, 100%); padding: 30px 26px 24px; display: grid; gap: 14px; box-shadow: var(--shadow-lg); }
+.login-logo svg { height: 64px; width: auto; display: block; margin: 0 auto; }
+.login-title { text-align: center; font-family: var(--font-logo); font-size: 28px; letter-spacing: -.01em; line-height: 1.2; }
+.login-title b { color: var(--logo-a); font-weight: 700; }
+.login-title span { color: var(--logo-b); font-weight: 400; margin-left: .28em; }
+.login-sub { text-align: center; color: var(--muted); font-size: 13px; margin-top: -8px; }
+.login-err { background: var(--danger-soft); color: var(--danger); border-radius: 8px; padding: 9px 12px; font-size: 13px; line-height: 1.6; }
+.login-card .btn.big { width: 100%; }
+.pw-banner { background: var(--warn-soft); color: var(--warn); font-size: 13px; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; align-items: center; text-align: center; }
+.pw-banner .link { color: var(--warn); text-decoration: underline; }
+.up-lim { display: grid; gap: 6px; font-size: 13px; line-height: 1.7; background: var(--accent-soft); border-radius: var(--r); padding: 12px 14px; }
+.up-list, .in-list { display: grid; gap: 8px; }
+.up-row, .in-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r); }
+.up-row .m-bar { grid-column: 1 / -1; }
+.up-name { font-family: var(--font-mono); font-size: 13px; overflow-wrap: anywhere; line-height: 1.5; }
+.up-st { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.up-st.err { color: var(--danger); }
+.uidrow { display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 </style>
 </head>
-<body>
+<body class="booting">
 
 <header class="appbar">
   <div class="appbar-in">
@@ -912,6 +935,7 @@ button.who:hover { background: var(--surface-2); }
   </div>
 </header>
 <div class="offline-note" id="offlineNote" hidden role="status">オフラインです。表示済みの作業とチェックはこの端末に保存され、通信が戻ると使えるようになります。ダウンロードは通信が必要です。</div>
+<div class="pw-banner" id="pwBanner" hidden></div>
 <div class="sample-note">サンプル画面です。作業・機器・型番・ファイルはすべて架空のデータで、ダウンロードは実行されません。変更はこのブラウザ内にのみ保存されます。権限ごとの表示は、右上のユーザー名から切り替えて確認できます。</div>
 
 <div id="app"></div>
@@ -1306,18 +1330,22 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 const clone = o => JSON.parse(JSON.stringify(o));
+/* mode: boot（確認中）／ server（サーバーにログイン）／ demo（サーバーなし・この端末内のサンプル） */
+const AUTH = { mode: "boot", user: null, offline: false };
+const isSrv = () => AUTH.mode === "server";
 let DATA = store.get("portal3.data", null) || clone(DEFAULT_DATA);
 let PROG = store.get("portal3.prog", {});
 let RECORDS = store.get("portal3.records", null) || makeDemoRecords();
 RECORDS.forEach(r => { if (!r.sync) r.sync = "local"; });
 let RECENT = store.get("portal2.recent", ["WK-1101", "WK-4101"]);
-const saveData = () => store.set("portal3.data", DATA);
+const saveData = () => { if (AUTH.mode !== "server") store.set("portal3.data", DATA); };
 const saveProg = () => store.set("portal3.prog", PROG);
 const saveRecords = () => store.set("portal3.records", RECORDS);
 
 const S = {
   mode: location.hash === "#admin" ? "admin" : "work",
   me: store.get("portal3.me", "u1"), menuOpen: false,
+  up: { limits: null, loading: false, items: [], incoming: null, importing: null },
   w: { view: "home", taskId: null, cat: null, ind: null, q: "", shClosed: {}, shOnly: false, recId: null },
   rc: { f: { q: "", task: "", status: "", from: "", to: "", days: 90 }, list: [], srv: [], srvLoaded: 0, total: 0, hasMore: false, loading: false, busy: false, again: false, err: "", stats: null, detail: null, detailErr: "", recent: null },
   a: { sel: null, tab: "basic", draft: null, dirty: false, open: { pos: true }, treeQ: "", stepOpen: new Set(), pending: null, pvModal: false, reviewing: false, note: "", hist: { type: "", user: "", q: "" } },
@@ -1395,7 +1423,7 @@ function missing(t) {
 }
 
 /* ユーザー・権限・履歴 */
-const me = () => DATA.users.find(u => u.id === S.me) || DATA.users[0];
+const me = () => DATA.users.find(u => u.id === S.me) || DATA.users[0] || { id: "", name: "", role: "viewer", dept: "" };
 const can = { admin: () => ROLES[me().role].lv >= 1, approve: () => ROLES[me().role].lv >= 2, users: () => ROLES[me().role].lv >= 3 };
 const userName = id => DATA.users.find(u => u.id === id)?.name || "（削除済み）";
 function log(action, type, tid, name, detail = "") {
@@ -1458,6 +1486,86 @@ function calc(t, isOn) {
 }
 const progOf = t => calc(t, k => chk(t, k));
 const visibleNotices = () => DATA.notices.filter(n => n.status === "published" && (!n.until || n.until >= today())).sort((a, b) => b.date.localeCompare(a.date));
+/* ---- ログイン・サーバー保存 ---- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const failToast = e => { if (e && e.status !== 401 && e.message !== "offline") toast(e.message || "サーバーとの通信に失敗しました"); };
+const EMPTY_DATA = () => ({ categories: [], tasks: [], notices: [], users: [], history: [] });
+const saveCache = () => { if (AUTH.mode === "server" && AUTH.user) store.set("portal4.cache", { user: AUTH.user, data: DATA, at: Date.now() }); };
+function applyBootstrap(res) {
+  AUTH.mode = "server"; AUTH.user = res.user; AUTH.offline = false; DATA = res.data; S.me = res.user.id; saveCache();
+}
+/** 作業・大項目・お知らせ・ユーザーの変更は、すべてサーバーに送る。結果（最新のデータ）で画面のデータを置き換える */
+async function srvOp(op, payload = {}) {
+  if (AUTH.offline) { toast("オフラインのため保存できません。通信できる場所で、もう一度お試しください"); throw new Error("offline"); }
+  const res = await api("data/" + op, {}, { method: "POST", body: payload, timeout: 30000 });
+  if (res.data) { DATA = res.data; saveCache(); }
+  return res;
+}
+function onSessionExpired() {
+  if (!AUTH.user) return;
+  AUTH.user = null; S.menuOpen = false; S.layer = null; S.a.dirty = false; DATA = EMPTY_DATA();
+  render(); toast("ログインの有効期限が切れました。もう一度ログインしてください");
+}
+async function boot() {
+  if (!/^https?:$/.test(location.protocol)) { AUTH.mode = "demo"; return; }   // ファイルを直接開いたとき：サーバーなしのデモ
+  let sess = null, netErr = false;
+  try { sess = await api("session", {}, { timeout: 6000, noExpire: true }); } catch (e) { netErr = !e.status || e.status >= 500; }
+  if (sess && sess.ok) {
+    AUTH.mode = "server";
+    if (sess.authenticated) { try { applyBootstrap(await api("bootstrap", {}, { noExpire: true })); } catch (e) { AUTH.user = null; } }
+  } else if (netErr && store.get("portal4.cache", null)) {   // 通信できないが、以前ログインした端末：最後に取得したデータを表示する
+    const c = store.get("portal4.cache", null);
+    AUTH.mode = "server"; AUTH.offline = true; AUTH.user = c.user; DATA = c.data; S.me = c.user.id;
+  } else AUTH.mode = "demo";
+}
+function afterBoot() {
+  document.body.classList.remove("booting");
+  if (isSrv() && !AUTH.user) { S.mode = "work"; render(); return; }
+  if (isSrv() && !AUTH.offline) loadRecent();
+  if (S.mode === "admin" && can.admin()) select(DATA.tasks.length ? { type: "task", id: (DATA.tasks.find(t => t.id === "WK-1101") || DATA.tasks[0]).id } : null);
+  else { S.mode = "work"; render(); }
+}
+function loginHtml() {
+  const logo = LOGO_MARK.replace(/lg([FDY])/g, "lg$1L");
+  return `<div class="login"><form class="card login-card" id="loginForm" autocomplete="on">
+    <div class="login-logo">${logo}</div>
+    <h1 class="login-title"><b>WorkBase</b><span>Portal</span></h1>
+    <p class="login-sub">現地作業のファイル・手順・チェックシート</p>
+    <div class="fld"><label for="lgUser">ユーザー名</label><input class="inp" id="lgUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+    <div class="fld"><label for="lgPass">パスワード</label><input class="inp" id="lgPass" name="password" type="password" autocomplete="current-password" required></div>
+    <div class="login-err" id="lgErr" role="alert" hidden></div>
+    <button class="btn primary big" type="submit" id="lgBtn">ログイン</button>
+  </form></div>`;
+}
+async function doLogin() {
+  const u = $("#lgUser").value.trim(), pw = $("#lgPass").value, err = $("#lgErr"), btn = $("#lgBtn");
+  if (!u || !pw) { err.textContent = "ユーザー名とパスワードを入力してください"; err.hidden = false; return; }
+  btn.disabled = true; err.hidden = true;
+  try {
+    await api("auth/login", {}, { method: "POST", body: { username: u, password: pw }, noExpire: true });
+    applyBootstrap(await api("bootstrap", {}, { noExpire: true }));
+    S.mode = "work"; S.w.view = "home"; S.a.sel = null; S.a.draft = null; S.a.dirty = false;
+    render(); loadRecent(); probeAndFlush();
+  } catch (e) {
+    err.textContent = e.status ? e.message : "サーバーに接続できません。通信状況を確認してください"; err.hidden = false;
+    btn.disabled = false; $("#lgPass").value = ""; $("#lgPass").focus();
+  }
+}
+/** 通信が戻ったら最新のデータを読み直す。他の人の変更（承認待ちなど）にも気づける */
+async function refreshData(force = false) {
+  if (!isSrv() || !AUTH.user || S.a.dirty || (S.layer && S.layer.type !== "modal")) return;
+  try {
+    const was = AUTH.offline;
+    const res = await api("bootstrap", {}, { timeout: 15000 });
+    const changed = was || JSON.stringify(res.data) !== JSON.stringify(DATA);
+    applyBootstrap(res);
+    if (!changed && !force) return;
+    if (S.mode === "admin") { if (S.a.sel && !selValid(S.a.sel)) { S.a.sel = null; S.a.draft = null; } if ($("#tree")) $("#tree").innerHTML = treeHtml(); }
+    else if (S.w.view === "home" && document.activeElement?.id !== "wq") render();
+    if (was) toast("オンラインに戻りました。最新のデータを読み込みました");
+  } catch (e) { /* 通信できない間は、今のデータのまま */ }
+}
+
 /* ---- サーバー連携（作業記録） ---- */
 const SRV = { ok: null };
 async function api(route, params = {}, opt = {}) {
@@ -1471,7 +1579,11 @@ async function api(route, params = {}, opt = {}) {
       body: opt.body ? JSON.stringify(opt.body) : undefined
     });
     const j = await res.json().catch(() => ({}));
-    if (!res.ok || j.ok === false) { const e = new Error(j.error || "HTTP " + res.status); e.status = res.status || 500; throw e; }
+    if (!res.ok || j.ok === false) {
+      const e = new Error(j.error || "HTTP " + res.status); e.status = res.status || 500;
+      if (e.status === 401 && AUTH.mode === "server" && AUTH.user && !opt.noExpire) onSessionExpired();
+      throw e;
+    }
     return j;
   } finally { clearTimeout(timer); }
 }
@@ -1879,6 +1991,7 @@ async function loadStats() {
   paintRv();
 }
 function paintRv() {
+  if (isSrv() && !AUTH.user) return;
   if (S.mode !== "work" || S.w.view !== "records") return;
   const l = $("#rvList"); if (l) l.innerHTML = rvListHtml();
   const t = $("#rvStats"); if (t) t.innerHTML = rvStatsHtml();
@@ -1898,6 +2011,7 @@ async function loadDetail(id) {
   if (S.w.recId === id) paintDetail();
 }
 function paintDetail() {
+  if (isSrv() && !AUTH.user) return;
   if (S.mode === "work" && S.w.view === "record") { const y = window.scrollY; $("#app").innerHTML = recDetailHtml(); window.scrollTo(0, y); }
 }
 
@@ -2006,12 +2120,13 @@ function recDetailHtml() {
 const recPayload = r => ({ id: r.id, taskId: r.taskId, title: r.title, version: r.version, place: r.place, by: r.by, at: r.at, notes: r.notes, reason: r.reason, items: r.items });
 let flushing = false;
 async function flushQueue() {
-  if (flushing || !SRV.ok) return;
+  if (flushing || !SRV.ok || (AUTH.mode === "server" && !AUTH.user)) return;
   flushing = true; let changed = false;
   try {
     for (const r of RECORDS.filter(x => x.sync === "pending" && x.items)) {
       try { await api("records", {}, { method: "POST", body: recPayload(r) }); r.sync = "synced"; delete r.err; changed = true; saveRecords(); }
       catch (e) {
+        if (e.status === 401) break;   // ログインが切れている。記録は端末に残し、ログイン後に送る
         if (e.status && e.status >= 400 && e.status < 500) { r.sync = "error"; r.err = e.message; changed = true; saveRecords(); }
         else { if (!e.status) setSrv(false); break; }
       }
@@ -2034,7 +2149,7 @@ function updateSyncUi() {
   if (S.mode === "work" && S.w.view === "sheet") refreshWork();
   if (S.mode === "work" && S.w.view === "records") { loadStats(); loadRecords(true); }
 }
-async function probeAndFlush() { if (await probe()) await flushQueue(); }
+async function probeAndFlush() { if (await probe()) { await flushQueue(); await refreshData(); } }
 function startSync() {
   probeAndFlush();
   setInterval(probeAndFlush, 90000);
@@ -2184,7 +2299,7 @@ function dashHtml() {
       <div class="card flow-i"><b><span class="n">2</span>申請する</b>編集の権限の人は「承認を申請」まで行えます。公開中の作業の変更も、承認されるまで現場には反映されません。</div>
       <div class="card flow-i"><b><span class="n">3</span>承認して公開</b>公開承認の権限を持つ人が内容を確認し、公開または差し戻します。すべて変更履歴に残ります。</div>
     </div>
-    <p style="font-size:12.5px"><button class="link" type="button" data-act="resetData">サンプルデータに戻す</button></p>
+    ${isSrv() ? "" : `<p style="font-size:12.5px"><button class="link" type="button" data-act="resetData">サンプルデータに戻す</button></p>`}
   </div>`;
 }
 
@@ -2248,6 +2363,14 @@ function noticesHtml() {
 }
 
 /* ユーザー・権限 */
+function userCell(u, i, self) {
+  const isNew = isSrv() && !DATA.users.some(x => x.id === u.id);
+  let extra;
+  if (!isSrv()) extra = `<span class="ls">${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン（案内メール送信前）"}${self ? "・ログイン中" : ""}</span>`;
+  else if (isNew) extra = `<span class="uidrow">${inp(`${i}.username`, u.username || "", "ログインID（英数字）", "mono")}<input class="inp" type="password" id="${fid(`${i}.password`)}" data-bind="${i}.password" value="${esc(u.password || "")}" placeholder="初期パスワード（8文字以上）" autocomplete="new-password"></span>`;
+  else extra = `<span class="ls">ID <b class="mono">${esc(u.username)}</b>・${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン"}${self ? "・ログイン中" : ""}${u.mustChange ? "・初期パスワード" : ""}　<button class="link" type="button" style="font-size:11px" data-act="uPw" data-i="${i}">パスワード再設定</button></span>`;
+  return `<span style="display:grid;gap:2px;min-width:0">${inp(`${i}.name`, u.name, "氏名")}${extra}</span>`;
+}
 function usersHtml() {
   const d = S.a.draft, act = d.filter(u => u.active).length;
   const roleOpts = r => Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === r ? "selected" : ""}>${v.label}</option>`).join("");
@@ -2266,14 +2389,14 @@ function usersHtml() {
         const self = u.id === S.me;
         return `<div class="row row-user ${u.active ? "" : "off"}">
           <span class="h-av">${esc((u.name || "?").slice(0, 1))}</span>
-          <span style="display:grid;gap:2px;min-width:0">${inp(`${i}.name`, u.name, "氏名")}<span class="ls">${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン（案内メール送信前）"}${self ? "・ログイン中" : ""}</span></span>
+          ${userCell(u, i, self)}
           ${inp(`${i}.email`, u.email, "name@example.co.jp")}
           ${inp(`${i}.dept`, u.dept, "部署")}
           <select class="sel" id="${fid(`${i}.role`)}" data-bind="${i}.role" aria-label="権限" ${self ? "disabled" : ""}>${roleOpts(u.role)}</select>
           <button class="req-tg ${u.active ? "" : "on"}" type="button" data-act="togActive" data-i="${i}" ${self ? "disabled" : ""} aria-label="${u.active ? "有効（押すと無効にします）" : "無効（押すと有効にします）"}">${u.active ? "有効" : "無効"}</button>
         </div>`;
       }).join("")}</div>
-      <p class="hint">登録したユーザーには、初回ログイン用の案内メールが送られます（本番）。自分自身の権限と状態は変更できません。</p>
+      <p class="hint">${isSrv() ? "新しいユーザーは、ログインIDと初期パスワードを決めて登録し、本人に伝えてください（初期パスワードのまま使うと、本人に変更の案内が出ます）。自分自身の権限と状態は変更できません。" : "登録したユーザーには、初回ログイン用の案内メールが送られます（本番）。自分自身の権限と状態は変更できません。"}</p>
     </section></div>`;
 }
 
@@ -2423,7 +2546,8 @@ function sectionHtml() {
         ${addBtn("bring", "持参品を追加")}
       </section></div>`;
 
-    case "files": return `<div class="sect">
+    case "files": if (isSrv()) return filesTabServer(d);
+      return `<div class="sect">
       <p class="sect-intro">現場でダウンロードするファイルです。追加すると、破損確認用のハッシュ値（SHA-256）が自動で計算されます。</p>
       <section class="card blk">
         <label class="drop" for="fileIn" id="drop">${ic("upload")}<b>ここにファイルをドラッグ＆ドロップ</b><span>またはクリックしてファイルを選択（zip・exe・msi・bin など）</span></label>
@@ -2517,6 +2641,13 @@ function pvInner() {
    描画
    ========================================================= */
 function render() {
+  document.body.classList.toggle("is-login", isSrv() && !AUTH.user);
+  if (isSrv() && !AUTH.user) { $("#app").innerHTML = loginHtml(); $("#savebar").innerHTML = ""; renderLayer(); $("#lgUser")?.focus(); return; }
+  $(".sample-note").hidden = isSrv();
+  const pb = $("#pwBanner");
+  pb.hidden = !(isSrv() && AUTH.user && AUTH.user.mustChange);
+  pb.innerHTML = pb.hidden ? "" : `<span>初期パスワードのままです。安全のため、早めに変更してください。</span><button class="link" type="button" data-act="pwOpen">パスワードを変更する</button>`;
+  $("#offlineNote").textContent = AUTH.offline ? "オフラインです。最後に読み込んだ内容を表示しています（変更の保存はできません）。チェックシートの記録は端末に保存され、通信が戻ると送信されます。" : "オフラインです。表示済みの作業とチェックはこの端末に保存され、通信が戻ると使えるようになります。ダウンロードは通信が必要です。";
   $("#brandMark").innerHTML = LOGO_MARK;
   $("#modeWork").innerHTML = ic("search") + "作業を探す";
   $("#modeAdmin").innerHTML = ic("gear") + "設定";
@@ -2544,7 +2675,14 @@ function renderLayer() {
     const inst = window.__bip ? `<button class="btn sm primary" type="button" data-act="installApp">${ic("dl")}アプリとしてインストール</button>`
       : matchMedia("(display-mode: standalone)").matches ? `<span class="muted">インストール済みのアプリとして開いています。</span>`
       : `<span class="muted">スマホでは、ブラウザのメニューの「ホーム画面に追加」（iPhone は共有ボタンから）でインストールできます。</span>`;
-    h += `<div class="scrim clear" data-act="userMenuClose"></div><div class="umenu" role="menu"><div class="um-h">ログインユーザーの切り替え<small>サンプル用の機能です。本番では、ログインしたユーザーの権限が自動で適用されます。</small></div>${DATA.users.filter(u => u.active).map(u => `<button class="um-it ${u.id === S.me ? "on" : ""}" role="menuitem" type="button" data-act="setMe" data-id="${u.id}"><span class="h-av">${esc(u.name.slice(0, 1))}</span><span class="um-t"><b>${esc(u.name)}</b><small>${esc(u.dept)}</small></span><span class="chip ${ROLES[u.role].cls}">${ROLES[u.role].label}</span>${u.id === S.me ? ic("check") : ""}</button>`).join("")}<div class="um-inst"><b>WorkBase Portal をアプリとして使う</b>${inst}</div></div>`;
+    const m = me();
+    const body = isSrv()
+      ? `<div class="um-h">${esc(m.name)}<small>${esc(m.dept || "—")}・ログインID <span class="mono">${esc(AUTH.user.username || "")}</span></small></div>
+         <div style="padding:0 12px 6px"><span class="chip ${ROLES[m.role].cls}">${ROLES[m.role].label}</span></div>
+         <button class="um-it" role="menuitem" type="button" data-act="pwOpen"><span class="um-t"><b>パスワードを変更</b></span></button>
+         <button class="um-it" role="menuitem" type="button" data-act="logout"><span class="um-t"><b>ログアウト</b></span></button>`
+      : `<div class="um-h">ログインユーザーの切り替え<small>サンプル用の機能です。本番では、ログインしたユーザーの権限が自動で適用されます。</small></div>${DATA.users.filter(u => u.active).map(u => `<button class="um-it ${u.id === S.me ? "on" : ""}" role="menuitem" type="button" data-act="setMe" data-id="${u.id}"><span class="h-av">${esc(u.name.slice(0, 1))}</span><span class="um-t"><b>${esc(u.name)}</b><small>${esc(u.dept)}</small></span><span class="chip ${ROLES[u.role].cls}">${ROLES[u.role].label}</span>${u.id === S.me ? ic("check") : ""}</button>`).join("")}`;
+    h += `<div class="scrim clear" data-act="userMenuClose"></div><div class="umenu" role="menu">${body}<div class="um-inst"><b>WorkBase Portal をアプリとして使う</b>${inst}</div></div>`;
   }
   if (L?.type === "modal") {
     h += `<div class="scrim top"></div><div class="modal ${L.wide ? "wide" : ""}" role="alertdialog" aria-modal="true" aria-labelledby="mT"><h2 id="mT">${esc(L.title)}</h2>${L.text ? `<p>${esc(L.text)}</p>` : ""}${L.body || ""}
@@ -2637,7 +2775,7 @@ function newTask(cat) {
   return { id, cat, order: tasksOf(cat).length + 1, status: "draft", title: "新しい作業", summary: "", minutes: 30, people: 1, industries: [], tags: [],
     version: "1.0", updated: today(), os: "", devices: [], precheck: [], bring: [], files: [], extractTo: "C:\\Setup\\" + id, steps: [], manuals: [], changelog: "", old: [] };
 }
-function save() {
+async function save() {
   const t = S.a.sel?.type;
   if (t === "task") return saveTask();
   if (t === "cat") return saveCat();
@@ -2645,9 +2783,12 @@ function save() {
   if (t === "users") return saveUsers();
   return true;
 }
-function saveCat() {
+async function saveCat() {
   const a = S.a, d = a.draft;
   if (!d.name.trim()) { toast("大項目の名前を入力してください"); return false; }
+  if (isSrv()) {
+    try { await srvOp("cat.save", { cat: d }); a.dirty = false; render(); toast("保存しました"); return true; } catch (e) { failToast(e); return false; }
+  }
   const o = DATA.categories.find(c => c.id === d.id), ch = [];
   if (o.name !== d.name) ch.push(`名前「${o.name}」→「${d.name}」`);
   if (o.desc !== d.desc) ch.push("説明を変更");
@@ -2657,7 +2798,7 @@ function saveCat() {
   saveData(); a.dirty = false; render(); toast("保存しました");
   return true;
 }
-function saveTask() {
+async function saveTask() {
   const a = S.a, d = a.draft, orig = taskById(d.id), approver = can.approve();
   if (!d.title.trim()) { a.tab = "basic"; render(); toast("作業名を入力してください"); $("#f-title")?.focus(); return false; }
   const miss = missing(d);
@@ -2665,6 +2806,13 @@ function saveTask() {
     a.tab = TABS.find(([, n]) => n === miss[0])[0]; render();
     toast(`公開するには「${miss.join("・")}」の入力が必要です。準備中なら公開設定を「下書き」にして保存してください`);
     return false;
+  }
+  if (isSrv()) {
+    try {
+      const r = await srvOp("task.save", { task: d, note: a.note, reviewing: a.reviewing });
+      if (r.unchanged) { a.dirty = false; renderSavebar(); toast(r.message); return true; }
+      a.open[(taskById(d.id) || d).cat] = true; reload(); toast(r.message); return true;
+    } catch (e) { failToast(e); return false; }
   }
   const chg = changedTabs(orig, d), chgTxt = chg.length ? `（変更箇所：${chg.join("、")}）` : "";
   const reviewing = a.reviewing, r0 = orig.review, note = a.note.trim();
@@ -2701,9 +2849,12 @@ function saveTask() {
   saveData(); reload(); toast(msg);
   return true;
 }
-function saveNotices() {
+async function saveNotices() {
   const a = S.a, d = a.draft, old = DATA.notices, short = x => x.length > 30 ? x.slice(0, 30) + "…" : x;
   if (d.some(n => !n.text.trim())) { toast("内容が空のお知らせがあります。入力するか、削除してください"); return false; }
+  if (isSrv()) {
+    try { await srvOp("notices.save", { notices: d }); a.dirty = false; a.draft = clone(DATA.notices); render(); toast("お知らせを保存しました"); return true; } catch (e) { failToast(e); return false; }
+  }
   if (!can.approve() && d.some(n => n.status === "published" && old.find(x => x.id === n.id)?.status !== "published")) { toast("お知らせを公開できるのは、公開承認の権限を持つ人だけです"); return false; }
   d.forEach(n => {
     const o = old.find(x => x.id === n.id);
@@ -2715,13 +2866,16 @@ function saveNotices() {
   DATA.notices = clone(d); saveData(); a.dirty = false; a.draft = clone(DATA.notices); render(); toast("お知らせを保存しました");
   return true;
 }
-function saveUsers() {
+async function saveUsers() {
   const a = S.a, d = a.draft, old = DATA.users;
   if (d.some(u => !u.name.trim() || !u.email.trim())) { toast("氏名とメールアドレスは必須です"); return false; }
   if (d.some(u => !/^\S+@\S+\.\S+$/.test(u.email.trim()))) { toast("メールアドレスの形式を確認してください"); return false; }
   const em = d.map(u => u.email.trim().toLowerCase());
   if (new Set(em).size !== em.length) { toast("同じメールアドレスのユーザーが重複しています"); return false; }
   if (!d.some(u => u.role === "admin" && u.active)) { toast("有効な管理者が1人以上必要です"); return false; }
+  if (isSrv()) {
+    try { await srvOp("users.save", { users: d }); a.dirty = false; a.draft = clone(DATA.users); render(); toast("ユーザー情報を保存しました"); return true; } catch (e) { failToast(e); return false; }
+  }
   d.forEach(u => { u.name = u.name.trim(); u.email = u.email.trim(); u.dept = u.dept.trim(); });
   d.forEach(u => {
     const o = old.find(x => x.id === u.id);
@@ -2735,8 +2889,152 @@ function saveUsers() {
 }
 function discard() { select(S.a.sel); toast("変更を破棄しました"); }
 
+/* ---- ファイル（サーバー）：アップロード・FTP取り込み・ダウンロード ---- */
+async function startDownload(f) {
+  try { const s = await api("session", {}, { timeout: 8000 }); if (!s.authenticated) { onSessionExpired(); return false; } }
+  catch (e) { toast("通信できないため、ダウンロードできません"); return false; }
+  const a = document.createElement("a");
+  a.href = "api/?r=files/" + encodeURIComponent(f.fid); a.download = f.name; a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
+  return true;
+}
+const limVal = n => (n > 0 ? fmtBytes(n) : "制限なし");
+function upLimitsHtml() {
+  const L = S.up.limits;
+  if (!L) return `<p class="muted" style="font-size:13px">アップロードの上限を確認中…</p>`;
+  return `<div class="up-lim">
+    <span>ブラウザから送れるのは、<b>1ファイル ${fmtBytes(L.maxBytes)} まで</b>です。${fmtBytes(L.chunkBytes)}ずつに分けて送るので、途中で切れても続きから再開できます。</span>
+    <span>このサーバーの設定：1回の送信の上限 ${limVal(L.phpPostMax)}（PHP の post_max_size）・空き容量 ${limVal(L.freeBytes)}</span>
+    <span><b>${fmtBytes(L.maxBytes)}を超えるファイル</b>や、回線が不安定な場所からの転送は、FTP で <span class="mono">${esc(L.incomingDir)}</span> に置いて、下の「取り込む」を使ってください。</span>
+  </div>`;
+}
+function upListHtml() {
+  return S.up.items.filter(x => x.state !== "done").map(x => {
+    const pct = x.size ? Math.round(x.sent / x.size * 100) : 0;
+    const st = x.state === "wait" ? `<span class="up-st">順番待ち</span>`
+      : x.state === "up" ? `<span class="up-st num">送信中 ${pct}%（${fmtBytes(x.sent)} / ${fmtBytes(x.size)}）</span>`
+      : x.state === "fin" ? `<span class="up-st">サーバーで確認中です（SHA-256 を計算しています）…</span>`
+      : x.state === "cancel" ? `<span class="up-st">中止しました</span>` : `<span class="up-st err">失敗：${esc(x.err)}</span>`;
+    const act = x.state === "err" ? `<button class="btn sm" type="button" data-act="upRetry" data-k="${x.key}">続きから再開</button>`
+      : x.state === "up" || x.state === "wait" ? `<button class="btn sm" type="button" data-act="upCancel" data-k="${x.key}">中止</button>`
+      : x.state === "fin" ? "" : `<button class="btn sm ghost" type="button" data-act="upDismiss" data-k="${x.key}">消す</button>`;
+    return `<div class="up-row"><span style="display:grid;gap:2px;min-width:0"><span class="up-name">${esc(x.name)}</span>${st}</span>${act}<span class="m-bar acc" role="progressbar" aria-label="${esc(x.name)}" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></span></div>`;
+  }).join("");
+}
+function incomingHtml() {
+  const R = S.up.incoming;
+  if (!R) return `<p class="muted" style="font-size:13px">読み込み中…</p>`;
+  if (R.err) return `<p class="muted" style="font-size:13px">読み込めませんでした：${esc(R.err)}</p>`;
+  if (!R.files.length) return `<div class="empty-row">受け取りフォルダにファイルはありません。FTP で <span class="mono">${esc(R.dir)}</span> に置いてから、「更新」を押してください。</div>`;
+  return R.files.map(f => `<div class="in-row"><span style="display:grid;gap:2px;min-width:0"><span class="up-name">${esc(f.name)}</span><span class="up-st num">${fmtBytes(f.size)}・${f.modified}${f.settled ? "" : "・転送中の可能性があります（1分ほど待ってください）"}</span></span><button class="btn sm primary" type="button" data-act="inImport" data-name="${esc(f.name)}" ${f.settled && !S.up.importing ? "" : "disabled"}>${S.up.importing === f.name ? "取り込み中…" : "取り込む"}</button></div>`).join("");
+}
+function paintUp() {
+  const a = $("#upList"); if (a) a.innerHTML = upListHtml();
+  const b = $("#inList"); if (b) b.innerHTML = incomingHtml();
+  const c = $("#upLimits"); if (c) c.innerHTML = upLimitsHtml();
+}
+async function loadIncoming() {
+  try { S.up.incoming = await api("files/incoming"); } catch (e) { S.up.incoming = { err: e.message, files: [], dir: "" }; }
+  paintUp();
+}
+async function loadFilesInfo() {
+  if (S.up.loading) return;
+  S.up.loading = true;
+  try { S.up.limits = (await api("files/limits")).limits; } catch (e) { /* 表示だけの情報 */ }
+  S.up.loading = false;
+  await loadIncoming();
+}
+async function uploadFiles(list) {
+  const d = S.a.draft; if (!d || !list.length) return;
+  if (AUTH.offline) { toast("オフラインのため、アップロードできません"); return; }
+  if (!S.up.limits) await loadFilesInfo();
+  const L = S.up.limits;
+  for (const file of list) {
+    if (L && file.size > L.maxBytes) { toast(`${file.name} は ${fmtBytes(L.maxBytes)} を超えているため、ブラウザからは送れません。FTP で転送してください`); continue; }
+    if (file.size <= 0) { toast(`${file.name} は空のファイルです`); continue; }
+    if (d.files.some(f => f.name === file.name)) { toast(`同じ名前のファイルが、この作業にすでにあります：${file.name}`); continue; }
+    S.up.items.push({ key: "u" + Math.random().toString(36).slice(2, 8), name: file.name, size: file.size, sent: 0, state: "wait", file, taskId: d.id, chunk: 0, uploadId: "", cancel: false, err: "" });
+  }
+  paintUp(); runUploads();
+}
+let upRunning = false;
+async function runUploads() {
+  if (upRunning) return;
+  upRunning = true;
+  try { for (;;) { const it = S.up.items.find(x => x.state === "wait"); if (!it) break; await uploadOne(it); } } finally { upRunning = false; }
+}
+async function uploadOne(it) {
+  it.state = "up"; it.err = ""; it.cancel = false; paintUp();
+  const post = async (offset, blob) => {
+    const res = await fetch("api/?" + new URLSearchParams({ r: "upload/chunk", id: it.uploadId, offset }), { method: "POST", body: blob, credentials: "same-origin", headers: { "X-Requested-With": "WorkBase", "Content-Type": "application/octet-stream" } });
+    return { res, j: await res.json().catch(() => ({})) };
+  };
+  try {
+    if (!it.uploadId) { const r = await api("upload/init", {}, { method: "POST", body: { name: it.name, size: it.size } }); it.uploadId = r.uploadId; it.chunk = r.chunkBytes; it.sent = 0; }
+    else { const st = await api("upload/status", { id: it.uploadId }); it.sent = st.received; it.chunk = st.chunkBytes; }
+    let tries = 0, conflicts = 0;
+    while (it.sent < it.size) {
+      if (it.cancel) throw new Error("cancel");
+      let out;
+      try { out = await post(it.sent, it.file.slice(it.sent, Math.min(it.size, it.sent + it.chunk))); }
+      catch (e) {
+        if (++tries > 5) throw new Error("通信が途切れました。電波の良い場所で「続きから再開」を押してください");
+        await sleep(1000 * tries);
+        try { it.sent = (await api("upload/status", { id: it.uploadId })).received; } catch (e2) { /* 次の周で再試行 */ }
+        continue;
+      }
+      const { res, j } = out;
+      if (res.ok) { it.sent = j.received; tries = 0; paintUp(); continue; }
+      if (res.status === 413 && it.chunk > 262144) { it.chunk = Math.max(262144, Math.floor(it.chunk / 2)); continue; }   // サーバー側の上限が小さいときは、小さく分けて送り直す
+      if (res.status === 409 && j.received != null && ++conflicts < 20) { it.sent = j.received; continue; }
+      if (res.status === 401) { onSessionExpired(); throw new Error("ログインの有効期限が切れました"); }
+      throw new Error(j.error || "HTTP " + res.status);
+    }
+    it.state = "fin"; paintUp();
+    const fin = await api("upload/finish", {}, { method: "POST", body: { id: it.uploadId }, timeout: 900000 });
+    it.state = "done"; it.file = null;
+    const d = S.a.draft;
+    if (d && d.id === it.taskId && S.a.sel?.type === "task") {
+      d.files.push({ ...fin.file }); rerenderSection();
+      toast(`${fin.file.name} をアップロードしました。「保存」すると作業に反映されます`);
+    } else toast(`${fin.file.name} のアップロードは完了しましたが、元の作業の編集画面から離れたため、作業には追加されていません。もう一度追加してください`);
+  } catch (e) {
+    if (e.message === "cancel") { it.state = "cancel"; try { await api("upload/cancel", {}, { method: "POST", body: { id: it.uploadId } }); } catch (e2) { /* 24時間後に自動で片付く */ } it.uploadId = ""; }
+    else { it.state = "err"; it.err = e.message; }
+  }
+  paintUp();
+}
+function filesTabServer(d) {
+  if (!S.up.limits && !S.up.loading) loadFilesInfo();
+  return `<div class="sect">
+    <p class="sect-intro">現場でダウンロードするファイルです。ブラウザからアップロードするか、大きなファイルは FTP で転送して取り込みます。追加したあと「保存」すると、作業に反映されます。</p>
+    <section class="card blk">
+      <div class="blk-h"><h3>ブラウザからアップロード</h3></div>
+      <div id="upLimits">${upLimitsHtml()}</div>
+      <label class="drop" for="fileIn" id="drop">${ic("upload")}<b>ここにファイルをドラッグ＆ドロップ</b><span>またはクリックしてファイルを選択（複数選べます）</span></label>
+      <div class="up-list" id="upList">${upListHtml()}</div>
+    </section>
+    <section class="card blk">
+      <div class="blk-h"><h3>FTP で転送したファイルを取り込む</h3><button class="btn sm right" type="button" data-act="inRefresh">${ic("clock")}更新</button><p>FTP で受け取りフォルダに置いたファイルを、この作業のファイルとして登録します（転送が終わって1分ほどしてから）。</p></div>
+      <div class="in-list" id="inList">${incomingHtml()}</div>
+    </section>
+    <section class="card blk">
+      <div class="blk-h"><h3>この作業のファイル</h3><span class="chip right">${d.files.length}件</span></div>
+      <div class="rows">${d.files.map((x, i) => `<div class="row row-file">
+        <span class="file-ico">${ic(/\.zip$/i.test(x.name) ? "zip" : "file")}</span>
+        <span style="display:grid;gap:2px;min-width:0"><span class="fn">${esc(x.name)}</span><span class="fm"><span class="num">${fmtBytes(x.size)}</span><span>SHA-256 <span class="mono">${esc(String(x.sha).slice(0, 12))}…</span></span>${x.fid ? `<a class="link" style="font-size:11.5px" href="api/?r=files/${esc(x.fid)}" download>ダウンロードして確認</a>` : `<span>（サンプル：実ファイルなし）</span>`}</span></span>
+        ${inp(`files.${i}.desc`, x.desc, "説明（例：POS アプリ本体）")}
+        ${tools("files", i, d.files.length)}
+      </div>`).join("") || `<div class="empty-row">ファイルはまだありません。ファイルを使わない作業は、このままで構いません。</div>`}</div>
+    </section>
+    <section class="card blk"><div class="fgrid">
+      ${fld("展開先フォルダ", "extractTo", inp("extractTo", d.extractTo, "C:\\Setup\\WK-xxxx", "mono"), { full: true, hint: "現場には、このフォルダへ展開する PowerShell コマンドが自動で表示されます。" })}
+    </div></section></div>`;
+}
+
 async function addFiles(list) {
   const d = S.a.draft; if (!d || !list.length) return;
+  if (isSrv()) return uploadFiles(list);
   const added = [...list].map(file => {
     const row = { name: file.name, size: file.size, desc: "", sha: file.size > 300 * MB ? "アップロード時に計算" : "計算中…" };
     d.files.push(row);
@@ -2767,6 +3065,7 @@ const ADD_DEFAULTS = {
 };
 
 function refreshWork() {
+  if (isSrv() && !AUTH.user) return;   // ログイン画面を上書きしない
   const y = window.scrollY; $("#app").innerHTML = renderWork(); window.scrollTo(0, y);
 }
 function refreshResults() {
@@ -2817,15 +3116,23 @@ const ACT = {
     if (scr) scr.scrollTo({ top: sec.getBoundingClientRect().top - scr.getBoundingClientRect().top + scr.scrollTop - 50, behavior: "smooth" });
     else sec.scrollIntoView({ behavior: "smooth", block: "start" });
   },
-  dl: el => {
+  dl: async el => {
     const t = taskById(S.w.taskId); if (!t) return;
-    setChk(t, "file:" + el.dataset.v, true);
-    toast(`サンプルのためダウンロードは行いません：${el.dataset.v}`); refreshWork();
+    const f = t.files.find(x => x.name === el.dataset.v);
+    if (f && f.fid && isSrv()) {
+      if (await startDownload(f)) { setChk(t, "file:" + f.name, true); toast(`ダウンロードを開始しました：${f.name}`); }
+    } else { setChk(t, "file:" + el.dataset.v, true); toast(isSrv() ? `このファイルは、まだサーバーに登録されていません：${el.dataset.v}` : `サンプルのためダウンロードは行いません：${el.dataset.v}`); }
+    refreshWork();
   },
-  dlAll: () => {
+  dlAll: async () => {
     const t = taskById(S.w.taskId); if (!t) return;
-    t.files.forEach(x => setChk(t, "file:" + x.name, true));
-    toast(`サンプルのためダウンロードは行いません（${t.files.length}ファイル）`); refreshWork();
+    let n = 0;
+    for (const f of t.files) {
+      if (f.fid && isSrv()) { if (!(await startDownload(f))) break; n++; await sleep(900); }
+      setChk(t, "file:" + f.name, true);
+    }
+    toast(isSrv() ? `${n}件のダウンロードを開始しました` : `サンプルのためダウンロードは行いません（${t.files.length}ファイル）`);
+    refreshWork();
   },
   resetProg: () => { delete PROG[S.w.taskId]; saveProg(); refreshWork(); toast("進み具合をリセットしました"); },
   focusStart: el => {
@@ -2843,7 +3150,11 @@ const ACT = {
   selHome: () => guard(() => select(null)),
   selCat: el => guard(() => { S.a.open[el.dataset.id] = true; select({ type: "cat", id: el.dataset.id }); }),
   selTask: el => guard(() => { if (S.a.sel?.type !== "task") S.a.tab = "basic"; select({ type: "task", id: el.dataset.id }); }),
-  addCat: () => guard(() => {
+  addCat: () => guard(async () => {
+    if (isSrv()) {
+      try { const r = await srvOp("cat.create"); S.a.open[r.id] = true; select({ type: "cat", id: r.id }); setTimeout(() => { const n = $("#f-name"); n?.focus(); n?.select(); }, 0); toast(r.message); } catch (e) { failToast(e); }
+      return;
+    }
     const id = "c" + Date.now().toString(36);
     DATA.categories.push({ id, order: Math.max(0, ...DATA.categories.map(c => c.order)) + 1, name: "新しい大項目", icon: "box", desc: "" });
     log("create", "category", "", "新しい大項目", "大項目を追加");
@@ -2851,13 +3162,18 @@ const ACT = {
     setTimeout(() => { const n = $("#f-name"); n?.focus(); n?.select(); }, 0);
     toast("大項目を追加しました。名前とアイコンを設定してください");
   }),
-  addTask: el => guard(() => {
+  addTask: el => guard(async () => {
+    if (isSrv()) {
+      try { const r = await srvOp("task.create", { cat: el.dataset.id }); S.a.tab = "basic"; select({ type: "task", id: r.id }); setTimeout(() => { const n = $("#f-title"); n?.focus(); n?.select(); }, 0); toast(r.message); } catch (e) { failToast(e); }
+      return;
+    }
     const t = newTask(el.dataset.id); DATA.tasks.push(t); log("create", "task", t.id, t.title, "下書きとして新規作成"); saveData();
     S.a.tab = "basic"; select({ type: "task", id: t.id });
     setTimeout(() => { const n = $("#f-title"); n?.focus(); n?.select(); }, 0);
     toast(`小項目 ${t.id} を下書きで追加しました`);
   }),
-  taskMv: el => {
+  taskMv: async el => {
+    if (isSrv()) { try { await srvOp("task.move", { id: el.dataset.id, d: +el.dataset.d }); $("#tree").innerHTML = treeHtml(); $("#edIn").innerHTML = catEditor(); } catch (e) { failToast(e); } return; }
     const t = taskById(el.dataset.id); const list = tasksOf(t.cat); const i = list.indexOf(t); const j = i + +el.dataset.d;
     if (j < 0 || j >= list.length) return;
     [list[i], list[j]] = [list[j], list[i]];
@@ -2874,7 +3190,7 @@ const ACT = {
   },
 
   /* 設定：小項目 */
-  tab: el => { S.a.tab = el.dataset.v; $("#tabs").innerHTML = tabsHtml(); $("#secBody").innerHTML = sectionHtml(); },
+  tab: el => { S.a.tab = el.dataset.v; $("#tabs").innerHTML = tabsHtml(); $("#secBody").innerHTML = sectionHtml(); if (isSrv() && el.dataset.v === "files") loadIncoming(); },
   add: el => {
     const l = el.dataset.l; S.a.draft[l].push(ADD_DEFAULTS[l]());
     const last = S.a.draft[l].length - 1;
@@ -2900,7 +3216,8 @@ const ACT = {
   rmTag: el => { S.a.draft.tags.splice(+el.dataset.i, 1); rerenderSection(); $("#tagIn")?.focus(); },
   stepTog: el => { const i = +el.dataset.i, o = S.a.stepOpen; o.has(i) ? o.delete(i) : o.add(i); $("#secBody").innerHTML = sectionHtml(); },
   setStatus: el => { S.a.draft.status = el.dataset.v; rerenderSection(); },
-  dupTask: () => guard(() => {
+  dupTask: () => guard(async () => {
+    if (isSrv()) { try { const r = await srvOp("task.duplicate", { id: S.a.sel.id }); select({ type: "task", id: r.id }); toast(r.message); } catch (e) { failToast(e); } return; }
     const src = taskById(S.a.sel.id); const t = clone(src); const id = nextId(src.cat);
     Object.assign(t, { id, title: src.title + "（コピー）", status: "draft", order: tasksOf(src.cat).length + 1, updated: today(), old: [], extractTo: "C:\\Setup\\" + id });
     DATA.tasks.push(t); log("create", "task", id, t.title, `${src.id} を複製して下書きを作成`); saveData(); select({ type: "task", id }); toast(`${src.id} を複製して ${id} を作成しました（下書き）`);
@@ -2932,6 +3249,56 @@ const ACT = {
   },
   resync: async () => { const ok = await probe(); if (ok) await flushQueue(); toast(ok ? "送信しました" : "サーバーに接続できません"); updateSyncUi(); },
   retryErr: async () => { RECORDS.forEach(r => { if (r.sync === "error") r.sync = "pending"; }); saveRecords(); await probeAndFlush(); updateSyncUi(); },
+
+  /* ログイン・パスワード */
+  logout: () => guard(async () => {
+    try { await api("auth/logout", {}, { method: "POST", noExpire: true }); } catch (e) { /* 通信できなくても、この端末では終了する */ }
+    AUTH.user = null; AUTH.offline = false; store.set("portal4.cache", null); DATA = EMPTY_DATA(); S.rc.recent = null; S.rc.list = []; S.rc.stats = null;
+    Object.assign(S.a, { sel: null, draft: null, dirty: false, reviewing: false, note: "" }); Object.assign(S.w, { view: "home", taskId: null, q: "", cat: null, ind: null });
+    S.mode = "work"; S.menuOpen = false; S.layer = null; render();
+  }),
+  pwOpen: () => {
+    S.menuOpen = false;
+    S.layer = { type: "modal", title: "パスワードの変更", text: "8文字以上で、英小文字・英大文字・数字・記号のうち2種類以上を含めてください。",
+      body: `<div class="fld"><label for="pw0">現在のパスワード</label><input class="inp" id="pw0" type="password" autocomplete="current-password"></div>
+        <div class="fld"><label for="pw1">新しいパスワード</label><input class="inp" id="pw1" type="password" autocomplete="new-password"></div>
+        <div class="fld"><label for="pw2">新しいパスワード（確認）</label><input class="inp" id="pw2" type="password" autocomplete="new-password"></div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "変更する", act: "pwDo", cls: "primary" }] };
+    renderLayer(); $("#pw0")?.focus();
+  },
+  pwDo: async () => {
+    const a = $("#pw0").value, b = $("#pw1").value, c = $("#pw2").value;
+    if (!a || !b) { toast("現在のパスワードと新しいパスワードを入力してください"); return; }
+    if (b !== c) { toast("新しいパスワードが一致しません"); return; }
+    try { await api("auth/password", {}, { method: "POST", body: { current: a, new: b } }); AUTH.user.mustChange = false; saveCache(); S.layer = null; render(); toast("パスワードを変更しました"); } catch (e) { failToast(e); }
+  },
+  uPw: el => {
+    const u = S.a.draft[+el.dataset.i];
+    S.layer = { type: "modal", title: `${u.name}さんのパスワードを再設定`, text: "新しいパスワードを本人に伝えてください。本人には、変更の案内が表示されます。", uid: u.id,
+      body: `<div class="fld"><label for="pwN">新しいパスワード</label><input class="inp" id="pwN" type="password" autocomplete="new-password"></div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "再設定する", act: "uPwDo", cls: "primary" }] };
+    renderLayer(); $("#pwN")?.focus();
+  },
+  uPwDo: async () => {
+    try { const r = await srvOp("users.password", { id: S.layer.uid, password: $("#pwN").value }); S.layer = null; renderLayer(); toast(r.message); } catch (e) { failToast(e); }
+  },
+
+  /* ファイル */
+  upRetry: el => { const it = S.up.items.find(x => x.key === el.dataset.k); if (it) { it.state = "wait"; paintUp(); runUploads(); } },
+  upCancel: el => { const it = S.up.items.find(x => x.key === el.dataset.k); if (!it) return; if (it.state === "wait") { it.state = "cancel"; paintUp(); } else it.cancel = true; },
+  upDismiss: el => { S.up.items = S.up.items.filter(x => x.key !== el.dataset.k); paintUp(); },
+  inRefresh: () => loadIncoming(),
+  inImport: async el => {
+    const name = el.dataset.name, d = S.a.draft;
+    if (d.files.some(f => f.name === name)) { toast(`同じ名前のファイルが、この作業にすでにあります：${name}`); return; }
+    S.up.importing = name; paintUp();
+    try {
+      const r = await api("files/import", {}, { method: "POST", body: { name }, timeout: 900000 });
+      if (S.a.draft === d) { d.files.push({ ...r.file }); rerenderSection(); }
+      toast(`${r.file.name} を取り込みました。「保存」すると作業に反映されます`);
+    } catch (e) { failToast(e); }
+    S.up.importing = null; loadIncoming();
+  },
 
   /* ユーザー切替 */
   installApp: async () => { const e = window.__bip; if (!e) return; e.prompt(); await e.userChoice; window.__bip = null; renderLayer(); },
@@ -3013,9 +3380,14 @@ const ACT = {
     S.layer = { type: "modal", title: "申請を差し戻しますか？", text: "理由は、申請した人の画面に表示されます。", body: `<textarea class="ta" id="mText" rows="3" placeholder="例：注意点にアンカー固定の許可を追記してください"></textarea>`, value: "", buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "差し戻す", act: "rejectDo", cls: "danger solid" }] };
     renderLayer();
   },
-  rejectDo: () => {
+  rejectDo: async () => {
     const reason = (S.layer.value || "").trim();
     if (!reason) { toast("差し戻しの理由を入力してください"); $("#mText")?.focus(); return; }
+    if (isSrv()) {
+      const id = S.a.sel.id;
+      try { await srvOp("task.reject", { id, reason }); S.layer = null; select({ type: "task", id }); toast("差し戻しました"); } catch (e) { failToast(e); S.layer = null; renderLayer(); }
+      return;
+    }
     const t = taskById(S.a.sel.id), by = t.review.by;
     t.review = null; t.rejected = { by: S.me, to: by, at: nowStr(), reason };
     log("reject", "task", t.id, t.title, `差し戻し：「${reason}」（申請者：${userName(by)}）`); saveData();
@@ -3037,12 +3409,14 @@ const ACT = {
   /* モーダル */
   mCancel: () => { S.layer = null; S.a.pending = null; renderLayer(); },
   mDiscardGo: () => { const fn = S.a.pending; S.layer = null; S.a.pending = null; S.a.dirty = false; renderLayer(); fn && fn(); },
-  mSaveGo: () => { const fn = S.a.pending; S.layer = null; S.a.pending = null; renderLayer(); if (save()) fn && fn(); },
-  mDelTask: () => {
-    const id = S.a.draft.id; log("delete", "task", id, S.a.draft.title, "作業を削除"); DATA.tasks = DATA.tasks.filter(t => t.id !== id); delete PROG[id]; saveData(); saveProg();
+  mSaveGo: async () => { const fn = S.a.pending; S.layer = null; S.a.pending = null; renderLayer(); if (await save()) fn && fn(); },
+  mDelTask: async () => {
+    const id = S.a.draft.id;
+    if (isSrv()) { try { const r = await srvOp("task.delete", { id }); delete PROG[id]; saveProg(); S.layer = null; select(null); toast(r.message); } catch (e) { failToast(e); S.layer = null; renderLayer(); } return; }
+    log("delete", "task", id, S.a.draft.title, "作業を削除"); DATA.tasks = DATA.tasks.filter(t => t.id !== id); delete PROG[id]; saveData(); saveProg();
     S.layer = null; select(null); toast(`${id} を削除しました`);
   },
-  mDelCat: () => { const id = S.a.draft.id; log("delete", "category", "", S.a.draft.name, "大項目を削除"); DATA.categories = DATA.categories.filter(c => c.id !== id); saveData(); S.layer = null; select(null); toast("大項目を削除しました"); },
+  mDelCat: async () => { const id = S.a.draft.id; if (isSrv()) { try { const r = await srvOp("cat.delete", { id }); S.layer = null; select(null); toast(r.message); } catch (e) { failToast(e); S.layer = null; renderLayer(); } return; } log("delete", "category", "", S.a.draft.name, "大項目を削除"); DATA.categories = DATA.categories.filter(c => c.id !== id); saveData(); S.layer = null; select(null); toast("大項目を削除しました"); },
   mReset: () => { DATA = clone(DEFAULT_DATA); PROG = {}; RECORDS = makeDemoRecords(); saveData(); saveProg(); saveRecords(); S.layer = null; select(null); toast("サンプルデータに戻しました"); }
 };
 
@@ -3120,6 +3494,8 @@ document.addEventListener("focusin", e => {
   }
 });
 
+document.addEventListener("submit", e => { if (e.target.id === "loginForm") { e.preventDefault(); doLogin(); } });
+
 document.addEventListener("keydown", e => {
   if (e.target.id === "tagIn" && e.key === "Enter" && !e.isComposing) {
     e.preventDefault();
@@ -3150,6 +3526,7 @@ document.addEventListener("drop", e => {
 window.addEventListener("beforeunload", e => { if (S.a.dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 startSync();
+$("#app").innerHTML = `<div class="boot">読み込み中…</div>`;
 
 /* PWA: インストールとオフライン対応 */
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); window.__bip = e; if (S.menuOpen) renderLayer(); });
@@ -3160,7 +3537,7 @@ if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
 
-if (S.mode === "admin" && can.admin()) select({ type: "task", id: "WK-1101" }); else { S.mode = "work"; render(); }
+boot().then(afterBoot);
 </script>
 </body>
 </html>

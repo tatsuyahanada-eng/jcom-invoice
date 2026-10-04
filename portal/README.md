@@ -1,7 +1,7 @@
 # WorkBase Portal
 
 現地作業のファイル取得・手順確認・チェックシートをまとめた業務ポータル（PWA）。
-チェックシートの作業記録は、サーバー（PHP + MySQL）に保存して共有し、あとから振り返れます。
+ログイン・権限・作業マスタ・作業記録・ダウンロード用ファイルは、サーバー（PHP + MySQL）に保存します。権限の判定はすべてサーバー側で行います。
 
 ```
 portal/
@@ -10,18 +10,25 @@ portal/
   sw.js                 オフライン対応（アプリ本体をキャッシュ。/api/ はキャッシュしない）
   icons/                ロゴ・アプリアイコン
   api/                  作業記録のサーバー側（PHP）
-    index.php           API 本体
-    lib.php             共通処理（DB接続・検証）
+    index.php           API の入り口（ルーティング）
+    auth.php            ログイン・ログアウト・パスワード変更
+    users.php           ユーザーの登録・権限（管理者のみ）
+    data.php            作業・大項目・お知らせ、承認の流れ、変更履歴
+    files.php           ファイルのアップロード（分割）・FTP取り込み・ダウンロード
+    lib.php             共通処理（DB接続・セッション・権限）
     schema.sql          テーブル定義
-    migrate.php         テーブル作成（--seed でデモデータ）
-    config.sample.php   接続設定のひな形
+    migrate.php         初期設定（テーブル・管理者・サンプルデータ）
+    seed.json           サンプルの作業データ
+    config.sample.php   設定のひな形
+  storage/              アップロードされたファイルの置き場（Web から読めない）
+    incoming/           FTP で転送したファイルの受け取りフォルダ
 ```
 
 ## 動作環境
 
 - PHP 8.1 以上（`pdo_mysql`、`mbstring`）
 - MySQL 5.7 以上 / 8.x、または MariaDB 10.3 以上（文字コードは utf8mb4）
-- HTTPS で配信（PWA のインストールとオフライン動作に必要）
+- HTTPS で配信（PWA のインストール、ログインの Cookie に必要）
 
 ## サーバーの設置
 
@@ -30,63 +37,104 @@ portal/
    ```sql
    CREATE DATABASE workbase CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    CREATE USER 'workbase'@'localhost' IDENTIFIED BY '強いパスワード';
-   GRANT SELECT, INSERT, UPDATE, DELETE ON workbase.* TO 'workbase'@'localhost';
+   GRANT ALL ON workbase.* TO 'workbase'@'localhost';
    ```
-   テーブルを作る間だけ `CREATE` 権限も必要です（`ALL` を付けて作成後に外してもかまいません）。
+   テーブルを作る間だけ `CREATE` 権限が必要です。作成後は `SELECT, INSERT, UPDATE, DELETE` だけにしても動きます。
 
-2. 接続設定を書く
-
-   ```
-   cp portal/api/config.sample.php portal/api/config.php   # 接続情報を書き換える
-   ```
-   `config.php` は Git に含めません。環境変数（`WB_DB_HOST` / `WB_DB_PORT` / `WB_DB_NAME` / `WB_DB_USER` / `WB_DB_PASS`）でも指定できます。
-
-3. テーブルを作る（コマンドラインから）
+2. 設定を書く
 
    ```
-   php portal/api/migrate.php            # テーブル作成
-   php portal/api/migrate.php --seed     # 確認用のデモ記録 40 件を追加（本番では使わない）
+   cp portal/api/config.sample.php portal/api/config.php   # 接続情報などを書き換える
    ```
-   コマンドラインが使えない場合は、`api/schema.sql` を phpMyAdmin などでそのまま実行してください。
+   `config.php` は Git に含めません。環境変数（`WB_DB_HOST` `WB_DB_PORT` `WB_DB_NAME` `WB_DB_USER` `WB_DB_PASS` `WB_STORAGE_DIR` `WB_INCOMING_DIR`）でも指定できます。
+
+3. 初期設定（コマンドラインから）
+
+   ```
+   php portal/api/migrate.php              # テーブル作成・管理者の登録・サンプルの作業データ
+   php portal/api/migrate.php --no-sample  # サンプルの作業データを入れずに、空の状態で始める
+   php portal/api/migrate.php --seed       # 確認用のデモの作業記録 40 件を追加（本番では使わない）
+   ```
+   コマンドラインが使えない場合は、`api/schema.sql` を phpMyAdmin などで実行し、管理者は手で登録してください。
 
 4. `portal` フォルダごとサーバーに置く。
 
-画面を開くと、サーバーに接続できているかが「作業記録」の上部に表示されます。
+### 初期の管理者
+
+| ユーザー名 | 初期パスワード |
+|---|---|
+| `admin` | `Welsys@1234` |
+
+初期パスワードのままログインすると、画面上部に「パスワードを変更してください」と表示されます。公開前に必ず変更してください（右上のユーザー名 → パスワードを変更）。パスワードを指定して作成する場合は、`WB_ADMIN_PASSWORD='…' php portal/api/migrate.php` とします。
+
+## ログインと権限
+
+- ユーザー・パスワード（bcrypt で保存）・権限は MySQL に保存します。ログインはサーバー側のセッション（Cookie）です。
+- 画面の表示だけでなく、**API が毎回、権限を判定**します（権限の変更や無効化は、すぐ反映されます）。
+
+  | 権限 | できること |
+  |---|---|
+  | 閲覧のみ | 公開中の作業の閲覧・ダウンロード・チェックシート。設定画面は使えません |
+  | 編集 | 作業・大項目・お知らせの編集と下書き保存、公開の申請、ファイルのアップロード |
+  | 公開承認 | 申請の承認・差し戻し、公開／非公開、削除 |
+  | 管理者 | 上記に加えて、ユーザーの登録・権限の変更・パスワードの再設定 |
+- ログインに5回失敗すると、15分間ログインできません（総当たり対策）。8時間操作がないとログアウトされます。
+- パスワードは、8文字以上で、英小文字・英大文字・数字・記号のうち2種類以上を含めます。
+
+## ファイルのアップロードと上限
+
+ブラウザからのアップロードには、通常、**PHP とWebサーバーの上限**があります（PHP の標準は、1回の送信が 8MB、ファイル1つが 2MB まで）。そのため、このアプリはファイルを小さく分けて送ります。
+
+- ブラウザは、サーバーの `post_max_size` に収まる大きさ（8MB なら約 6MB）に分けて順に送り、サーバーがつなぎ合わせます。途中で切れても、続きから再開できます。
+- 1ファイルの上限は、`config.php` の `max_upload_bytes`（初期値 2GB）です。編集画面の「ファイル」タブに、このサーバーの実際の上限が表示されます。
+- Nginx などで `client_max_body_size` を小さくしている場合は、`6m` 以上にしてください（小さいと、自動で分割を小さくして送り直します）。
+- **上限を超える大きなファイル**や、回線が不安定な場所からの転送は、**FTP で `storage/incoming/` に置き**、編集画面の「FTP で転送したファイルを取り込む」から登録します。転送が終わって1分ほど経ってから取り込めます。
+- アップロードしたファイルは、`storage/files/` にランダムな名前で保存され、ログインしたユーザーだけがダウンロードできます（途中から再開できます）。閲覧のみの権限では、公開中の作業のファイルだけです。
+- `storage/` は、Web から直接読めないようにしてあります（Apache）。可能なら、`config.php` の `storage_dir` で、公開フォルダの外に置いてください。
+- どの作業からも使われなくなったファイルは、`php portal/api/migrate.php --purge-orphans` で削除できます（7日以上前のもの）。
 
 ## 保護すること
 
-- **ログイン**：`api/` は、サイトに設定している Basic 認証などの配下に置いてください。認証されたユーザー名（`REMOTE_USER`）が、記録の `auth_user` に保存されます。画面で入力する「作業者」は自己申告です。
-- **Apache**：`api/.htaccess` が `config.php`・`lib.php`・`schema.sql`・`migrate.php` を外から読めないようにしています（`AllowOverride` が有効な場合）。
-- **Nginx など**：同じファイルを拒否する設定を自分で追加してください。
+- **Apache**：`api/.htaccess` と `storage/.htaccess` が、`config.php`・`lib.php`・`schema.sql`・`migrate.php` と `storage/` を外から読めないようにしています（`AllowOverride` が有効な場合）。
+- **Nginx など**：同じものを拒否する設定を自分で追加してください。
 
   ```nginx
-  location ~ ^/portal/api/(config\.php|config\.sample\.php|lib\.php|migrate\.php|schema\.sql)$ { deny all; }
+  location ~ ^/portal/api/(config\.php|config\.sample\.php|lib\.php|auth\.php|users\.php|data\.php|files\.php|migrate\.php|schema\.sql)$ { deny all; }
+  location ^~ /portal/storage/ { deny all; }
   ```
-- **書き込み**：記録の登録は、同一サイトから送る `X-Requested-With: WorkBase` ヘッダーが必須です（他サイトからの送信を防ぐため）。SQL は、すべてプリペアドステートメントです。
-- **更新・削除**：記録は登録のみで、画面からは変更・削除できません。
+- **書き込み**：同一サイトから送る `X-Requested-With: WorkBase` ヘッダーが必須で、Cookie は `SameSite=Lax`・`HttpOnly`（HTTPS では `Secure`）です。SQL はすべてプリペアドステートメントです。
+- **変更履歴**：作業・大項目・お知らせ・ユーザーの変更は、サーバーが記録します（画面からは編集・削除できません）。
 
 ## API
 
+`health` と `session` 以外は、ログインが必要です。`?r=` の後ろに指定します。
+
 | メソッド | 呼び出し | 内容 |
 |---|---|---|
-| GET | `api/?r=health` | 接続確認 |
-| POST | `api/?r=records` | 作業記録の登録。同じ `id` を再送しても二重登録されません |
-| GET | `api/?r=records` | 一覧（`q` `task` `worker` `status=ok\|skipped` `from` `to` `limit` `offset`） |
-| GET | `api/?r=records/{id}` | 詳細（項目ごとのチェック結果つき） |
-| GET | `api/?r=stats&days=90` | 集計（`days=0` ですべて） |
-| GET | `api/?r=export` | CSV（一覧と同じ絞り込み） |
+| GET | `health` / `session` | 接続確認／ログイン状態 |
+| POST | `auth/login` `auth/logout` `auth/password` | ログイン・ログアウト・パスワード変更 |
+| GET | `bootstrap` | 画面に必要なデータ一式（権限に応じて内容が変わる） |
+| POST | `data/{task,cat,notices,users}.…` | 作業・大項目・お知らせ・ユーザーの変更（権限はサーバーで判定） |
+| POST / GET | `upload/init` `upload/chunk` `upload/finish` `upload/cancel` / `upload/status` | ファイルのアップロード（分割・再開） |
+| GET / POST | `files/limits` `files/incoming` / `files/import` | 上限の確認・FTP の取り込み |
+| GET | `files/{id}` | ダウンロード（Range 対応） |
+| POST / GET | `records` / `records/{id}` `stats` `export` | チェックシートの作業記録・振り返り・CSV |
 
-## 送信の仕組み
+## 送信の仕組み（作業記録）
 
-チェックシートの完了時に、記録はまず端末に保存され、その場で送信されます。通信できないときは「未送信」として端末に残り、通信が戻ると（またはアプリを開き直したときに）自動で送信されます。
+チェックシートの完了時に、記録はまず端末に保存され、その場で送信されます。通信できないときは「未送信」として端末に残り、通信が戻ると（またはアプリを開き直すと）自動で送信されます。ログインが切れていた場合は、ログインし直したあとで送信されます。
+
+## サーバーがない場合（デモ）
+
+サーバーに接続できず、この端末で一度もログインしていない場合は、ログインなしのデモ画面で動きます。権限の違いは、右上のユーザー名から切り替えて確認できます。データはこのブラウザ内にだけ保存されます。
 
 ## PWA（アプリとして使う）
 
-スマホのブラウザのメニューから「ホーム画面に追加」（iPhone は共有ボタンから）。画面を更新して配信するときは、`sw.js` 先頭の `VERSION` を上げてください。
+スマホのブラウザのメニューから「ホーム画面に追加」（iPhone は共有ボタンから）。一度ログインした端末は、通信できなくても、最後に読み込んだ内容を表示できます（変更の保存はできません）。画面を更新して配信するときは、`sw.js` 先頭の `VERSION` を上げてください。
 
 ## ローカルでの確認
 
 ```
 WB_DB_PASS=パスワード php -S localhost:8000 -t portal
 ```
-http://localhost:8000/ を開きます。
+http://localhost:8000/ を開き、`admin` でログインします。

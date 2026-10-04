@@ -2,10 +2,20 @@
 declare(strict_types=1);
 
 require __DIR__ . '/lib.php';
+require __DIR__ . '/auth.php';
+require __DIR__ . '/users.php';
+require __DIR__ . '/data.php';
+require __DIR__ . '/files.php';
 
 /*
- * WorkBase Portal API
+ * WorkBase Portal API（health と session 以外は、ログインが必要）
  *   GET  ?r=health                 接続確認
+ *   GET  ?r=session                ログイン状態
+ *   POST ?r=auth/login | auth/logout | auth/password
+ *   GET  ?r=bootstrap              画面に必要なデータ一式（権限に応じて内容が変わる）
+ *   POST ?r=data/{op}              作業・大項目・お知らせ・ユーザーの変更（権限はサーバーで判定）
+ *   POST ?r=upload/{init|chunk|finish|cancel}  GET ?r=upload/status   ファイルのアップロード（分割・再開）
+ *   GET  ?r=files/limits | files/incoming | files/{id}   POST ?r=files/import
  *   POST ?r=records                作業記録の登録（同じ id は二重登録しない）
  *   GET  ?r=records                一覧  q, task, worker, status(ok|skipped), from, to, limit, offset
  *   GET  ?r=records/{id}           詳細（項目ごとのチェック結果つき）
@@ -17,6 +27,7 @@ require __DIR__ . '/lib.php';
 
 function create_record(): never
 {
+    $user = require_login();
     $b = read_json();
     $id = (string)($b['id'] ?? '');
     if (!preg_match('/^[A-Za-z0-9_-]{8,40}$/', $id)) fail(422, '記録IDの形式が正しくありません');
@@ -53,7 +64,7 @@ function create_record(): never
     try {
         $pdo->prepare('INSERT INTO work_records (id, task_id, task_title, task_version, place, worker_name, auth_user, completed_at, total_items, done_items, skipped_reason, notes)
                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
-            ->execute([$id, $taskId, $title, str($b['version'] ?? '', 20), str($b['place'] ?? '', 255), str($b['by'] ?? '', 100), str(auth_user(), 100),
+            ->execute([$id, $taskId, $title, str($b['version'] ?? '', 20), str($b['place'] ?? '', 255), str($b['by'] ?? '', 100) ?: $user['display_name'], str($user['username'], 100),
                        $dt->format('Y-m-d H:i:00'), $total, $done, $done < $total ? $reason : null, $notes !== '' ? $notes : null]);
     } catch (PDOException $e) {
         $pdo->rollBack();
@@ -117,6 +128,7 @@ function filters(): array
 
 function list_records(): never
 {
+    require_login();
     [$where, $args] = filters();
     $limit = max(1, min(100, (int)($_GET['limit'] ?? 30)));
     $offset = max(0, (int)($_GET['offset'] ?? 0));
@@ -131,6 +143,7 @@ function list_records(): never
 
 function get_record(string $id): never
 {
+    require_login();
     $pdo = db();
     $s = $pdo->prepare('SELECT ' . REC_COLS . ' FROM work_records WHERE id = ?');
     $s->execute([$id]);
@@ -146,6 +159,7 @@ function get_record(string $id): never
 
 function stats(): never
 {
+    require_login();
     $days = (int)($_GET['days'] ?? 90);
     $w = '1=1';
     $a = [];
@@ -189,6 +203,7 @@ function csv_cell(string $v): string
 
 function export_csv(): never
 {
+    require_login();
     [$where, $args] = filters();
     $s = db()->prepare("SELECT r.id, r.task_id, r.task_title, r.task_version, r.place, r.worker_name, r.auth_user,
             DATE_FORMAT(r.completed_at, '%Y-%m-%d %H:%i') AS at, r.total_items, r.done_items, r.skipped_reason, r.notes,
@@ -219,8 +234,20 @@ function main(): void
 
         if ($route === 'health' && $method === 'GET') {
             db()->query('SELECT 1');
-            json_out(['ok' => true, 'time' => date('Y-m-d H:i:s'), 'user' => auth_user()]);
+            json_out(['ok' => true, 'time' => date('Y-m-d H:i:s')]);
         }
+        if ($route === 'session' && $method === 'GET') route_session();
+        if ($route === 'auth/login' && $method === 'POST') route_login();
+        if ($route === 'auth/logout' && $method === 'POST') route_logout();
+        if ($route === 'auth/password' && $method === 'POST') route_password();
+        if ($route === 'bootstrap' && $method === 'GET') json_out(['ok' => true, 'user' => public_user(require_login()), 'data' => bootstrap_payload(require_login())]);
+        if (preg_match('#^data/([a-z]+\.[a-z]+)$#', $route, $m) && $method === 'POST') run_data_op($m[1]);
+        if (preg_match('#^upload/(init|chunk|finish|cancel)$#', $route, $m) && $method === 'POST') route_upload($m[1]);
+        if ($route === 'upload/status' && $method === 'GET') route_upload('status');
+        if ($route === 'files/limits' && $method === 'GET') { require_role('editor'); json_out(['ok' => true, 'limits' => upload_limits()]); }
+        if ($route === 'files/incoming' && $method === 'GET') route_incoming();
+        if ($route === 'files/import' && $method === 'POST') route_import();
+        if (preg_match('#^files/([a-f0-9]{32})$#', $route, $m) && $method === 'GET') route_download($m[1]);
         if ($route === 'records' && $method === 'POST') { require_same_site_write(); create_record(); }
         if ($route === 'records' && $method === 'GET') list_records();
         if (preg_match('#^records/([A-Za-z0-9_-]{1,40})$#', $route, $m) && $method === 'GET') get_record($m[1]);

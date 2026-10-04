@@ -1,0 +1,973 @@
+{
+ "categories": [
+  {
+   "id": "pos",
+   "order": 1,
+   "name": "POSレジ 設置",
+   "icon": "register",
+   "desc": "POS端末本体と周辺機器の新規設置・初期設定"
+  },
+  {
+   "id": "self",
+   "order": 2,
+   "name": "セルフレジ・KIOSK",
+   "icon": "kiosk",
+   "desc": "セルフオーダー端末、自動釣銭機、決済端末"
+  },
+  {
+   "id": "hotel",
+   "order": 3,
+   "name": "ホテルシステム",
+   "icon": "hotel",
+   "desc": "フロント端末、自動チェックイン機"
+  },
+  {
+   "id": "net",
+   "order": 4,
+   "name": "ネットワーク・周辺機器",
+   "icon": "network",
+   "desc": "店舗ネットワーク、プリンタ、VPN"
+  },
+  {
+   "id": "care",
+   "order": 5,
+   "name": "保守・トラブル対応",
+   "icon": "wrench",
+   "desc": "再インストール、機器交換、障害ログ"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "WK-1101",
+   "cat": "pos",
+   "order": 1,
+   "status": "published",
+   "title": "POSレジ本体 初期セットアップ（飲食店向け）",
+   "summary": "新規導入店舗で POS 端末本体にイメージを適用し、POS アプリ・周辺機器ドライバを導入して、レシート印字とドロア開閉までを確認します。",
+   "minutes": 90,
+   "people": 1,
+   "industries": [
+    "飲食"
+   ],
+   "tags": [
+    "新規導入",
+    "標準構成"
+   ],
+   "version": "5.3",
+   "updated": "2026-09-22",
+   "os": "POS OS 5（Windows IoT Enterprise ベース）",
+   "devices": [
+    {
+     "type": "POS端末",
+     "name": "POSターミナル 15型",
+     "model": "PT-1500A",
+     "note": "本体背面ラベルで型番を確認"
+    },
+    {
+     "type": "プリンタ",
+     "name": "レシートプリンタ 80mm",
+     "model": "RP-80S",
+     "note": "USB 接続"
+    },
+    {
+     "type": "周辺機器",
+     "name": "キャッシュドロア",
+     "model": "CD-410",
+     "note": "プリンタ経由で接続"
+    }
+   ],
+   "precheck": [
+    "店舗の LAN 配線と電源工事が完了している",
+    "店舗コードと端末番号が作業票に記載されている",
+    "POS 本体の外箱に破損がない（破損時は開梱せず連絡）"
+   ],
+   "bring": [
+    {
+     "name": "LANケーブル 3m",
+     "qty": "2本",
+     "required": true
+    },
+    {
+     "name": "電源タップ（6口・雷ガード付き）",
+     "qty": "1個",
+     "required": true
+    },
+    {
+     "name": "レシートロール紙 80mm",
+     "qty": "3巻",
+     "required": true
+    },
+    {
+     "name": "作業用ノートPC（ポータル閲覧用）",
+     "qty": "1台",
+     "required": false
+    },
+    {
+     "name": "結束バンド・配線モール",
+     "qty": "適量",
+     "required": false
+    }
+   ],
+   "files": [
+    {
+     "name": "pos-image_v5.3.zip",
+     "size": 6657199309,
+     "desc": "POS OS 標準イメージ（店舗共通設定入り）",
+     "sha": "1dcefaf72085907e09a4a61037b0efb94341dccfa41daa824b44ad20c5ab0715"
+    },
+    {
+     "name": "pos-app_v5.3.1.zip",
+     "size": 859832320,
+     "desc": "POS アプリ本体",
+     "sha": "48630c522698c6f8321e2ac398fa05f9a2a1372ad198158ca35ce0a3f5f1b9e5"
+    },
+    {
+     "name": "drivers_pt1500a_rp80s.zip",
+     "size": 220200960,
+     "desc": "本体・プリンタ・ドロア用ドライバ",
+     "sha": "6d7338552284e912059bef5cb2923b753d8773f942e6764265b603003061f325"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-1101",
+   "steps": [
+    {
+     "title": "機器の設置と配線",
+     "body": "POS本体・プリンタ・ドロアを設置位置に置き、LAN と電源を接続します。\nドロアのケーブルはプリンタ背面の DK ポートへ挿します。",
+     "caution": "電源はまだ入れないでください。"
+    },
+    {
+     "title": "イメージの適用",
+     "body": "展開したフォルダの apply-image.cmd を管理者として実行し、画面の指示に従ってイメージを適用します（約30分）。",
+     "caution": "途中で電源を切るとやり直しになります。"
+    },
+    {
+     "title": "POSアプリのインストール",
+     "body": "pos-app フォルダの setup.exe を実行します。店舗コードと端末番号を入力し、「登録」を押します。",
+     "caution": ""
+    },
+    {
+     "title": "ドライバの導入",
+     "body": "drivers フォルダの install-all.cmd を実行し、再起動します。",
+     "caution": ""
+    },
+    {
+     "title": "印字テストとドロア確認",
+     "body": "POS アプリの［メンテナンス］→［テスト印字］を実行し、レシートが印字されドロアが開くことを確認します。",
+     "caution": ""
+    },
+    {
+     "title": "店舗担当者への引き渡し",
+     "body": "ログイン方法と日次締めの操作を説明し、作業票にサインをもらいます。",
+     "caution": ""
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "POSレジ 初期セットアップ手順書",
+     "meta": "32ページ",
+     "updated": "2026-09-22"
+    },
+    {
+     "kind": "動画",
+     "title": "配線とイメージ適用（実演）",
+     "meta": "8分",
+     "updated": "2026-09-10"
+    },
+    {
+     "kind": "PDF",
+     "title": "店舗引き渡しチェックシート",
+     "meta": "2ページ",
+     "updated": "2026-06-01"
+    }
+   ],
+   "changelog": "POS アプリ 5.3.1 に更新。イメージ適用手順を簡略化。",
+   "old": [
+    {
+     "v": "5.2",
+     "date": "2026-05-14",
+     "reason": "新しい版の公開により置き換え"
+    }
+   ]
+  },
+  {
+   "id": "WK-1102",
+   "cat": "pos",
+   "order": 2,
+   "status": "published",
+   "title": "レシートプリンタ・キャッシュドロアの追加接続",
+   "summary": "既存の POS 端末にレシートプリンタとキャッシュドロアを追加し、印字とドロア開閉を確認します。",
+   "minutes": 30,
+   "people": 1,
+   "industries": [
+    "飲食",
+    "小売"
+   ],
+   "tags": [
+    "周辺機器"
+   ],
+   "version": "2.1",
+   "updated": "2026-08-04",
+   "os": "POS OS 5",
+   "devices": [
+    {
+     "type": "プリンタ",
+     "name": "レシートプリンタ 80mm",
+     "model": "RP-80S",
+     "note": ""
+    },
+    {
+     "type": "周辺機器",
+     "name": "キャッシュドロア",
+     "model": "CD-410",
+     "note": ""
+    }
+   ],
+   "precheck": [
+    "POS アプリを終了している"
+   ],
+   "bring": [
+    {
+     "name": "USBケーブル（A-B）1.8m",
+     "qty": "1本",
+     "required": true
+    },
+    {
+     "name": "レシートロール紙 80mm",
+     "qty": "1巻",
+     "required": true
+    }
+   ],
+   "files": [
+    {
+     "name": "drivers_rp80s_v2.1.zip",
+     "size": 47185920,
+     "desc": "プリンタ・ドロア用ドライバ",
+     "sha": "1f00fcc7ce3276fe3d7baa50e03bd6a1ace21ce741f6c6eab81637284ad14855"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-1102",
+   "steps": [
+    {
+     "title": "プリンタとドロアの接続",
+     "body": "プリンタを POS 本体の USB ポートに、ドロアをプリンタの DK ポートに接続します。",
+     "caution": ""
+    },
+    {
+     "title": "ドライバの導入",
+     "body": "install.cmd を管理者として実行します。",
+     "caution": ""
+    },
+    {
+     "title": "印字テスト",
+     "body": "POS アプリの［メンテナンス］→［テスト印字］で確認します。",
+     "caution": ""
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "周辺機器 接続手順書",
+     "meta": "6ページ",
+     "updated": "2026-08-04"
+    }
+   ],
+   "changelog": "",
+   "old": []
+  },
+  {
+   "id": "WK-2101",
+   "cat": "self",
+   "order": 1,
+   "status": "published",
+   "title": "セルフオーダーKIOSK 設置と初期設定",
+   "summary": "セルフオーダー KIOSK を設置し、店舗のメニューデータと決済端末を連携させて、テスト注文から会計までを通します。",
+   "minutes": 120,
+   "people": 2,
+   "industries": [
+    "飲食"
+   ],
+   "tags": [
+    "KIOSK",
+    "決済連携"
+   ],
+   "version": "3.0",
+   "updated": "2026-09-12",
+   "os": "KIOSK OS 3",
+   "devices": [
+    {
+     "type": "KIOSK端末",
+     "name": "セルフオーダーKIOSK 21.5型",
+     "model": "KS-2150",
+     "note": "床置きスタンド型"
+    },
+    {
+     "type": "決済端末",
+     "name": "マルチ決済端末",
+     "model": "PM-30",
+     "note": "クレジット・電子マネー・QR"
+    },
+    {
+     "type": "プリンタ",
+     "name": "内蔵レシートプリンタ",
+     "model": "KS-RP58",
+     "note": ""
+    }
+   ],
+   "precheck": [
+    "メニューデータが本部で承認済みになっている",
+    "決済端末の加盟店登録が完了している",
+    "設置場所の床にアンカー固定の許可が取れている"
+   ],
+   "bring": [
+    {
+     "name": "アンカーボルト M8",
+     "qty": "4本",
+     "required": true
+    },
+    {
+     "name": "インパクトドライバ",
+     "qty": "1台",
+     "required": true
+    },
+    {
+     "name": "LANケーブル 5m",
+     "qty": "1本",
+     "required": true
+    },
+    {
+     "name": "テスト用ICカード",
+     "qty": "1枚",
+     "required": true
+    }
+   ],
+   "files": [
+    {
+     "name": "kiosk-app_v3.0.2.zip",
+     "size": 1503238554,
+     "desc": "KIOSK アプリと標準画面テンプレート",
+     "sha": "1d16473dab0007a26b1cc7622857eeb50dce7561d8e27c1292d3d0860da47075"
+    },
+    {
+     "name": "pm30-connector_v1.8.zip",
+     "size": 100663296,
+     "desc": "決済端末連携モジュール",
+     "sha": "c1f57faad2c4ebe2689a2187bc19bf41e3a8c0320e87f6dee24d567fa21d87e5"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-2101",
+   "steps": [
+    {
+     "title": "スタンドの組み立てと固定",
+     "body": "2名で KIOSK 本体をスタンドに載せ、アンカーボルトで床に固定します。",
+     "caution": "本体は 28kg あります。必ず2名で持ち上げてください。"
+    },
+    {
+     "title": "KIOSK アプリのインストール",
+     "body": "kiosk-app フォルダの setup.exe を実行し、店舗コードを入力します。",
+     "caution": ""
+    },
+    {
+     "title": "メニューデータの取り込み",
+     "body": "［管理メニュー］→［メニュー同期］を押し、本部のメニューが表示されることを確認します。",
+     "caution": ""
+    },
+    {
+     "title": "決済端末の連携",
+     "body": "PM-30 を USB で接続し、pm30-connector の install.cmd を実行します。",
+     "caution": ""
+    },
+    {
+     "title": "テスト注文と会計",
+     "body": "テスト用 IC カードで 1 円の注文を通し、レシート印字と取消までを確認します。",
+     "caution": "テスト注文は必ず取消してください。"
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "KIOSK 設置・初期設定手順書",
+     "meta": "28ページ",
+     "updated": "2026-09-12"
+    },
+    {
+     "kind": "動画",
+     "title": "スタンド組み立て（2名作業）",
+     "meta": "6分",
+     "updated": "2026-09-12"
+    }
+   ],
+   "changelog": "",
+   "old": [
+    {
+     "v": "2.4",
+     "date": "2026-03-02",
+     "reason": "新しい版の公開により置き換え"
+    }
+   ]
+  },
+  {
+   "id": "WK-2102",
+   "cat": "self",
+   "order": 2,
+   "status": "published",
+   "title": "自動釣銭機の接続と動作確認",
+   "summary": "POS 端末に自動釣銭機を接続し、入金・出金・回収の各動作を確認します。",
+   "minutes": 60,
+   "people": 1,
+   "industries": [
+    "小売",
+    "医療・薬局",
+    "自治体"
+   ],
+   "tags": [
+    "釣銭機"
+   ],
+   "version": "1.4",
+   "updated": "2026-07-28",
+   "os": "POS OS 5",
+   "devices": [
+    {
+     "type": "釣銭機",
+     "name": "自動釣銭機（硬貨・紙幣一体型）",
+     "model": "AC-700",
+     "note": ""
+    }
+   ],
+   "precheck": [
+    "釣銭準備金を店舗担当者が用意している",
+    "POS アプリが 5.2 以上である"
+   ],
+   "bring": [
+    {
+     "name": "釣銭機用シリアル変換ケーブル",
+     "qty": "1本",
+     "required": true
+    },
+    {
+     "name": "清掃用ブラシ",
+     "qty": "1本",
+     "required": false
+    }
+   ],
+   "files": [
+    {
+     "name": "ac700-driver_v1.4.zip",
+     "size": 67108864,
+     "desc": "釣銭機ドライバと動作確認ツール",
+     "sha": "461e8bbe74bdbdbe977fde2bea8cd1b5e6badc1ae6f4adfe91bd3f37b261008d"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-2102",
+   "steps": [
+    {
+     "title": "釣銭機の設置と接続",
+     "body": "釣銭機を POS の横に設置し、変換ケーブルで接続します。",
+     "caution": ""
+    },
+    {
+     "title": "ドライバの導入",
+     "body": "install.cmd を実行し、再起動します。",
+     "caution": ""
+    },
+    {
+     "title": "入出金テスト",
+     "body": "動作確認ツールで、入金・出金・回収を各1回実行します。",
+     "caution": "テスト後は釣銭準備金の金額を店舗担当者と一緒に確認してください。"
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "自動釣銭機 接続手順書",
+     "meta": "10ページ",
+     "updated": "2026-07-28"
+    }
+   ],
+   "changelog": "",
+   "old": []
+  },
+  {
+   "id": "WK-3101",
+   "cat": "hotel",
+   "order": 1,
+   "status": "published",
+   "title": "フロント端末セットアップ（客室管理システム連携）",
+   "summary": "フロント用 PC に客室管理システムのクライアントを導入し、カードキー発行機と連携させます。",
+   "minutes": 75,
+   "people": 1,
+   "industries": [
+    "ホテル"
+   ],
+   "tags": [
+    "フロント",
+    "カードキー"
+   ],
+   "version": "4.1",
+   "updated": "2026-08-30",
+   "os": "Windows 11 Pro 24H2",
+   "devices": [
+    {
+     "type": "PC",
+     "name": "フロント端末（デスクトップ）",
+     "model": "FD-7020",
+     "note": ""
+    },
+    {
+     "type": "周辺機器",
+     "name": "カードキー発行機",
+     "model": "KE-200",
+     "note": ""
+    }
+   ],
+   "precheck": [
+    "ホテルの客室マスタが登録済み",
+    "フロント端末の固定 IP が払い出されている"
+   ],
+   "bring": [
+    {
+     "name": "テスト用カードキー",
+     "qty": "5枚",
+     "required": true
+    },
+    {
+     "name": "LANケーブル 3m",
+     "qty": "1本",
+     "required": true
+    }
+   ],
+   "files": [
+    {
+     "name": "frontdesk-client_v4.1.zip",
+     "size": 566231040,
+     "desc": "客室管理システム クライアント",
+     "sha": "3e194932ed7194c2721d001ff2216f299fe41af2945d093667cdec1fc122c175"
+    },
+    {
+     "name": "ke200-driver.zip",
+     "size": 18874368,
+     "desc": "カードキー発行機ドライバ",
+     "sha": "97e2e005395159b26cd9ec0e50a09bd57f6e9049928b020a89d57be28813b4dd"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-3101",
+   "steps": [
+    {
+     "title": "クライアントのインストール",
+     "body": "setup.exe を実行し、ホテルコードを入力します。",
+     "caution": ""
+    },
+    {
+     "title": "カードキー発行機の接続",
+     "body": "KE-200 を接続し、ドライバを導入します。",
+     "caution": ""
+    },
+    {
+     "title": "テスト発行",
+     "body": "テスト用カードキーで 101 号室のキーを発行し、客室で開錠できるか確認します。",
+     "caution": ""
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "フロント端末 セットアップ手順書",
+     "meta": "18ページ",
+     "updated": "2026-08-30"
+    }
+   ],
+   "changelog": "",
+   "old": []
+  },
+  {
+   "id": "WK-3102",
+   "cat": "hotel",
+   "order": 2,
+   "status": "draft",
+   "title": "自動チェックイン機の設置",
+   "summary": "",
+   "minutes": 90,
+   "people": 2,
+   "industries": [
+    "ホテル"
+   ],
+   "tags": [],
+   "version": "1.0",
+   "updated": "2026-09-28",
+   "os": "",
+   "devices": [
+    {
+     "type": "KIOSK端末",
+     "name": "自動チェックイン機",
+     "model": "CI-3200",
+     "note": ""
+    }
+   ],
+   "precheck": [],
+   "bring": [],
+   "files": [],
+   "extractTo": "C:\\Setup\\WK-3102",
+   "steps": [],
+   "manuals": [],
+   "changelog": "",
+   "old": []
+  },
+  {
+   "id": "WK-4101",
+   "cat": "net",
+   "order": 1,
+   "status": "published",
+   "title": "店舗ルーターの設定と本部VPN接続",
+   "summary": "店舗ルーターに設定ファイルを読み込み、本部とのVPN接続とPOSの通信を確認します。",
+   "minutes": 40,
+   "people": 1,
+   "industries": [
+    "飲食",
+    "小売",
+    "ホテル",
+    "医療・薬局"
+   ],
+   "tags": [
+    "VPN",
+    "ネットワーク"
+   ],
+   "version": "2.6",
+   "updated": "2026-09-05",
+   "os": "ルーターファームウェア 12.4 以上",
+   "devices": [
+    {
+     "type": "ネットワーク",
+     "name": "店舗ルーター",
+     "model": "NR-600",
+     "note": ""
+    }
+   ],
+   "precheck": [
+    "回線事業者の開通工事が完了している",
+    "店舗ごとの設定ファイルが本部から発行されている"
+   ],
+   "bring": [
+    {
+     "name": "LANケーブル 1m",
+     "qty": "2本",
+     "required": true
+    },
+    {
+     "name": "ルーター用 USB メモリ",
+     "qty": "1本",
+     "required": false
+    }
+   ],
+   "files": [
+    {
+     "name": "nr600-config-tool_v2.6.zip",
+     "size": 12582912,
+     "desc": "設定読み込みツール",
+     "sha": "49e8ebb3be53baaed7a5d1c4abb0659185af83739d3c9dba4f7ace4c6af8fa75"
+    },
+    {
+     "name": "nr600-firmware_12.4.bin",
+     "size": 39845888,
+     "desc": "ルーターファームウェア",
+     "sha": "7b51febc0e6d6ef2ffbdc885f6f89e357d0950e0e36a7b9264abb5197a63ef75"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-4101",
+   "steps": [
+    {
+     "title": "ファームウェアの確認",
+     "body": "ルーターの管理画面でバージョンが 12.4 以上か確認し、古い場合は更新します。",
+     "caution": ""
+    },
+    {
+     "title": "設定ファイルの読み込み",
+     "body": "設定読み込みツールで店舗コードを入力し、設定を書き込みます。",
+     "caution": ""
+    },
+    {
+     "title": "VPN と POS 通信の確認",
+     "body": "ツールの［接続テスト］を実行し、本部と POS の両方が「OK」になることを確認します。",
+     "caution": ""
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "店舗ルーター設定手順書",
+     "meta": "9ページ",
+     "updated": "2026-09-05"
+    },
+    {
+     "kind": "Web",
+     "title": "回線事業者別の注意点（社内Wiki）",
+     "meta": "Webページ",
+     "updated": "2026-07-11"
+    }
+   ],
+   "changelog": "",
+   "old": [
+    {
+     "v": "2.4",
+     "date": "2026-02-10",
+     "reason": "脆弱性対応のため使用禁止"
+    }
+   ]
+  },
+  {
+   "id": "WK-4102",
+   "cat": "net",
+   "order": 2,
+   "status": "published",
+   "title": "キッチンプリンタの追加",
+   "summary": "厨房にネットワーク型キッチンプリンタを追加し、POS からの注文伝票が印字されることを確認します。",
+   "minutes": 30,
+   "people": 1,
+   "industries": [
+    "飲食"
+   ],
+   "tags": [
+    "プリンタ",
+    "厨房"
+   ],
+   "version": "1.2",
+   "updated": "2026-06-18",
+   "os": "POS OS 5",
+   "devices": [
+    {
+     "type": "プリンタ",
+     "name": "キッチンプリンタ（防滴型）",
+     "model": "KP-80W",
+     "note": "LAN 接続"
+    }
+   ],
+   "precheck": [
+    "厨房に LAN 配線が来ている"
+   ],
+   "bring": [
+    {
+     "name": "LANケーブル 10m",
+     "qty": "1本",
+     "required": true
+    }
+   ],
+   "files": [
+    {
+     "name": "kp80w-setup_v1.2.zip",
+     "size": 23068672,
+     "desc": "プリンタ登録ツール",
+     "sha": "281604201fb0112ca95953014420f9a5f3bfa10c6482a6b4ccb4fce5dfb67605"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-4102",
+   "steps": [
+    {
+     "title": "プリンタの設置",
+     "body": "油や水がかからない位置に設置し、LAN を接続します。",
+     "caution": ""
+    },
+    {
+     "title": "POS への登録",
+     "body": "登録ツールでプリンタを検索し、伝票の出力先に設定します。",
+     "caution": ""
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "キッチンプリンタ 追加手順書",
+     "meta": "5ページ",
+     "updated": "2026-06-18"
+    }
+   ],
+   "changelog": "",
+   "old": []
+  },
+  {
+   "id": "WK-5101",
+   "cat": "care",
+   "order": 1,
+   "status": "published",
+   "title": "POSアプリが起動しない場合の再インストール",
+   "summary": "POS アプリが起動しない・エラーで止まる場合に、設定を保持したままアプリを再インストールします。",
+   "minutes": 30,
+   "people": 1,
+   "industries": [
+    "飲食",
+    "小売"
+   ],
+   "tags": [
+    "復旧",
+    "障害対応"
+   ],
+   "version": "5.3",
+   "updated": "2026-09-22",
+   "os": "POS OS 5",
+   "devices": [
+    {
+     "type": "POS端末",
+     "name": "POSターミナル 15型",
+     "model": "PT-1500A",
+     "note": ""
+    },
+    {
+     "type": "POS端末",
+     "name": "POSターミナル 12型（旧機種）",
+     "model": "PT-1200",
+     "note": ""
+    }
+   ],
+   "precheck": [
+    "エラー画面を撮影している",
+    "障害ログを取得済み（WK-5102）"
+   ],
+   "bring": [],
+   "files": [
+    {
+     "name": "pos-app_v5.3.1.zip",
+     "size": 859832320,
+     "desc": "POS アプリ本体",
+     "sha": "48630c522698c6f8321e2ac398fa05f9a2a1372ad198158ca35ce0a3f5f1b9e5"
+    },
+    {
+     "name": "pos-cleanup_v2.0.zip",
+     "size": 3145728,
+     "desc": "設定を残して旧アプリを削除するツール",
+     "sha": "d5741256d6ad9c00f1ff5b5bd6c9cb1945e61796a2b23c8c546eff83f05c950d"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-5101",
+   "steps": [
+    {
+     "title": "旧アプリの削除",
+     "body": "pos-cleanup の run.cmd を実行します。店舗設定はバックアップされます。",
+     "caution": ""
+    },
+    {
+     "title": "再インストール",
+     "body": "pos-app の setup.exe を実行します。設定は自動で復元されます。",
+     "caution": ""
+    },
+    {
+     "title": "動作確認",
+     "body": "ログインしてテスト印字を行います。",
+     "caution": ""
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "POSアプリ 再インストール手順書",
+     "meta": "7ページ",
+     "updated": "2026-09-22"
+    }
+   ],
+   "changelog": "",
+   "old": []
+  },
+  {
+   "id": "WK-5102",
+   "cat": "care",
+   "order": 2,
+   "status": "published",
+   "title": "障害ログの取得と送付",
+   "summary": "サポート窓口へ問い合わせる前に、ログ取得ツールで障害ログをまとめて送付します。",
+   "minutes": 10,
+   "people": 1,
+   "industries": [
+    "飲食",
+    "小売",
+    "ホテル",
+    "医療・薬局",
+    "自治体"
+   ],
+   "tags": [
+    "ログ",
+    "問い合わせ前"
+   ],
+   "version": "1.3",
+   "updated": "2026-04-14",
+   "os": "全機種",
+   "devices": [
+    {
+     "type": "全機種",
+     "name": "POS・KIOSK・フロント端末",
+     "model": "全型番",
+     "note": ""
+    }
+   ],
+   "precheck": [
+    "障害の発生日時をメモしている"
+   ],
+   "bring": [],
+   "files": [
+    {
+     "name": "log-collector_v1.3.zip",
+     "size": 2097152,
+     "desc": "ログ取得ツール",
+     "sha": "76b15d4d79ff0db2e6877ae2c87278a5d159f8a1e03de19a7301154e56d0e855"
+    }
+   ],
+   "extractTo": "C:\\Setup\\WK-5102",
+   "steps": [
+    {
+     "title": "ログの取得",
+     "body": "collect.cmd を実行すると、デスクトップに logs_日付.zip が作成されます。",
+     "caution": ""
+    },
+    {
+     "title": "送付",
+     "body": "ポータルの［問い合わせ］から作業ID を添えて zip を送付します。",
+     "caution": ""
+    }
+   ],
+   "manuals": [
+    {
+     "kind": "PDF",
+     "title": "ログ取得手順書",
+     "meta": "3ページ",
+     "updated": "2026-04-14"
+    }
+   ],
+   "changelog": "",
+   "old": []
+  }
+ ],
+ "notices": [
+  {
+   "id": "n1",
+   "date": "2026-09-22",
+   "level": "warn",
+   "text": "POS アプリ 5.3.1 を公開しました。10月末までに既存店舗の更新をお願いします。",
+   "task": "WK-5101",
+   "status": "published",
+   "until": "2026-10-31"
+  },
+  {
+   "id": "n2",
+   "date": "2026-09-12",
+   "level": "accent",
+   "text": "KIOSK 設置手順を 3.0 に更新しました。旧版（2.4）は使用できません。",
+   "task": "WK-2101",
+   "status": "published",
+   "until": ""
+  },
+  {
+   "id": "n3",
+   "date": "2026-09-05",
+   "level": "danger",
+   "text": "ルーター設定 2.4 は脆弱性のため使用禁止です。必ず 2.6 を使用してください。",
+   "task": "WK-4101",
+   "status": "published",
+   "until": ""
+  },
+  {
+   "id": "n4",
+   "date": "2026-10-01",
+   "level": "accent",
+   "text": "11月から、作業の完了時にチェックシートの記録を残す運用になります。",
+   "task": "",
+   "status": "draft",
+   "until": ""
+  }
+ ]
+}

@@ -1,3 +1,9 @@
 MusicLyrics/
 *.zip
 portal/api/config.php
+portal/storage/files/*
+portal/storage/tmp/*
+portal/storage/incoming/*
+!portal/storage/files/.gitkeep
+!portal/storage/tmp/.gitkeep
+!portal/storage/incoming/.gitkeep
