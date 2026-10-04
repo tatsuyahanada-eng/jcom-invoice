@@ -1,6 +1,6 @@
 /* WorkBase Portal service worker: アプリ本体をキャッシュし、電波が弱い現場でも開けるようにする */
-const VERSION = "wbp-v1";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
+const VERSION = "wbp-v2";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/icon.svg"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -12,6 +12,7 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+  if (url.pathname.includes("/api/")) return;   // 作業記録のAPIは常に通信する（キャッシュしない）
   const fonts = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
   if (url.origin !== location.origin && !fonts) return;
   if (req.mode === "navigate") {

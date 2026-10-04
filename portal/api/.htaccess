@@ -1,0 +1,6 @@
+DirectoryIndex index.php
+
+# 設定・スキーマ・補助スクリプトは Web から読めないようにする
+<FilesMatch "^(config\.php|config\.sample\.php|lib\.php|migrate\.php|schema\.sql)$">
+  Require all denied
+</FilesMatch>
