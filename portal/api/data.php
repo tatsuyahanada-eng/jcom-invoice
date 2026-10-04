@@ -10,6 +10,7 @@ const TAB_GROUPS = [
     'ファイル' => ['files', 'extractTo'],
     '作業手順' => ['steps'],
     'マニュアル' => ['manuals'],
+    '書類' => ['docs'],
     '公開設定' => ['version', 'changelog'],
 ];
 
@@ -33,6 +34,7 @@ function task_out(array $r, bool $full): array
     $t['order'] = (int)$r['ord'];
     $t['status'] = $r['status'];
     $t['updated'] = $r['updated'];
+    $t['docs'] = $t['docs'] ?? [];
     if ($full) {
         $t['review'] = $r['review'] ? json_decode((string)$r['review'], true) : null;
         $t['rejected'] = $r['rejected'] ? json_decode((string)$r['rejected'], true) : null;
@@ -69,7 +71,7 @@ function bootstrap_payload(array $u): array
             $history[] = ['id' => $r['id'], 'at' => substr($r['happened_at'], 0, 16), 'user' => $r['user_id'], 'action' => $r['action'], 'type' => $r['type'], 'tid' => $r['tid'], 'name' => $r['name'], 'detail' => (string)$r['detail']];
         }
     }
-    return ['categories' => $cats, 'tasks' => $tasks, 'notices' => $notices, 'users' => $users, 'history' => $history];
+    return ['categories' => $cats, 'tasks' => $tasks, 'notices' => $notices, 'contacts' => setting_get('contacts', []), 'users' => $users, 'history' => $history];
 }
 
 /* ------------------------------------------------------------ 入力の整形・検証 */
@@ -82,7 +84,12 @@ function nt_date($v): string { $s = (string)$v; return preg_match('/^\d{4}-\d{2}
 function normalize_task(array $in, array $orig): array
 {
     $ids = [];
-    foreach (nt_list($in['files'] ?? [], 100) as $f) {
+    $refs = nt_list($in['files'] ?? [], 100);
+    foreach (nt_list($in['docs'] ?? [], 30) as $d) {
+        if (!is_array($d)) continue;
+        foreach (['form', 'example'] as $slot) if (isset($d[$slot]) && is_array($d[$slot])) $refs[] = $d[$slot];
+    }
+    foreach ($refs as $f) {
         $fid = is_array($f) ? (string)($f['fid'] ?? '') : '';
         if ($fid === '') continue;
         if (!preg_match('/^[a-f0-9]{32}$/', $fid)) fail(422, 'ファイルの指定が正しくありません');
@@ -113,6 +120,25 @@ function normalize_task(array $in, array $orig): array
         $seen[$e['name']] = true;
         $files[] = $e;
     }
+    // 現場で作成する書類：様式（空のもの）と記入例。ファイルはアップロード済みのものだけを受け付ける
+    $origDocFiles = [];
+    foreach ($orig['docs'] ?? [] as $d) foreach (['form', 'example'] as $slot) if (!empty($d[$slot]) && empty($d[$slot]['fid'])) $origDocFiles[$d[$slot]['name']] = $d[$slot];
+    $docRef = function ($f) use ($found, $origDocFiles) {
+        if (!is_array($f)) return null;
+        $fid = (string)($f['fid'] ?? '');
+        if ($fid !== '') {
+            $r = $found[$fid] ?? fail(422, 'アップロードされていないファイルが指定されています');
+            return ['name' => $r['orig_name'], 'size' => (int)$r['size'], 'sha' => $r['sha256'], 'fid' => $fid];
+        }
+        $ex = $origDocFiles[(string)($f['name'] ?? '')] ?? null;   // サンプルのファイル情報だけ引き継げる
+        if (!$ex) fail(422, '書類のファイルは、アップロードで追加してください');
+        return ['name' => (string)$ex['name'], 'size' => (int)($ex['size'] ?? 0), 'sha' => (string)($ex['sha'] ?? '')];
+    };
+    $docs = [];
+    foreach (nt_list($in['docs'] ?? [], 30) as $d) {
+        if (!is_array($d)) continue;
+        $docs[] = ['title' => str($d['title'] ?? '', 255), 'note' => str($d['note'] ?? '', 4000), 'form' => $docRef($d['form'] ?? null), 'example' => $docRef($d['example'] ?? null)];
+    }
     $dev = [];
     foreach (nt_list($in['devices'] ?? [], 50) as $d) if (is_array($d)) $dev[] = ['type' => str($d['type'] ?? '', 100), 'name' => str($d['name'] ?? '', 255), 'model' => str($d['model'] ?? '', 100), 'note' => str($d['note'] ?? '', 255)];
     $bring = [];
@@ -137,6 +163,7 @@ function normalize_task(array $in, array $orig): array
         'extractTo' => str($in['extractTo'] ?? '', 255),
         'steps' => $steps,
         'manuals' => $man,
+        'docs' => $docs,
         'changelog' => str($in['changelog'] ?? '', 1000),
         'old' => $orig['old'] ?? [],   // 旧バージョンの記録は、サーバーだけが更新する
     ];
@@ -415,6 +442,77 @@ function op_notices_save(array $u, array $b): array
     return ['message' => 'お知らせを保存しました'];
 }
 
+/* ------------------------------------------------------------ 連絡先（困ったときの問い合わせ先） */
+
+function ensure_settings(): void
+{
+    static $done = false;
+    if ($done) return;
+    // 以前の版で設置したデータベースにも、自動で表を追加する
+    db()->exec('CREATE TABLE IF NOT EXISTS settings (k VARCHAR(50) NOT NULL, v MEDIUMTEXT NOT NULL, updated_at DATETIME NOT NULL, PRIMARY KEY (k)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    $done = true;
+}
+
+function setting_get(string $k, $default)
+{
+    ensure_settings();
+    $s = db()->prepare('SELECT v FROM settings WHERE k = ?');
+    $s->execute([$k]);
+    $v = $s->fetchColumn();
+    return $v === false ? $default : (json_decode((string)$v, true) ?? $default);
+}
+
+function setting_put(string $k, $v): void
+{
+    ensure_settings();
+    db()->prepare('INSERT INTO settings (k, v, updated_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE v = VALUES(v), updated_at = VALUES(updated_at)')
+        ->execute([$k, json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), now_dt()]);
+}
+
+function op_contacts_save(array $u, array $b): array
+{
+    $in = $b['contacts'] ?? null;
+    if (!is_array($in) || count($in) > 100) fail(422, '連絡先の形式が正しくありません');
+    $catIds = array_column(db()->query('SELECT id FROM categories')->fetchAll(), 'id');
+    $out = [];
+    $seen = [];
+    foreach ($in as $x) {
+        if (!is_array($x)) fail(422, '連絡先の形式が正しくありません');
+        $id = preg_match('/^[A-Za-z0-9_-]{2,24}$/', (string)($x['id'] ?? '')) ? $x['id'] : new_id('c');
+        if (isset($seen[$id])) $id = new_id('c');
+        $seen[$id] = true;
+        $c = [
+            'id' => $id,
+            'name' => str($x['name'] ?? '', 100),
+            'dept' => str($x['dept'] ?? '', 100),
+            'phone' => str($x['phone'] ?? '', 40),
+            'email' => str($x['email'] ?? '', 200),
+            'hours' => str($x['hours'] ?? '', 100),
+            'topics' => str($x['topics'] ?? '', 500),
+            'cats' => array_values(array_intersect(array_map('strval', nt_list($x['cats'] ?? [], 50)), $catIds)),
+        ];
+        if ($c['name'] === '') fail(422, '名前（窓口名）が空の連絡先があります。入力するか、削除してください');
+        if ($c['phone'] === '' && $c['email'] === '') fail(422, "「{$c['name']}」の電話番号かメールアドレスを入力してください");
+        if ($c['phone'] !== '' && !preg_match('/^[0-9+()\-\s#*内線]{2,40}$/u', $c['phone'])) fail(422, "「{$c['name']}」の電話番号に使えない文字があります");
+        if ($c['email'] !== '' && !filter_var($c['email'], FILTER_VALIDATE_EMAIL)) fail(422, "「{$c['name']}」のメールアドレスが正しくありません");
+        $out[] = $c;
+    }
+    $old = setting_get('contacts', []);
+    if ($old != $out) {
+        $oldIds = array_column($old, 'name', 'id');
+        $newIds = array_column($out, 'name', 'id');
+        $added = array_diff_key($newIds, $oldIds);
+        $removed = array_diff_key($oldIds, $newIds);
+        $parts = [];
+        if ($added) $parts[] = '追加：' . implode('、', $added);
+        if ($removed) $parts[] = '削除：' . implode('、', $removed);
+        if (!$parts) $parts[] = '内容を更新';
+        log_history($u['id'], 'update', 'contact', '', '困ったときの連絡先', implode(' / ', $parts));
+    }
+    setting_put('contacts', $out);
+    return ['message' => '連絡先を保存しました'];
+}
+
 /* ------------------------------------------------------------ 受け口 */
 
 function run_data_op(string $op): never
@@ -422,15 +520,16 @@ function run_data_op(string $op): never
     require_same_site_write();
     $u = require_role('editor');
     $b = read_json();
-    $need = ['task.delete' => 2, 'task.reject' => 2, 'cat.delete' => 2, 'users.save' => 3, 'users.password' => 3];
+    $need = ['contacts.save' => 2, 'task.delete' => 2, 'task.reject' => 2, 'cat.delete' => 2, 'users.save' => 3, 'users.password' => 3];
     if (role_lv($u) < ($need[$op] ?? 1)) fail(403, 'この操作を行う権限がありません');
     $handlers = [
         'task.create' => 'op_task_create', 'task.duplicate' => 'op_task_duplicate', 'task.move' => 'op_task_move', 'task.save' => 'op_task_save',
         'task.delete' => 'op_task_delete', 'task.reject' => 'op_task_reject', 'cat.create' => 'op_cat_create', 'cat.save' => 'op_cat_save',
-        'cat.delete' => 'op_cat_delete', 'notices.save' => 'op_notices_save', 'users.save' => 'op_users_save', 'users.password' => 'op_users_password',
+        'cat.delete' => 'op_cat_delete', 'notices.save' => 'op_notices_save', 'contacts.save' => 'op_contacts_save', 'users.save' => 'op_users_save', 'users.password' => 'op_users_password',
     ];
     if (!isset($handlers[$op])) fail(404, '不明な操作です');
     $pdo = db();
+    if ($op === 'contacts.save') ensure_settings();   // 表の作成（DDL）はトランザクションの外で行う（MySQL は DDL で暗黙にコミットするため）
     $pdo->beginTransaction();
     try {
         $res = $handlers[$op]($u, $b);

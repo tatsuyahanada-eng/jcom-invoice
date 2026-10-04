@@ -104,6 +104,13 @@ CREATE TABLE IF NOT EXISTS notices (
   KEY idx_status (status, notice_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS settings (
+  k          VARCHAR(50)  NOT NULL,
+  v          MEDIUMTEXT   NOT NULL,
+  updated_at DATETIME     NOT NULL,
+  PRIMARY KEY (k)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS history (
   id          VARCHAR(24)  NOT NULL,
   happened_at DATETIME     NOT NULL,

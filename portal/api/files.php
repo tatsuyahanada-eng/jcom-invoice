@@ -245,8 +245,12 @@ function route_download(string $fid): never
     while (ob_get_level()) ob_end_clean();
     http_response_code($status);
     $ascii = preg_replace('/[^\x20-\x7E]|["\\\\]/', '_', $r['orig_name']);
-    header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($r['orig_name']));
+    // ?inline=1：画像と PDF だけは、ブラウザ内で表示できるようにする（記入例のプレビュー用）
+    $types = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp', 'pdf' => 'application/pdf'];
+    $ext = strtolower(pathinfo($r['orig_name'], PATHINFO_EXTENSION));
+    $inline = !empty($_GET['inline']) && isset($types[$ext]);
+    header('Content-Type: ' . ($inline ? $types[$ext] : 'application/octet-stream'));
+    header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . '; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($r['orig_name']));
     header('Content-Length: ' . ($end - $start + 1));
     header('Accept-Ranges: bytes');
     header('ETag: ' . $etag);

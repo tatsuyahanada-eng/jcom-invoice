@@ -178,16 +178,51 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .nt + .nt { border-top: 1px solid var(--line); }
 .nt-tx { flex: 1; min-width: 12em; }
 .nt time { color: var(--muted); font-size: 12px; }
-.home-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start; }
-.catnav { position: sticky; top: calc(var(--bar-h) + 16px); display: grid; gap: 2px; }
-.catnav-h { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .06em; padding: 0 10px 6px; }
-.catnav button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; background: none; border-radius: 9px; padding: 9px 10px; font-size: 14px; color: var(--fg); }
-.catnav button svg.i { width: 18px; height: 18px; color: var(--muted); flex: none; }
-.catnav button .nm { flex: 1; min-width: 0; line-height: 1.45; }
-.catnav button .n { font-size: 12px; color: var(--muted); }
-.catnav button:hover { background: var(--surface-2); }
-.catnav button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
-.catnav button[aria-pressed="true"] svg.i, .catnav button[aria-pressed="true"] .n { color: var(--accent); }
+.hero-help { justify-self: start; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--on-brand-line); background: var(--on-brand-soft); color: var(--on-brand); border-radius: 999px; padding: 5px 14px; font-size: 13px; font-weight: 700; }
+.hero-help svg.i { width: 15px; height: 15px; }
+.hero-help:hover { background: var(--on-brand); color: var(--brand-ink); }
+@media (min-width: 1081px) { .hero-help { display: none; } }
+.home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.home-side { display: grid; gap: 16px; position: sticky; top: calc(var(--bar-h) + 16px); }
+.sec-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 12px; }
+.sec-h h2 { font-size: 18px; }
+.sec-h .muted { font-size: 12.5px; }
+.cgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.cbox { display: flex; flex-direction: column; overflow: hidden; }
+.cbox-h { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; width: 100%; }
+.cbox-h:hover { background: var(--surface-2); }
+.cbox-h:hover b { color: var(--accent); }
+.cbox-tx { display: grid; gap: 1px; flex: 1; min-width: 0; }
+.cbox-tx b { font-size: 15.5px; }
+.cbox-tx small { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbox-n { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 99px; padding: 2px 10px; }
+.cbox-list { list-style: none; margin: 0; padding: 4px 0; }
+.cbox-list button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: none; border: 0; padding: 9px 16px; font-size: 14px; line-height: 1.5; color: var(--fg); }
+.cbox-list button:hover { background: var(--surface-2); color: var(--accent); }
+.cbox-list button svg.i { width: 15px; height: 15px; color: var(--line-strong); flex: none; margin-left: auto; }
+.cbox-list button:hover svg.i { color: var(--accent); }
+.cbox-t { min-width: 0; }
+.cbox-more { margin-top: auto; background: none; border: 0; border-top: 1px solid var(--line); padding: 9px 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; }
+.cbox-more:hover { background: var(--surface-2); }
+.crumb { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.crumb button { display: inline-flex; align-items: center; gap: 5px; background: none; border: 0; padding: 2px 0; color: var(--accent); font-weight: 700; font-size: 13px; }
+.crumb button:hover { text-decoration: underline; }
+.crumb svg.i { width: 14px; height: 14px; }
+.crumb > svg.i { color: var(--line-strong); }
+.crumb > span { color: var(--fg); font-weight: 700; }
+.wk > .crumb { margin-bottom: -6px; }
+.cswitch { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 14px; padding-bottom: 2px; }
+.cswitch::-webkit-scrollbar { display: none; }
+.cswitch button { flex: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.cswitch button svg.i { width: 15px; height: 15px; }
+.cswitch button:hover { color: var(--accent); border-color: var(--accent); }
+.cswitch button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.sib-box { padding: 4px 8px 8px; }
+.sib-box h3 { font-size: 14px; padding: 12px 8px 6px; display: flex; align-items: center; gap: 8px; }
+.sib-box ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.sib-box li button { width: 100%; text-align: left; background: none; border: 0; border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.5; color: var(--fg); }
+.sib-box li button:hover { background: var(--surface-2); color: var(--accent); }
+.sib-box li button[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .list-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 12px; }
 .list-head h2 { font-size: 18px; }
 .list-head .count { color: var(--muted); font-size: 13px; }
@@ -380,6 +415,64 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   background: var(--surface); box-shadow: var(--shadow-lg);
   display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.drawer.wide { width: min(860px, 100%); }
+.ex-b { display: grid; place-items: start center; background: var(--surface-2); }
+.ex-b img { max-width: 100%; height: auto; border-radius: 6px; box-shadow: var(--shadow); background: #fff; }
+.ct-box { padding: 4px 16px 14px; display: grid; gap: 10px; }
+.ct-box h3 { font-size: 14px; padding: 12px 0 0; display: flex; align-items: center; gap: 8px; }
+.ct { display: grid; gap: 6px; padding: 10px 0 2px; border-top: 1px solid var(--line); }
+.ct-box h3 + .ct { border-top: 0; padding-top: 2px; }
+.n-prev .ct { border-top: 0; }
+.ct-h { display: flex; align-items: center; gap: 10px; }
+.ct-h b { font-size: 14px; }
+.ct-h small { font-size: 12px; color: var(--muted); }
+.ct-ic { width: 32px; height: 32px; border-radius: 50%; background: var(--ok-soft, var(--accent-soft)); color: var(--ok, var(--accent)); display: grid; place-items: center; flex: none; }
+.ct-ic svg.i { width: 16px; height: 16px; }
+.ct-t { font-size: 13px; line-height: 1.6; color: var(--fg); margin: 0; }
+.ct-scope { justify-self: start; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 99px; padding: 1px 9px; }
+.ct-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.ct-acts .btn { text-decoration: none; }
+.ct-acts a.btn:not(.primary) { color: var(--accent); }
+.ct-acts .as-text { cursor: default; }
+.ct-foot { font-size: 12px; color: var(--muted); margin: 0; }
+.docs { display: grid; gap: 12px; }
+.doc { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.doc.has-ex { grid-template-columns: minmax(0, 1fr) 168px; }
+.doc-main { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.doc-h { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.doc-ic { width: 32px; height: 32px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+.doc-pts { background: var(--surface-2); border-radius: 9px; padding: 10px 14px; }
+.doc-pts .sub-h { margin-bottom: 4px; }
+.doc-pts ul { margin: 0; padding-left: 1.2em; display: grid; gap: 3px; font-size: 13.5px; line-height: 1.6; }
+.doc-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.doc-thumb { display: grid; gap: 6px; justify-items: center; align-content: start; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); padding: 8px; color: var(--accent); font-size: 12px; font-weight: 700; }
+.doc-thumb img { width: 100%; height: 190px; object-fit: cover; object-position: top; border-radius: 6px; background: #fff; }
+.doc-thumb span { display: inline-flex; align-items: center; gap: 4px; }
+.doc-thumb span svg.i { width: 14px; height: 14px; }
+.doc-thumb:hover { border-color: var(--accent); }
+.doc-thumb.ph { min-height: 120px; align-content: center; }
+.doc-thumb .ph-ic { width: 52px; height: 64px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line-strong); display: grid; place-items: center; font-size: 13px; color: var(--danger); }
+.doc-thumb:disabled { opacity: .7; }
+.doc-blk { display: grid; gap: 12px; }
+.row-doc { grid-template-columns: 28px minmax(0, 1fr) auto; }
+.dslots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.dslot { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; align-content: start; }
+.dslot.has { border-style: solid; border-color: var(--line); }
+.dslot-h { display: grid; gap: 1px; }
+.dslot-h b { font-size: 13px; }
+.dslot-h small { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.dslot-f { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dslot-f .fn { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dslot-f .fm { font-size: 11.5px; color: var(--muted); }
+.dslot-f > span:nth-child(2) { flex: 1; }
+.dslot-img { width: 44px; height: 56px; object-fit: cover; object-position: top; border-radius: 4px; border: 1px solid var(--line); flex: none; background: #fff; }
+.dslot-add { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 8px; padding: 9px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 13px; cursor: pointer; }
+.dslot-add:hover { filter: brightness(.97); }
+@media (max-width: 640px) {
+  .doc.has-ex { grid-template-columns: minmax(0, 1fr); }
+  .doc-thumb img { height: 220px; }
+  .dslots { grid-template-columns: minmax(0, 1fr); }
 }
 .drawer-h { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
 .drawer-h h2 { font-size: 16px; flex: 1; min-width: 0; }
@@ -622,7 +715,8 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .adm.pv-on .pv-btn { display: none; }
 }
 @media (max-width: 1080px) {
-  .home-grid { grid-template-columns: 200px minmax(0, 1fr); gap: 18px; }
+  .home-grid { grid-template-columns: minmax(0, 1fr); }
+  .home-side { position: static; }
 }
 @media (max-width: 900px) {
   .adm { grid-template-columns: minmax(0, 1fr); }
@@ -642,13 +736,10 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .hero h1 { font-size: 19px; }
   .bigsearch input { height: 50px; font-size: 16px; }
   .home { padding: 14px 16px 56px; gap: 14px; }
-  .home-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .catnav { position: static; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
-  .catnav::-webkit-scrollbar { display: none; }
-  .catnav-h { display: none; }
-  .catnav button { flex: none; width: auto; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 13px; gap: 6px; }
-  .catnav button svg.i { width: 15px; height: 15px; }
-  .catnav button[aria-pressed="true"] { border-color: var(--accent); }
+  .cgrid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .cbox-h { padding: 12px 14px; }
+  .cbox-list button { padding: 11px 14px; }
+  .cswitch { margin: 0 -16px 12px; padding: 0 16px 2px; }
   .res { padding: 12px 14px; gap: 10px; }
   .notices { padding: 2px 14px; }
   .nt { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 8px; font-size: 13px; padding: 9px 0; }
@@ -1004,6 +1095,8 @@ Object.assign(ICONS, {
   users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
   sheet: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 12.5l2.5 2.5 4.5-5"/>',
   shield: '<path d="M12 3 4.5 6v5.5c0 4.5 3 8 7.5 9.5 4.5-1.5 7.5-5 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/>',
+  form: '<path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5H7a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5Z"/><path d="M14 3.5V8h4M9.5 12.5h5M9.5 16h3"/>',
+  book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5Z"/>',
   history: '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 4v4.5H8M12 7.5V12l3 2"/>'
 });
 const LOGO_MARK = "<svg xmlns='http://www.w3.org/2000/svg' aria-hidden='true' viewBox='40 60 830 640'><defs><linearGradient id='lgF' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#10c8f8'/><stop offset='1' stop-color='#0386de'/></linearGradient><linearGradient id='lgD' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#0cb4f4'/><stop offset='1' stop-color='#0386de'/></linearGradient><linearGradient id='lgY' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#ffd02c'/><stop offset='1' stop-color='#ffbb0c'/></linearGradient></defs><path d='M98,150 L130,150 L156,362 L172,135 Q176,75 232,75 L392,75 Q420,75 438,102 L470,155 Q476,160 490,160 L690,160 Q752,160 752,215 L733,380 L686,380 L684,282 Q684,232 636,232 L320,232 Q270,232 270,285 L270,645 L188,645 Q125,645 112,585 L57,205 Q50,150 98,150 Z' fill='url(#lgF)'/><path d='M393,263 L610,302 L592,324 L393,287 Z' fill='#0a6fd2'/><path d='M393,263 L592,300 L592,665 L393,645 Z' fill='url(#lgD)'/><path d='M592,300 L612,305 Q618,306 618,314 L618,675 Q618,687 606,686 L592,665 Z' fill='#0b6fd2'/><circle cx='551' cy='484' r='22' fill='#fff'/><rect x='770' y='305' width='85' height='85' rx='14' fill='url(#lgY)'/><rect x='672' y='412' width='78' height='78' rx='13' fill='#0a73d0'/><rect x='771' y='415' width='58' height='62' rx='11' fill='#12c6f7'/><rect x='662' y='485' width='76' height='77' rx='12' fill='#14cbfa'/></svg>";
@@ -1071,6 +1164,10 @@ const DEFAULT_DATA = {
         { kind: "PDF", title: "POSレジ 初期セットアップ手順書", meta: "32ページ", updated: "2026-09-22" },
         { kind: "動画", title: "配線とイメージ適用（実演）", meta: "8分", updated: "2026-09-10" },
         { kind: "PDF", title: "店舗引き渡しチェックシート", meta: "2ページ", updated: "2026-06-01" }
+      ],
+      docs: [
+        { title: "作業完了報告書", note: "作業ID（WK-1101）と版を右上に記入する\n使用した機器の型番・シリアル番号を、機器ラベルを見て正確に記入する\n最後に店舗責任者のサインをもらう（印鑑でも可）", form: { name: "作業完了報告書.xlsx", size: 48213, sha: "" }, example: { name: "作業完了報告書_記入例.pdf", size: 312450, sha: "" } },
+        { title: "機器設置確認書（お客様控え）", note: "2枚複写の1枚目を店舗に渡す\n設置場所は「レジカウンター左」のように具体的に書く", form: { name: "機器設置確認書.pdf", size: 128004, sha: "" }, example: null }
       ],
       changelog: "POS アプリ 5.3.1 に更新。イメージ適用手順を簡略化。",
       old: [{ v: "5.2", date: "2026-05-14", reason: "新しい版の公開により置き換え" }]
@@ -1264,6 +1361,11 @@ const DEFAULT_DATA = {
     { id: "n3", date: "2026-09-05", level: "danger", text: "ルーター設定 2.4 は脆弱性のため使用禁止です。必ず 2.6 を使用してください。", task: "WK-4101", status: "published", until: "" },
     { id: "n4", date: "2026-10-01", level: "accent", text: "11月から、作業の完了時にチェックシートの記録を残す運用になります。", task: "", status: "draft", until: "" }
   ],
+  contacts: [
+    { id: "c1", name: "技術サポート窓口", dept: "技術課", phone: "内線 4410", email: "", hours: "平日 8:30–19:00", topics: "作業手順・設定がうまくいかないとき。作業IDを伝えてください", cats: [] },
+    { id: "c2", name: "POS 担当（佐藤）", dept: "技術課", phone: "090-0000-1234", email: "", hours: "平日 9:00–18:00", topics: "POS 本体・周辺機器の初期設定、イメージ適用のエラー", cats: ["pos", "self"] },
+    { id: "c3", name: "ネットワーク担当（高橋）", dept: "サポート課", phone: "090-0000-5678", email: "net-support@example.co.jp", hours: "平日 9:00–18:00", topics: "VPN がつながらない、回線事業者との調整", cats: ["net"] }
+  ],
   users: [
     { id: "u1", name: "山田 太郎", email: "yamada@example.co.jp", dept: "技術課", role: "admin", active: true, last: "2026-10-03 09:12" },
     { id: "u2", name: "佐藤 花子", email: "sato@example.co.jp", dept: "技術課", role: "approver", active: true, last: "2026-10-02 17:45" },
@@ -1312,7 +1414,7 @@ const PERMS = [
   ["ユーザーの登録・権限の変更", [0, 0, 0, 1]]
 ];
 const HACT = { create: ["新規作成", "accent"], update: ["更新", ""], request: ["承認申請", "warn"], publish: ["公開", "ok"], reject: ["差し戻し", "danger"], delete: ["削除", "danger"] };
-const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー", file: "ファイル" };
+const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー", file: "ファイル", contact: "連絡先" };
 const LEVELS = { danger: "重要", warn: "期限あり", accent: "更新" };
 
 /* サーバーに接続できないときの確認用に、サンプルの作業記録を作る（サーバーには送らない） */
@@ -1349,7 +1451,13 @@ const clone = o => JSON.parse(JSON.stringify(o));
 /* mode: boot（確認中）／ server（サーバーにログイン）／ demo（サーバーなし・この端末内のサンプル） */
 const AUTH = { mode: "boot", user: null, offline: false, notice: "" };
 const isSrv = () => AUTH.mode === "server";
-let DATA = store.get("portal3.data", null) || clone(DEFAULT_DATA);
+/** 以前の版で保存したデータにも、新しい項目（書類・連絡先）を補う */
+function fixData(d) {
+  d.contacts ||= (AUTH.mode === "server" ? [] : clone(DEFAULT_DATA.contacts));
+  (d.tasks || []).forEach(t => { t.docs ||= []; if (t.review?.snapshot) t.review.snapshot.docs ||= []; });
+  return d;
+}
+let DATA = fixData(store.get("portal3.data", null) || clone(DEFAULT_DATA));
 let PROG = store.get("portal3.prog", {});
 let RECORDS = store.get("portal3.records", null) || makeDemoRecords();
 RECORDS.forEach(r => { if (!r.sync) r.sync = "local"; });
@@ -1419,7 +1527,7 @@ function setPath(o, path, v) { const k = path.split("."); let x = o; for (let i 
 /* 入力状況の判定（設定画面のタブ表示・ツリー・ダッシュボードで共通利用） */
 const TABS = [
   ["basic", "基本情報"], ["dev", "対象機器"], ["prep", "準備・持参品"], ["files", "ファイル"],
-  ["steps", "作業手順"], ["man", "マニュアル"], ["pub", "公開設定"], ["hist", "変更履歴"]
+  ["steps", "作業手順"], ["man", "マニュアル"], ["docs", "書類"], ["pub", "公開設定"], ["hist", "変更履歴"]
 ];
 function sectionState(t) {
   const n = t.precheck.length + t.bring.length;
@@ -1430,6 +1538,7 @@ function sectionState(t) {
     files: t.files.length || "opt",
     steps: t.steps.length || "need",
     man: t.manuals.length || "opt",
+    docs: t.docs.length || "opt",
     pub: t.status === "published" ? "ok" : "draft",
     hist: DATA.history.filter(x => x.tid === t.id).length || "opt"
   };
@@ -1447,7 +1556,7 @@ function log(action, type, tid, name, detail = "") {
   DATA.history.unshift({ id: "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: nowStr(), user: S.me, action, type, tid: tid || "", name, detail });
   DATA.history = DATA.history.slice(0, 300);
 }
-const TABGROUPS = { basic: ["title", "summary", "cat", "minutes", "people", "tags"], dev: ["devices", "os"], prep: ["precheck", "bring"], files: ["files", "extractTo"], steps: ["steps"], man: ["manuals"], pub: ["version", "changelog"] };
+const TABGROUPS = { basic: ["title", "summary", "cat", "minutes", "people", "tags"], dev: ["devices", "os"], prep: ["precheck", "bring"], files: ["files", "extractTo"], steps: ["steps"], man: ["manuals"], docs: ["docs"], pub: ["version", "changelog"] };
 function changedTabs(a, b) {
   return TABS.filter(([k]) => TABGROUPS[k] && TABGROUPS[k].some(f => JSON.stringify(a[f]) !== JSON.stringify(b[f]))).map(([, n]) => n);
 }
@@ -1472,6 +1581,8 @@ function searchHit(t, q) {
   const tg = t.tags.find(has);
   if (tg) return { hit: true, why: `キーワード「${tg}」に一致` };
   if (has(t.summary)) return { hit: true, why: "作業内容に一致" };
+  const dc = t.docs.find(x => has(x.title));
+  if (dc) return { hit: true, why: `書類「${dc.title}」に一致` };
   if (t.bring.some(b => has(b.name))) return { hit: true, why: "持参品に一致" };
   return { hit: false };
 }
@@ -1506,16 +1617,16 @@ const visibleNotices = () => DATA.notices.filter(n => n.status === "published" &
 /* ---- ログイン・サーバー保存 ---- */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const failToast = e => { if (e && e.status !== 401 && e.message !== "offline") toast(e.message || "サーバーとの通信に失敗しました"); };
-const EMPTY_DATA = () => ({ categories: [], tasks: [], notices: [], users: [], history: [] });
+const EMPTY_DATA = () => ({ categories: [], tasks: [], notices: [], contacts: [], users: [], history: [] });
 const saveCache = () => { if (AUTH.mode === "server" && AUTH.user) store.set("portal4.cache", { user: AUTH.user, data: DATA, at: Date.now() }); };
 function applyBootstrap(res) {
-  AUTH.mode = "server"; AUTH.user = res.user; AUTH.offline = false; DATA = res.data; S.me = res.user.id; saveCache();
+  AUTH.mode = "server"; AUTH.user = res.user; AUTH.offline = false; DATA = fixData(res.data); S.me = res.user.id; saveCache();
 }
 /** 作業・大項目・お知らせ・ユーザーの変更は、すべてサーバーに送る。結果（最新のデータ）で画面のデータを置き換える */
 async function srvOp(op, payload = {}) {
   if (AUTH.offline) { toast("オフラインのため保存できません。通信できる場所で、もう一度お試しください"); throw new Error("offline"); }
   const res = await api("data/" + op, {}, { method: "POST", body: payload, timeout: 30000 });
-  if (res.data) { DATA = res.data; saveCache(); }
+  if (res.data) { DATA = fixData(res.data); saveCache(); }
   return res;
 }
 function onSessionExpired() {
@@ -1532,7 +1643,7 @@ async function boot() {
     if (sess.authenticated) { try { applyBootstrap(await api("bootstrap", {}, { noExpire: true })); } catch (e) { AUTH.user = null; } }
   } else if (netErr && store.get("portal4.cache", null)) {   // 通信できないが、以前ログインした端末：最後に取得したデータを表示する
     const c = store.get("portal4.cache", null);
-    AUTH.mode = "server"; AUTH.offline = true; AUTH.user = c.user; DATA = c.data; S.me = c.user.id;
+    AUTH.mode = "server"; AUTH.offline = true; AUTH.user = c.user; DATA = fixData(c.data); S.me = c.user.id;
   } else AUTH.mode = "demo";
 }
 function afterBoot() {
@@ -1638,19 +1749,71 @@ function recCardInner() {
 const recordsCard = () => `<section class="card" id="recCard">${recCardInner()}</section>`;
 const refreshRecCard = () => { const c = $("#recCard"); if (c) c.innerHTML = recCardInner(); };
 
+/* 困ったときの連絡先：大項目を指定した連絡先を先に、全体の窓口をあとに */
+function contactsFor(cat) {
+  const all = DATA.contacts || [];
+  if (!cat) return all;
+  return [...all.filter(c => c.cats.includes(cat)), ...all.filter(c => !c.cats.length)];
+}
+function contactCard(c, preview = false) {
+  const tel = String(c.phone || "").replace(/[^0-9+#*]/g, "");
+  const scope = c.cats.length ? c.cats.map(id => catOf(id)?.name).filter(Boolean).join("・") : "";
+  return `<div class="ct">
+    <div class="ct-h"><span class="ct-ic">${ic("phone")}</span><span style="display:grid;min-width:0"><b>${esc(c.name) || "（名前が未入力です）"}</b><small>${[c.dept, c.hours].filter(Boolean).map(esc).join("・")}</small></span></div>
+    ${c.topics ? `<p class="ct-t">${esc(c.topics)}</p>` : ""}
+    ${scope ? `<span class="ct-scope">${esc(scope)}</span>` : ""}
+    <div class="ct-acts">
+      ${c.phone ? (tel.length >= 3 && !preview ? `<a class="btn sm primary" href="tel:${esc(tel)}">${ic("phone")}${esc(c.phone)}</a>` : `<span class="btn sm primary as-text">${ic("phone")}${esc(c.phone)}</span>`) : ""}
+      ${c.email ? (preview ? `<span class="btn sm as-text">${esc(c.email)}</span>` : `<a class="btn sm" href="mailto:${esc(c.email)}">${esc(c.email)}</a>`) : ""}
+    </div>
+  </div>`;
+}
+function contactsBox(cat, taskId = "") {
+  const list = contactsFor(cat);
+  return `<section class="card ct-box" id="ctBox">
+    <h3>${ic("info")}困ったときの連絡先</h3>
+    ${list.length ? list.map(c => contactCard(c)).join("") : `<p class="muted" style="font-size:13px">連絡先は登録されていません。${can.admin() ? "「設定 → 困ったときの連絡先」から登録できます。" : ""}</p>`}
+    ${taskId ? `<p class="ct-foot">作業ID <span class="mono">${esc(taskId)}</span> を伝えると、話が早く進みます。</p>` : ""}
+  </section>`;
+}
+
 function pubTasks() { return DATA.tasks.filter(t => t.status === "published"); }
 function workList() {
   const q = S.w.q;
   return pubTasks()
-    .filter(t => !S.w.cat || t.cat === S.w.cat)
+    .filter(t => q || !S.w.cat || t.cat === S.w.cat)
     .map(t => ({ t, h: searchHit(t, q) })).filter(x => x.h.hit)
     .sort((a, b) => catOf(a.t.cat).order - catOf(b.t.cat).order || a.t.order - b.t.order);
 }
-function catNavHtml() {
+/* トップ：大項目ごとに作業を並べ、1回のタップで作業ページへ */
+function catGridHtml() {
   const pub = pubTasks();
   const cats = catsSorted().filter(c => pub.some(t => t.cat === c.id));
-  const b = (id, icon, name, n) => `<button type="button" data-act="wCat" data-id="${id}" aria-pressed="${(S.w.cat || "") === id}">${ic(icon)}<span class="nm">${esc(name)}</span><span class="n num">${n}</span></button>`;
-  return `<div class="catnav-h">大項目</div>` + b("", "grid", "すべて", pub.length) + cats.map(c => b(c.id, c.icon, c.name, pub.filter(t => t.cat === c.id).length)).join("");
+  if (!cats.length) return resultsHtml([], "");
+  return `<div class="sec-h"><h2>大項目から探す</h2><span class="muted num">${cats.length}項目・${pub.length}件の作業</span></div>
+  <div class="cgrid">${cats.map(c => {
+    const ts = pub.filter(t => t.cat === c.id).sort((a, b) => a.order - b.order), MAX = 5;
+    return `<article class="card cbox">
+      <button class="cbox-h" type="button" data-act="wCat" data-id="${c.id}">
+        <span class="ico-tile">${ic(c.icon)}</span>
+        <span class="cbox-tx"><b>${esc(c.name)}</b>${c.desc ? `<small>${esc(c.desc)}</small>` : ""}</span>
+        <span class="cbox-n num">${ts.length}件</span>
+      </button>
+      <ul class="cbox-list">${ts.slice(0, MAX).map(t => `<li><button type="button" data-act="openTask" data-id="${t.id}"><span class="cbox-t">${esc(t.title)}</span>${ic("chev")}</button></li>`).join("")}</ul>
+      ${ts.length > MAX ? `<button class="cbox-more" type="button" data-act="wCat" data-id="${c.id}">ほか ${ts.length - MAX}件をすべて見る →</button>` : ""}
+    </article>`;
+  }).join("")}</div>`;
+}
+function catSwitchHtml() {
+  const pub = pubTasks();
+  return `<div class="cswitch" role="group" aria-label="大項目の切り替え">${catsSorted().filter(c => pub.some(t => t.cat === c.id)).map(c => `<button type="button" data-act="wCat" data-id="${c.id}" aria-pressed="${S.w.cat === c.id}">${ic(c.icon)}${esc(c.name)}</button>`).join("")}</div>`;
+}
+function homeMainHtml() {
+  const q = S.w.q, cat = S.w.cat && !q ? catOf(S.w.cat) : null;
+  if (!q && !cat) return catGridHtml();
+  return `<nav class="crumb" aria-label="現在の位置"><button type="button" data-act="wReset">${ic("grid")}トップ</button>${ic("chev")}<span>${q ? "検索結果" : esc(cat.name)}</span></nav>
+    ${cat ? catSwitchHtml() : ""}
+    ${resultsHtml(workList(), q)}`;
 }
 
 function workHome() {
@@ -1666,6 +1829,7 @@ function workHome() {
         <input id="wq" type="search" placeholder="作業名・型番・ファイル名・作業IDで検索" value="${esc(q)}" autocomplete="off" enterkeyhint="search">
         <button class="icon-btn" type="button" data-act="clearQ" aria-label="検索語を消す" ${q ? "" : "hidden"}>${ic("x")}</button>
       </label>
+      ${(DATA.contacts || []).length ? `<button class="hero-help" type="button" data-act="toContacts">${ic("phone")}困ったときの連絡先</button>` : ""}
     </div>
   </section>
 
@@ -1681,22 +1845,21 @@ function workHome() {
     ${pend ? `<div class="syncrow" data-sync>${syncChipHtml()}</div>` : ""}
 
     <div class="home-grid">
-      <nav class="catnav" aria-label="大項目" id="catNav">${catNavHtml()}</nav>
-      <section aria-labelledby="resH" id="resSec">${resultsHtml(workList(), q)}</section>
+      <section id="resSec" aria-live="polite">${homeMainHtml()}</section>
+      <aside class="home-side" id="homeSide">${contactsBox(S.w.q ? null : S.w.cat)}</aside>
     </div>
   </div>`;
 }
 
 function resultsHtml(list, q) {
-  const cat = S.w.cat ? catOf(S.w.cat) : null;
+  const cat = S.w.cat && !q ? catOf(S.w.cat) : null;
   const none = !pubTasks().length;
   return `
     <div class="list-head">
       <h2 id="resH">${q ? `「${esc(q)}」の検索結果` : cat ? esc(cat.name) : "すべての作業"}</h2>
       <span class="count num">${list.length}件</span>
-      ${S.w.cat || q ? `<button class="link" type="button" data-act="wReset">条件をクリア</button>` : ""}
     </div>
-    ${cat && !q && cat.desc ? `<p class="list-desc">${esc(cat.desc)}</p>` : ""}
+    ${cat && cat.desc ? `<p class="list-desc">${esc(cat.desc)}</p>` : ""}
     <div class="results">
       ${list.length ? list.map(({ t, h }) => resCard(t, h, q)).join("")
         : none ? `<div class="card empty">${ic("info")}<b>公開中の作業はまだありません</b><span>${can.admin() ? "「設定」から大項目と作業を登録し、公開してください。" : "作業が公開されるとここに表示されます。"}</span>${can.admin() ? `<button class="btn primary sm" type="button" data-act="mode" data-v="admin">${ic("gear")}設定を開く</button>` : ""}</div>`
@@ -1706,7 +1869,7 @@ function resultsHtml(list, q) {
 
 function resCard(t, h, q) {
   const c = catOf(t.cat);
-  const meta = [["steps", "手順", t.steps.length], ["file", "マニュアル", t.manuals.length], ["dl", "設定データ", t.files.length]];
+  const meta = [["steps", "手順", t.steps.length], ["book", "マニュアル", t.manuals.length], ["dl", "設定データ", t.files.length], ...(t.docs.length ? [["form", "書類", t.docs.length]] : [])];
   return `<button class="card res" type="button" data-act="openTask" data-id="${t.id}">
     <span class="res-body">
       <span class="res-top"><span class="mono">${hl(t.id, q)}</span>${S.w.cat ? "" : `<span>${esc(c.name)}</span>`}</span>
@@ -1732,10 +1895,10 @@ function wkDetail(t, preview = false) {
   const hashCmd = t.files.map(x => `Get-FileHash "$env:USERPROFILE\\Downloads\\${x.name}"`).join("\n");
   const pct = pr.total ? Math.round(pr.done / pr.total * 100) : 0;
   const none = s => `<p class="muted" style="font-size:13px">${s}</p>`;
-  const navItems = [["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ["files", "設定データ", t.files.length], ["dev", "機器", t.devices.length], ["prep", "準備・持参品", t.precheck.length + t.bring.length]];
+  const navItems = [["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ...(t.docs.length ? [["docs", "書類", t.docs.length]] : []), ["files", "設定データ", t.files.length], ["dev", "機器", t.devices.length], ["prep", "準備・持参品", t.precheck.length + t.bring.length]];
 
   return `<div class="wk-c"><div class="wk">
-    ${preview ? "" : `<button class="back" type="button" data-act="goHome">${ic("chev")}作業一覧へ戻る</button>`}
+    ${preview ? "" : `<nav class="crumb" aria-label="現在の位置"><button type="button" data-act="goHome">${ic("grid")}トップ</button>${ic("chev")}<button type="button" data-act="openCat" data-id="${esc(t.cat)}">${esc(c.name)}</button>${ic("chev")}<span class="mono">${esc(t.id)}</span></nav>`}
     <header class="wk-head">
       <div class="wk-crumb"><span class="pill-w">${ic(c.icon)}${esc(c.name)}</span><span class="mono">${esc(t.id)}</span><span class="pill-w" style="padding-left:10px">最新版 ${esc(t.version)}</span></div>
       <h1>${t.title.trim() ? esc(t.title) : "（作業名が未入力です）"}</h1>
@@ -1777,6 +1940,11 @@ function wkDetail(t, preview = false) {
             <button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-act="manual" data-i="${i}" ${dis}>${m.kind === "動画" ? "再生" : "開く"}</button>
           </div>`).join("") : none("マニュアルは登録されていません")}</div>
         </section>
+
+        ${t.docs.length ? `<section class="card wsec" data-sec="docs">
+          <div class="wsec-h"><h2>現場で作成する書類</h2><span class="sub">様式をダウンロードし、記入例を見ながら作成してください</span></div>
+          <div class="docs">${t.docs.map((x, i) => docCard(x, i, dis)).join("")}</div>
+        </section>` : ""}
 
         <section class="card wsec" data-sec="files">
           <div class="wsec-h"><h2>設定データのダウンロード</h2><span class="sub num">${t.files.length}ファイル・合計 ${fmtBytes(total)}</span></div>
@@ -1847,13 +2015,46 @@ function wkDetail(t, preview = false) {
           <div class="prog-rows">${pr.rows.map(r => `<div><span>${r.label}</span><span class="v ${r.d === r.n ? "ok" : ""}">${r.d}/${r.n}</span></div>`).join("")}</div>
           ${preview ? "" : `<div class="prog-actions"><button class="btn sm primary" type="button" data-act="shOpen" data-id="${esc(t.id)}">${ic("sheet")}チェックシートで進める</button>${t.steps.length ? `<button class="btn sm" type="button" data-act="focusStart" data-id="${esc(t.id)}">${ic("steps")}1手順ずつ表示</button>` : ""}<button class="btn sm ghost" type="button" data-act="resetProg">リセット</button></div>`}
         </section>
-        <section class="card prog support-card">
-          <b style="font-size:14px">困ったとき</b>
-          <span style="font-size:13px">技術サポート窓口<br><strong style="font-size:18px">内線 4410</strong><br><span class="muted">作業ID <span class="mono">${esc(t.id)}</span> をお伝えください</span></span>
-        </section>
+        ${preview ? "" : siblingsBox(t)}
+        ${contactsBox(t.cat, t.id)}
       </aside>
     </div>
   </div></div>`;
+}
+
+function siblingsBox(t) {
+  const sib = pubTasks().filter(x => x.cat === t.cat).sort((a, b) => a.order - b.order);
+  if (sib.length < 2) return "";
+  return `<section class="card sib-box"><h3>${ic(catOf(t.cat).icon)}${esc(catOf(t.cat).name)}の作業</h3>
+    <ul>${sib.map(x => `<li><button type="button" data-act="openTask" data-id="${x.id}" ${x.id === t.id ? 'aria-current="page"' : ""}>${esc(x.title)}</button></li>`).join("")}</ul></section>`;
+}
+function docCard(x, i, dis = "") {
+  const ex = x.example, pts = String(x.note || "").split("\n").map(l => l.trim()).filter(Boolean);
+  const thumb = !ex ? "" : ex.fid && isImg(ex.name)
+    ? `<button class="doc-thumb" type="button" data-act="docEx" data-i="${i}" aria-label="記入例を大きく表示" ${dis}><img src="${fileUrl(ex, true)}" alt="記入例：${esc(x.title)}" loading="lazy"><span>${ic("search")}記入例を拡大</span></button>`
+    : `<button class="doc-thumb ph" type="button" data-act="docEx" data-i="${i}" ${dis}><span class="ph-ic">${isPdf(ex.name) ? "PDF" : ic("form")}</span><span>記入例を見る</span></button>`;
+  return `<div class="doc ${thumb ? "has-ex" : ""}">
+    <div class="doc-main">
+      <div class="doc-h"><span class="doc-ic">${ic("form")}</span><b>${x.title ? esc(x.title) : "（書類名が未入力です）"}</b></div>
+      ${pts.length ? `<div class="doc-pts"><div class="sub-h">記入のポイント</div><ul>${pts.map(l => `<li>${esc(l)}</li>`).join("")}</ul></div>` : ""}
+      <div class="doc-acts">
+        ${x.form ? `<button class="btn sm primary" type="button" data-act="docDl" data-i="${i}" data-slot="form" ${dis}>${ic("dl")}様式をダウンロード</button>` : ""}
+        ${ex ? `<button class="btn sm" type="button" data-act="docEx" data-i="${i}" ${dis}>${ic("file")}記入例を見る</button>` : ""}
+        ${x.form ? `<span class="muted num" style="font-size:12px">${esc(x.form.name)}（${fmtBytes(x.form.size)}）</span>` : ""}
+      </div>
+    </div>
+    ${thumb}
+  </div>`;
+}
+function exampleHtml() {
+  const t = taskById(S.layer.id), x = t?.docs[S.layer.i]; if (!x?.example) return "";
+  const ex = x.example;
+  return `<div class="scrim" data-act="closeLayer"></div>
+  <aside class="drawer wide" role="dialog" aria-modal="true" aria-label="記入例">
+    <div class="drawer-h"><span class="chip accent">記入例</span><h2>${esc(x.title)}</h2><button class="btn sm" type="button" data-act="closeLayer">閉じる</button></div>
+    <div class="drawer-b ex-b"><img src="${fileUrl(ex, true)}" alt="記入例：${esc(x.title)}"></div>
+    <div class="drawer-f"><a class="btn sm" href="${fileUrl(ex, true)}" target="_blank" rel="noopener">${ic("search")}別のタブで開く</a>${x.form ? `<button class="btn sm primary" type="button" data-act="docDl" data-i="${S.layer.i}" data-slot="form">${ic("dl")}様式をダウンロード</button>` : "<span></span>"}</div>
+  </aside>`;
 }
 
 function renderWork() {
@@ -2199,7 +2400,7 @@ function manualHtml() {
    ========================================================= */
 function renderAdmin() {
   const sel = S.a.sel, isTask = sel && sel.type === "task";
-  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, history: historyHtml, users: usersHtml, review: reviewHtml, files: filesAdminHtml }[sel.type]();
+  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, contacts: contactsHtml, history: historyHtml, users: usersHtml, review: reviewHtml, files: filesAdminHtml }[sel.type]();
   return `<div class="adm ${sel ? "has-sel" : ""} ${isTask ? "pv-on" : ""}">
     <aside class="tree" id="tree">${treeHtml()}</aside>
     <main class="ed"><div class="ed-in" id="edIn">${body}</div></main>
@@ -2220,6 +2421,7 @@ function treeHtml() {
       ${mi("home", "grid", "概要・入力状況", 0, !a.sel)}
       ${can.approve() ? mi("review", "shield", "承認待ち", pend, st === "review") : ""}
       ${mi("notices", "bell", "お知らせ", 0, st === "notices")}
+      ${mi("contacts", "phone", "困ったときの連絡先", 0, st === "contacts")}
       ${mi("history", "history", "変更履歴", 0, st === "history")}
       ${isSrv() ? mi("files", "zip", "ファイル管理", 0, st === "files") : ""}
       ${can.users() ? mi("users", "users", "ユーザー・権限", 0, st === "users") : ""}
@@ -2357,6 +2559,35 @@ function noticesHtml() {
         <div class="n-prev"><div class="sub-h">現場での表示イメージ</div><div class="notice"><time class="num">${fmtDate(n.date)}</time><span><span class="chip ${n.level}">${LEVELS[n.level]}</span> ${esc(n.text) || "（内容が未入力です）"}</span>${taskById(n.task) ? `<span class="link">${n.task} を開く →</span>` : ""}</div></div>
       </section>`;
     }).join("") || `<div class="empty-row">お知らせはまだありません</div>`}
+  </div>`;
+}
+
+/* 困ったときの連絡先 */
+function contactsHtml() {
+  const d = S.a.draft, appr = can.approve(), dis = appr ? "" : "disabled";
+  const f = (i, k, label, ph, extra = "") => `<div class="fld ${extra}"><label for="${fid(`${i}.${k}`)}">${label}</label><input class="inp" id="${fid(`${i}.${k}`)}" data-bind="${i}.${k}" value="${esc(d[i][k])}" placeholder="${ph}" ${dis}></div>`;
+  return edHead("困ったときの連絡先", "困ったときの連絡先", appr ? `<button class="btn sm primary" type="button" data-act="cAdd">${ic("plus")}連絡先を追加</button>` : "") + `<div class="sect">
+    <p class="sect-intro">現場で困ったときに相談できる窓口や担当者です。トップページと作業ページに表示され、スマホではタップで電話をかけられます。大項目を選ぶと、その大項目の作業ページにだけ表示されます（選ばなければすべての作業に表示）。${appr ? "" : "変更できるのは、公開承認の権限を持つ人だけです。"}</p>
+    ${d.map((c, i) => `<section class="card blk crow">
+      <div class="n-top"><span class="chip">${i + 1}</span><b style="font-size:14px">${esc(c.name) || "（名前が未入力です）"}</b>
+        <span class="tools" style="margin-left:auto">
+          <button class="icon-btn" type="button" data-act="cMove" data-i="${i}" data-d="-1" aria-label="上へ" ${i === 0 || !appr ? "disabled" : ""}>${ic("up")}</button>
+          <button class="icon-btn" type="button" data-act="cMove" data-i="${i}" data-d="1" aria-label="下へ" ${i === d.length - 1 || !appr ? "disabled" : ""}>${ic("down")}</button>
+          <button class="icon-btn del" type="button" data-act="cRm" data-i="${i}" aria-label="連絡先を削除" ${dis}>${ic("trash")}</button></span></div>
+      <div class="fgrid">
+        ${f(i, "name", "名前・窓口名<em>必須</em>", "例：技術サポート窓口、POS 担当（佐藤）")}
+        ${f(i, "dept", "部署", "例：技術課")}
+        ${f(i, "phone", "電話番号", "例：090-0000-0000、内線 4410")}
+        ${f(i, "email", "メールアドレス", "例：support@example.co.jp")}
+        ${f(i, "hours", "受付時間", "例：平日 8:30–19:00")}
+        <div class="fld full"><label for="${fid(`${i}.topics`)}">こんなときに相談</label><textarea class="ta" id="${fid(`${i}.topics`)}" data-bind="${i}.topics" rows="2" placeholder="例：POS の初期設定でエラーが出たとき。作業IDを伝えてください" ${dis}>${esc(c.topics)}</textarea></div>
+        <div class="fld full"><span class="lb">表示する大項目</span><div class="toggles" role="group" aria-label="表示する大項目">
+          <button type="button" data-act="cCat" data-i="${i}" data-v="" aria-pressed="${!c.cats.length}" ${dis}>すべての作業</button>
+          ${catsSorted().map(k => `<button type="button" data-act="cCat" data-i="${i}" data-v="${k.id}" aria-pressed="${c.cats.includes(k.id)}" ${dis}>${esc(k.name)}</button>`).join("")}
+        </div></div>
+      </div>
+      <div class="n-prev"><div class="sub-h">現場での表示イメージ</div>${contactCard(c, true)}</div>
+    </section>`).join("") || `<div class="empty-row">連絡先はまだありません</div>`}
   </div>`;
 }
 
@@ -2596,6 +2827,8 @@ function sectionHtml() {
         ${addBtn("manuals", "マニュアルを追加")}
       </section></div>`;
 
+    case "docs": return docsTab(d);
+
     case "pub": {
       const miss = missing(d), orig = taskById(d.id), isPub = orig?.status === "published", appr = can.approve();
       const noteBox = `<div class="fld"><label for="reviewNote">申請メモ（任意）</label><textarea class="ta" id="reviewNote" rows="2" placeholder="承認する人へ伝えたいこと（変更の理由など）">${esc(S.a.note)}</textarea></div>`;
@@ -2665,6 +2898,7 @@ function renderLayer() {
   const L = S.layer; let h = "";
   if (L?.type === "focus") h = focusHtml();
   else if (L?.type === "manual") h = manualHtml();
+  else if (L?.type === "example") h = exampleHtml();
   if (S.a.pvModal && S.mode === "admin" && S.a.draft && S.a.sel?.type === "task") {
     h += `<div class="scrim top" data-act="pvClose"></div><div class="pv-modal"><div class="phone"><div class="phone-scr" id="pvScr2">${wkDetail(S.a.draft, true)}</div></div><button class="btn" type="button" data-act="pvClose">プレビューを閉じる</button></div>`;
   }
@@ -2755,6 +2989,7 @@ function select(sel) {
   if (sel?.type === "cat") S.a.draft = clone(DATA.categories.find(c => c.id === sel.id));
   else if (sel?.type === "task") { const t = taskById(sel.id); S.a.draft = clone(t); S.a.open[t.cat] = true; S.a.stepOpen = new Set(); }
   else if (sel?.type === "notices") S.a.draft = clone(DATA.notices);
+  else if (sel?.type === "contacts") S.a.draft = clone(DATA.contacts);
   else if (sel?.type === "users") S.a.draft = clone(DATA.users);
   render(); window.scrollTo(0, 0);
   if (sel?.type === "files") loadFileList();
@@ -2772,13 +3007,14 @@ function nextId(cat) {
 function newTask(cat) {
   const id = nextId(cat);
   return { id, cat, order: tasksOf(cat).length + 1, status: "draft", title: "新しい作業", summary: "", minutes: 30, people: 1, industries: [], tags: [],
-    version: "1.0", updated: today(), os: "", devices: [], precheck: [], bring: [], files: [], extractTo: "C:\\Setup\\" + id, steps: [], manuals: [], changelog: "", old: [] };
+    version: "1.0", updated: today(), os: "", devices: [], precheck: [], bring: [], files: [], extractTo: "C:\\Setup\\" + id, steps: [], manuals: [], docs: [], changelog: "", old: [] };
 }
 async function save() {
   const t = S.a.sel?.type;
   if (t === "task") return saveTask();
   if (t === "cat") return saveCat();
   if (t === "notices") return saveNotices();
+  if (t === "contacts") return saveContacts();
   if (t === "users") return saveUsers();
   return true;
 }
@@ -2865,6 +3101,18 @@ async function saveNotices() {
   DATA.notices = clone(d); saveData(); a.dirty = false; a.draft = clone(DATA.notices); render(); toast("お知らせを保存しました");
   return true;
 }
+async function saveContacts() {
+  const a = S.a, d = a.draft;
+  if (!can.approve()) { toast("連絡先を変更できるのは、公開承認の権限を持つ人だけです"); return false; }
+  const bad = d.find(c => !c.name.trim() || (!c.phone.trim() && !c.email.trim()));
+  if (bad) { toast(bad.name.trim() ? `「${bad.name}」の電話番号かメールアドレスを入力してください` : "名前（窓口名）が空の連絡先があります。入力するか、削除してください"); return false; }
+  if (isSrv()) {
+    try { await srvOp("contacts.save", { contacts: d }); a.dirty = false; a.draft = clone(DATA.contacts); render(); toast("連絡先を保存しました"); return true; } catch (e) { failToast(e); return false; }
+  }
+  if (JSON.stringify(d) !== JSON.stringify(DATA.contacts)) log("update", "contact", "", "困ったときの連絡先", "連絡先を更新");
+  DATA.contacts = clone(d); saveData(); a.dirty = false; a.draft = clone(DATA.contacts); render(); toast("連絡先を保存しました");
+  return true;
+}
 async function saveUsers() {
   const a = S.a, d = a.draft, old = DATA.users;
   if (d.some(u => !u.name.trim() || !u.email.trim())) { toast("氏名とメールアドレスは必須です"); return false; }
@@ -2948,7 +3196,7 @@ function upLimitsHtml() {
   </div>`;
 }
 function upListHtml() {
-  return S.up.items.filter(x => x.state !== "done").map(x => {
+  return S.up.items.filter(x => x.state !== "done" && !x.target).map(x => {
     const pct = x.size ? Math.round(x.sent / x.size * 100) : 0;
     const st = x.state === "wait" ? `<span class="up-st">順番待ち</span>`
       : x.state === "up" ? `<span class="up-st num">送信中 ${pct}%（${fmtBytes(x.sent)} / ${fmtBytes(x.size)}）</span>`
@@ -2968,6 +3216,9 @@ function incomingHtml() {
   return R.files.map(f => `<div class="in-row"><span style="display:grid;gap:2px;min-width:0"><span class="up-name">${esc(f.name)}</span><span class="up-st num">${fmtBytes(f.size)}・${f.modified}${f.settled ? "" : "・転送中の可能性があります（1分ほど待ってください）"}</span></span><button class="btn sm primary" type="button" data-act="inImport" data-name="${esc(f.name)}" ${f.settled && !S.up.importing ? "" : "disabled"}>${S.up.importing === f.name ? "取り込み中…" : "取り込む"}</button></div>`).join("");
 }
 function paintUp() {
+  S.up.items.forEach(it => { const e = it.target && document.querySelector(`[data-upk="${it.key}"]`); if (!e) return;
+    if (it.state === "err" || it.state === "cancel") { if (S.a.tab === "docs") { S.up.items = S.up.items.filter(x => x !== it); rerenderSection(); toast(it.err ? `アップロードできませんでした：${it.err}` : "アップロードを中止しました"); } }
+    else e.textContent = it.state === "fin" ? "仕上げ中…" : `アップロード中 ${it.size ? Math.floor(it.sent / it.size * 100) : 0}%`; });
   const a = $("#upList"); if (a) a.innerHTML = upListHtml();
   const b = $("#inList"); if (b) b.innerHTML = incomingHtml();
   const c = $("#upLimits"); if (c) c.innerHTML = upLimitsHtml();
@@ -3033,7 +3284,14 @@ async function uploadOne(it) {
     const fin = await api("upload/finish", {}, { method: "POST", body: { id: it.uploadId }, timeout: 900000 });
     it.state = "done"; it.file = null;
     const d = S.a.draft;
-    if (d && d.id === it.taskId && S.a.sel?.type === "task") {
+    if (it.target) {
+      if (d && d.id === it.taskId && S.a.sel?.type === "task" && d.docs.includes(it.target.doc)) {
+        it.target.doc[it.target.slot] = { name: fin.file.name, size: fin.file.size, sha: fin.file.sha, fid: fin.file.fid };
+        S.up.items = S.up.items.filter(x => x !== it);
+        if (S.a.tab === "docs") rerenderSection(); else touched();
+        toast(`${fin.file.name} をアップロードしました。「保存」すると作業に反映されます`);
+      } else toast(`${fin.file.name} のアップロードは完了しましたが、編集画面から離れたため、書類には設定されていません`);
+    } else if (d && d.id === it.taskId && S.a.sel?.type === "task") {
       d.files.push({ ...fin.file }); rerenderSection();
       toast(`${fin.file.name} をアップロードしました。「保存」すると作業に反映されます`);
     } else toast(`${fin.file.name} のアップロードは完了しましたが、元の作業の編集画面から離れたため、作業には追加されていません。もう一度追加してください`);
@@ -3043,6 +3301,52 @@ async function uploadOne(it) {
   }
   paintUp();
 }
+/* 現場で作成する書類：様式（空の書類）と記入例 */
+const isImg = n => /\.(png|jpe?g|gif|webp)$/i.test(n || "");
+const isPdf = n => /\.pdf$/i.test(n || "");
+const fileUrl = (f, inline) => "api/?r=files/" + encodeURIComponent(f.fid) + (inline ? "&inline=1" : "");
+function docSlot(x, i, slot) {
+  const f = x[slot], lab = slot === "form" ? "様式（記入前の書類）" : "記入例";
+  const hint = slot === "form" ? "Excel・Word・PDF など、現場で印刷・入力する元の書類" : "画像（JPG・PNG）か PDF にすると、現場でそのまま表示できます";
+  const busy = S.up.items.find(u => u.target && u.target.doc === x && u.target.slot === slot && ["wait", "up", "fin"].includes(u.state));
+  const inId = `docIn-${i}-${slot}`;
+  return `<div class="dslot ${f ? "has" : ""}">
+    <div class="dslot-h"><b>${lab}</b><small>${hint}</small></div>
+    ${busy ? `<div class="dslot-f"><span class="file-ico">${ic("upload")}</span><span class="fn">${esc(busy.name)}</span><span class="num muted" style="font-size:12px" data-upk="${busy.key}">アップロード中 ${busy.size ? Math.floor(busy.sent / busy.size * 100) : 0}%</span></div>`
+      : f ? `<div class="dslot-f">
+        ${f.fid && isImg(f.name) ? `<img class="dslot-img" src="${fileUrl(f, true)}" alt="" loading="lazy">` : `<span class="file-ico">${ic(isPdf(f.name) ? "file" : "form")}</span>`}
+        <span style="display:grid;min-width:0"><span class="fn">${esc(f.name)}</span><span class="fm num">${fmtBytes(f.size)}${f.fid ? "" : "・サンプル（実ファイルなし）"}</span></span>
+        <label class="btn sm" for="${inId}">差し替え</label>
+        <button class="icon-btn del" type="button" data-act="docClr" data-i="${i}" data-slot="${slot}" aria-label="${lab}を外す">${ic("trash")}</button>
+      </div>`
+      : `<label class="dslot-add" for="${inId}">${ic("upload")}ファイルを選ぶ</label>`}
+    <input type="file" id="${inId}" data-doc="${i}" data-slot="${slot}" hidden>
+  </div>`;
+}
+function docsTab(d) {
+  if (isSrv() && !S.up.limits && !S.up.loading) loadFilesInfo();
+  return `<div class="sect">
+    <p class="sect-intro">現場で作成する書類（報告書・確認書など）を登録します。記入前の様式と記入例をセットにしておくと、現場で迷わずに書けます。ファイルを選んだあと「保存」すると反映されます。</p>
+    ${d.docs.map((x, i) => `<section class="card blk doc-blk">
+      <div class="row row-doc"><span class="row-no">${i + 1}</span>${inp(`docs.${i}.title`, x.title, "書類の名前（例：作業完了報告書）")}${tools("docs", i, d.docs.length)}</div>
+      <div class="fld"><label for="${fid(`docs.${i}.note`)}">記入のポイント</label><textarea class="ta" id="${fid(`docs.${i}.note`)}" data-bind="docs.${i}.note" rows="3" placeholder="1行に1つずつ。例：作業IDと版を右上に記入する">${esc(x.note)}</textarea><p class="hint">現場では箇条書きで表示されます。</p></div>
+      <div class="dslots">${docSlot(x, i, "form")}${docSlot(x, i, "example")}</div>
+    </section>`).join("") || `<div class="card blk"><div class="empty-row">書類はまだありません。書類がない作業は、このままで構いません。</div></div>`}
+    ${addBtn("docs", "書類を追加")}
+  </div>`;
+}
+async function addDocFile(i, slot, file) {
+  const d = S.a.draft, x = d?.docs[i]; if (!x || !file) return;
+  if (!isSrv()) { x[slot] = { name: file.name, size: file.size, sha: "" }; rerenderSection(); toast(`${file.name} を設定しました`); return; }
+  if (AUTH.offline) { toast("オフラインのため、アップロードできません"); return; }
+  if (!S.up.limits) await loadFilesInfo();
+  const L = S.up.limits;
+  if (L && file.size > L.maxBytes) { toast(`${file.name} は大きすぎるため、ブラウザからは送れません`); return; }
+  if (file.size <= 0) { toast(`${file.name} は空のファイルです`); return; }
+  S.up.items.push({ key: "u" + Math.random().toString(36).slice(2, 8), name: file.name, size: file.size, sent: 0, state: "wait", file, taskId: d.id, chunk: 0, uploadId: "", cancel: false, err: "", target: { doc: x, slot } });
+  rerenderSection(); runUploads();
+}
+
 function filesTabServer(d) {
   if (!S.up.limits && !S.up.loading) loadFilesInfo();
   return `<div class="sect">
@@ -3100,17 +3404,23 @@ const ADD_DEFAULTS = {
   precheck: () => "",
   bring: () => ({ name: "", qty: "1", required: true }),
   steps: () => ({ title: "", body: "", caution: "" }),
-  manuals: () => ({ kind: "PDF", title: "", meta: "", updated: today() })
+  manuals: () => ({ kind: "PDF", title: "", meta: "", updated: today() }),
+  docs: () => ({ title: "", note: "", form: null, example: null })
 };
 
+function scrollToMain() {
+  const sec = $("#resSec"); if (!sec) return;
+  const top = sec.getBoundingClientRect().top + window.scrollY - (parseInt(getComputedStyle(document.documentElement).getPropertyValue("--bar-h")) || 60) - 12;
+  if (window.scrollY > top) window.scrollTo({ top, behavior: "smooth" });
+}
 function refreshWork() {
   if (isSrv() && !AUTH.user) return;   // ログイン画面を上書きしない
   const y = window.scrollY; $("#app").innerHTML = renderWork(); window.scrollTo(0, y);
 }
 function refreshResults() {
   const sec = $("#resSec"); if (!sec) { render(); return; }
-  sec.innerHTML = resultsHtml(workList(), S.w.q);
-  const nav = $("#catNav"); if (nav) nav.innerHTML = catNavHtml();
+  sec.innerHTML = homeMainHtml();
+  const side = $("#homeSide"); if (side) side.innerHTML = contactsBox(S.w.q ? null : S.w.cat);
   const clr = document.querySelector('[data-act="clearQ"]'); if (clr) clr.hidden = !S.w.q;
 }
 
@@ -3129,15 +3439,17 @@ const ACT = {
       window.scrollTo(0, 0);
     });
   },
-  goHome: () => guard(() => { S.mode = "work"; S.w.view = "home"; S.a.dirty = false; S.layer = null; render(); window.scrollTo(0, 0); }),
+  goHome: () => guard(() => { S.mode = "work"; S.w.view = "home"; S.w.cat = null; S.w.q = ""; S.a.dirty = false; S.layer = null; render(); window.scrollTo(0, 0); }),
   copy: el => copyText(el.dataset.v, el.dataset.l || "内容"),
   closeLayer: () => { S.layer = null; S.menuOpen = false; render(); },
 
   /* 現場ビュー */
   setQ: el => { S.w.q = el.dataset.v; render(); },
   clearQ: () => { S.w.q = ""; const n = $("#wq"); if (n) n.value = ""; refreshResults(); n?.focus(); },
-  wCat: el => { S.w.cat = el.dataset.id || null; refreshResults(); },
-  wReset: () => { S.w.cat = null; S.w.q = ""; refreshWork(); },
+  wCat: el => { S.w.cat = el.dataset.id || null; S.w.q = ""; const n = $("#wq"); if (n) n.value = ""; refreshResults(); scrollToMain(); },
+  wReset: () => { S.w.cat = null; S.w.q = ""; const n = $("#wq"); if (n) n.value = ""; refreshResults(); scrollToMain(); },
+  toContacts: () => { const b = $("#ctBox"); if (!b) return; const top = b.getBoundingClientRect().top + window.scrollY - (parseInt(getComputedStyle(document.documentElement).getPropertyValue("--bar-h")) || 60) - 12; window.scrollTo({ top, behavior: "smooth" }); },
+  openCat: el => { S.mode = "work"; S.w.view = "home"; S.w.cat = el.dataset.id; S.w.q = ""; S.layer = null; render(); window.scrollTo(0, 0); },
   openTask: el => {
     const id = el.dataset.id;
     S.mode = "work"; S.w.view = "task"; S.w.taskId = id;
@@ -3169,6 +3481,19 @@ const ACT = {
     toast(isSrv() ? `${n}件のダウンロードを開始しました` : `サンプルのためダウンロードは行いません（${t.files.length}ファイル）`);
     refreshWork();
   },
+  docDl: async el => {
+    const t = taskById(S.layer?.id || S.w.taskId), f = t?.docs[+el.dataset.i]?.[el.dataset.slot]; if (!f) return;
+    if (f.fid && isSrv()) { if (await startDownload(f)) toast(`ダウンロードを開始しました：${f.name}`); }
+    else toast(isSrv() ? `このファイルは、まだサーバーに登録されていません：${f.name}` : `サンプルのためダウンロードは行いません：${f.name}`);
+  },
+  docEx: el => {
+    const t = taskById(S.w.taskId), i = +el.dataset.i, ex = t?.docs[i]?.example; if (!ex) return;
+    if (!ex.fid || !isSrv()) { toast(`サンプルのため記入例は表示できません：${ex.name}`); return; }
+    if (isImg(ex.name)) { S.layer = { type: "example", id: t.id, i }; renderLayer(); return; }
+    if (isPdf(ex.name)) { window.open(fileUrl(ex, true), "_blank", "noopener"); return; }
+    startDownload(ex).then(ok => ok && toast(`記入例をダウンロードしました：${ex.name}`));
+  },
+  docClr: el => { const x = S.a.draft.docs[+el.dataset.i]; if (!x) return; x[el.dataset.slot] = null; rerenderSection(); },
   resetProg: () => { delete PROG[S.w.taskId]; saveProg(); refreshWork(); toast("進み具合をリセットしました"); },
   focusStart: el => {
     const t = taskById(el.dataset.id); if (!t || !t.steps.length) return;
@@ -3456,6 +3781,10 @@ const ACT = {
   },
 
   /* お知らせ・ユーザー・履歴 */
+  cAdd: () => { S.a.draft.push({ id: "c" + Date.now().toString(36), name: "", dept: "", phone: "", email: "", hours: "", topics: "", cats: [] }); $("#edIn").innerHTML = contactsHtml(); touched(); $(`#f-${S.a.draft.length - 1}-name`)?.focus(); },
+  cRm: el => { S.a.draft.splice(+el.dataset.i, 1); $("#edIn").innerHTML = contactsHtml(); touched(); },
+  cMove: el => { const a = S.a.draft, i = +el.dataset.i, j = i + +el.dataset.d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; $("#edIn").innerHTML = contactsHtml(); touched(); },
+  cCat: el => { const c = S.a.draft[+el.dataset.i], v = el.dataset.v; c.cats = !v ? [] : c.cats.includes(v) ? c.cats.filter(x => x !== v) : [...c.cats, v]; $("#edIn").innerHTML = contactsHtml(); touched(); },
   nAdd: () => { S.a.draft.unshift({ id: "n" + Date.now().toString(36), date: today(), level: "accent", text: "", task: "", status: "draft", until: "" }); $("#edIn").innerHTML = noticesHtml(); touched(); $("#f-0-text")?.focus(); },
   nRm: el => { S.a.draft.splice(+el.dataset.i, 1); $("#edIn").innerHTML = noticesHtml(); touched(); },
   nStatus: el => { S.a.draft[+el.dataset.i].status = el.dataset.v; $("#edIn").innerHTML = noticesHtml(); touched(); },
@@ -3491,7 +3820,7 @@ document.addEventListener("click", e => {
 /* 検索欄（日本語入力の変換中は更新しない） */
 let rvT;
 function onSearch(el) {
-  if (el.id === "wq") { S.w.q = el.value.trim(); if (S.w.q) S.w.cat = null; refreshResults(); }
+  if (el.id === "wq") { S.w.q = el.value.trim(); refreshResults(); }
   else if (el.id === "rvQ") { S.rc.f.q = el.value; clearTimeout(rvT); rvT = setTimeout(() => loadRecords(true), 250); }
   else if (el.id === "treeQ") {
     S.a.treeQ = el.value; const pos = el.selectionStart;
@@ -3521,6 +3850,7 @@ document.addEventListener("compositionend", e => { if (e.target.id === "wq" || e
 document.addEventListener("change", e => {
   const el = e.target;
   if (el.id === "fileIn") { addFiles(el.files); el.value = ""; return; }
+  if (el.dataset.doc != null && el.type === "file") { addDocFile(+el.dataset.doc, el.dataset.slot, el.files[0]); el.value = ""; return; }
   if (el.id === "rvTask") { S.rc.f.task = el.value; loadRecords(true); return; }
   if (el.id === "rvFrom" || el.id === "rvTo") { S.rc.f[el.id === "rvFrom" ? "from" : "to"] = el.value; loadRecords(true); return; }
   if (el.id === "rvDays") { S.rc.f.days = +el.value; loadStats(); return; }

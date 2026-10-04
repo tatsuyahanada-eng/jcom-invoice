@@ -42,6 +42,10 @@ function install_sample(): int
         $pdo->prepare('INSERT INTO notices (id, notice_date, lvl, body, task, status, until_date) VALUES (?,?,?,?,?,?,?)')
             ->execute([$n['id'], $n['date'], $n['level'], $n['text'], $n['task'], $n['status'], $n['until'] ?: null]);
     }
+    if (!empty($seed['contacts'])) {
+        $pdo->prepare('INSERT INTO settings (k, v, updated_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE v = VALUES(v)')
+            ->execute(['contacts', json_encode($seed['contacts'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), date('Y-m-d H:i')]);
+    }
     log_history('u1', 'create', 'task', '', 'サンプルの作業データ', '初期データとして ' . count($seed['tasks']) . ' 件の作業を登録');
     $pdo->commit();
     return count($seed['tasks']);
