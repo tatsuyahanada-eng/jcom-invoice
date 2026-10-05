@@ -189,7 +189,7 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .vtog button svg.i { width: 14px; height: 14px; }
 .vtog button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
 .reg { display: grid; overflow: hidden; }
-.reg-h, .reg-r { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.2fr) minmax(0, 1.4fr) 54px 76px 76px 50px 108px 84px; gap: 10px; align-items: center; padding: 10px 16px; }
+.reg-h, .reg-r { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.6fr) minmax(0, 1.4fr) 44px 72px 72px 44px 96px 80px; gap: 10px; align-items: center; padding: 10px 16px; }
 .reg.fl .reg-h, .reg.fl .reg-r { grid-template-columns: minmax(0, 2.5fr) minmax(0, 1.3fr) minmax(0, 1.3fr) minmax(0, 1.9fr) 96px; padding: 14px 16px 14px 14px; gap: 14px; }
 .reg-h { font-size: 11.5px; font-weight: 700; color: var(--muted); background: var(--surface-2); border-bottom: 1px solid var(--line); }
 .reg-r { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--fg); position: relative; cursor: pointer; transition: background .15s ease, box-shadow .15s ease; }
@@ -2822,7 +2822,7 @@ function admListHtml() {
   const rows = admRows(), q = S.a.list.q.trim();
   if (!rows.length) return `<div class="empty-row">${DATA.tasks.length ? "条件に合うものがありません" : "まだ何も登録されていません。「新しく登録」から始めてください。"}</div>`;
   return `<div class="reg-count muted num">${rows.length}件</div>
-  <div class="reg adm">
+  <div class="reg admtbl">
     <div class="reg-h"><span>作業名</span><span>大項目</span><span>対象機器・型番</span><span class="c">手順</span><span class="c">設定データ</span><span class="c">マニュアル</span><span class="c">書類</span><span>状態・更新日</span><span></span></div>
     ${rows.map(({ t, h }) => `<div class="reg-r" role="button" tabindex="0" style="${catStyle(catOf(t.cat))}" data-act="selTask" data-id="${esc(t.id)}">
       <span class="reg-t"><b>${hl(t.title || "（作業名なし）", q)}</b><small class="mono">${hl(t.id, q)}</small>${h.why ? `<small class="res-why">${esc(h.why)}</small>` : ""}</span>
