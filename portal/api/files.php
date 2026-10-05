@@ -90,13 +90,18 @@ function load_upload(string $id, array $u): array
 
 function route_upload(string $action): never
 {
-    $u = require_role('editor');
+    $u = require_login();
     if ($action === 'init') {
         require_same_site_write();
         $b = read_json(8192);
         $name = clean_name((string)($b['name'] ?? ''));
         $size = (int)($b['size'] ?? 0);
         $L = upload_limits();
+        // 作業記録の添付（画像・PDF）は、ログインしている全員が上げられる。それ以外のファイルは、編集の権限が必要
+        $purpose = ($b['purpose'] ?? '') === 'record' ? 'record' : '';
+        if ($purpose === '') require_role('editor');
+        elseif (!in_array(strtolower(pathinfo($name, PATHINFO_EXTENSION)), LOG_UPLOAD_EXT, true)) fail(422, '添付できるのは、画像（JPG・PNG・GIF・WebP）と PDF だけです');
+        elseif ($size > LOG_UPLOAD_MAX) fail(413, '添付できるのは、1ファイル ' . fmt_bytes(LOG_UPLOAD_MAX) . ' までです');
         if ($name === '') fail(422, 'ファイル名が正しくありません');
         if ($size <= 0) fail(422, '空のファイルはアップロードできません');
         if ($size > $L['maxBytes']) fail(413, 'ブラウザから送れるのは、1ファイル ' . fmt_bytes($L['maxBytes']) . ' までです。これより大きいファイルは FTP で転送してください', ['limits' => $L]);
@@ -107,17 +112,19 @@ function route_upload(string $action): never
         $id = bin2hex(random_bytes(16));
         [$part, $meta] = tmp_paths($id);
         file_put_contents($part, '');
-        file_put_contents($meta, json_encode(['name' => $name, 'size' => $size, 'user' => $u['id'], 'created' => time()]));
+        file_put_contents($meta, json_encode(['name' => $name, 'size' => $size, 'user' => $u['id'], 'created' => time(), 'purpose' => $purpose]));
         json_out(['ok' => true, 'uploadId' => $id, 'received' => 0, 'chunkBytes' => $L['chunkBytes'], 'name' => $name]);
     }
     if ($action === 'status') {
         [$m, $part] = load_upload((string)($_GET['id'] ?? ''), $u);
+        if (($m['purpose'] ?? '') !== 'record') require_role('editor');
         clearstatcache();
         json_out(['ok' => true, 'received' => (int)filesize($part), 'size' => $m['size'], 'chunkBytes' => upload_limits()['chunkBytes']]);
     }
     if ($action === 'chunk') {
         require_same_site_write();
         [$m, $part] = load_upload((string)($_GET['id'] ?? ''), $u);
+        if (($m['purpose'] ?? '') !== 'record') require_role('editor');
         $offset = (int)($_GET['offset'] ?? -1);
         $len = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
         $L = upload_limits();
@@ -141,21 +148,25 @@ function route_upload(string $action): never
         require_same_site_write();
         $b = read_json(2048);
         [$m, $part, $meta] = load_upload((string)($b['id'] ?? ''), $u);
+        $isRec = ($m['purpose'] ?? '') === 'record';
+        if (!$isRec) require_role('editor');
         clearstatcache(true, $part);
         if ((int)filesize($part) !== (int)$m['size']) fail(409, 'まだ全部届いていません', ['received' => (int)filesize($part)]);
+        if ($isRec && !log_file_ok($part, $m['name'])) { @unlink($part); @unlink($meta); fail(422, '画像（JPG・PNG・GIF・WebP）か PDF として読み取れないファイルです'); }
         @set_time_limit(0);
         $sha = hash_file('sha256', $part);
         $fid = bin2hex(random_bytes(16));
         if (!@rename($part, storage_sub('files') . '/' . $fid)) fail(500, 'ファイルを保存できません');
         @unlink($meta);
         db()->prepare('INSERT INTO files (id, orig_name, size, sha256, uploaded_by, uploaded_at, source) VALUES (?,?,?,?,?,?,?)')
-            ->execute([$fid, $m['name'], $m['size'], $sha, $u['id'], date('Y-m-d H:i:s'), 'browser']);
+            ->execute([$fid, $m['name'], $m['size'], $sha, $u['id'], date('Y-m-d H:i:s'), $isRec ? 'record' : 'browser']);
         json_out(['ok' => true, 'file' => file_out(file_row($fid))]);
     }
     if ($action === 'cancel') {
         require_same_site_write();
         $b = read_json(2048);
-        [, $part, $meta] = load_upload((string)($b['id'] ?? ''), $u);
+        [$m, $part, $meta] = load_upload((string)($b['id'] ?? ''), $u);
+        if (($m['purpose'] ?? '') !== 'record') require_role('editor');
         @unlink($part); @unlink($meta);
         json_out(['ok' => true]);
     }
@@ -174,6 +185,13 @@ function fmt_bytes(int $b): string
 function can_download(array $u, string $fid): bool
 {
     if (role_lv($u) >= 1) return true;
+    ensure_logs();
+    $l = db()->prepare('SELECT 1 FROM work_log_files WHERE file_id = ? LIMIT 1');
+    $l->execute([$fid]);
+    if ($l->fetchColumn()) return true;   // 作業記録の添付は、ログインしている全員が見られる
+    $own = db()->prepare("SELECT 1 FROM files WHERE id = ? AND source = 'record' AND uploaded_by = ?");
+    $own->execute([$fid, $u['id']]);
+    if ($own->fetchColumn()) return true;   // 記録に付ける前の（上げたばかりの）添付は、上げた本人が確認できる
     $s = db()->prepare("SELECT 1 FROM tasks WHERE status = 'published' AND body LIKE ? LIMIT 1");
     $s->execute(['%"fid":"' . $fid . '"%']);   // 閲覧のみ：公開中の作業のファイルだけ
     return (bool)$s->fetchColumn();
@@ -248,7 +266,11 @@ function file_usage(): array
                 foreach (array_unique($m[1]) as $fid) $used[$fid][] = ['id' => $t['id'], 'title' => $t['title'], 'where' => $where];
             }
         };
-        $add((string)$t['body'], $t['status'] === 'published' ? '公開中' : '下書き');
+        $add((string)$t['body'], $t['status'] === 'published' ? '公開中' : '非公開');
+    }
+    ensure_logs();   // 作業記録に添付されているファイルも、使用中として扱う（削除できない）
+    foreach (db()->query('SELECT lf.file_id, l.id, l.place FROM work_log_files lf JOIN work_logs l ON l.id = lf.log_id')->fetchAll() as $r) {
+        $used[$r['file_id']][] = ['id' => $r['id'], 'title' => $r['place'], 'where' => '作業記録'];
     }
     return $used;
 }

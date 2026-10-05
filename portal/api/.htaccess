@@ -1,7 +1,7 @@
 DirectoryIndex index.php
 
 # 設定・スキーマ・内部のプログラムは Web から直接読めないようにする（setup.php と index.php だけが入口）
-<FilesMatch "^(config\.php|config\.sample\.php|lib\.php|auth\.php|users\.php|data\.php|files\.php|ext\.php|install\.php|migrate\.php|schema\.sql|seed\.json|setup-key\.txt)$">
+<FilesMatch "^(config\.php|config\.sample\.php|lib\.php|auth\.php|users\.php|data\.php|files\.php|ext\.php|logs\.php|install\.php|migrate\.php|schema\.sql|seed\.json|setup-key\.txt)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

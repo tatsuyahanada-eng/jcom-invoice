@@ -1,41 +1,34 @@
--- WorkBase Portal: チェックシートの作業記録
+-- WorkBase Portal
 -- MySQL 5.7+ / 8.x、MariaDB 10.3+ で動作します。文字コードは utf8mb4。
 -- 実行: php api/migrate.php   （または phpMyAdmin などでこのファイルをそのまま実行）
 
-CREATE TABLE IF NOT EXISTS work_records (
-  id             VARCHAR(40)       NOT NULL COMMENT '端末で採番した記録ID（再送しても二重登録されない）',
-  task_id        VARCHAR(20)       NOT NULL COMMENT '作業ID（例：WK-1101）',
-  task_title     VARCHAR(255)      NOT NULL COMMENT '記録時点の作業名',
-  task_version   VARCHAR(20)       NOT NULL DEFAULT '' COMMENT '記録時点の版',
-  place          VARCHAR(255)      NOT NULL DEFAULT '' COMMENT '店舗・案件名',
-  worker_name    VARCHAR(100)      NOT NULL DEFAULT '' COMMENT '作業者（画面で入力）',
-  auth_user      VARCHAR(100)      NOT NULL DEFAULT '' COMMENT 'ログインユーザー（Basic認証など。サーバーが記録）',
-  completed_at   DATETIME          NOT NULL COMMENT '作業完了日時（日本時間）',
-  total_items    SMALLINT UNSIGNED NOT NULL,
-  done_items     SMALLINT UNSIGNED NOT NULL,
-  skipped_reason TEXT              NULL COMMENT '未完了のまま記録した理由',
-  notes          TEXT              NULL COMMENT '備考',
-  created_at     TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'サーバーに届いた日時',
+-- 作業記録：いつ・誰が・どの店舗で・どんな作業をしたか、その結果。添付（報告書の写真・PDF）は work_log_files
+CREATE TABLE IF NOT EXISTS work_logs (
+  id         VARCHAR(24)  NOT NULL,
+  worked_on  DATE         NOT NULL COMMENT '作業日',
+  place      VARCHAR(200) NOT NULL COMMENT '店舗名',
+  task_id    VARCHAR(20)  NOT NULL DEFAULT '' COMMENT '作業ID（作業を選んだとき）',
+  task_title VARCHAR(255) NOT NULL COMMENT '作業名（記録時点。選ばずに入力した内容も入る）',
+  result     VARCHAR(10)  NOT NULL DEFAULT 'done' COMMENT 'done 完了 / partial 一部未完了 / stopped 中止',
+  notes      TEXT         NOT NULL,
+  user_id    VARCHAR(24)  NOT NULL COMMENT '記録したユーザー（ログインユーザー）',
+  user_name  VARCHAR(100) NOT NULL COMMENT '記録時点の名前',
+  username   VARCHAR(50)  NOT NULL DEFAULT '',
+  created_at DATETIME     NOT NULL,
+  updated_at DATETIME     NOT NULL,
   PRIMARY KEY (id),
-  KEY idx_completed (completed_at),
-  KEY idx_task (task_id, completed_at),
-  KEY idx_place (place),
-  KEY idx_worker (worker_name)
+  KEY idx_date (worked_on, created_at),
+  KEY idx_place (place(100)),
+  KEY idx_user (user_id),
+  KEY idx_task (task_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS work_record_items (
-  id         BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
-  record_id  VARCHAR(40)       NOT NULL,
-  task_id    VARCHAR(20)       NOT NULL COMMENT '集計用（work_records.task_id の複製）',
-  seq        SMALLINT UNSIGNED NOT NULL COMMENT 'チェックシート上の並び順',
-  section    VARCHAR(40)       NOT NULL COMMENT 'bring / prep / files / steps / final',
-  item_key   VARCHAR(255)      NOT NULL COMMENT '項目の識別子（例：steps:2）',
-  label      VARCHAR(500)      NOT NULL COMMENT '記録時点の項目名',
-  checked    TINYINT(1)        NOT NULL,
-  PRIMARY KEY (id),
-  KEY idx_record (record_id, seq),
-  KEY idx_missed (task_id, checked, item_key(100)),
-  CONSTRAINT fk_items_record FOREIGN KEY (record_id) REFERENCES work_records (id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS work_log_files (
+  log_id  VARCHAR(24) NOT NULL,
+  file_id CHAR(32)    NOT NULL,
+  ord     INT         NOT NULL DEFAULT 0,
+  PRIMARY KEY (log_id, file_id),
+  KEY idx_file (file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

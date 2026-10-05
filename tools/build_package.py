@@ -15,7 +15,7 @@ PREFIX = 'workbase-portal/'
 FILES = [
     'index.html', 'manifest.webmanifest', 'sw.js', 'README.md',
     'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
-    'api/.htaccess', 'api/index.php', 'api/lib.php', 'api/auth.php', 'api/users.php', 'api/data.php', 'api/files.php', 'api/ext.php',
+    'api/.htaccess', 'api/index.php', 'api/lib.php', 'api/auth.php', 'api/users.php', 'api/data.php', 'api/files.php', 'api/ext.php', 'api/logs.php',
     'api/install.php', 'api/setup.php', 'api/migrate.php', 'api/schema.sql', 'api/seed.json', 'api/config.sample.php',
     'storage/.htaccess',
 ]
