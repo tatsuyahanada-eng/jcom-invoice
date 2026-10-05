@@ -8,6 +8,7 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/users.php';
 require __DIR__ . '/data.php';
 require __DIR__ . '/files.php';
+require __DIR__ . '/ext.php';
 
 /*
  * WorkBase Portal API（health と session 以外は、ログインが必要）
@@ -17,7 +18,8 @@ require __DIR__ . '/files.php';
  *   GET  ?r=bootstrap              画面に必要なデータ一式（権限に応じて内容が変わる）
  *   POST ?r=data/{op}              作業・大項目・お知らせ・ユーザーの変更（権限はサーバーで判定）
  *   POST ?r=upload/{init|chunk|finish|cancel}  GET ?r=upload/status   ファイルのアップロード（分割・再開）
- *   GET  ?r=files/limits | files/incoming | files/list | files/{id}   POST ?r=files/import | files/delete
+ *   GET  ?r=files/limits | files/list | files/{id}   POST ?r=files/delete
+ *   GET  ?r=ext/list | files/x{id}（FTP のファイル）   POST ?r=ext/save | ext/delete
  *   POST ?r=records                作業記録の登録（同じ id は二重登録しない）
  *   GET  ?r=records                一覧  q, task, worker, status(ok|skipped), from, to, limit, offset
  *   GET  ?r=records/{id}           詳細（項目ごとのチェック結果つき）
@@ -247,11 +249,13 @@ function main(): void
         if (preg_match('#^upload/(init|chunk|finish|cancel)$#', $route, $m) && $method === 'POST') route_upload($m[1]);
         if ($route === 'upload/status' && $method === 'GET') route_upload('status');
         if ($route === 'files/limits' && $method === 'GET') { require_role('editor'); json_out(['ok' => true, 'limits' => upload_limits()]); }
-        if ($route === 'files/incoming' && $method === 'GET') route_incoming();
         if ($route === 'files/list' && $method === 'GET') route_file_list();
         if ($route === 'files/delete' && $method === 'POST') route_file_delete();
-        if ($route === 'files/import' && $method === 'POST') route_import();
+        if ($route === 'ext/list' && $method === 'GET') route_ext_list();
+        if ($route === 'ext/save' && $method === 'POST') route_ext_save();
+        if ($route === 'ext/delete' && $method === 'POST') route_ext_delete();
         if (preg_match('#^files/([a-f0-9]{32})$#', $route, $m) && $method === 'GET') route_download($m[1]);
+        if (preg_match('#^files/(x[a-f0-9]{12})$#', $route, $m) && $method === 'GET') route_ext_download($m[1]);
         if ($route === 'records' && $method === 'POST') { require_same_site_write(); create_record(); }
         if ($route === 'records' && $method === 'GET') list_records();
         if (preg_match('#^records/([A-Za-z0-9_-]{1,40})$#', $route, $m) && $method === 'GET') get_record($m[1]);

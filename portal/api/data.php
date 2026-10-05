@@ -55,9 +55,12 @@ function bootstrap_payload(array $u): array
     $cats = array_map(fn($r) => ['id' => $r['id'], 'order' => (int)$r['ord'], 'name' => $r['name'], 'icon' => $r['icon'], 'desc' => $r['descr']],
         $pdo->query('SELECT * FROM categories ORDER BY ord, id')->fetchAll());
     $tasks = [];
+    $extMap = ext_by_task();
     foreach ($pdo->query('SELECT * FROM tasks ORDER BY ord, id') as $r) {
         if ($lv < 1 && $r['status'] !== 'published') continue;   // 閲覧のみ：公開中の作業だけ
-        $tasks[] = task_out($r, $lv >= 1);
+        $t = task_out($r, $lv >= 1);
+        $t['ext'] = $extMap[$r['id']] ?? [];   // FTP で置いたファイル（登録画面で、使う作業を指定したもの）
+        $tasks[] = $t;
     }
     $notices = [];
     foreach ($pdo->query('SELECT * FROM notices ORDER BY notice_date DESC, id') as $r) {
@@ -322,6 +325,10 @@ function op_task_delete(array $u, array $b): array
 {
     $t = fetch_task((string)($b['id'] ?? '')) ?? fail(404, '作業が見つかりません');
     db()->prepare('DELETE FROM tasks WHERE id = ?')->execute([$t['id']]);
+    foreach (db()->query('SELECT id, tasks FROM ext_files')->fetchAll() as $x) {   // FTP のファイルの「使う作業」から外す（番号が再利用されても、新しい作業に結び付かないように）
+        $l = array_values(array_filter((array)json_decode((string)$x['tasks'], true), fn($v) => $v !== $t['id']));
+        db()->prepare('UPDATE ext_files SET tasks = ? WHERE id = ?')->execute([json_encode($l), $x['id']]);
+    }
     log_history($u['id'], 'delete', 'task', $t['id'], $t['title'], '作業を削除');
     return ['message' => "{$t['id']} を削除しました"];
 }
@@ -498,7 +505,8 @@ function run_data_op(string $op): never
     ];
     if (!isset($handlers[$op])) fail(404, '不明な操作です');
     $pdo = db();
-    if ($op === 'contacts.save') ensure_settings();   // 表の作成（DDL）はトランザクションの外で行う（MySQL は DDL で暗黙にコミットするため）
+    if ($op === 'contacts.save') ensure_settings();
+    if ($op === 'task.delete') ensure_ext();   // 表の作成（DDL）はトランザクションの外で行う（MySQL は DDL で暗黙にコミットするため）
     $pdo->beginTransaction();
     try {
         $res = $handlers[$op]($u, $b);

@@ -15,7 +15,7 @@ PREFIX = 'workbase-portal/'
 FILES = [
     'index.html', 'manifest.webmanifest', 'sw.js', 'README.md',
     'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
-    'api/.htaccess', 'api/index.php', 'api/lib.php', 'api/auth.php', 'api/users.php', 'api/data.php', 'api/files.php',
+    'api/.htaccess', 'api/index.php', 'api/lib.php', 'api/auth.php', 'api/users.php', 'api/data.php', 'api/files.php', 'api/ext.php',
     'api/install.php', 'api/setup.php', 'api/migrate.php', 'api/schema.sql', 'api/seed.json', 'api/config.sample.php',
     'storage/.htaccess',
 ]
@@ -71,9 +71,10 @@ def install_text(key: str, built: str, rev: str) -> str:
 
 ■ 大きなファイルを FTP で置くとき
   ブラウザからのアップロードは、1ファイル 2GB までです（設定で変更できます）。
-  それより大きいファイルは、FTP で  portal/storage/incoming/  に置いてください。
-  置いて1分ほどしてから、「設定」→ 作業の編集 →「ファイル」タブの
-  「FTP で転送したファイルを取り込む」で登録します。
+  EXE など、それより大きいファイルは、FTP で  storage/incoming/  に置いてください
+  （サブフォルダも使えます）。置いたあと、「設定」→「FTPファイル」の画面で、
+  そのファイルを「どの作業で使うか」とあわせて登録します。
+  ファイルは移動もコピーもされず、置いた場所のままダウンロードに使われます。
 
 ■ 更新するとき
   新しい ZIP の中身で、ファイルを上書きします。ただし、次は上書きしないでください。

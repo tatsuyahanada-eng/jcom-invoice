@@ -13,6 +13,7 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require __DIR__ . '/install.php';
 require __DIR__ . '/files.php';
+require __DIR__ . '/ext.php';
 
 install_schema();
 echo "テーブルを作成しました（または既に存在します）\n";

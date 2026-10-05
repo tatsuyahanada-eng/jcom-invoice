@@ -219,6 +219,26 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .esec-h em { font-style: normal; font-size: 11.5px; color: var(--danger); font-weight: 700; }
 .esec-n { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--surface); display: grid; place-items: center; font-size: 13px; flex: none; }
 .esec .sect { gap: 10px; }
+.ex-list { display: grid; }
+.ex-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.ex-list > .ex-row:first-child { border-top: 0; }
+.ex-p { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.ex-p b { font-size: 14px; overflow-wrap: anywhere; }
+.ex-p small { font-size: 12px; color: var(--muted); }
+.ex-dir { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.ex-row:not(.reg) .ex-p { display: block; }
+.ex-row:not(.reg) .ex-p b { font-size: 14px; }
+.ex-row:not(.reg) .ex-p small { display: block; }
+.ex-d { font-size: 13px; }
+.ex-t { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.ex-ops { display: flex; gap: 6px; flex: none; }
+.ex-man { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; font-size: 13px; font-weight: 700; }
+.ex-man-in { display: flex; gap: 8px; }
+.ex-man-in .inp { flex: 1; min-width: 0; }
+.ex-tasks { max-height: 260px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; display: grid; gap: 4px; margin-top: 4px; }
+.ex-g { display: grid; gap: 0; }
+.ex-g > b { font-size: 12px; color: var(--muted); padding: 6px 4px 2px; }
+@media (max-width: 640px) { .ex-row { flex-direction: column; align-items: stretch; } .ex-ops { justify-content: flex-end; } }
 details.more { border-top: 1px solid var(--line); padding-top: 10px; }
 details.more summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--accent); }
 details.more[open] summary { margin-bottom: 10px; }
@@ -421,7 +441,7 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .wk-head p { font-size: 13.5px; }
   .wk-facts { gap: 6px 18px; }
   .wk-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .wk-side { position: static; order: -1; }
+  .wk-side { position: static; }
   .prog { padding: 12px 14px; gap: 8px; }
   .prog-rows { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; }
   .prog-rows div { flex-direction: column-reverse; gap: 0; font-size: 11.5px; }
@@ -1456,12 +1476,12 @@ const ROLES = {
   admin: { label: "管理者", lv: 3, cls: "warn", desc: "編集に加えて、ユーザーの登録と権限の変更ができます。" }
 };
 const PERMS = [
-  ["現場ビューで作業を探す・ダウンロード・チェックシート", [1, 1, 1]],
+  ["作業一覧の閲覧・検索・ダウンロード・チェックシート", [1, 1, 1]],
   ["作業・大項目・お知らせ・連絡先の登録と編集（保存するとすぐ反映）", [0, 1, 1]],
   ["ユーザーの登録・権限の変更", [0, 0, 1]]
 ];
 const HACT = { create: ["新規作成", "accent"], update: ["更新", ""], request: ["承認申請", "warn"], publish: ["公開", "ok"], reject: ["差し戻し", "danger"], delete: ["削除", "danger"] };
-const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー", file: "ファイル", contact: "連絡先" };
+const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー", file: "ファイル", contact: "連絡先", ext: "FTPファイル" };
 const LEVELS = { danger: "重要", warn: "期限あり", accent: "更新" };
 
 /* サーバーに接続できないときの確認用に、サンプルの作業記録を作る（サーバーには送らない） */
@@ -1501,7 +1521,7 @@ const isSrv = () => AUTH.mode === "server";
 /** 以前の版で保存したデータにも、新しい項目（書類・連絡先）を補う */
 function fixData(d) {
   d.contacts ||= (AUTH.mode === "server" ? [] : clone(DEFAULT_DATA.contacts));
-  (d.tasks || []).forEach(t => { t.docs ||= []; t.review = null; t.rejected = null; });   // 承認の仕組みは廃止した
+  (d.tasks || []).forEach(t => { t.docs ||= []; t.ext ||= []; t.review = null; t.rejected = null; });   // 承認の仕組みは廃止した
   (d.users || []).forEach(u => { if (!ROLES[u.role]) u.role = "editor"; });   // 旧版の「公開承認」は「編集」に
   return d;
 }
@@ -1517,7 +1537,8 @@ const saveRecords = () => store.set("portal3.records", RECORDS);
 const S = {
   mode: location.hash === "#admin" ? "admin" : "work",
   me: store.get("portal3.me", "u1"), menuOpen: false,
-  up: { limits: null, loading: false, items: [], incoming: null, importing: null },
+  up: { limits: null, loading: false, items: [] },
+  ex: { data: null, err: "" },
   fl: { items: null, totals: null, err: "", filter: "" },
   w: { view: "home", listMode: store.get("portal4.listMode", false), taskId: null, cat: null, ind: null, q: "", shClosed: {}, shOnly: false, recId: null },
   rc: { f: { q: "", task: "", status: "", from: "", to: "", days: 90 }, list: [], srv: [], srvLoaded: 0, total: 0, hasMore: false, loading: false, busy: false, again: false, err: "", stats: null, detail: null, detailErr: "", recent: null },
@@ -1550,7 +1571,9 @@ const catOf = id => DATA.categories.find(c => c.id === id) || { name: "未分類
 const catsSorted = () => [...DATA.categories].sort((a, b) => a.order - b.order);
 const tasksOf = cid => DATA.tasks.filter(t => t.cat === cid).sort((a, b) => a.order - b.order);
 const taskById = id => DATA.tasks.find(t => t.id === id);
-const totalSize = t => t.files.reduce((a, x) => a + (x.size || 0), 0);
+/** この作業のダウンロード用ファイル：画面からアップロードしたもの＋FTP で置いて登録したもの */
+function allFiles(t) { return [...t.files, ...(t.ext || []).map(x => ({ name: x.name, size: x.size, desc: x.desc, sha: "", fid: x.id, ext: true, missing: x.missing }))]; }
+function totalSize(t) { return allFiles(t).reduce((a, x) => a + (x.size || 0), 0); }
 function hl(text, q) {
   const s = String(text ?? "");
   if (!q) return esc(s);
@@ -1583,7 +1606,7 @@ function sectionState(t) {
     basic: t.title.trim() && t.summary.trim() ? "ok" : "need",
     dev: t.devices.length || "need",
     prep: n || "need",
-    files: t.files.length || "opt",
+    files: allFiles(t).length || "opt",
     steps: t.steps.length || "need",
     man: t.manuals.length || "opt",
     docs: t.docs.length || "opt",
@@ -1620,7 +1643,7 @@ function searchHit(t, q) {
   if (has(t.title) || has(t.id)) return { hit: true };
   const d = t.devices.find(d => has(d.model) || has(d.name) || has(d.type));
   if (d) return { hit: true, why: has(d.model) ? `型番「${d.model}」に一致` : `機器「${d.name}」に一致` };
-  const fl = t.files.find(x => has(x.name));
+  const fl = allFiles(t).find(x => has(x.name) || has(x.desc));
   if (fl) return { hit: true, why: `ファイル「${fl.name}」に一致` };
   const tg = t.tags.find(has);
   if (tg) return { hit: true, why: `キーワード「${tg}」に一致` };
@@ -1641,15 +1664,15 @@ function sheetOf(t) {
   const secs = [];
   if (t.bring.length) secs.push({ key: "bring", title: "出発前：持参品", icon: "box", items: t.bring.map((b, i) => ({ id: "bring:" + i, label: b.name || "（未入力）", sub: b.qty ? "数量 " + b.qty : "", req: !!b.required })) });
   if (t.precheck.length) secs.push({ key: "prep", title: "作業前：事前確認", icon: "check", items: t.precheck.map((x, i) => ({ id: "prep:" + i, label: x || "（未入力）" })) });
-  if (t.files.length) {
-    const items = t.files.map(x => ({ id: "file:" + x.name, label: "ダウンロード：" + x.name, sub: fmtBytes(x.size), dl: x.name }));
-    items.push({ id: "hash", label: "ハッシュ値が一致することを確認した", sub: "表示された SHA-256 と、PowerShell の結果を比べます" });
-    if (t.files.some(x => /\.zip$/i.test(x.name))) items.push({ id: "extract", label: "指定のフォルダに展開した", sub: t.extractTo });
+  if (allFiles(t).length) {
+    const items = allFiles(t).map(x => ({ id: "file:" + x.name, label: "ダウンロード：" + x.name, sub: fmtBytes(x.size), dl: x.name }));
+    if (allFiles(t).some(x => x.sha)) items.push({ id: "hash", label: "ハッシュ値が一致することを確認した", sub: "表示された SHA-256 と、PowerShell の結果を比べます" });
+    if (allFiles(t).some(x => /\.zip$/i.test(x.name))) items.push({ id: "extract", label: "指定のフォルダに展開した", sub: t.extractTo });
     secs.push({ key: "files", title: "ファイルの準備", icon: "dl", items });
   }
   if (t.steps.length) secs.push({ key: "steps", title: "作業手順", icon: "steps", items: t.steps.map((s, i) => ({ id: "steps:" + i, label: s.title || "（手順名未入力）", sub: s.body, caution: s.caution })) });
   const fin = [{ id: "final:0", label: "動作確認を実施した", sub: "ログイン・印字・接続など、この作業の目的が達成できていることを確認します" }];
-  if (t.files.length) fin.push({ id: "final:1", label: "展開したフォルダと一時ファイルを削除した" });
+  if (allFiles(t).length) fin.push({ id: "final:1", label: "展開したフォルダと一時ファイルを削除した" });
   fin.push({ id: "final:2", label: `作業票に作業ID（${t.id}）を記入した` });
   secs.push({ key: "final", title: "完了確認", icon: "shield", items: fin });
   return secs;
@@ -1819,7 +1842,7 @@ function contactCard(c, preview = false) {
 }
 function contactsBox(cat, taskId = "") {
   const list = contactsFor(cat);
-  return `<section class="card ct-box" id="ctBox">
+  return `<section class="card ct-box" id="ctBox" data-sec="ct">
     <h3>${ic("info")}困ったときの連絡先</h3>
     ${list.length ? list.map(c => contactCard(c)).join("") : `<p class="muted" style="font-size:13px">連絡先は登録されていません。${can.admin() ? "「設定 → 困ったときの連絡先」から登録できます。" : ""}</p>`}
     ${taskId ? `<p class="ct-foot">作業ID <span class="mono">${esc(taskId)}</span> を伝えると、話が早く進みます。</p>` : ""}
@@ -1847,7 +1870,7 @@ function fieldListHtml() {
       <span class="reg-t"><b>${esc(t.title)}</b><small class="mono">${esc(t.id)}</small></span>
       <span class="reg-c">${ic(catOf(t.cat).icon)}${esc(catOf(t.cat).name)}</span>
       <span class="reg-m">${t.devices.slice(0, 2).map(d => `<span class="model">${esc(d.model || d.name || "—")}</span>`).join("")}</span>
-      <span class="c num" data-l="設定データ">${t.files.length || "—"}</span>
+      <span class="c num" data-l="設定データ">${allFiles(t).length || "—"}</span>
       <span class="c num" data-l="マニュアル">${t.manuals.length || "—"}</span>
       <span class="c num" data-l="書類">${t.docs.length || "—"}</span>
       <span class="reg-s"><small class="num">${fmtDate(t.updated)}</small></span>
@@ -1892,7 +1915,7 @@ function workHome() {
   return `
   <section class="hero">
     <div class="hero-in">
-      <h1>作業を検索</h1>
+      <h1>作業一覧</h1>
       <label class="bigsearch" for="wq">
         ${ic("search")}
         <input id="wq" type="search" placeholder="作業名・型番・ファイル名・作業IDで検索" value="${esc(q)}" autocomplete="off" enterkeyhint="search">
@@ -1938,7 +1961,7 @@ function resultsHtml(list, q) {
 
 function resCard(t, h, q) {
   const c = catOf(t.cat);
-  const meta = [["steps", "手順", t.steps.length], ["book", "マニュアル", t.manuals.length], ["dl", "設定データ", t.files.length], ...(t.docs.length ? [["form", "書類", t.docs.length]] : [])];
+  const meta = [["steps", "手順", t.steps.length], ["book", "マニュアル", t.manuals.length], ["dl", "設定データ", allFiles(t).length], ...(t.docs.length ? [["form", "書類", t.docs.length]] : [])];
   return `<button class="card res" type="button" data-act="openTask" data-id="${t.id}">
     <span class="res-body">
       <span class="res-top"><span class="mono">${hl(t.id, q)}</span>${S.w.cat ? "" : `<span>${esc(c.name)}</span>`}</span>
@@ -1959,12 +1982,13 @@ function wkDetail(t, preview = false) {
   const on_ = k => !preview && chk(t, k);
   const dis = preview ? "disabled" : "";
   const total = totalSize(t);
-  const zips = t.files.filter(x => /\.zip$/i.test(x.name));
+  const AF = allFiles(t), HF = AF.filter(x => x.sha);
+  const zips = AF.filter(x => /\.zip$/i.test(x.name));
   const expandCmd = zips.map(x => `Expand-Archive "$env:USERPROFILE\\Downloads\\${x.name}" -DestinationPath "${t.extractTo}" -Force`).join("\n");
-  const hashCmd = t.files.map(x => `Get-FileHash "$env:USERPROFILE\\Downloads\\${x.name}"`).join("\n");
+  const hashCmd = HF.map(x => `Get-FileHash "$env:USERPROFILE\\Downloads\\${x.name}"`).join("\n");
   const pct = pr.total ? Math.round(pr.done / pr.total * 100) : 0;
   const none = s => `<p class="muted" style="font-size:13px">${s}</p>`;
-  const navItems = [["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ...(t.docs.length ? [["docs", "書類", t.docs.length]] : []), ["files", "設定データ", t.files.length], ["dev", "機器", t.devices.length], ["prep", "準備・持参品", t.precheck.length + t.bring.length]];
+  const navItems = [["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ...(t.docs.length ? [["docs", "書類", t.docs.length]] : []), ["files", "設定データ", AF.length], ["dev", "機器", t.devices.length], ["prep", "準備・持参品", t.precheck.length + t.bring.length], ["ct", "連絡先", 0]];
 
   return `<div class="wk-c"><div class="wk">
     ${preview ? "" : `<nav class="crumb" aria-label="現在の位置"><button type="button" data-act="goHome">${ic("grid")}トップ</button>${ic("chev")}<button type="button" data-act="openCat" data-id="${esc(t.cat)}">${esc(c.name)}</button>${ic("chev")}<span class="mono">${esc(t.id)}</span></nav>`}
@@ -1973,14 +1997,14 @@ function wkDetail(t, preview = false) {
       <h1>${t.title.trim() ? esc(t.title) : "（作業名が未入力です）"}</h1>
       ${t.summary.trim() ? `<p>${esc(t.summary)}</p>` : ""}
       <dl class="wk-facts">
-        <div><dt>ダウンロード</dt><dd>${t.files.length ? fmtBytes(total) : "なし"}</dd></div>
+        <div><dt>ダウンロード</dt><dd>${AF.length ? fmtBytes(total) : "なし"}</dd></div>
         <div><dt>更新日</dt><dd>${fmtDate(t.updated)}</dd></div>
       </dl>
     </header>
 
     <nav class="wk-nav" aria-label="この作業の目次">
       <button class="go solid" type="button" data-act="shOpen" data-id="${esc(t.id)}" ${dis}>${ic("sheet")}チェックシート</button>
-      ${navItems.map(([k, n, cnt]) => `<button type="button" data-act="jump" data-to="${k}">${n}<span class="n">${cnt}</span></button>`).join("")}
+      ${navItems.map(([k, n, cnt]) => `<button type="button" data-act="jump" data-to="${k}">${n}${k === "ct" ? "" : `<span class="n">${cnt}</span>`}</button>`).join("")}
       ${t.steps.length ? `<button class="go" type="button" data-act="focusStart" data-id="${esc(t.id)}" ${dis}>${ic("steps")}1手順ずつ表示</button>` : ""}
     </nav>
 
@@ -2014,24 +2038,24 @@ function wkDetail(t, preview = false) {
         </section>` : ""}
 
         <section class="card wsec" data-sec="files">
-          <div class="wsec-h"><h2>設定データのダウンロード</h2><span class="sub num">${t.files.length}ファイル・合計 ${fmtBytes(total)}</span></div>
-          ${t.files.length ? `
-            ${t.files.length > 1 ? `<div class="bundle"><span><b>まとめてダウンロード</b><small class="num">${t.files.length}ファイル（${fmtBytes(total)}）・100Mbps回線で${dlTime(total)}</small></span>
+          <div class="wsec-h"><h2>設定データのダウンロード</h2><span class="sub num">${AF.length}ファイル・合計 ${fmtBytes(total)}</span></div>
+          ${AF.length ? `
+            ${AF.length > 1 ? `<div class="bundle"><span><b>まとめてダウンロード</b><small class="num">${AF.length}ファイル（${fmtBytes(total)}）・100Mbps回線で${dlTime(total)}</small></span>
               <button class="btn primary" type="button" data-act="dlAll" ${dis}>${ic("dl")}すべてダウンロード</button></div>` : ""}
-            <div class="files">${t.files.map(x => {
+            <div class="files">${AF.map(x => {
               const got = on_("file:" + x.name);
               return `<div class="file">
                 <span class="file-ico">${ic(/\.zip$/i.test(x.name) ? "zip" : "file")}</span>
                 <span style="display:grid;gap:3px;min-width:0">
                   <span class="file-name">${esc(x.name)}</span>
                   <span class="file-meta">${x.desc ? `<span>${esc(x.desc)}</span>` : ""}<span class="num">${fmtBytes(x.size)}（${dlTime(x.size)}）</span>
-                  <span class="hash">SHA-256 <span class="mono">${esc(String(x.sha).slice(0, 10))}…</span><button class="icon-btn" type="button" data-act="copy" data-v="${esc(x.sha)}" data-l="ハッシュ値" aria-label="ハッシュ値をコピー">${ic("copy")}</button></span></span>
+                  ${x.sha ? `<span class="hash">SHA-256 <span class="mono">${esc(String(x.sha).slice(0, 10))}…</span><button class="icon-btn" type="button" data-act="copy" data-v="${esc(x.sha)}" data-l="ハッシュ値" aria-label="ハッシュ値をコピー">${ic("copy")}</button></span>` : ""}${x.missing ? `<span class="chip danger">サーバーにファイルが見つかりません。サポートに連絡してください</span>` : ""}</span>
                 </span>
                 <button class="btn ${got ? "done" : "primary"}" type="button" data-act="dl" data-v="${esc(x.name)}" ${dis}>${got ? ic("check") + "取得済み" : ic("dl") + "ダウンロード"}</button>
               </div>`;
             }).join("")}</div>
-            <div class="code-h"><span>ファイル確認（表示される値が上の SHA-256 と一致するか）<label class="ck-mini"><input type="checkbox" data-wck="hash" ${on_("hash") ? "checked" : ""} ${dis}>確認した</label></span><button class="btn sm" type="button" data-act="copy" data-v="${esc(hashCmd)}" data-l="コマンド">${ic("copy")}コピー</button></div>
-            <div class="code"><pre>${esc(hashCmd)}</pre></div>
+            ${HF.length ? `<div class="code-h"><span>ファイル確認（表示される値が上の SHA-256 と一致するか）<label class="ck-mini"><input type="checkbox" data-wck="hash" ${on_("hash") ? "checked" : ""} ${dis}>確認した</label></span><button class="btn sm" type="button" data-act="copy" data-v="${esc(hashCmd)}" data-l="コマンド">${ic("copy")}コピー</button></div>
+            <div class="code"><pre>${esc(hashCmd)}</pre></div>` : ""}
             ${zips.length ? `<div class="code-h"><span>展開（解凍）先：<span class="mono">${esc(t.extractTo)}</span><label class="ck-mini"><input type="checkbox" data-wck="extract" ${on_("extract") ? "checked" : ""} ${dis}>展開した</label></span><button class="btn sm" type="button" data-act="copy" data-v="${esc(expandCmd)}" data-l="コマンド">${ic("copy")}コピー</button></div>
             <div class="code"><pre>${esc(expandCmd)}</pre></div>` : ""}
             ${total >= GB ? `<div class="note">${ic("alert")}<span><b>大容量のファイルがあります</b>モバイル回線での取得は避け、事務所または店舗の有線LANで取得してください。途中で切れてもブラウザの「再開」で続きから取得できます。</span></div>` : ""}
@@ -2458,7 +2482,7 @@ function manualHtml() {
    ========================================================= */
 function renderAdmin() {
   const sel = S.a.sel, isTask = sel && sel.type === "task";
-  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, contacts: contactsHtml, history: historyHtml, users: usersHtml, files: filesAdminHtml }[sel.type]();
+  const body = !sel ? dashHtml() : { cat: catEditor, task: taskEditor, notices: noticesHtml, contacts: contactsHtml, history: historyHtml, users: usersHtml, files: filesAdminHtml, ext: extAdminHtml }[sel.type]();
   return `<div class="adm ${sel ? "has-sel" : ""} ${isTask ? "pv-on" : ""}">
     <aside class="tree" id="tree">${treeHtml()}</aside>
     <main class="ed"><div class="ed-in" id="edIn">${body}</div></main>
@@ -2480,6 +2504,7 @@ function treeHtml() {
       ${mi("notices", "bell", "お知らせ", 0, st === "notices")}
       ${mi("contacts", "phone", "困ったときの連絡先", 0, st === "contacts")}
       ${mi("history", "history", "変更履歴", 0, st === "history")}
+      ${isSrv() ? mi("ext", "dl", "FTPファイル", 0, st === "ext") : ""}
       ${isSrv() ? mi("files", "zip", "ファイル管理", 0, st === "files") : ""}
       ${can.users() ? mi("users", "users", "ユーザー・権限", 0, st === "users") : ""}
     </div>
@@ -2530,7 +2555,7 @@ function admListHtml() {
       <span class="reg-c">${ic(catOf(t.cat).icon)}${esc(catOf(t.cat).name)}</span>
       <span class="reg-m">${t.devices.slice(0, 2).map(d => `<span class="model">${hl(d.model || d.name || "—", q)}</span>`).join("")}${t.devices.length > 2 ? `<small class="muted">他${t.devices.length - 2}</small>` : ""}</span>
       <span class="c num" data-l="手順">${t.steps.length || "—"}</span>
-      <span class="c num" data-l="設定データ">${t.files.length || "—"}</span>
+      <span class="c num" data-l="設定データ">${allFiles(t).length || "—"}</span>
       <span class="c num" data-l="マニュアル">${t.manuals.length || "—"}</span>
       <span class="c num" data-l="書類">${t.docs.length || "—"}</span>
       <span class="reg-s"><span class="chip ${t.status === "published" ? "ok" : ""}">${t.status === "published" ? "公開中" : "非公開"}</span><small class="num">${fmtDate(t.updated)}</small></span>
@@ -2883,7 +2908,7 @@ function render() {
   pb.innerHTML = pb.hidden ? "" : `<span>初期パスワードのままです。安全のため、早めに変更してください。</span><button class="link" type="button" data-act="pwOpen">パスワードを変更する</button>`;
   $("#offlineNote").textContent = AUTH.offline ? "オフラインです。最後に読み込んだ内容を表示しています（変更の保存はできません）。チェックシートの記録は端末に保存され、通信が戻ると送信されます。" : "オフラインです。表示済みの作業とチェックはこの端末に保存され、通信が戻ると使えるようになります。ダウンロードは通信が必要です。";
   $("#brandMark").innerHTML = LOGO_MARK;
-  $("#modeWork").innerHTML = ic("search") + "作業を探す";
+  $("#modeWork").innerHTML = ic("grid") + "作業一覧";
   $("#modeAdmin").innerHTML = ic("gear") + "設定";
   const onRecs = S.mode === "work" && (S.w.view === "records" || S.w.view === "record");
   $("#modeRecords").innerHTML = ic("sheet") + "作業記録";
@@ -2972,7 +2997,7 @@ function guard(fn) {
 }
 function allowed(sel) {
   if (!sel) return true;
-  if (sel.type === "files") return isSrv() && can.admin();
+  if (sel.type === "files" || sel.type === "ext") return isSrv() && can.admin();
   if (sel.type === "users") return can.users();
   if (sel.type === "review") return false;
   return can.admin();
@@ -2994,6 +3019,7 @@ function select(sel) {
   else if (sel?.type === "users") S.a.draft = clone(DATA.users);
   render(); window.scrollTo(0, 0);
   if (sel?.type === "files") loadFileList();
+  if (sel?.type === "ext") loadExt();
 }
 function reload() {
   S.a.draft = clone(taskById(S.a.sel.id)); S.a.reviewing = false; S.a.note = ""; S.a.dirty = false; render();
@@ -3111,6 +3137,51 @@ async function saveUsers() {
 function discard() { select(S.a.sel); toast("変更を破棄しました"); }
 
 /* ---- ファイル管理（アップロード済みファイルの一覧・削除） ---- */
+/* FTP で置いた大きなファイル：パスと、使う作業を登録する */
+async function loadExt() {
+  S.ex.err = "";
+  try { S.ex.data = await api("ext/list"); } catch (e) { S.ex.err = e.message; if (!S.ex.data) S.ex.data = { dir: "", items: [], found: [] }; }
+  paintExt();
+}
+function paintExt() { if (S.mode === "admin" && S.a.sel?.type === "ext" && $("#edIn")) $("#edIn").innerHTML = extAdminHtml(); }
+const splitPath = p => { const i = p.lastIndexOf("/"); return i < 0 ? ["", p] : [p.slice(0, i + 1), p.slice(i + 1)]; };
+function taskLabel(id) { const t = taskById(id); return t ? `${id}　${t.title}` : id; }
+function extAdminHtml() {
+  const X = S.ex.data;
+  const head = edHead("FTPファイル", "FTPで置いた大きなファイル", `<button class="btn sm" type="button" data-act="exRefresh">${ic("clock")}更新</button>`);
+  if (!X) return head + `<div class="sect"><div class="card empty">読み込み中…</div></div>`;
+  return head + `<div class="sect">
+    <p class="sect-intro">EXE や OS イメージなど、画面からアップロードできない大きなファイルは、FTP で次のフォルダに置いてください（サブフォルダも使えます）。<br>
+      <b class="mono">${esc(X.dir)}/</b><br>
+      置いたファイルを、ここで「どの作業で使うか」とあわせて登録すると、現場の作業ページからダウンロードできます。ファイルは移動もコピーもされず、置いた場所のまま使われます。</p>
+    ${S.ex.err ? `<div class="note">${ic("alert")}<span>${esc(S.ex.err)}</span></div>` : ""}
+    <section class="card blk">
+      <div class="blk-h"><h3>まだ登録していないファイル</h3><span class="chip right">${X.found.length}件</span></div>
+      <div class="ex-list">${X.found.map(f => { const [dir, nm] = splitPath(f.path); return `<div class="ex-row">
+        <span class="ex-p"><span class="mono ex-dir">${esc(dir)}</span><b class="mono">${esc(nm)}</b><small class="num">${fmtBytes(f.size)}・${f.modified}${f.settled ? "" : "・転送中の可能性があります（1分ほど待ってください）"}</small></span>
+        <button class="btn sm primary" type="button" data-act="exReg" data-path="${esc(f.path)}">登録する</button></div>`; }).join("") || `<div class="empty-row">登録待ちのファイルはありません。FTP で <span class="mono">${esc(X.dir)}/</span> に置いてから「更新」を押してください。</div>`}</div>
+      <div class="ex-man"><label for="exPath">パスを入力して登録</label><div class="ex-man-in"><input class="inp mono" id="exPath" placeholder="例：pos/setup_v6.exe（${esc(X.dir)}/ からのパス）" autocomplete="off"><button class="btn" type="button" data-act="exRegPath">登録する</button></div></div>
+    </section>
+    <section class="card blk">
+      <div class="blk-h"><h3>登録済みのファイル</h3><span class="chip right">${X.items.length}件</span></div>
+      <div class="ex-list">${X.items.map(x => `<div class="ex-row reg">
+        <span class="ex-p"><b>${esc(x.name)}</b><span class="mono ex-dir">${esc(x.path)}</span>
+          <small class="num">${x.missing ? "" : fmtBytes(x.size) + "・" + x.modified}</small>
+          ${x.desc ? `<span class="ex-d">${esc(x.desc)}</span>` : ""}
+          <span class="ex-t">${x.missing ? `<span class="chip danger">FTP のフォルダに見つかりません</span>` : ""}${x.tasks.length ? x.tasks.map(id => `<span class="chip ${taskById(id) ? "accent" : "warn"}">${esc(taskLabel(id))}</span>`).join("") : `<span class="chip warn">使う作業が未指定（現場には表示されません）</span>`}</span></span>
+        <span class="ex-ops"><button class="btn sm" type="button" data-act="exEdit" data-id="${esc(x.id)}">編集</button><button class="btn sm ghost danger" type="button" data-act="exDel" data-id="${esc(x.id)}">登録を解除</button></span>
+      </div>`).join("") || `<div class="empty-row">まだ登録されていません</div>`}</div>
+    </section></div>`;
+}
+function extModalBody(v) {
+  const q = v.q || "";
+  const groups = catsSorted().map(c => ({ c, ts: tasksOf(c.id) })).filter(g => g.ts.length);
+  return `<div class="fld"><label for="exDesc">説明（任意）</label><input class="inp" id="exDesc" value="${esc(v.desc)}" placeholder="例：POS 本体の初期設定イメージ（Windows 用）"></div>
+    <div class="fld"><span class="lb">使う作業（複数選べます）</span>
+      <input class="inp" id="exTq" type="search" placeholder="作業名・作業IDで絞り込み" value="${esc(q)}" autocomplete="off">
+      <div class="ex-tasks" id="exTasks">${groups.map(g => `<div class="ex-g"><b>${esc(g.c.name)}</b>${g.ts.map(t => `<label class="ck" data-tx="${esc((t.id + " " + t.title).toLowerCase())}"><input type="checkbox" value="${esc(t.id)}" ${v.tasks.includes(t.id) ? "checked" : ""}><span>${esc(t.title)} <small class="mono muted">${esc(t.id)}</small>${t.status === "published" ? "" : ` <small class="muted">（非公開）</small>`}</span></label>`).join("")}</div>`).join("") || `<p class="muted" style="font-size:13px">作業がまだありません。先に作業を登録してください。</p>`}</div>
+    </div>`;
+}
 async function loadFileList() {
   const F = S.fl;
   F.err = "";
@@ -3182,31 +3253,18 @@ function upListHtml() {
     return `<div class="up-row"><span style="display:grid;gap:2px;min-width:0"><span class="up-name">${esc(x.name)}</span>${st}</span>${act}<span class="m-bar acc" role="progressbar" aria-label="${esc(x.name)}" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></span></div>`;
   }).join("");
 }
-function incomingHtml() {
-  const R = S.up.incoming;
-  if (!R) return `<p class="muted" style="font-size:13px">読み込み中…</p>`;
-  if (R.err) return `<p class="muted" style="font-size:13px">読み込めませんでした：${esc(R.err)}</p>`;
-  if (!R.files.length) return `<div class="empty-row">受け取りフォルダにファイルはありません。FTP で <span class="mono">${esc(R.dir)}</span> に置いてから、「更新」を押してください。</div>`;
-  return R.files.map(f => `<div class="in-row"><span style="display:grid;gap:2px;min-width:0"><span class="up-name">${esc(f.name)}</span><span class="up-st num">${fmtBytes(f.size)}・${f.modified}${f.settled ? "" : "・転送中の可能性があります（1分ほど待ってください）"}</span></span><button class="btn sm primary" type="button" data-act="inImport" data-name="${esc(f.name)}" ${f.settled && !S.up.importing ? "" : "disabled"}>${S.up.importing === f.name ? "取り込み中…" : "取り込む"}</button></div>`).join("");
-}
 function paintUp() {
   S.up.items.forEach(it => { const e = it.target && document.querySelector(`[data-upk="${it.key}"]`); if (!e) return;
     if (it.state === "err" || it.state === "cancel") { if (S.a.sel?.type === "task") { S.up.items = S.up.items.filter(x => x !== it); rerenderSection(); toast(it.err ? `アップロードできませんでした：${it.err}` : "アップロードを中止しました"); } }
     else e.textContent = it.state === "fin" ? "仕上げ中…" : `アップロード中 ${it.size ? Math.floor(it.sent / it.size * 100) : 0}%`; });
   const a = $("#upList"); if (a) a.innerHTML = upListHtml();
-  const b = $("#inList"); if (b) b.innerHTML = incomingHtml();
   const c = $("#upLimits"); if (c) c.innerHTML = upLimitsHtml();
-}
-async function loadIncoming() {
-  try { S.up.incoming = await api("files/incoming"); } catch (e) { S.up.incoming = { err: e.message, files: [], dir: "" }; }
-  paintUp();
 }
 async function loadFilesInfo() {
   if (S.up.loading) return;
   S.up.loading = true;
   try { S.up.limits = (await api("files/limits")).limits; } catch (e) { /* 表示だけの情報 */ }
   S.up.loading = false;
-  await loadIncoming();
 }
 async function uploadFiles(list) {
   const d = S.a.draft; if (!d || !list.length) return;
@@ -3324,24 +3382,28 @@ async function addDocFile(i, slot, file) {
 function filesTabServer(d) {
   if (!S.up.limits && !S.up.loading) loadFilesInfo();
   return `<div class="sect">
-    <p class="sect-intro">現場でダウンロードする設定ファイルなどです。</p>
+    <p class="sect-intro">現場でダウンロードする設定ファイルなどです。マニュアルなど小さなファイルは、ここからアップロードできます。</p>
     <section class="card blk">
       <label class="drop" for="fileIn" id="drop">${ic("upload")}<b>ここにファイルをドラッグ＆ドロップ</b><span>またはクリックしてファイルを選択（複数選べます）</span></label>
       <div class="up-list" id="upList">${upListHtml()}</div>
-      <details class="more"><summary>アップロードの上限・大きなファイル（FTP）の取り込み</summary>
-        <div id="upLimits">${upLimitsHtml()}</div>
-        <div class="blk-h" style="margin-top:10px"><h3>FTP で転送したファイルを取り込む</h3><button class="btn sm right" type="button" data-act="inRefresh">${ic("clock")}更新</button><p>FTP で受け取りフォルダに置いたファイルを、この作業のファイルとして登録します（転送が終わって1分ほどしてから）。</p></div>
-        <div class="in-list" id="inList">${incomingHtml()}</div>
-      </details>
+      <details class="more"><summary>アップロードできる大きさ</summary><div id="upLimits">${upLimitsHtml()}</div></details>
     </section>
     <section class="card blk">
-      <div class="blk-h"><h3>この作業のファイル</h3><span class="chip right">${d.files.length}件</span></div>
+      <div class="blk-h"><h3>この作業の設定ファイル</h3><span class="chip right">${d.files.length + (d.ext || []).length}件</span></div>
       <div class="rows">${d.files.map((x, i) => `<div class="row row-file">
         <span class="file-ico">${ic(/\.zip$/i.test(x.name) ? "zip" : "file")}</span>
         <span style="display:grid;gap:2px;min-width:0"><span class="fn">${esc(x.name)}</span><span class="fm"><span class="num">${fmtBytes(x.size)}</span><span>SHA-256 <span class="mono">${esc(String(x.sha).slice(0, 12))}…</span></span>${x.fid ? `<a class="link" style="font-size:11.5px" href="api/?r=files/${esc(x.fid)}" download>ダウンロードして確認</a>` : `<span>（サンプル：実ファイルなし）</span>`}</span></span>
         ${inp(`files.${i}.desc`, x.desc, "説明（例：POS アプリ本体）")}
         ${tools("files", i, d.files.length)}
-      </div>`).join("") || `<div class="empty-row">ファイルはまだありません。ファイルを使わない作業は、このままで構いません。</div>`}</div>
+      </div>`).join("")}${(d.ext || []).map(x => `<div class="row row-file">
+        <span class="file-ico">${ic("dl")}</span>
+        <span style="display:grid;gap:2px;min-width:0"><span class="fn">${esc(x.name)}</span><span class="fm"><span class="num">${fmtBytes(x.size)}</span><span class="chip accent">FTP</span>${x.missing ? `<span class="chip danger">見つかりません</span>` : ""}${x.desc ? `<span>${esc(x.desc)}</span>` : ""}</span></span>
+        <span class="muted" style="font-size:12px;grid-column:span 2">変更は「FTPファイル」の画面で</span>
+      </div>`).join("") || (d.files.length ? "" : `<div class="empty-row">ファイルはまだありません。ファイルを使わない作業は、このままで構いません。</div>`)}</div>
+    </section>
+    <section class="card blk ex-hint">
+      <div class="blk-h"><h3>EXE など大きなファイルは FTP で</h3><p>FTP で転送したファイルは、「FTPファイル」の画面で、パスとこの作業を指定して登録します。登録すると、ここに表示されます。</p></div>
+      ${d.id ? `<button class="btn sm" type="button" data-act="selMenu" data-v="ext">${ic("dl")}FTPファイルの登録画面へ</button>` : `<p class="muted" style="font-size:12.5px">先にこの作業を登録（保存）すると、FTP のファイルの「使う作業」に選べます。</p>`}
     </section>
     <section class="card blk"><div class="fgrid">
       ${fld("展開先フォルダ", "extractTo", inp("extractTo", d.extractTo, "C:\\Setup\\WK-xxxx", "mono"), { full: true, hint: "現場には、このフォルダへ展開する PowerShell コマンドが自動で表示されます。" })}
@@ -3439,7 +3501,7 @@ const ACT = {
   },
   dl: async el => {
     const t = taskById(S.w.taskId); if (!t) return;
-    const f = t.files.find(x => x.name === el.dataset.v);
+    const f = allFiles(t).find(x => x.name === el.dataset.v);
     if (f && f.fid && isSrv()) {
       if (await startDownload(f)) { setChk(t, "file:" + f.name, true); toast(`ダウンロードを開始しました：${f.name}`); }
     } else { setChk(t, "file:" + el.dataset.v, true); toast(isSrv() ? `このファイルは、まだサーバーに登録されていません：${el.dataset.v}` : `サンプルのためダウンロードは行いません：${el.dataset.v}`); }
@@ -3448,11 +3510,12 @@ const ACT = {
   dlAll: async () => {
     const t = taskById(S.w.taskId); if (!t) return;
     let n = 0;
-    for (const f of t.files) {
+    const AF = allFiles(t);
+    for (const f of AF) {
       if (f.fid && isSrv()) { if (!(await startDownload(f))) break; n++; await sleep(900); }
       setChk(t, "file:" + f.name, true);
     }
-    toast(isSrv() ? `${n}件のダウンロードを開始しました` : `サンプルのためダウンロードは行いません（${t.files.length}ファイル）`);
+    toast(isSrv() ? `${n}件のダウンロードを開始しました` : `サンプルのためダウンロードは行いません（${AF.length}ファイル）`);
     refreshWork();
   },
   docDl: async el => {
@@ -3646,17 +3709,43 @@ const ACT = {
   upRetry: el => { const it = S.up.items.find(x => x.key === el.dataset.k); if (it) { it.state = "wait"; paintUp(); runUploads(); } },
   upCancel: el => { const it = S.up.items.find(x => x.key === el.dataset.k); if (!it) return; if (it.state === "wait") { it.state = "cancel"; paintUp(); } else it.cancel = true; },
   upDismiss: el => { S.up.items = S.up.items.filter(x => x.key !== el.dataset.k); paintUp(); },
-  inRefresh: () => loadIncoming(),
-  inImport: async el => {
-    const name = el.dataset.name, d = S.a.draft;
-    if (d.files.some(f => f.name === name)) { toast(`同じ名前のファイルが、この作業にすでにあります：${name}`); return; }
-    S.up.importing = name; paintUp();
+
+  /* FTP ファイルの登録 */
+  exRefresh: () => loadExt(),
+  exReg: el => {
+    const path = el.dataset.path;
+    S.layer = { type: "modal", wide: true, title: "FTP のファイルを登録", text: path, ex: { path }, body: extModalBody({ desc: "", tasks: [] }),
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "登録する", act: "exSave", cls: "primary" }] };
+    renderLayer();
+  },
+  exRegPath: () => {
+    const path = ($("#exPath")?.value || "").trim().replace(/\\/g, "/").replace(/^\/+/, "");
+    if (!path) { toast("パスを入力してください"); $("#exPath")?.focus(); return; }
+    ACT.exReg({ dataset: { path } });
+  },
+  exEdit: el => {
+    const x = S.ex.data.items.find(i => i.id === el.dataset.id); if (!x) return;
+    S.layer = { type: "modal", wide: true, title: "登録内容の変更", text: x.path, ex: { id: x.id }, body: extModalBody({ desc: x.desc, tasks: x.tasks }),
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "保存", act: "exSave", cls: "primary" }] };
+    renderLayer();
+  },
+  exSave: async () => {
+    const ex = S.layer.ex, body = { desc: $("#exDesc").value.trim(), tasks: [...document.querySelectorAll("#exTasks input:checked")].map(i => i.value) };
+    if (ex.id) body.id = ex.id; else body.path = ex.path;
     try {
-      const r = await api("files/import", {}, { method: "POST", body: { name }, timeout: 900000 });
-      if (S.a.draft === d) { d.files.push({ ...r.file }); rerenderSection(); }
-      toast(`${r.file.name} を取り込みました。「保存」すると作業に反映されます`);
+      const r = await api("ext/save", {}, { method: "POST", body });
+      S.layer = null; renderLayer(); await refreshHistory(); await loadExt(); toast(r.message + (body.tasks.length ? "" : "。使う作業を指定すると、現場に表示されます"));
     } catch (e) { failToast(e); }
-    S.up.importing = null; loadIncoming();
+  },
+  exDel: el => {
+    const x = S.ex.data.items.find(i => i.id === el.dataset.id); if (!x) return;
+    S.layer = { type: "modal", title: `「${x.name}」の登録を解除しますか？`, text: "現場の作業ページからは、このファイルが消えます。ファイルそのものは、FTP のフォルダに残ります（削除はされません）。", ex: { id: x.id },
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "登録を解除", act: "exDelDo", cls: "danger solid" }] };
+    renderLayer();
+  },
+  exDelDo: async () => {
+    try { const r = await api("ext/delete", {}, { method: "POST", body: { id: S.layer.ex.id } }); S.layer = null; renderLayer(); await refreshHistory(); await loadExt(); toast(r.message); }
+    catch (e) { failToast(e); S.layer = null; renderLayer(); }
   },
 
   /* ユーザー切替 */
@@ -3804,6 +3893,7 @@ function onSearch(el) {
 document.addEventListener("input", e => {
   const el = e.target;
   if (el.id === "wq" || el.id === "treeQ" || el.id === "rvQ") { if (!e.isComposing) onSearch(el); return; }
+  if (el.id === "exTq") { const q = el.value.trim().toLowerCase(); document.querySelectorAll("#exTasks .ck").forEach(l => { l.hidden = !!q && !l.dataset.tx.includes(q); }); document.querySelectorAll("#exTasks .ex-g").forEach(g => { g.hidden = ![...g.querySelectorAll(".ck")].some(l => !l.hidden); }); return; }
   if (el.id === "admQ") { S.a.list.q = el.value; if (!e.isComposing) $("#admList").innerHTML = admListHtml(); return; }
   if (el.id === "histQ") { S.a.hist.q = el.value; if (!e.isComposing) $("#histList").innerHTML = histListHtml(); return; }
   if (el.id === "mText") { S.layer.value = el.value; return; }

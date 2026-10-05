@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
  * ダウンロード用ファイルの管理
  *  - ブラウザからのアップロード：ブラウザがファイルを小さく分割して送る。PHP の1回あたりの上限（post_max_size）を超えるファイルも送れる。途中から再開できる。
- *  - FTP：storage/incoming/ に置いたファイルを、画面から取り込む。上限を超える巨大なファイル向け。
+ *  - FTP：大きなファイルは storage/incoming/ に置き、ext.php の画面で「使う作業」とあわせて登録する（コピーしない）。
  *  - ダウンロード：ログイン済みのユーザーだけ。途中から再開できる（Range）。
  */
 
@@ -169,47 +169,6 @@ function fmt_bytes(int $b): string
     return max(1, (int)round($b / 1024)) . ' KB';
 }
 
-/* ------------------------------------------------------------ FTP の受け取りフォルダ */
-
-function route_incoming(): never
-{
-    require_role('editor');
-    $dir = storage_sub('incoming');
-    $out = [];
-    foreach (scandir($dir) ?: [] as $n) {
-        $p = $dir . '/' . $n;
-        if ($n[0] === '.' || !is_file($p) || is_link($p)) continue;
-        $out[] = ['name' => $n, 'size' => (int)filesize($p), 'modified' => date('Y-m-d H:i', (int)filemtime($p)), 'settled' => filemtime($p) < time() - 60];
-    }
-    usort($out, fn($a, $b) => strcmp($b['modified'], $a['modified']));
-    json_out(['ok' => true, 'dir' => upload_limits()['incomingDir'], 'files' => array_slice($out, 0, 200)]);
-}
-
-function route_import(): never
-{
-    require_same_site_write();
-    $u = require_role('editor');
-    $b = read_json(2048);
-    $name = (string)($b['name'] ?? '');
-    $dir = storage_sub('incoming');
-    if ($name === '' || $name !== basename($name) || $name[0] === '.') fail(422, 'ファイル名が正しくありません');
-    $src = $dir . '/' . $name;
-    if (!is_file($src) || is_link($src)) fail(404, 'FTP の受け取りフォルダにファイルが見つかりません');
-    if (filemtime($src) > time() - 60) fail(409, '転送中の可能性があります。転送が終わってから1分ほど待って、もう一度取り込んでください');
-    $size = (int)filesize($src);
-    if ($size <= 0) fail(422, '空のファイルは取り込めません');
-    @set_time_limit(0);
-    $sha = hash_file('sha256', $src);
-    $fid = bin2hex(random_bytes(16));
-    if (!@rename($src, storage_sub('files') . '/' . $fid)) {   // 別のディスクにある場合は、コピーしてから消す
-        if (!@copy($src, storage_sub('files') . '/' . $fid)) fail(500, 'ファイルを取り込めません');
-        @unlink($src);
-    }
-    db()->prepare('INSERT INTO files (id, orig_name, size, sha256, uploaded_by, uploaded_at, source) VALUES (?,?,?,?,?,?,?)')
-        ->execute([$fid, clean_name($name) ?: $name, $size, $sha, $u['id'], date('Y-m-d H:i:s'), 'ftp']);
-    json_out(['ok' => true, 'file' => file_out(file_row($fid))]);
-}
-
 /* ------------------------------------------------------------ ダウンロード */
 
 function can_download(array $u, string $fid): bool
@@ -227,9 +186,15 @@ function route_download(string $fid): never
     if (!can_download($u, $fid)) fail(403, 'このファイルをダウンロードする権限がありません');
     $path = storage_sub('files') . '/' . $fid;
     if (!is_file($path)) fail(404, 'ファイルが見つかりません');
+    stream_file($path, $r['orig_name'], '"' . substr($r['sha256'], 0, 32) . '"', !empty($_GET['inline']));
+}
+
+/** ファイルを送り出す（Range・再開に対応）。画像と PDF だけは、?inline=1 でブラウザ内に表示できる */
+function stream_file(string $path, string $name, string $etag, bool $wantInline = false): never
+{
     session_write_close();
+    clearstatcache(true, $path);
     $size = (int)filesize($path);
-    $etag = '"' . substr($r['sha256'], 0, 32) . '"';
     $start = 0;
     $end = $size - 1;
     $status = 200;
@@ -244,13 +209,12 @@ function route_download(string $fid): never
     }
     while (ob_get_level()) ob_end_clean();
     http_response_code($status);
-    $ascii = preg_replace('/[^\x20-\x7E]|["\\\\]/', '_', $r['orig_name']);
-    // ?inline=1：画像と PDF だけは、ブラウザ内で表示できるようにする（記入例のプレビュー用）
+    $ascii = preg_replace('/[^\x20-\x7E]|["\\\\]/', '_', $name);
     $types = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp', 'pdf' => 'application/pdf'];
-    $ext = strtolower(pathinfo($r['orig_name'], PATHINFO_EXTENSION));
-    $inline = !empty($_GET['inline']) && isset($types[$ext]);
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    $inline = $wantInline && isset($types[$ext]);
     header('Content-Type: ' . ($inline ? $types[$ext] : 'application/octet-stream'));
-    header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . '; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($r['orig_name']));
+    header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . '; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($name));
     header('Content-Length: ' . ($end - $start + 1));
     header('Accept-Ranges: bytes');
     header('ETag: ' . $etag);

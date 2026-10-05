@@ -104,6 +104,20 @@ CREATE TABLE IF NOT EXISTS notices (
   KEY idx_status (status, notice_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS ext_files (
+  id         VARCHAR(16)   NOT NULL,
+  path       VARCHAR(500)  NOT NULL,
+  path_hash  CHAR(64)      NOT NULL,
+  name       VARCHAR(255)  NOT NULL,
+  descr      VARCHAR(1000) NOT NULL DEFAULT '',
+  tasks      TEXT          NOT NULL,
+  created_by VARCHAR(24)   NOT NULL DEFAULT '',
+  created_at DATETIME      NOT NULL,
+  updated_at DATETIME      NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_path (path_hash)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS settings (
   k          VARCHAR(50)  NOT NULL,
   v          MEDIUMTEXT   NOT NULL,
