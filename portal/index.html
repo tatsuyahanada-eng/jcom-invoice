@@ -1576,7 +1576,7 @@ const PERMS = [
   ["ユーザーの登録・権限の変更", [0, 0, 1]]
 ];
 const HACT = { create: ["新規作成", "accent"], update: ["更新", ""], request: ["承認申請", "warn"], publish: ["公開", "ok"], reject: ["差し戻し", "danger"], delete: ["削除", "danger"] };
-const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー", file: "ファイル", contact: "連絡先", ext: "FTPファイル" };
+const HTYPE = { task: "作業", category: "大項目", notice: "お知らせ", user: "ユーザー", file: "ファイル", contact: "連絡先", ext: "FTPファイル", history: "変更履歴" };
 const LEVELS = { danger: "重要", warn: "期限あり", accent: "更新" };
 
 
@@ -1730,31 +1730,6 @@ function searchHit(t, q) {
 }
 const chk = (t, k) => !!(((PROG[t.id] || {}).c || {})[k]);
 function setChk(t, k, v) { const p = (PROG[t.id] ||= {}); (p.c ||= {})[k] = v; saveProg(); }
-function sheetOf(t) {
-  const secs = [];
-  if (t.bring.length) secs.push({ key: "bring", title: "出発前：持参品", icon: "box", items: t.bring.map((b, i) => ({ id: "bring:" + i, label: b.name || "（未入力）", sub: b.qty ? "数量 " + b.qty : "", req: !!b.required })) });
-  if (t.precheck.length) secs.push({ key: "prep", title: "作業前：事前確認", icon: "check", items: t.precheck.map((x, i) => ({ id: "prep:" + i, label: x || "（未入力）" })) });
-  if (allFiles(t).length) {
-    const items = allFiles(t).map(x => ({ id: "file:" + x.name, label: "ダウンロード：" + x.name, sub: fmtBytes(x.size), dl: x.name }));
-    if (allFiles(t).some(x => x.sha)) items.push({ id: "hash", label: "ハッシュ値が一致することを確認した", sub: "表示された SHA-256 と、PowerShell の結果を比べます" });
-    if (allFiles(t).some(x => /\.zip$/i.test(x.name))) items.push({ id: "extract", label: "指定のフォルダに展開した", sub: t.extractTo });
-    secs.push({ key: "files", title: "ファイルの準備", icon: "dl", items });
-  }
-  if (t.steps.length) secs.push({ key: "steps", title: "作業手順", icon: "steps", items: t.steps.map((s, i) => ({ id: "steps:" + i, label: s.title || "（手順名未入力）", sub: s.body, caution: s.caution })) });
-  const fin = [{ id: "final:0", label: "動作確認を実施した", sub: "ログイン・印字・接続など、この作業の目的が達成できていることを確認します" }];
-  if (allFiles(t).length) fin.push({ id: "final:1", label: "展開したフォルダと一時ファイルを削除した" });
-  fin.push({ id: "final:2", label: `作業票に作業ID（${t.id}）を記入した` });
-  secs.push({ key: "final", title: "完了確認", icon: "shield", items: fin });
-  return secs;
-}
-function calc(t, isOn) {
-  const map = {}; let total = 0, done = 0;
-  sheetOf(t).forEach(s => { const d = s.items.filter(it => isOn(it.id)).length; map[s.key] = { d, n: s.items.length }; total += s.items.length; done += d; });
-  const grp = (label, keys) => ({ label, d: keys.reduce((a, k) => a + (map[k]?.d || 0), 0), n: keys.reduce((a, k) => a + (map[k]?.n || 0), 0) });
-  const rows = [grp("準備", ["bring", "prep"]), grp("ファイル", ["files"]), grp("手順", ["steps"]), grp("完了確認", ["final"])].filter(r => r.n);
-  return { rows, total, done, started: done > 0, complete: total > 0 && done === total };
-}
-const progOf = t => calc(t, k => chk(t, k));
 const visibleNotices = () => DATA.notices.filter(n => n.status === "published" && (!n.until || n.until >= today())).sort((a, b) => b.date.localeCompare(a.date));
 /* ---- ログイン・サーバー保存 ---- */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -2017,7 +1992,6 @@ function resCard(t, h, q) {
    ========================================================= */
 function wkDetail(t, preview = false) {
   const c = catOf(t.cat);
-  const pr = preview ? calc(t, () => false) : progOf(t);
   const on_ = k => !preview && chk(t, k);
   const dis = preview ? "disabled" : "";
   const total = totalSize(t);
@@ -2025,9 +1999,8 @@ function wkDetail(t, preview = false) {
   const zips = AF.filter(x => /\.zip$/i.test(x.name));
   const expandCmd = zips.map(x => `Expand-Archive "$env:USERPROFILE\\Downloads\\${x.name}" -DestinationPath "${t.extractTo}" -Force`).join("\n");
   const hashCmd = HF.map(x => `Get-FileHash "$env:USERPROFILE\\Downloads\\${x.name}"`).join("\n");
-  const pct = pr.total ? Math.round(pr.done / pr.total * 100) : 0;
   const none = s => `<p class="muted" style="font-size:13px">${s}</p>`;
-  const navItems = [["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ...(t.docs.length ? [["docs", "書類", t.docs.length]] : []), ["files", "設定データ", AF.length], ["dev", "機器", t.devices.length], ["prep", "準備・持参品", t.precheck.length + t.bring.length], ["ct", "連絡先", 0]];
+  const navItems = [...(t.precheck.length || t.bring.length ? [["prep", "準備・持参品", t.precheck.length + t.bring.length]] : []), ["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ...(t.docs.length ? [["docs", "書類", t.docs.length]] : []), ["files", "設定データ", AF.length], ["dev", "機器", t.devices.length], ["ct", "連絡先", 0]];
 
   return `<div class="wk-c"><div class="wk">
     ${preview ? "" : `<nav class="crumb" aria-label="現在の位置"><button type="button" data-act="goHome">${ic("grid")}トップ</button>${ic("chev")}<button type="button" data-act="openCat" data-id="${esc(t.cat)}">${esc(c.name)}</button>${ic("chev")}<span class="mono">${esc(t.id)}</span></nav>`}
@@ -2049,6 +2022,26 @@ function wkDetail(t, preview = false) {
 
     <div class="wk-grid">
       <div class="wk-main">
+        ${t.precheck.length || t.bring.length ? `<section class="card wsec" data-sec="prep">
+          <div class="wsec-h"><h2>事前準備と持参品</h2><span class="sub">出発前と作業前にチェック</span></div>
+          <div class="two">
+            ${t.precheck.length ? `<div>
+              <div class="sub-h">${ic("check")} 事前確認</div>
+              <div class="cks">${t.precheck.map((x, i) => {
+                const on = on_("prep:" + i);
+                return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="prep:${i}" ${on ? "checked" : ""} ${dis}><span>${x ? esc(x) : "<span class='muted'>（未入力）</span>"}</span></label>`;
+              }).join("")}</div>
+            </div>` : ""}
+            ${t.bring.length ? `<div>
+              <div class="sub-h">${ic("box")} 現地持参品</div>
+              <div class="cks">${t.bring.map((x, i) => {
+                const on = on_("bring:" + i);
+                return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="bring:${i}" ${on ? "checked" : ""} ${dis}><span>${x.name ? esc(x.name) : "<span class='muted'>（未入力）</span>"}${x.required ? `<span class="req">必須</span>` : ""}</span><span class="qty">${esc(x.qty)}</span></label>`;
+              }).join("")}</div>
+            </div>` : ""}
+          </div>
+        </section>` : ""}
+
         <section class="card wsec" data-sec="steps">
           <div class="wsec-h"><h2>作業手順</h2><span class="sub">${t.steps.length}ステップ・番号を押すと完了にできます</span></div>
           <div class="wsteps">${t.steps.length ? t.steps.map((s, i) => {
@@ -2059,7 +2052,6 @@ function wkDetail(t, preview = false) {
               ${s.caution ? `<div class="note">${ic("alert")}<span>${esc(s.caution)}</span></div>` : ""}</div>
             </div>`;
           }).join("") : none("作業手順が登録されていません")}</div>
-          <div><div class="sub-h">${ic("shield")} 完了確認</div><div class="cks">${sheetOf(t).find(s => s.key === "final").items.map(it => { const on = on_(it.id); return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="${it.id}" ${on ? "checked" : ""} ${dis}><span>${esc(it.label)}</span></label>`; }).join("")}</div></div>
         </section>
 
         <section class="card wsec" data-sec="man">
@@ -2112,25 +2104,6 @@ function wkDetail(t, preview = false) {
           ${t.os ? `<p class="os-line">OS・ソフトウェア：<b style="color:var(--fg)">${esc(t.os)}</b></p>` : ""}
         </section>
 
-        <section class="card wsec" data-sec="prep">
-          <div class="wsec-h"><h2>事前準備と持参品</h2><span class="sub">出発前と作業前にチェック</span></div>
-          <div class="two">
-            <div>
-              <div class="sub-h">${ic("check")} 事前確認</div>
-              <div class="cks">${t.precheck.length ? t.precheck.map((x, i) => {
-                const on = on_("prep:" + i);
-                return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="prep:${i}" ${on ? "checked" : ""} ${dis}><span>${x ? esc(x) : "<span class='muted'>（未入力）</span>"}</span></label>`;
-              }).join("") : none("事前確認はありません")}</div>
-            </div>
-            <div>
-              <div class="sub-h">${ic("box")} 現地持参品</div>
-              <div class="cks">${t.bring.length ? t.bring.map((x, i) => {
-                const on = on_("bring:" + i);
-                return `<label class="ck ${on ? "on" : ""}"><input type="checkbox" data-wck="bring:${i}" ${on ? "checked" : ""} ${dis}><span>${x.name ? esc(x.name) : "<span class='muted'>（未入力）</span>"}${x.required ? `<span class="req">必須</span>` : ""}</span><span class="qty">${esc(x.qty)}</span></label>`;
-              }).join("") : none("持参品はありません")}</div>
-            </div>
-          </div>
-        </section>
 
 
       </div>
@@ -2693,8 +2666,8 @@ function histListHtml() {
 }
 function historyHtml() {
   const h = S.a.hist;
-  return edHead("変更履歴", "変更履歴") + `<div class="sect">
-    <p class="sect-intro">作業・大項目・お知らせ・ユーザーの変更が、いつ・誰が・何をしたかの記録です。記録の編集や削除はできません。</p>
+  return edHead("変更履歴", "変更履歴", can.users() ? `<button class="btn sm ghost danger" type="button" data-act="histClear">${ic("trash")}履歴を削除</button>` : "") + `<div class="sect">
+    <p class="sect-intro">作業・大項目・お知らせ・ユーザーなどの変更が、いつ・誰が・何をしたかの記録です。記録を書き換えることはできません。${can.users() ? "削除できるのは、管理者だけです。" : ""}</p>
     <div class="hfilter">
       <div class="toggles" role="group" aria-label="対象で絞り込み">${[["", "すべて"], ...Object.entries(HTYPE)].map(([k, n]) => `<button type="button" data-act="histType" data-v="${k}" aria-pressed="${h.type === k}">${n}</button>`).join("")}</div>
       <select class="sel" id="histUser" data-hist="user" aria-label="操作したユーザー"><option value="">全員</option>${DATA.users.map(u => `<option value="${u.id}" ${h.user === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
@@ -3888,6 +3861,34 @@ const ACT = {
     else { if (!selValid(S.a.sel)) { S.a.sel = null; S.a.draft = null; } render(); }
     toast(`${me().name}（${ROLES[me().role].label}）として表示しています`);
   }),
+
+  /* 変更履歴の削除（管理者だけ） */
+  histClear: () => {
+    if (!can.users()) return;
+    S.layer = { type: "modal", title: "変更履歴を削除", text: "削除した履歴は、元に戻せません。削除したことは、新しい履歴として残ります。",
+      body: `<div class="fld"><label for="hcDays">削除する範囲</label><select class="sel" id="hcDays"><option value="365">1年より前の履歴</option><option value="180">半年（180日）より前の履歴</option><option value="90">3か月（90日）より前の履歴</option><option value="30">1か月（30日）より前の履歴</option><option value="0">すべての履歴</option></select></div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "削除する", act: "histClearDo", cls: "danger solid" }] };
+    renderLayer();
+  },
+  histClearDo: async () => {
+    const days = +$("#hcDays").value;
+    try {
+      let msg;
+      if (isSrv()) msg = (await srvOp("history.clear", { days })).message;
+      else {
+        if (!can.users()) return;
+        const cut = days ? (() => { const d = new Date(Date.now() - days * 86400000); return `${ymd(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; })() : "";
+        const before = DATA.history.length;
+        DATA.history = days ? DATA.history.filter(h => h.at >= cut) : [];
+        const n = before - DATA.history.length;
+        log("delete", "history", "", "変更履歴", `${days ? days + "日より前" : "すべて"}の履歴 ${n}件を削除`); saveData();
+        msg = `変更履歴を ${n}件 削除しました`;
+      }
+      S.layer = null; renderLayer();
+      if (S.mode === "admin" && S.a.sel?.type === "history") $("#edIn").innerHTML = historyHtml();
+      toast(msg);
+    } catch (e) { failToast(e); S.layer = null; renderLayer(); }
+  },
 
   /* 設定メニュー */
   selMenu: el => guard(() => select(el.dataset.v === "home" ? null : { type: el.dataset.v })),

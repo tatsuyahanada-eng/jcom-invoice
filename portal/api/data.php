@@ -489,6 +489,25 @@ function op_contacts_save(array $u, array $b): array
     return ['message' => '連絡先を保存しました'];
 }
 
+/* ------------------------------------------------------------ 変更履歴の削除（管理者だけ） */
+
+function op_history_clear(array $u, array $b): array
+{
+    $days = (int)($b['days'] ?? 0);   // 0 = すべて。それ以外は「その日数より前」の履歴
+    if ($days < 0 || $days > 3650) fail(422, '期間の指定が正しくありません');
+    if ($days === 0) {
+        $n = (int)db()->exec('DELETE FROM history');
+        $what = 'すべて';
+    } else {
+        $s = db()->prepare('DELETE FROM history WHERE happened_at < ?');
+        $s->execute([date('Y-m-d H:i:s', strtotime("-{$days} days"))]);
+        $n = $s->rowCount();
+        $what = "{$days}日より前";
+    }
+    log_history($u['id'], 'delete', 'history', '', '変更履歴', "{$what}の履歴 {$n}件を削除");   // 消したこと自体は、新しい履歴として残す
+    return ['message' => "変更履歴を {$n}件 削除しました", 'deleted' => $n];
+}
+
 /* ------------------------------------------------------------ 受け口 */
 
 function run_data_op(string $op): never
@@ -496,12 +515,12 @@ function run_data_op(string $op): never
     require_same_site_write();
     $u = require_role('editor');
     $b = read_json();
-    $need = ['users.save' => 3, 'users.password' => 3];
+    $need = ['users.save' => 3, 'users.password' => 3, 'history.clear' => 3];
     if (role_lv($u) < ($need[$op] ?? 1)) fail(403, 'この操作を行う権限がありません');
     $handlers = [
         'task.create' => 'op_task_create', 'task.duplicate' => 'op_task_duplicate', 'task.move' => 'op_task_move', 'task.save' => 'op_task_save',
         'task.delete' => 'op_task_delete', 'cat.create' => 'op_cat_create', 'cat.save' => 'op_cat_save',
-        'cat.delete' => 'op_cat_delete', 'notices.save' => 'op_notices_save', 'contacts.save' => 'op_contacts_save', 'users.save' => 'op_users_save', 'users.password' => 'op_users_password',
+        'cat.delete' => 'op_cat_delete', 'notices.save' => 'op_notices_save', 'contacts.save' => 'op_contacts_save', 'users.save' => 'op_users_save', 'users.password' => 'op_users_password', 'history.clear' => 'op_history_clear',
     ];
     if (!isset($handlers[$op])) fail(404, '不明な操作です');
     $pdo = db();
