@@ -189,21 +189,46 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .vtog button svg.i { width: 14px; height: 14px; }
 .vtog button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
 .reg { display: grid; overflow: hidden; }
-.reg-h, .reg-r { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.2fr) minmax(0, 1.4fr) 54px 76px 76px 50px 108px; gap: 10px; align-items: center; padding: 10px 16px; }
-.reg.fl .reg-h, .reg.fl .reg-r { grid-template-columns: minmax(0, 2.6fr) minmax(0, 1.2fr) minmax(0, 1.4fr) 76px 76px 50px 92px; }
+.reg-h, .reg-r { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.2fr) minmax(0, 1.4fr) 54px 76px 76px 50px 108px 84px; gap: 10px; align-items: center; padding: 10px 16px; }
+.reg.fl .reg-h, .reg.fl .reg-r { grid-template-columns: minmax(0, 2.5fr) minmax(0, 1.3fr) minmax(0, 1.3fr) minmax(0, 1.9fr) 96px; padding: 14px 16px 14px 14px; gap: 14px; }
 .reg-h { font-size: 11.5px; font-weight: 700; color: var(--muted); background: var(--surface-2); border-bottom: 1px solid var(--line); }
-.reg-r { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--fg); }
+.reg-r { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--fg); position: relative; cursor: pointer; transition: background .15s ease, box-shadow .15s ease; }
 .reg-r:last-child { border-bottom: 0; }
-.reg-r:hover { background: var(--surface-2); }
-.reg-r:hover .reg-t b { color: var(--accent); }
+.reg-r:hover, .reg-r:focus-visible { background: var(--cc-soft, var(--surface-2)); box-shadow: inset 4px 0 0 var(--cc, var(--accent)); }
+.reg-r:hover .reg-t b, .reg-r:focus-visible .reg-t b { color: var(--cc, var(--accent)); }
+.reg-r:focus-visible { outline-offset: -2px; }
 .reg .c { text-align: center; }
-.reg-t { display: grid; gap: 1px; min-width: 0; }
-.reg-t b { font-size: 14px; line-height: 1.5; }
+.reg-t { display: grid; gap: 2px; min-width: 0; }
+.reg-t b { font-size: 14.5px; line-height: 1.5; transition: color .15s ease; }
 .reg-t small { font-size: 11.5px; color: var(--muted); }
-.reg-c { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; min-width: 0; }
-.reg-c svg.i { width: 15px; height: 15px; flex: none; }
+.reg-sum { font-size: 12.5px; color: var(--muted); line-height: 1.55; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reg-c { display: flex; align-items: center; gap: 8px; color: var(--fg); font-size: 12.5px; font-weight: 700; min-width: 0; line-height: 1.4; }
+.reg-ci { width: 28px; height: 28px; border-radius: 8px; background: var(--cc-soft, var(--accent-soft)); color: var(--cc, var(--accent)); display: grid; place-items: center; flex: none; transition: background .15s ease, color .15s ease; }
+.reg-ci svg.i { width: 16px; height: 16px; }
+.reg-r:hover .reg-ci, .reg-r:focus-visible .reg-ci { background: var(--cc, var(--accent)); color: #fff; }
 .reg-m { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; min-width: 0; }
+.reg-n { display: grid; grid-template-columns: repeat(2, max-content); gap: 4px 6px; justify-content: start; }
+.cnt { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-2); border-radius: 99px; padding: 2px 9px 2px 7px; font-size: 12px; color: var(--fg); }
+.cnt svg.i { width: 13px; height: 13px; color: var(--cc, var(--accent)); }
+.cnt small { font-size: 11px; color: var(--muted); }
+.cnt.zero { opacity: .45; background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.reg-r:hover .cnt:not(.zero), .reg-r:focus-visible .cnt:not(.zero) { background: var(--surface); }
 .reg-s { display: grid; gap: 3px; justify-items: start; font-size: 12px; color: var(--muted); }
+.reg.fl .reg-s { grid-auto-flow: column; justify-content: space-between; align-items: center; }
+.reg.fl .reg-s svg.i { width: 16px; height: 16px; color: var(--line-strong); transition: transform .18s ease, color .15s ease; }
+.reg.fl .reg-r:hover .reg-s svg.i { color: var(--cc, var(--accent)); transform: translateX(3px); }
+.reg-a { display: flex; justify-content: flex-end; }
+.reg-a .btn { opacity: .55; transition: opacity .15s ease; }
+.reg-r:hover .reg-a .btn, .reg-r:focus-within .reg-a .btn { opacity: 1; }
+.copyfrom { padding: 0; }
+.copyfrom > summary { list-style: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; cursor: pointer; }
+.copyfrom > summary::-webkit-details-marker { display: none; }
+.copyfrom > summary svg.i { color: var(--accent); }
+.copyfrom > summary small { color: var(--muted); font-size: 12.5px; }
+.copyfrom[open] > summary { border-bottom: 1px solid var(--line); }
+.cf-body { display: grid; gap: 12px; padding: 14px 16px 16px; }
+.cf-secs { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.cf-acts { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .reg-count { font-size: 12px; padding: 10px 16px 0; }
 .reg-top { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
 .reg-f { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -217,6 +242,8 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
   .reg-r .reg-t { grid-column: 1 / -1; }
   .reg-r .reg-c, .reg-r .reg-m { grid-column: 1 / -1; }
   .reg-r .c { display: none; }
+  .reg-r .reg-n, .reg-r .reg-a { grid-column: 1 / -1; }
+  .reg-h { display: none; }
   .reg-r .reg-s { grid-column: 1 / -1; grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; }
 }
 .esec { display: grid; gap: 10px; scroll-margin-top: calc(var(--bar-h) + 60px); margin-bottom: 26px; }
@@ -297,6 +324,40 @@ details.more[open] summary { margin-bottom: 10px; }
 .cbox-meta b { color: var(--fg); }
 .cbox-more { margin-top: auto; background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0 0 12px 12px; padding: 10px 16px; text-align: left; color: var(--cc, var(--accent)); font-weight: 700; font-size: 13px; }
 .cbox-more:hover { background: var(--cc-soft, var(--surface-2)); }
+/* 大項目＝濃い青 ／ 作業項目＝薄い黒（グレー）で、はっきり区別する */
+:root { --major: #0b5cad; --major-2: #1478d4; --item-bg: #eceef1; --item-fg: #2a2e33; --item-sub: #5d646c; --item-chip: #d9dde2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --major: #1d6fc0; --major-2: #2b88e0; --item-bg: #1b2229; --item-fg: #dde3e9; --item-sub: #9aa5af; --item-chip: #2c353e; } }
+:root[data-theme="dark"] { --major: #1d6fc0; --major-2: #2b88e0; --item-bg: #1b2229; --item-fg: #dde3e9; --item-sub: #9aa5af; --item-chip: #2c353e; }
+.cbox { border-top: 0; overflow: hidden; }
+.cbox:hover, .cbox:focus-within { border-top-color: transparent; }
+.cbox-h { background: linear-gradient(135deg, var(--major), var(--major-2)); color: #fff; border-bottom: 0; border-radius: 0; }
+.cbox-ic { background: rgba(255,255,255,.18); color: #fff; }
+.cbox:hover .cbox-ic, .cbox-h:focus-visible .cbox-ic { background: #fff; color: var(--major); }
+.cbox-tx b, .cbox-h:hover .cbox-tx b { color: #fff; }
+.cbox-tx small { color: rgba(255,255,255,.82); }
+.cbox-n { background: rgba(255,255,255,.2); color: #fff; }
+.cbox-go { color: #fff; }
+.cbox-list { background: var(--item-bg); padding: 8px; }
+.cbox-row { color: var(--item-fg); }
+.cbox-no { background: var(--item-chip); color: var(--item-sub); }
+.cbox-t { color: var(--item-fg); }
+.cbox-meta { color: var(--item-sub); }
+.cbox-meta svg.i { color: var(--item-sub); }
+.cbox-meta b { color: var(--item-fg); }
+.cbox-row > svg.i { color: var(--item-sub); }
+.cbox-row:hover, .cbox-row:focus-visible, .cbox-li:hover .cbox-row { background: var(--surface); box-shadow: inset 3px 0 0 var(--major); }
+.cbox-row:hover .cbox-no, .cbox-row:focus-visible .cbox-no { background: var(--major); color: #fff; }
+.cbox-row:hover .cbox-t, .cbox-row:focus-visible .cbox-t, .cbox-row:hover > svg.i { color: var(--major); }
+.cbox-more { background: var(--item-bg); color: var(--major); }
+.cbox-more:hover { background: var(--surface); }
+/* 作業一覧（表形式）も同じ配色：大項目は青いラベル、作業名は濃いグレー */
+.reg-ci { background: var(--major); color: #fff; }
+.reg-c { color: var(--major); }
+.reg-t b { color: var(--item-fg); }
+.reg-r { background: var(--item-bg); }
+.reg-r:hover, .reg-r:focus-visible { background: var(--surface); box-shadow: inset 4px 0 0 var(--major); }
+.reg-r:hover .reg-t b, .reg-r:focus-visible .reg-t b, .reg.fl .reg-r:hover .reg-s svg.i { color: var(--major); }
+.cnt svg.i { color: var(--item-sub); }
 /* 作業にマウスを載せる／キーボードで移動すると、カードの横に「吹き出し」で中身を出す。その大項目の、ほかの作業にはかぶらない */
 .cpop { position: fixed; z-index: 60; width: 340px; display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--cc, var(--accent)); border-top: 4px solid var(--cc, var(--accent)); border-radius: 14px; padding: 14px 16px 12px; box-shadow: 0 18px 40px rgba(8, 28, 60, .24); pointer-events: none; opacity: 0; transition: opacity .16s ease, transform .16s ease; }
 .cpop.r { transform: translateX(-10px); }
@@ -1944,20 +2005,22 @@ function workList() {
 function viewToggle() {
   return `<div class="vtog" role="group" aria-label="表示の切り替え"><button type="button" data-act="wView" data-v="cat" aria-pressed="${!S.w.listMode}">${ic("grid")}大項目ごと</button><button type="button" data-act="wView" data-v="list" aria-pressed="${!!S.w.listMode}">${ic("steps")}一覧</button></div>`;
 }
+function cntChip(icon, label, n) { return `<span class="cnt ${n ? "" : "zero"}" title="${label}">${ic(icon)}<b class="num">${n}</b><small>${label}</small></span>`; }
 function fieldListHtml() {
   const rows = workList();
   return `<div class="sec-h"><h2>登録されている作業の一覧</h2><span class="muted num">${rows.length}件</span>${viewToggle()}</div>
   <div class="card reg fl">
-    <div class="reg-h"><span>作業名</span><span>大項目</span><span>対象機器・型番</span><span class="c">設定データ</span><span class="c">マニュアル</span><span class="c">書類</span><span>更新日</span></div>
-    ${rows.map(({ t }) => `<button class="reg-r" type="button" data-act="openTask" data-id="${t.id}">
-      <span class="reg-t"><b>${esc(t.title)}</b><small class="mono">${esc(t.id)}</small></span>
-      <span class="reg-c">${ic(catOf(t.cat).icon)}${esc(catOf(t.cat).name)}</span>
-      <span class="reg-m">${t.devices.slice(0, 2).map(d => `<span class="model">${esc(d.model || d.name || "—")}</span>`).join("")}</span>
-      <span class="c num" data-l="設定データ">${allFiles(t).length || "—"}</span>
-      <span class="c num" data-l="マニュアル">${t.manuals.length || "—"}</span>
-      <span class="c num" data-l="書類">${t.docs.length || "—"}</span>
-      <span class="reg-s"><small class="num">${fmtDate(t.updated)}</small></span>
-    </button>`).join("") || `<div class="empty-row">公開中の作業はまだありません</div>`}
+    <div class="reg-h"><span>作業名</span><span>大項目</span><span>対象機器・型番</span><span>内容</span><span class="c">更新日</span></div>
+    ${rows.map(({ t }) => {
+      const c = catOf(t.cat), models = [...new Set(t.devices.map(d => d.model || d.name).filter(Boolean))];
+      return `<button class="reg-r" type="button" style="${catStyle(c)}" data-act="openTask" data-id="${esc(t.id)}">
+      <span class="reg-t"><b>${esc(t.title)}</b>${t.summary ? `<span class="reg-sum">${esc(t.summary)}</span>` : ""}<small class="mono">${esc(t.id)}</small></span>
+      <span class="reg-c"><span class="reg-ci">${ic(c.icon)}</span><span>${esc(c.name)}</span></span>
+      <span class="reg-m">${models.slice(0, 2).map(m => `<span class="model">${esc(m)}</span>`).join("")}${models.length > 2 ? `<small class="muted">他${models.length - 2}</small>` : ""}</span>
+      <span class="reg-n">${cntChip("steps", "手順", t.steps.length)}${cntChip("book", "マニュアル", t.manuals.length)}${cntChip("dl", "設定データ", allFiles(t).length)}${cntChip("form", "書類", t.docs.length)}</span>
+      <span class="reg-s"><small class="num">${fmtDate(t.updated)}</small>${ic("chev")}</span>
+    </button>`;
+    }).join("") || `<div class="empty-row">公開中の作業はまだありません</div>`}
   </div>`;
 }
 /* 大項目ごとの色（アイコンと上の帯・ホバーの強調に使う） */
@@ -2759,18 +2822,19 @@ function admListHtml() {
   const rows = admRows(), q = S.a.list.q.trim();
   if (!rows.length) return `<div class="empty-row">${DATA.tasks.length ? "条件に合うものがありません" : "まだ何も登録されていません。「新しく登録」から始めてください。"}</div>`;
   return `<div class="reg-count muted num">${rows.length}件</div>
-  <div class="reg">
-    <div class="reg-h"><span>作業名</span><span>大項目</span><span>対象機器・型番</span><span class="c">手順</span><span class="c">設定データ</span><span class="c">マニュアル</span><span class="c">書類</span><span>状態・更新日</span></div>
-    ${rows.map(({ t, h }) => `<button class="reg-r" type="button" data-act="selTask" data-id="${t.id}">
+  <div class="reg adm">
+    <div class="reg-h"><span>作業名</span><span>大項目</span><span>対象機器・型番</span><span class="c">手順</span><span class="c">設定データ</span><span class="c">マニュアル</span><span class="c">書類</span><span>状態・更新日</span><span></span></div>
+    ${rows.map(({ t, h }) => `<div class="reg-r" role="button" tabindex="0" style="${catStyle(catOf(t.cat))}" data-act="selTask" data-id="${esc(t.id)}">
       <span class="reg-t"><b>${hl(t.title || "（作業名なし）", q)}</b><small class="mono">${hl(t.id, q)}</small>${h.why ? `<small class="res-why">${esc(h.why)}</small>` : ""}</span>
-      <span class="reg-c">${ic(catOf(t.cat).icon)}${esc(catOf(t.cat).name)}</span>
+      <span class="reg-c"><span class="reg-ci">${ic(catOf(t.cat).icon)}</span><span>${esc(catOf(t.cat).name)}</span></span>
       <span class="reg-m">${t.devices.slice(0, 2).map(d => `<span class="model">${hl(d.model || d.name || "—", q)}</span>`).join("")}${t.devices.length > 2 ? `<small class="muted">他${t.devices.length - 2}</small>` : ""}</span>
       <span class="c num" data-l="手順">${t.steps.length || "—"}</span>
       <span class="c num" data-l="設定データ">${allFiles(t).length || "—"}</span>
       <span class="c num" data-l="マニュアル">${t.manuals.length || "—"}</span>
       <span class="c num" data-l="書類">${t.docs.length || "—"}</span>
       <span class="reg-s"><span class="chip ${t.status === "published" ? "ok" : ""}">${t.status === "published" ? "公開中" : "非公開"}</span><small class="num">${fmtDate(t.updated)}</small></span>
-    </button>`).join("")}
+      <span class="reg-a"><button class="btn sm ghost" type="button" data-act="dupTask" data-id="${esc(t.id)}" title="この作業を複製して、新しい作業を作る（事前準備などが共通のとき）" aria-label="${esc(t.title)}を複製">${ic("dup")}複製</button></span>
+    </div>`).join("")}
   </div>`;
 }
 function dashHtml() {
@@ -2961,6 +3025,19 @@ function allSectionsHtml() {
   return ED_SECS.map(([k, n], i) => `<section class="esec" id="es-${k}"><h2 class="esec-h"><span class="esec-n">${i + 1}</span>${n}${k === "basic" ? `<em>作業名は必須</em>` : k === "pub" ? "" : `<small>任意</small>`}</h2>${sectionHtml(k)}</section>`).join("");
 }
 
+/* すでにある作業から、事前準備・手順などを、必要な部分だけコピーする（共通の内容を、何度も入力しなくてよい） */
+const CP_SECS = [["prep", "事前準備・持参品"], ["dev", "対象機器"], ["steps", "作業手順"], ["man", "マニュアル"], ["docs", "書類"], ["files", "設定データ（アップロード済みのファイル）"]];
+function copyFromHtml() {
+  const d = S.a.draft, others = DATA.tasks.filter(t => t.id !== d.id);
+  if (!others.length) return "";
+  return `<details class="copyfrom card" id="copyFrom"><summary>${ic("dup")}<b>ほかの作業から内容をコピーする</b><small>事前準備など、共通の部分を入力し直さずにすみます</small></summary>
+    <div class="cf-body">
+      <div class="fld"><label for="cpSrc">コピー元の作業</label><select class="sel" id="cpSrc">${catsSorted().map(c => { const ts = others.filter(t => t.cat === c.id).sort((a, b) => a.order - b.order); return ts.length ? `<optgroup label="${esc(c.name)}">${ts.map(t => `<option value="${esc(t.id)}">${esc(t.title)}（${esc(t.id)}）</option>`).join("")}</optgroup>` : ""; }).join("")}</select></div>
+      <div class="fld"><span class="lb">コピーする部分</span><div class="cf-secs">${CP_SECS.map(([k, n], i) => `<label class="ck"><input type="checkbox" data-cp="${k}" ${k === "prep" ? "checked" : ""}><span>${n}</span></label>`).join("")}</div></div>
+      <div class="fld"><label for="cpMode">いま入力してある内容は</label><select class="sel" id="cpMode" style="width:auto"><option value="replace">コピーした内容に置き換える</option><option value="append">そのままにして、後ろに追加する</option></select></div>
+      <div class="cf-acts"><button class="btn primary" type="button" data-act="cpDo">${ic("check")}コピーする</button><small class="muted">保存するまでは反映されません（「変更を破棄」で戻せます）。</small></div>
+    </div></details>`;
+}
 function taskEditor() {
   const d = S.a.draft, c = catOf(d.cat), isNew = !d.id;
   return `
@@ -2977,6 +3054,7 @@ function taskEditor() {
       </div>
       ${isNew ? `<p class="sect-intro" style="margin:6px 0 0">上から順に入力して、最後に「登録」を押してください。作業名以外は空欄のままでも登録でき、あとから追加できます。</p>` : ""}
     </div>
+    ${copyFromHtml()}
     <nav class="tabs" id="tabs" aria-label="入力項目へ移動">${tabsHtml()}</nav>
     <div id="secBody">${allSectionsHtml()}</div>`;
 }
@@ -3835,6 +3913,27 @@ const ACT = {
     if (isPdf(ex.name)) { window.open(fileUrl(ex, true), "_blank", "noopener"); return; }
     startDownload(ex).then(ok => ok && toast(`記入例をダウンロードしました：${ex.name}`));
   },
+  cpDo: () => {
+    const d = S.a.draft, src = taskById($("#cpSrc")?.value); if (!d || !src) return;
+    const keys = [...document.querySelectorAll("[data-cp]:checked")].map(i => i.dataset.cp);
+    if (!keys.length) { toast("コピーする部分を選んでください"); return; }
+    const append = $("#cpMode").value === "append", srv = isSrv();
+    const put = (field, items) => { d[field] = append ? [...(d[field] || []), ...items] : items; };
+    const cl = x => JSON.parse(JSON.stringify(x));
+    const names = [];
+    keys.forEach(k => {
+      if (k === "prep") { put("precheck", cl(src.precheck)); put("bring", cl(src.bring)); names.push("事前準備・持参品"); }
+      if (k === "dev") { put("devices", cl(src.devices)); names.push("対象機器"); }
+      if (k === "steps") { put("steps", cl(src.steps)); names.push("作業手順"); }
+      if (k === "man") {   // 本物のファイルは、アップロード済みのもの（fid）と FTP のパスだけをコピーできる
+        put("manuals", cl(src.manuals).map(m => { if (srv && m.file && !m.file.fid) delete m.file; delete m.fsize; delete m.missing; return m; })); names.push("マニュアル");
+      }
+      if (k === "docs") { put("docs", cl(src.docs).map(x => { for (const sl of ["form", "example"]) if (srv && x[sl] && !x[sl].fid) x[sl] = null; return x; })); names.push("書類"); }
+      if (k === "files") { put("files", cl(src.files).filter(f => !srv || f.fid).filter(f => !append || !d.files.some(y => y.name === f.name))); names.push("設定データ"); }
+    });
+    rerenderSection();
+    toast(`「${src.title}」の${names.join("・")}をコピーしました。内容を確認して、保存してください`);
+  },
   manClr: el => { const m = S.a.draft.manuals[+el.dataset.i]; if (!m) return; delete m.file; delete m.path; delete m.ext; delete m.fsize; delete m.missing; rerenderSection(); },
   docClr: el => { const x = S.a.draft.docs[+el.dataset.i]; if (!x) return; x[el.dataset.slot] = null; rerenderSection(); },
   resetProg: () => { delete PROG[S.w.taskId]; saveProg(); refreshWork(); toast("進み具合をリセットしました"); },
@@ -3923,11 +4022,13 @@ const ACT = {
   rmTag: el => { S.a.draft.tags.splice(+el.dataset.i, 1); rerenderSection(); $("#tagIn")?.focus(); },
   stepTog: el => { const i = +el.dataset.i, o = S.a.stepOpen; o.has(i) ? o.delete(i) : o.add(i); $("#secBody").innerHTML = allSectionsHtml(); },
   setStatus: el => { S.a.draft.status = el.dataset.v; rerenderSection(); },
-  dupTask: () => guard(async () => {
-    if (isSrv()) { try { const r = await srvOp("task.duplicate", { id: S.a.sel.id }); select({ type: "task", id: r.id }); toast(r.message); } catch (e) { failToast(e); } return; }
-    const src = taskById(S.a.sel.id); const t = clone(src); const id = nextId(src.cat);
+  dupTask: el => guard(async () => {
+    const id0 = el?.dataset?.id || S.a.sel?.id; if (!id0) return;
+    const msg = id => `複製して ${id} を作りました（非公開）。内容を直して、「TOPページに表示する」にチェックを入れて保存してください`;
+    if (isSrv()) { try { const r = await srvOp("task.duplicate", { id: id0 }); S.a.tab = "basic"; select({ type: "task", id: r.id }); toast(msg(r.id)); } catch (e) { failToast(e); } return; }
+    const src = taskById(id0); const t = clone(src); const id = nextId(src.cat);
     Object.assign(t, { id, title: src.title + "（コピー）", status: "draft", order: tasksOf(src.cat).length + 1, updated: today(), old: [], extractTo: "C:\\Setup\\" + id });
-    DATA.tasks.push(t); log("create", "task", id, t.title, `${src.id} を複製して下書きを作成`); saveData(); select({ type: "task", id }); toast(`${src.id} を複製して ${id} を作成しました（下書き）`);
+    DATA.tasks.push(t); log("create", "task", id, t.title, `${src.id} を複製して下書きを作成`); saveData(); select({ type: "task", id }); toast(msg(id));
   }),
   delTask: () => {
     S.layer = { type: "modal", title: `「${S.a.draft.title}」を削除しますか？`, text: "現場ビューからも消え、元に戻せません。一時的に隠したい場合は、公開設定を「下書き」に戻してください。", buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "削除する", act: "mDelTask", cls: "danger solid" }] };
@@ -4162,6 +4263,9 @@ const ACT = {
   mReset: () => { DATA = clone(DEFAULT_DATA); PROG = {}; DEMO_LOGS = makeDemoLogs(); saveData(); saveProg(); saveDemoLogs(); S.layer = null; select(null); toast("サンプルデータに戻しました"); }
 };
 
+document.addEventListener("keydown", e => {   // div で作った行（role="button"）を、Enter / スペースで開けるようにする
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches?.('[role="button"][data-act]')) { e.preventDefault(); e.target.click(); }
+});
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]");
   if (!el || el.disabled) return;
