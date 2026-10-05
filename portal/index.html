@@ -258,22 +258,48 @@ details.more[open] summary { margin-bottom: 10px; }
 .sec-h h2 { font-size: 18px; }
 .sec-h .muted { font-size: 12.5px; }
 .cgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.cbox { display: flex; flex-direction: column; overflow: hidden; }
-.cbox-h { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; width: 100%; }
-.cbox-h:hover { background: var(--surface-2); }
-.cbox-h:hover b { color: var(--accent); }
-.cbox-tx { display: grid; gap: 1px; flex: 1; min-width: 0; }
-.cbox-tx b { font-size: 15.5px; }
-.cbox-tx small { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cbox-n { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 99px; padding: 2px 10px; }
-.cbox-list { list-style: none; margin: 0; padding: 4px 0; }
-.cbox-list button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: none; border: 0; padding: 9px 16px; font-size: 14px; line-height: 1.5; color: var(--fg); }
-.cbox-list button:hover { background: var(--surface-2); color: var(--accent); }
-.cbox-list button svg.i { width: 15px; height: 15px; color: var(--line-strong); flex: none; margin-left: auto; }
-.cbox-list button:hover svg.i { color: var(--accent); }
-.cbox-t { min-width: 0; }
-.cbox-more { margin-top: auto; background: none; border: 0; border-top: 1px solid var(--line); padding: 9px 16px; text-align: left; color: var(--accent); font-weight: 700; font-size: 13px; }
-.cbox-more:hover { background: var(--surface-2); }
+.cgrid.one { grid-template-columns: minmax(0, 1fr); }
+.cbox { display: flex; flex-direction: column; overflow: hidden; border-top: 4px solid var(--cc, var(--accent)); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.cbox:hover, .cbox:focus-within { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--line-strong); border-top-color: var(--cc, var(--accent)); }
+.cbox-h { display: flex; align-items: center; gap: 14px; padding: 16px 16px 14px; background: linear-gradient(180deg, var(--cc-soft, var(--accent-soft)), transparent); border: 0; border-bottom: 1px solid var(--line); text-align: left; width: 100%; }
+.cbox-ic { width: 48px; height: 48px; border-radius: 13px; background: var(--cc-soft, var(--accent-soft)); color: var(--cc, var(--accent)); display: grid; place-items: center; flex: none; transition: background .18s ease, color .18s ease, transform .18s ease; }
+.cbox-ic svg.i { width: 24px; height: 24px; }
+.cbox:hover .cbox-ic, .cbox-h:focus-visible .cbox-ic { background: var(--cc, var(--accent)); color: #fff; transform: scale(1.05); }
+.cbox-tx { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.cbox-tx b { font-size: 16.5px; line-height: 1.4; }
+.cbox-tx small { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbox-h:hover .cbox-tx b { color: var(--cc, var(--accent)); }
+.cbox-side { display: grid; justify-items: end; gap: 4px; flex: none; }
+.cbox-n { font-size: 12px; font-weight: 700; color: var(--cc, var(--accent)); background: var(--cc-soft, var(--accent-soft)); border-radius: 99px; padding: 2px 11px; }
+.cbox-go { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 700; color: var(--cc, var(--accent)); opacity: 0; transform: translateX(-6px); transition: opacity .18s ease, transform .18s ease; }
+.cbox-go svg.i { width: 14px; height: 14px; }
+.cbox-h:hover .cbox-go, .cbox-h:focus-visible .cbox-go { opacity: 1; transform: none; }
+.cbox-list { list-style: none; margin: 0; padding: 6px 0; }
+.cbox-row { display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left; background: none; border: 0; padding: 10px 16px 10px 13px; border-left: 3px solid transparent; color: var(--fg); transition: background .15s ease, border-color .15s ease; }
+.cbox-row > svg.i { width: 16px; height: 16px; color: var(--line-strong); flex: none; margin-left: auto; margin-top: 3px; transition: transform .18s ease, color .15s ease; }
+.cbox-row:hover, .cbox-row:focus-visible { background: var(--cc-soft, var(--surface-2)); border-left-color: var(--cc, var(--accent)); }
+.cbox-row:hover > svg.i, .cbox-row:focus-visible > svg.i { color: var(--cc, var(--accent)); transform: translateX(3px); }
+.cbox-main { display: grid; gap: 0; min-width: 0; flex: 1; }
+.cbox-t { font-size: 14.5px; font-weight: 700; line-height: 1.5; min-width: 0; }
+.cbox-row:hover .cbox-t, .cbox-row:focus-visible .cbox-t { color: var(--cc, var(--accent)); }
+.cbox-sub { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
+.cbox-subin { overflow: hidden; min-height: 0; display: grid; gap: 6px; }
+.cbox-row:hover .cbox-sub, .cbox-row:focus-visible .cbox-sub { grid-template-rows: 1fr; }
+.cbox-sum { font-size: 12.5px; color: var(--muted); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; padding-top: 3px; }
+.cbox-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: 12px; color: var(--muted); padding-bottom: 2px; }
+.cbox-meta > span { display: inline-flex; align-items: center; gap: 4px; }
+.cbox-meta svg.i { width: 13px; height: 13px; color: var(--cc, var(--accent)); }
+.cbox-meta b { color: var(--fg); }
+.cbox-meta .model { font-size: 11.5px; padding: 1px 6px; }
+.cbox-more { margin-top: auto; background: none; border: 0; border-top: 1px solid var(--line); padding: 10px 16px; text-align: left; color: var(--cc, var(--accent)); font-weight: 700; font-size: 13px; }
+.cbox-more:hover { background: var(--cc-soft, var(--surface-2)); }
+@media (hover: none) {   /* タッチ操作の画面では、ホバーができないので、中身の内訳を最初から見せる */
+  .cbox-sub { grid-template-rows: 1fr; }
+  .cbox-sum { display: none; }
+  .cbox-go { display: none; }
+  .cbox:hover { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .cbox, .cbox-ic, .cbox-go, .cbox-sub, .cbox-row > svg.i { transition: none; } .cbox:hover { transform: none; } }
 .crumb { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
 .crumb button { display: inline-flex; align-items: center; gap: 5px; background: none; border: 0; padding: 2px 0; color: var(--accent); font-weight: 700; font-size: 13px; }
 .crumb button:hover { text-decoration: underline; }
@@ -809,8 +835,9 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .bigsearch input { height: 50px; font-size: 16px; }
   .home { padding: 14px 16px 56px; gap: 14px; }
   .cgrid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .cbox-h { padding: 12px 14px; }
-  .cbox-list button { padding: 11px 14px; }
+  .cbox-h { padding: 14px; gap: 12px; }
+  .cbox-ic { width: 44px; height: 44px; }
+  .cbox-row { padding: 11px 14px 11px 11px; }
   .cswitch { margin: 0 -16px 12px; padding: 0 16px 2px; }
   .res { padding: 12px 14px; gap: 10px; }
   .notices { padding: 2px 14px; }
@@ -1893,21 +1920,40 @@ function fieldListHtml() {
     </button>`).join("") || `<div class="empty-row">公開中の作業はまだありません</div>`}
   </div>`;
 }
+/* 大項目ごとの色（アイコンと上の帯・ホバーの強調に使う） */
+const CAT_COLORS = ["#0451b0", "#0a93c2", "#17845a", "#6b4fc9", "#c26a0a", "#c2417a"];
+function catStyle(c) {
+  const i = Math.max(0, catsSorted().findIndex(x => x.id === c.id)), hex = CAT_COLORS[i % CAT_COLORS.length], n = parseInt(hex.slice(1), 16);
+  return `--cc:${hex};--cc-soft:rgba(${n >> 16},${(n >> 8) & 255},${n & 255},.12)`;
+}
 function catGridHtml() {
   const pub = pubTasks();
   const cats = catsSorted().filter(c => pub.some(t => t.cat === c.id));
   if (!cats.length) return resultsHtml([], "");
   if (S.w.listMode) return fieldListHtml();
   return `<div class="sec-h"><h2>大項目から探す</h2><span class="muted num">${cats.length}項目・${pub.length}件の作業</span>${viewToggle()}</div>
-  <div class="cgrid">${cats.map(c => {
-    const ts = pub.filter(t => t.cat === c.id).sort((a, b) => a.order - b.order), MAX = 5;
-    return `<article class="card cbox">
-      <button class="cbox-h" type="button" data-act="wCat" data-id="${c.id}">
-        <span class="ico-tile">${ic(c.icon)}</span>
+  <div class="cgrid ${cats.length === 1 ? "one" : ""}">${cats.map(c => {
+    const ts = pub.filter(t => t.cat === c.id).sort((a, b) => a.order - b.order), MAX = 6;
+    return `<article class="card cbox" style="${catStyle(c)}">
+      <button class="cbox-h" type="button" data-act="wCat" data-id="${c.id}" aria-label="${esc(c.name)}の作業を一覧で見る（${ts.length}件）">
+        <span class="cbox-ic">${ic(c.icon)}</span>
         <span class="cbox-tx"><b>${esc(c.name)}</b>${c.desc ? `<small>${esc(c.desc)}</small>` : ""}</span>
-        <span class="cbox-n num">${ts.length}件</span>
+        <span class="cbox-side"><span class="cbox-n num">${ts.length}件</span><span class="cbox-go">一覧を見る ${ic("chev")}</span></span>
       </button>
-      <ul class="cbox-list">${ts.slice(0, MAX).map(t => `<li><button type="button" data-act="openTask" data-id="${t.id}"><span class="cbox-t">${esc(t.title)}</span>${ic("chev")}</button></li>`).join("")}</ul>
+      <ul class="cbox-list">${ts.slice(0, MAX).map(t => {
+        const meta = [["steps", "手順", t.steps.length], ["book", "マニュアル", t.manuals.length], ["dl", "設定データ", allFiles(t).length], ["form", "書類", t.docs.length]].filter(m => m[2]);
+        const models = [...new Set(t.devices.map(d => d.model).filter(Boolean))].slice(0, 3);
+        return `<li><button class="cbox-row" type="button" data-act="openTask" data-id="${esc(t.id)}">
+          <span class="cbox-main">
+            <span class="cbox-t">${esc(t.title)}</span>
+            <span class="cbox-sub"><span class="cbox-subin">
+              ${t.summary ? `<span class="cbox-sum">${esc(t.summary)}</span>` : ""}
+              <span class="cbox-meta">${meta.map(([i, n, v]) => `<span>${ic(i)}${n} <b class="num">${v}</b></span>`).join("")}${models.map(m => `<span class="model">${esc(m)}</span>`).join("")}</span>
+            </span></span>
+          </span>
+          ${ic("chev")}
+        </button></li>`;
+      }).join("")}</ul>
       ${ts.length > MAX ? `<button class="cbox-more" type="button" data-act="wCat" data-id="${c.id}">ほか ${ts.length - MAX}件をすべて見る →</button>` : ""}
     </article>`;
   }).join("")}</div>`;
