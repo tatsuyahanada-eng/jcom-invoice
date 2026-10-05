@@ -322,6 +322,7 @@ details.more[open] summary { margin-bottom: 10px; }
 .cbox-meta > span { display: inline-flex; align-items: center; gap: 4px; }
 .cbox-meta svg.i { width: 13px; height: 13px; color: var(--cc, var(--accent)); }
 .cbox-meta b { color: var(--fg); }
+.cbox-empty { padding: 14px 12px; font-size: 13px; color: var(--item-sub); }
 .cbox-more { margin-top: auto; background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0 0 12px 12px; padding: 10px 16px; text-align: left; color: var(--cc, var(--accent)); font-weight: 700; font-size: 13px; }
 .cbox-more:hover { background: var(--cc-soft, var(--surface-2)); }
 /* 大項目＝濃い青 ／ 作業項目＝薄い黒（グレー）で、はっきり区別する */
@@ -2031,8 +2032,8 @@ function catStyle(c) {
 }
 function catGridHtml() {
   const pub = pubTasks();
-  const cats = catsSorted().filter(c => pub.some(t => t.cat === c.id));
-  if (!cats.length) return resultsHtml([], "");
+  const cats = catsSorted();   // 作業がまだ無い大項目も、登録した時点でTOPに出す
+  if (!cats.length || (!pub.length && S.w.listMode)) return resultsHtml([], "");
   if (S.w.listMode) return fieldListHtml();
   return `<div class="sec-h"><h2>大項目から探す</h2><span class="muted num">${cats.length}項目・${pub.length}件の作業</span>${viewToggle()}</div>
   <div class="cgrid ${cats.length === 1 ? "one" : ""}">${cats.map(c => {
@@ -2043,7 +2044,7 @@ function catGridHtml() {
         <span class="cbox-tx"><b>${esc(c.name)}</b>${c.desc ? `<small>${esc(c.desc)}</small>` : ""}</span>
         <span class="cbox-side"><span class="cbox-n num">${ts.length}件</span><span class="cbox-go">一覧を見る ${ic("chev")}</span></span>
       </button>
-      <ul class="cbox-list">${ts.slice(0, MAX).map((t, i) => {
+      <ul class="cbox-list">${ts.length ? "" : `<li class="cbox-empty">この大項目の作業は、まだ登録されていません</li>`}${ts.slice(0, MAX).map((t, i) => {
         const meta = [["steps", "手順", t.steps.length], ["book", "マニュアル", t.manuals.length], ["dl", "設定データ", allFiles(t).length], ["form", "書類", t.docs.length]].filter(m => m[2]);
         return `<li class="cbox-li">
           <button class="cbox-row" type="button" data-act="openTask" data-id="${esc(t.id)}">
@@ -2114,7 +2115,7 @@ window.addEventListener("resize", cpopHide);
 
 function catSwitchHtml() {
   const pub = pubTasks();
-  return `<div class="cswitch" role="group" aria-label="大項目の切り替え">${catsSorted().filter(c => pub.some(t => t.cat === c.id)).map(c => `<button type="button" data-act="wCat" data-id="${c.id}" aria-pressed="${S.w.cat === c.id}">${ic(c.icon)}${esc(c.name)}</button>`).join("")}</div>`;
+  return `<div class="cswitch" role="group" aria-label="大項目の切り替え">${catsSorted().map(c => `<button type="button" data-act="wCat" data-id="${c.id}" aria-pressed="${S.w.cat === c.id}">${ic(c.icon)}${esc(c.name)}</button>`).join("")}</div>`;
 }
 function homeMainHtml() {
   const q = S.w.q, cat = S.w.cat && !q ? catOf(S.w.cat) : null;
