@@ -228,7 +228,7 @@ function stream_file(string $path, string $name, string $etag, bool $wantInline 
     while (ob_get_level()) ob_end_clean();
     http_response_code($status);
     $ascii = preg_replace('/[^\x20-\x7E]|["\\\\]/', '_', $name);
-    $types = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp', 'pdf' => 'application/pdf'];
+    $types = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp', 'pdf' => 'application/pdf', 'mp4' => 'video/mp4', 'm4v' => 'video/mp4', 'webm' => 'video/webm', 'mov' => 'video/quicktime'];
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
     $inline = $wantInline && isset($types[$ext]);
     header('Content-Type: ' . ($inline ? $types[$ext] : 'application/octet-stream'));

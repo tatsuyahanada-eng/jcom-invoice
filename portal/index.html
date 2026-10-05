@@ -295,24 +295,37 @@ details.more[open] summary { margin-bottom: 10px; }
 .cbox-meta > span { display: inline-flex; align-items: center; gap: 4px; }
 .cbox-meta svg.i { width: 13px; height: 13px; color: var(--cc, var(--accent)); }
 .cbox-meta b { color: var(--fg); }
-/* マウスを載せる／キーボードで移動すると、作業の中身を、位置を動かさずに重ねて表示する */
-.cbox-pop { position: absolute; z-index: 8; left: 14px; right: 14px; top: calc(100% + 2px); display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--cc, var(--accent)); border-radius: 12px; padding: 12px 14px 12px; box-shadow: 0 16px 34px rgba(8, 28, 60, .22); opacity: 0; visibility: hidden; transform: translateY(-6px) scale(.98); transform-origin: 30px 0; transition: opacity .16s ease, transform .16s ease, visibility 0s linear .16s; pointer-events: none; }
-.cbox-pop::before { content: ""; position: absolute; top: -6px; left: 24px; width: 10px; height: 10px; background: var(--surface); border-left: 1px solid var(--cc, var(--accent)); border-top: 1px solid var(--cc, var(--accent)); transform: rotate(45deg); }
-.cbox-li:hover .cbox-pop, .cbox-row:focus-visible + .cbox-pop { opacity: 1; visibility: visible; transform: none; transition-delay: .12s, .12s, .12s; }
-.cbox-pop-h { display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: var(--muted); }
-.cbox-pop-h .mono { font-weight: 700; color: var(--cc, var(--accent)); }
-.cbox-sum { font-size: 13px; line-height: 1.7; color: var(--fg); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.cbox-models { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
-.cbox-models small { font-size: 11.5px; color: var(--muted); margin-right: 2px; }
-.cbox-open { display: inline-flex; align-items: center; gap: 2px; justify-self: end; font-size: 12.5px; font-weight: 700; color: var(--cc, var(--accent)); }
-.cbox-open svg.i { width: 14px; height: 14px; }
 .cbox-more { margin-top: auto; background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0 0 12px 12px; padding: 10px 16px; text-align: left; color: var(--cc, var(--accent)); font-weight: 700; font-size: 13px; }
 .cbox-more:hover { background: var(--cc-soft, var(--surface-2)); }
+/* 作業にマウスを載せる／キーボードで移動すると、カードの横に「吹き出し」で中身を出す。その大項目の、ほかの作業にはかぶらない */
+.cpop { position: fixed; z-index: 60; width: 340px; display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--cc, var(--accent)); border-top: 4px solid var(--cc, var(--accent)); border-radius: 14px; padding: 14px 16px 12px; box-shadow: 0 18px 40px rgba(8, 28, 60, .24); pointer-events: none; opacity: 0; transition: opacity .16s ease, transform .16s ease; }
+.cpop.r { transform: translateX(-10px); }
+.cpop.l { transform: translateX(10px); }
+.cpop.b { transform: translateY(-8px); }
+.cpop.on { opacity: 1; transform: none; }
+.cpop::before { content: ""; position: absolute; width: 12px; height: 12px; background: var(--surface); transform: rotate(45deg); }
+.cpop.r::before { left: -7px; top: var(--ty, 24px); border-left: 1px solid var(--cc, var(--accent)); border-bottom: 1px solid var(--cc, var(--accent)); }
+.cpop.l::before { right: -7px; top: var(--ty, 24px); border-right: 1px solid var(--cc, var(--accent)); border-top: 1px solid var(--cc, var(--accent)); }
+.cpop.b::before { top: -10px; left: var(--tx, 30px); border-left: 1px solid var(--cc, var(--accent)); border-top: 1px solid var(--cc, var(--accent)); }
+.cpop-h { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.cpop-h .mono { font-weight: 700; color: var(--cc, var(--accent)); }
+.cpop-h .cpop-date { margin-left: auto; }
+.cpop-t { font-size: 15.5px; font-weight: 700; line-height: 1.5; }
+.cpop-sum { font-size: 13px; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.cpop-sec { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 8px; }
+.cpop-sec > small { font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+.cpop-chips { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.cpop-li { display: flex; align-items: center; gap: 6px; font-size: 12.5px; line-height: 1.5; min-width: 0; }
+.cpop-li svg.i { width: 14px; height: 14px; color: var(--cc, var(--accent)); flex: none; }
+.cpop-li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cpop-li em { font-style: normal; color: var(--muted); margin-left: auto; flex: none; font-size: 11.5px; }
+.cpop-open { display: inline-flex; align-items: center; gap: 2px; justify-self: end; font-size: 12.5px; font-weight: 700; color: var(--cc, var(--accent)); }
+.cpop-open svg.i { width: 14px; height: 14px; }
 @media (hover: none) {   /* タッチ操作の画面にはホバーがない。作業ごとの件数は、最初から行に出ている */
-  .cbox-pop, .cbox-go { display: none; }
+  .cpop, .cbox-go { display: none; }
   .cbox:hover { transform: none; }
 }
-@media (prefers-reduced-motion: reduce) { .cbox, .cbox-ic, .cbox-go, .cbox-pop, .cbox-row > svg.i { transition: none; } .cbox:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cbox, .cbox-ic, .cbox-go, .cpop, .cbox-row > svg.i { transition: none; } .cbox:hover { transform: none; } }
 .crumb { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
 .crumb button { display: inline-flex; align-items: center; gap: 5px; background: none; border: 0; padding: 2px 0; color: var(--accent); font-weight: 700; font-size: 13px; }
 .crumb button:hover { text-decoration: underline; }
@@ -706,7 +719,18 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
 .row-dev { grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) 90px; }
 .row-pre { grid-template-columns: 26px minmax(0, 1fr) 90px; }
 .row-bring { grid-template-columns: minmax(0, 1fr) 84px auto 90px; }
-.row-man { grid-template-columns: 96px minmax(0, 1.6fr) minmax(0, .8fr) 150px 90px; }
+.row-man, .man-top { grid-template-columns: 96px minmax(0, 1.6fr) minmax(0, .8fr) 150px 90px; }
+.man-ed { display: grid; gap: 8px; }
+.man-top { display: grid; gap: 8px; align-items: center; }
+.man-file { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 9px; background: var(--surface-2); min-width: 0; }
+.man-file.ok, .man-file.up { border-style: solid; border-color: var(--line); background: var(--surface); }
+.man-file .fn { font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.man-file .lb { font-size: 12px; font-weight: 700; color: var(--muted); }
+.man-file > .inp { flex: 1 1 260px; min-width: 0; }
+.man-file.ok > span:nth-child(2) { flex: 1; min-width: 0; }
+.man-or { font-size: 12px; }
+.man-ed.over, #dropMan.over { outline: 2px dashed var(--accent); outline-offset: 2px; background: var(--accent-soft); }
+.man-video { width: 100%; max-height: 70vh; border-radius: 10px; background: #000; }
 .cols-h { display: grid; gap: 8px; padding: 0 9px; font-size: 11.5px; font-weight: 700; color: var(--muted); }
 .req-tg { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 99px; padding: 4px 12px; font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; }
 .req-tg.on { background: var(--danger-soft); border-color: transparent; color: var(--danger); }
@@ -801,8 +825,8 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .fgrid { grid-template-columns: minmax(0, 1fr); }
   .row-dev { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .row-dev > .tools { grid-column: 1 / -1; justify-content: flex-end; }
-  .row-man { grid-template-columns: 90px minmax(0, 1fr); }
-  .row-man > .tools { grid-column: 1 / -1; justify-content: flex-end; }
+  .row-man, .man-top { grid-template-columns: 90px minmax(0, 1fr); }
+  .row-man > .tools, .man-top > .tools { grid-column: 1 / -1; justify-content: flex-end; }
   .row-bring { grid-template-columns: minmax(0, 1fr) 72px; }
   .row-bring > .req-tg { justify-self: start; }
   .row-bring > .tools { justify-content: flex-end; }
@@ -1958,7 +1982,6 @@ function catGridHtml() {
       </button>
       <ul class="cbox-list">${ts.slice(0, MAX).map((t, i) => {
         const meta = [["steps", "手順", t.steps.length], ["book", "マニュアル", t.manuals.length], ["dl", "設定データ", allFiles(t).length], ["form", "書類", t.docs.length]].filter(m => m[2]);
-        const models = [...new Set(t.devices.map(d => d.model).filter(Boolean))].slice(0, 4);
         return `<li class="cbox-li">
           <button class="cbox-row" type="button" data-act="openTask" data-id="${esc(t.id)}">
             <span class="cbox-no num">${i + 1}</span>
@@ -1968,18 +1991,64 @@ function catGridHtml() {
             </span>
             ${ic("chev")}
           </button>
-          <div class="cbox-pop" aria-hidden="true">
-            <span class="cbox-pop-h"><span class="mono">${esc(t.id)}</span><small class="num">更新 ${fmtDate(t.updated)}</small></span>
-            <span class="cbox-sum ${t.summary ? "" : "muted"}">${t.summary ? esc(t.summary) : "説明は登録されていません"}</span>
-            ${models.length ? `<span class="cbox-models"><small>対象機器</small>${models.map(m => `<span class="model">${esc(m)}</span>`).join("")}</span>` : ""}
-            <span class="cbox-open">この作業を開く ${ic("chev")}</span>
-          </div>
         </li>`;
       }).join("")}</ul>
       ${ts.length > MAX ? `<button class="cbox-more" type="button" data-act="wCat" data-id="${c.id}">ほか ${ts.length - MAX}件をすべて見る →</button>` : ""}
     </article>`;
   }).join("")}</div>`;
 }
+/* ---- 作業の「吹き出し」（カードの横に出す） ---- */
+const CPOP = { el: null, row: null, show: 0, hide: 0 };
+function cpopHtml(t, c) {
+  const models = [...new Set(t.devices.map(d => d.model).filter(Boolean))].slice(0, 6);
+  const li = (icon, text, extra = "") => `<span class="cpop-li">${ic(icon)}<span>${esc(text)}</span>${extra ? `<em>${esc(extra)}</em>` : ""}</span>`;
+  const files = allFiles(t);
+  const more = (arr, n) => arr.length > n ? `<span class="cpop-li muted"><span>ほか ${arr.length - n}件</span></span>` : "";
+  return `<div class="cpop-h"><span class="mono">${esc(t.id)}</span><span>${esc(c.name)}</span><span class="cpop-date num">更新 ${fmtDate(t.updated)}</span></div>
+    <div class="cpop-t">${esc(t.title)}</div>
+    <div class="cpop-sum ${t.summary ? "" : "muted"}">${t.summary ? esc(t.summary) : "作業内容の説明は登録されていません"}</div>
+    ${models.length ? `<div class="cpop-sec"><small>対象機器</small><div class="cpop-chips">${models.map(m => `<span class="model">${esc(m)}</span>`).join("")}</div></div>` : ""}
+    ${t.manuals.length ? `<div class="cpop-sec"><small>マニュアル</small>${t.manuals.slice(0, 3).map(m => li(m.kind === "動画" ? "play" : "book", m.title || "（タイトル未入力）", m.meta)).join("")}${more(t.manuals, 3)}</div>` : ""}
+    ${files.length ? `<div class="cpop-sec"><small>設定データ</small>${files.slice(0, 3).map(f => li("dl", f.name, fmtBytes(f.size))).join("")}${more(files, 3)}</div>` : ""}
+    ${t.docs.length ? `<div class="cpop-sec"><small>書類</small>${t.docs.slice(0, 2).map(d => li("form", d.title || "（書類名未入力）")).join("")}${more(t.docs, 2)}</div>` : ""}
+    <span class="cpop-open">クリックで開く ${ic("chev")}</span>`;
+}
+function cpopHide() {
+  clearTimeout(CPOP.show); clearTimeout(CPOP.hide); CPOP.row = null;
+  if (CPOP.el) { CPOP.el.classList.remove("on"); CPOP.el.hidden = true; }
+}
+function cpopShow(row) {
+  if (!matchMedia("(hover: hover)").matches) return;
+  clearTimeout(CPOP.show); clearTimeout(CPOP.hide);
+  const t = taskById(row.dataset.id), card = row.closest(".cbox"); if (!t || !card) return;
+  if (!CPOP.el) { CPOP.el = document.createElement("div"); CPOP.el.id = "cpop"; CPOP.el.className = "cpop"; CPOP.el.setAttribute("role", "tooltip"); document.body.appendChild(CPOP.el); }
+  const el = CPOP.el; CPOP.row = row;
+  el.style.setProperty("--cc", card.style.getPropertyValue("--cc"));
+  el.innerHTML = cpopHtml(t, catOf(t.cat)); el.hidden = false; el.classList.remove("on", "r", "l", "b");
+  const vw = document.documentElement.clientWidth, vh = innerHeight, W = el.offsetWidth, H = el.offsetHeight, gap = 14;
+  const c = card.getBoundingClientRect(), r = row.getBoundingClientRect();
+  let side = "r", x, y;
+  if (c.right + gap + W <= vw - 8) x = c.right + gap;                 // カードの右に出す
+  else if (c.left - gap - W >= 8) { side = "l"; x = c.left - gap - W; } // 右に入らないときは、左に出す
+  else { side = "b"; x = Math.max(8, Math.min(c.left, vw - W - 8)); }   // どちらも入らないときは、カードの下に出す
+  if (side === "b") { y = Math.min(c.bottom + 12, vh - H - 8); el.style.setProperty("--tx", Math.max(16, Math.min(W - 28, r.left + 40 - x)) + "px"); }
+  else { y = Math.max(8, Math.min(r.top + r.height / 2 - 28, vh - H - 8)); el.style.setProperty("--ty", Math.max(14, Math.min(H - 26, r.top + r.height / 2 - y - 6)) + "px"); }
+  el.style.left = x + "px"; el.style.top = Math.max(8, y) + "px"; el.classList.add(side);
+  requestAnimationFrame(() => el.classList.add("on"));
+}
+document.addEventListener("mouseover", e => {
+  const row = e.target.closest?.(".cbox-row");
+  if (!row) { if (CPOP.row) { clearTimeout(CPOP.show); clearTimeout(CPOP.hide); CPOP.hide = setTimeout(cpopHide, 90); } return; }
+  if (row === CPOP.row) { clearTimeout(CPOP.hide); return; }
+  clearTimeout(CPOP.hide); clearTimeout(CPOP.show);
+  CPOP.show = setTimeout(() => cpopShow(row), CPOP.row ? 0 : 140);   // 通り過ぎただけでは出さない（すでに出ているときは、すぐに切り替える）
+});
+document.addEventListener("focusin", e => { const row = e.target.closest?.(".cbox-row"); if (row && e.target.matches(":focus-visible")) cpopShow(row); });
+document.addEventListener("focusout", e => { if (e.target.closest?.(".cbox-row")) { clearTimeout(CPOP.hide); CPOP.hide = setTimeout(cpopHide, 90); } });
+document.addEventListener("click", () => cpopHide(), true);
+window.addEventListener("scroll", () => { if (CPOP.row) cpopHide(); }, { passive: true });
+window.addEventListener("resize", cpopHide);
+
 function catSwitchHtml() {
   const pub = pubTasks();
   return `<div class="cswitch" role="group" aria-label="大項目の切り替え">${catsSorted().filter(c => pub.some(t => t.cat === c.id)).map(c => `<button type="button" data-act="wCat" data-id="${c.id}" aria-pressed="${S.w.cat === c.id}">${ic(c.icon)}${esc(c.name)}</button>`).join("")}</div>`;
@@ -2126,8 +2195,8 @@ function wkDetail(t, preview = false) {
           <div class="wsec-h"><h2>マニュアル</h2><span class="sub">印刷・持ち込みは不要です</span></div>
           <div class="mans">${t.manuals.length ? t.manuals.map((m, i) => `<div class="man">
             <span class="man-ico ${m.kind === "動画" ? "mov" : m.kind === "Web" ? "web" : "pdf"}">${m.kind === "動画" ? ic("play") : m.kind === "Web" ? "WEB" : "PDF"}</span>
-            <span style="min-width:0"><b>${m.title ? esc(m.title) : "（タイトル未入力）"}</b><small class="num">${esc(m.meta || "—")}・更新 ${fmtDate(m.updated)}</small></span>
-            <button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-act="manual" data-i="${i}" ${dis}>${m.kind === "動画" ? "再生" : "開く"}</button>
+            <span style="min-width:0"><b>${m.title ? esc(m.title) : "（タイトル未入力）"}</b><small class="num">${esc(m.meta || "—")}${(m.file && m.file.size) || m.fsize ? "・" + fmtBytes((m.file && m.file.size) || m.fsize) : ""}・更新 ${fmtDate(m.updated)}</small>${m.missing ? `<span class="chip danger">ファイルが見つかりません。サポートに連絡してください</span>` : ""}</span>
+            ${isSrv() && !manUrl(m) && !(m.kind === "Web" && m.url) ? `<span class="chip">ファイル未登録</span>` : `<button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-act="manual" data-i="${i}" ${dis || (m.missing ? "disabled" : "")}>${m.kind === "動画" ? "再生" : "開く"}</button>`}
           </div>`).join("") : none("マニュアルは登録されていません")}</div>
         </section>
 
@@ -2600,7 +2669,10 @@ function focusHtml() {
 function manualHtml() {
   const t = taskById(S.layer.id); const m = t.manuals[S.layer.i]; const pg = S.layer.page || 1;
   const pages = parseInt(m.meta) || 1;
-  const body = m.kind === "動画"
+  const real = isSrv() && manUrl(m);
+  const body = real && m.kind === "動画"
+    ? `<video class="man-video" controls playsinline preload="metadata" src="${manUrl(m)}"></video><p class="muted" style="font-size:12.5px;margin-top:8px">${esc(m.meta || "")}　<a class="link" href="${manUrl(m).replace("&inline=1", "")}" download>ダウンロード</a></p>`
+    : m.kind === "動画"
     ? `<div class="video-mock">${ic("play")}<span>${esc(m.title)}<br><small>（サンプルのため再生されません）</small></span></div>`
     : m.kind === "Web"
     ? `<div class="page-mock"><h3>${esc(m.title)}</h3><p class="muted" style="font-size:13px">本番では社内Wikiのページを新しいタブで開きます。</p><div class="ln" style="width:90%"></div><div class="ln" style="width:75%"></div></div>`
@@ -2612,7 +2684,7 @@ function manualHtml() {
   <aside class="drawer" role="dialog" aria-modal="true" aria-label="マニュアル">
     <div class="drawer-h"><span class="chip accent">${esc(m.kind)}</span><h2>${esc(m.title)}</h2><button class="btn sm" type="button" data-act="closeLayer">閉じる</button></div>
     <div class="drawer-b">${body}</div>
-    ${m.kind === "PDF" ? `<div class="drawer-f"><button class="btn sm" type="button" data-act="page" data-d="-1" ${pg <= 1 ? "disabled" : ""}>← 前のページ</button><span class="num">${pg} / ${pages}</span><button class="btn sm" type="button" data-act="page" data-d="1" ${pg >= pages ? "disabled" : ""}>次のページ →</button></div>` : "<div></div>"}
+    ${m.kind === "PDF" && !real ? `<div class="drawer-f"><button class="btn sm" type="button" data-act="page" data-d="-1" ${pg <= 1 ? "disabled" : ""}>← 前のページ</button><span class="num">${pg} / ${pages}</span><button class="btn sm" type="button" data-act="page" data-d="1" ${pg >= pages ? "disabled" : ""}>次のページ →</button></div>` : "<div></div>"}
   </aside>`;
 }
 
@@ -3007,18 +3079,16 @@ function sectionHtml(tab) {
       }).join("") || `<div class="empty-row">手順がまだありません</div>`}</div>
       ${addBtn("steps", "手順を追加")}</div>`;
 
-    case "man": return `<div class="sect">
-      <p class="sect-intro">PDF の手順書、作業動画、社内Wikiのページなどを登録できます。現場ではポータル上でそのまま開けます。</p>
+    case "man":
+      if (isSrv() && !S.up.limits && !S.up.loading) loadFilesInfo();
+      return `<div class="sect">
+      <p class="sect-intro">PDF の手順書や作業動画を、ここに<b>ドラッグ＆ドロップするだけ</b>で登録できます（1ファイルが1件のマニュアルになり、タイトルはファイル名から自動で入ります）。${S.up.limits ? `ブラウザから送れるのは、1ファイル ${fmtBytes(S.up.limits.maxBytes)} までです。` : ""}大きなファイルは FTP で置いて、そのパスだけを書きます。社内Wikiなどは、種類を「Web」にして URL を入力します。</p>
       <section class="card blk">
+        <label class="drop" for="manIn" id="dropMan">${ic("upload")}<b>ここに PDF・動画をドラッグ＆ドロップ</b><span>またはクリックして選ぶ（複数まとめて選べます）</span></label>
+        <input type="file" id="manIn" accept=".pdf,.mp4,.m4v,.webm,.mov,application/pdf,video/*" multiple hidden>
         ${d.manuals.length ? `<div class="cols-h row-man"><span>種類</span><span>タイトル</span><span>ページ数・時間</span><span>更新日</span><span></span></div>` : ""}
-        <div class="rows">${d.manuals.map((m, i) => `<div class="row row-man">
-          <select class="sel" id="${fid(`manuals.${i}.kind`)}" data-bind="manuals.${i}.kind" aria-label="種類">${["PDF", "動画", "Web"].map(k => `<option ${k === m.kind ? "selected" : ""}>${k}</option>`).join("")}</select>
-          ${inp(`manuals.${i}.title`, m.title, "タイトル")}
-          ${inp(`manuals.${i}.meta`, m.meta, m.kind === "動画" ? "例：8分" : "例：32ページ")}
-          <input class="inp num" type="date" id="${fid(`manuals.${i}.updated`)}" data-bind="manuals.${i}.updated" value="${esc(m.updated)}" aria-label="更新日">
-          ${tools("manuals", i, d.manuals.length)}
-        </div>`).join("") || `<div class="empty-row">マニュアルはまだありません</div>`}</div>
-        ${addBtn("manuals", "マニュアルを追加")}
+        <div class="rows">${d.manuals.map((m, i) => manualRow(m, i, d.manuals.length)).join("") || `<div class="empty-row">マニュアルはまだありません</div>`}</div>
+        ${addBtn("manuals", "ファイルなしで追加（Web・パス指定など）")}
       </section></div>`;
 
     case "docs": return docsTab(d);
@@ -3039,6 +3109,7 @@ function pvInner() {
    描画
    ========================================================= */
 function render() {
+  cpopHide();
   document.body.classList.toggle("is-login", isSrv() && !AUTH.user);
   if (isSrv() && !AUTH.user) { $("#app").innerHTML = loginHtml(); $("#savebar").innerHTML = ""; renderLayer(); $("#lgUser")?.focus(); return; }
   $(".sample-note").hidden = isSrv();
@@ -3202,6 +3273,7 @@ async function saveCat() {
 async function saveTask() {
   const a = S.a, d = a.draft, isNew = !d.id;
   if (!d.title.trim()) { toast("作業名を入力してください"); $("#f-title")?.focus(); return false; }
+  if (S.up.items.some(u => u.target && ["wait", "up", "fin"].includes(u.state))) { toast("ファイルのアップロードが終わるまで、少しお待ちください"); return false; }
   const okMsg = nd => nd.status === "published" ? (isNew ? "登録しました。TOPページと検索に反映されています" : "保存しました。TOPページに反映されています") : (isNew ? "登録しました（非公開）" : "保存しました（非公開）");
   if (isSrv()) {
     try {
@@ -3308,8 +3380,8 @@ function extAdminHtml() {
         <span class="ex-p"><b>${esc(x.name)}</b><span class="mono ex-dir">${esc(x.path)}</span>
           <small class="num">${x.missing ? "" : fmtBytes(x.size) + "・" + x.modified}</small>
           ${x.desc ? `<span class="ex-d">${esc(x.desc)}</span>` : ""}
-          <span class="ex-t">${x.missing ? `<span class="chip danger">FTP のフォルダに見つかりません</span>` : ""}${x.tasks.length ? x.tasks.map(id => `<span class="chip ${taskById(id) ? "accent" : "warn"}">${esc(taskLabel(id))}</span>`).join("") : `<span class="chip warn">使う作業が未指定（現場には表示されません）</span>`}</span></span>
-        <span class="ex-ops"><button class="btn sm" type="button" data-act="exEdit" data-id="${esc(x.id)}">編集</button><button class="btn sm ghost danger" type="button" data-act="exDel" data-id="${esc(x.id)}">登録を解除</button></span>
+          <span class="ex-t">${x.missing ? `<span class="chip danger">FTP のフォルダに見つかりません</span>` : ""}${x.tasks.map(id => `<span class="chip ${taskById(id) ? "accent" : "warn"}">${esc(taskLabel(id))}</span>`).join("")}${(x.manuals || []).map(t => `<span class="chip ok">マニュアル：${esc(t.title)}</span>`).join("")}${x.tasks.length || (x.manuals || []).length ? "" : `<span class="chip warn">使う作業が未指定（現場には表示されません）</span>`}</span></span>
+        <span class="ex-ops"><button class="btn sm" type="button" data-act="exEdit" data-id="${esc(x.id)}">編集</button><button class="btn sm ghost danger" type="button" data-act="exDel" data-id="${esc(x.id)}" ${(x.manuals || []).length ? 'disabled title="マニュアルで使われているため、解除できません"' : ""}>登録を解除</button></span>
       </div>`).join("") || `<div class="empty-row">まだ登録されていません</div>`}</div>
     </section></div>`;
 }
@@ -3395,7 +3467,9 @@ function upListHtml() {
 }
 function paintUp() {
   S.up.items.forEach(it => { const e = it.target && document.querySelector(`[data-upk="${it.key}"]`); if (!e) return;
-    if (it.state === "err" || it.state === "cancel") { if (S.a.sel?.type === "task") { S.up.items = S.up.items.filter(x => x !== it); rerenderSection(); toast(it.err ? `アップロードできませんでした：${it.err}` : "アップロードを中止しました"); } }
+    if (it.state === "err" || it.state === "cancel") { if (S.a.sel?.type === "task") { S.up.items = S.up.items.filter(x => x !== it);
+        const dr = S.a.draft; if (it.target.man && it.target.created && dr && !it.target.man.file && !it.target.man.path) dr.manuals = dr.manuals.filter(x => x !== it.target.man);   // ドロップで作った行は、失敗したら消す
+        rerenderSection(); toast(it.err ? `アップロードできませんでした：${it.err}` : "アップロードを中止しました"); } }
     else e.textContent = it.state === "fin" ? "仕上げ中…" : `アップロード中 ${it.size ? Math.floor(it.sent / it.size * 100) : 0}%`; });
   const a = $("#upList"); if (a) a.innerHTML = upListHtml();
   const c = $("#upLimits"); if (c) c.innerHTML = upLimitsHtml();
@@ -3456,7 +3530,16 @@ async function uploadOne(it) {
     const fin = await api("upload/finish", {}, { method: "POST", body: { id: it.uploadId }, timeout: 900000 });
     it.state = "done"; it.file = null;
     const d = S.a.draft;
-    if (it.target) {
+    if (it.target && it.target.man) {
+      const m = it.target.man;
+      if (d && d.id === it.taskId && S.a.sel?.type === "task" && d.manuals.includes(m)) {
+        m.file = { fid: fin.file.fid, name: fin.file.name, size: fin.file.size }; delete m.path; delete m.ext; delete m.fsize; delete m.missing;
+        if (!m.title.trim()) m.title = fin.file.name.replace(/\.[^.]+$/, "");
+        S.up.items = S.up.items.filter(x => x !== it);
+        rerenderSection();
+        toast(`${fin.file.name} をアップロードしました。「保存」すると作業に反映されます`);
+      } else toast(`${fin.file.name} のアップロードは完了しましたが、編集画面から離れたため、マニュアルには設定されていません`);
+    } else if (it.target) {
       if (d && d.id === it.taskId && S.a.sel?.type === "task" && d.docs.includes(it.target.doc)) {
         it.target.doc[it.target.slot] = { name: fin.file.name, size: fin.file.size, sha: fin.file.sha, fid: fin.file.fid };
         S.up.items = S.up.items.filter(x => x !== it);
@@ -3473,6 +3556,87 @@ async function uploadOne(it) {
   }
   paintUp();
 }
+/* マニュアル：ファイルをドラッグ＆ドロップで登録する／大きなファイルは FTP のパスだけを書く */
+const MAN_KIND = n => /\.pdf$/i.test(n || "") ? "PDF" : /\.(mp4|m4v|webm|mov)$/i.test(n || "") ? "動画" : "";
+const manUrl = m => m.file && m.file.fid ? fileUrl(m.file, true) : m.ext ? fileUrl({ fid: m.ext }, true) : "";
+const manBusy = m => S.up.items.find(u => u.target && u.target.man === m && ["wait", "up", "fin"].includes(u.state));
+function manualRow(m, i, n) {
+  const busy = manBusy(m), ftp = (S.ex.data && S.ex.data.dir) || "storage/incoming";
+  let body;
+  if (m.kind === "Web") body = `<div class="man-file"><span class="lb">URL</span>${inp(`manuals.${i}.url`, m.url || "", "https://（社内Wikiなどのページのアドレス）")}</div>`;
+  else if (busy) body = `<div class="man-file up"><span class="file-ico">${ic("upload")}</span><span class="fn">${esc(busy.name)}</span><span class="num muted" data-upk="${busy.key}">アップロード中 ${busy.size ? Math.floor(busy.sent / busy.size * 100) : 0}%</span></div>`;
+  else if (m.file) body = `<div class="man-file ok"><span class="file-ico">${ic(m.kind === "動画" ? "play" : "file")}</span><span style="display:grid;min-width:0"><span class="fn">${esc(m.file.name)}</span><small class="num muted">${fmtBytes(m.file.size)}${m.file.fid ? "" : "・サンプル（実ファイルなし）"}</small></span>
+      <label class="btn sm" for="manIn-${i}">差し替え</label><button class="btn sm ghost" type="button" data-act="manClr" data-i="${i}">外す</button></div>`;
+  else body = `<div class="man-file none"><label class="btn sm primary" for="manIn-${i}">${ic("upload")}ファイルを選ぶ</label><span class="muted man-or">または、FTP で置いた大きなファイルのパス（${esc(ftp)}/ から）</span>
+      <input class="inp mono" id="${fid(`manuals.${i}.path`)}" data-bind="manuals.${i}.path" value="${esc(m.path || "")}" placeholder="例：manuals/pos-guide.pdf" autocomplete="off">
+      ${m.ext ? (m.missing ? `<span class="chip danger">見つかりません</span>` : `<span class="chip ok">登録済み・${fmtBytes(m.fsize)}</span>`) : ""}</div>`;
+  return `<div class="row man-ed" data-i="${i}">
+    <div class="man-top">
+      <select class="sel" id="${fid(`manuals.${i}.kind`)}" data-bind="manuals.${i}.kind" aria-label="種類">${["PDF", "動画", "Web"].map(k => `<option ${k === m.kind ? "selected" : ""}>${k}</option>`).join("")}</select>
+      ${inp(`manuals.${i}.title`, m.title, "タイトル")}
+      ${inp(`manuals.${i}.meta`, m.meta, m.kind === "動画" ? "例：8分" : "例：32ページ")}
+      <input class="inp num" type="date" id="${fid(`manuals.${i}.updated`)}" data-bind="manuals.${i}.updated" value="${esc(m.updated)}" aria-label="更新日">
+      ${tools("manuals", i, n)}
+    </div>
+    ${body}
+    <input type="file" id="manIn-${i}" data-man="${i}" accept="${m.kind === "動画" ? ".mp4,.m4v,.webm,.mov,video/*" : ".pdf,application/pdf"}" hidden>
+  </div>`;
+}
+/** ファイルから、ページ数（PDF）・再生時間（動画）を、わかる範囲で自動で入れる */
+async function manAutoMeta(m, file) {
+  let meta = "";
+  try {
+    if (m.kind === "PDF" && file.size <= 60 * MB) {
+      const n = (new TextDecoder("latin1").decode(await file.arrayBuffer()).match(/\/Type\s*\/Page(?![a-zA-Z])/g) || []).length;
+      if (n) meta = n + "ページ";
+    } else if (m.kind === "動画") {
+      meta = await new Promise(res => {
+        const v = document.createElement("video"), u = URL.createObjectURL(file);
+        const done = x => { URL.revokeObjectURL(u); res(x); };
+        v.preload = "metadata"; v.onloadedmetadata = () => done(isFinite(v.duration) ? Math.max(1, Math.round(v.duration / 60)) + "分" : ""); v.onerror = () => done(""); setTimeout(() => done(""), 4000); v.src = u;
+      });
+    }
+  } catch { /* 自動で入らないだけ */ }
+  const d = S.a.draft;
+  if (meta && d && d.manuals.includes(m) && !m.meta) { m.meta = meta; const el = document.getElementById(fid(`manuals.${d.manuals.indexOf(m)}.meta`)); if (el) el.value = meta; touched(); }
+}
+function manQueue(m, file, created) {
+  const d = S.a.draft;
+  S.up.items.push({ key: "u" + Math.random().toString(36).slice(2, 8), name: file.name, size: file.size, sent: 0, state: "wait", file, taskId: d.id, chunk: 0, uploadId: "", cancel: false, err: "", target: { man: m, created } });
+}
+async function addManualFiles(list) {
+  const d = S.a.draft; if (!d) return;
+  if (isSrv() && AUTH.offline) { toast("オフラインのため、アップロードできません"); return; }
+  if (isSrv() && !S.up.limits) await loadFilesInfo();
+  const L = S.up.limits;
+  for (const file of [...list]) {
+    const kind = MAN_KIND(file.name);
+    if (!kind) { toast(`${file.name}：PDF か動画（MP4・WebM・MOV）を選んでください`); continue; }
+    if (file.size <= 0) { toast(`${file.name} は空のファイルです`); continue; }
+    if (d.manuals.length >= 50) { toast("マニュアルは 50 件までです"); break; }
+    const m = { kind, title: file.name.replace(/\.[^.]+$/, ""), meta: "", updated: today() };
+    d.manuals.push(m); manAutoMeta(m, file);
+    if (!isSrv()) { m.file = { name: file.name, size: file.size }; continue; }
+    if (L && file.size > L.maxBytes) { toast(`${file.name} は大きいため、ブラウザからは送れません。FTP で置いて、パスを入力してください`); continue; }
+    manQueue(m, file, true);
+  }
+  rerenderSection(); runUploads();
+}
+async function setManualFile(i, file) {
+  const d = S.a.draft, m = d?.manuals[i]; if (!m || !file) return;
+  const kind = MAN_KIND(file.name);
+  if (!kind) { toast(`${file.name}：PDF か動画（MP4・WebM・MOV）を選んでください`); return; }
+  if (file.size <= 0) { toast(`${file.name} は空のファイルです`); return; }
+  if (isSrv() && AUTH.offline) { toast("オフラインのため、アップロードできません"); return; }
+  m.kind = kind; delete m.url;
+  if (!m.title.trim()) m.title = file.name.replace(/\.[^.]+$/, "");
+  if (!m.meta) manAutoMeta(m, file);
+  if (!isSrv()) { m.file = { name: file.name, size: file.size }; delete m.path; rerenderSection(); return; }
+  if (!S.up.limits) await loadFilesInfo();
+  if (S.up.limits && file.size > S.up.limits.maxBytes) { toast(`${file.name} は大きいため、ブラウザからは送れません。FTP で置いて、パスを入力してください`); rerenderSection(); return; }
+  manQueue(m, file, false); rerenderSection(); runUploads();
+}
+
 /* 現場で作成する書類：様式（空の書類）と記入例 */
 const isImg = n => /\.(png|jpe?g|gif|webp)$/i.test(n || "");
 const isPdf = n => /\.pdf$/i.test(n || "");
@@ -3593,6 +3757,7 @@ function refreshWork() {
   const y = window.scrollY; $("#app").innerHTML = renderWork(); window.scrollTo(0, y);
 }
 function refreshResults() {
+  cpopHide();
   const sec = $("#resSec"); if (!sec) { render(); return; }
   sec.innerHTML = homeMainHtml();
   const side = $("#homeSide"); if (side) side.innerHTML = contactsBox(S.w.q ? null : S.w.cat);
@@ -3670,6 +3835,7 @@ const ACT = {
     if (isPdf(ex.name)) { window.open(fileUrl(ex, true), "_blank", "noopener"); return; }
     startDownload(ex).then(ok => ok && toast(`記入例をダウンロードしました：${ex.name}`));
   },
+  manClr: el => { const m = S.a.draft.manuals[+el.dataset.i]; if (!m) return; delete m.file; delete m.path; delete m.ext; delete m.fsize; delete m.missing; rerenderSection(); },
   docClr: el => { const x = S.a.draft.docs[+el.dataset.i]; if (!x) return; x[el.dataset.slot] = null; rerenderSection(); },
   resetProg: () => { delete PROG[S.w.taskId]; saveProg(); refreshWork(); toast("進み具合をリセットしました"); },
   focusStart: el => {
@@ -3679,7 +3845,12 @@ const ACT = {
     S.layer = { type: "focus", id: t.id, i }; renderLayer();
   },
   focusGo: el => { const t = taskById(S.layer.id); S.layer.i = Math.max(0, Math.min(t.steps.length - 1, S.layer.i + +el.dataset.d)); renderLayer(); },
-  manual: el => { S.layer = { type: "manual", id: S.w.taskId, i: +el.dataset.i, page: 1 }; renderLayer(); },
+  manual: el => {
+    const t = taskById(S.w.taskId), i = +el.dataset.i, m = t?.manuals[i]; if (!m) return;
+    if (m.kind === "Web" && m.url) { window.open(m.url, "_blank", "noopener"); return; }
+    if (isSrv() && manUrl(m) && m.kind !== "動画") { window.open(manUrl(m), "_blank", "noopener"); return; }   // 本物の PDF は、新しいタブで開く
+    S.layer = { type: "manual", id: t.id, i, page: 1 }; renderLayer();   // 動画は画面の中で再生。ファイルのないサンプルは、見本を表示
+  },
   page: el => { S.layer.page = Math.max(1, S.layer.page + +el.dataset.d); renderLayer(); },
 
   /* 設定：ツリー */
@@ -4035,6 +4206,9 @@ document.addEventListener("compositionend", e => { if (e.target.id === "wq" || e
 document.addEventListener("change", e => {
   const el = e.target;
   if (el.id === "fileIn") { addFiles(el.files); el.value = ""; return; }
+  if (el.id === "manIn") { addManualFiles(el.files); el.value = ""; return; }
+  if (el.dataset.man != null && el.type === "file") { setManualFile(+el.dataset.man, el.files[0]); el.value = ""; return; }
+  if (/^manuals\.\d+\.kind$/.test(el.dataset.bind || "") && S.a.draft) { rerenderSection(); return; }
   if (el.id === "admCat" || el.id === "admSt") { S.a.list[el.id === "admCat" ? "cat" : "st"] = el.value; $("#admList").innerHTML = admListHtml(); return; }
   if (el.id === "f-pub" && S.a.draft) { S.a.draft.status = el.checked ? "published" : "draft"; touched(); renderSavebar(); return; }
   if (el.dataset.doc != null && el.type === "file") { addDocFile(+el.dataset.doc, el.dataset.slot, el.files[0]); el.value = ""; return; }
@@ -4090,12 +4264,17 @@ document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s" && S.mode === "admin" && S.a.dirty) { e.preventDefault(); save(); }
 });
 
+/* ドラッグ＆ドロップ：設定データ（#drop）、マニュアルの追加（#dropMan）、マニュアルの1行（.man-ed）に、ファイルを落とせる */
+const dropTarget = e => e.target.closest?.("#drop, #dropMan, .man-ed");
 ["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => {
-  const d = e.target.closest?.("#drop"); if (!d) return; e.preventDefault(); d.classList.add("over");
+  const d = dropTarget(e); if (!d) return; e.preventDefault(); d.classList.add("over");
 }));
-document.addEventListener("dragleave", e => { const d = e.target.closest?.("#drop"); if (d) d.classList.remove("over"); });
+document.addEventListener("dragleave", e => { const d = dropTarget(e); if (d && !d.contains(e.relatedTarget)) d.classList.remove("over"); });
 document.addEventListener("drop", e => {
-  const d = e.target.closest?.("#drop"); if (!d) return; e.preventDefault(); d.classList.remove("over"); addFiles(e.dataTransfer.files);
+  const d = dropTarget(e); if (!d) return; e.preventDefault(); d.classList.remove("over");
+  if (d.id === "dropMan") addManualFiles(e.dataTransfer.files);
+  else if (d.classList.contains("man-ed")) setManualFile(+d.dataset.i, e.dataTransfer.files[0]);
+  else addFiles(e.dataTransfer.files);
 });
 window.addEventListener("beforeunload", e => { if (S.a.dirty) { e.preventDefault(); e.returnValue = ""; } });
 

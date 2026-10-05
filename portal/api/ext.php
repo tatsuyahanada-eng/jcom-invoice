@@ -63,12 +63,43 @@ function ext_rel_clean(string $rel): string
     return trim(str_replace('\\', '/', $rel), '/ ');
 }
 
+/** マニュアルから指定された FTP のパスを登録して、ID を返す（すでにあれば、その ID）。使う作業は指定しない（設定データには出ない） */
+function ext_ensure(string $rel): string
+{
+    ensure_ext();
+    $hash = hash('sha256', $rel);
+    $s = db()->prepare('SELECT id FROM ext_files WHERE path_hash = ?');
+    $s->execute([$hash]);
+    $id = $s->fetchColumn();
+    if ($id) return (string)$id;
+    $id = new_id('x');
+    $now = date('Y-m-d H:i:s');
+    db()->prepare('INSERT INTO ext_files (id, path, path_hash, name, descr, tasks, created_by, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)')
+        ->execute([$id, $rel, $hash, mb_substr(basename($rel), 0, 255), 'マニュアルで使用', '[]', '', $now, $now]);
+    return $id;
+}
+
+/** 登録済みの FTP ファイルの、大きさ・見つかるか（ID ごと。1回のリクエストで1度だけ調べる） */
+function ext_info_all(): array
+{
+    static $map = null;
+    if ($map !== null) return $map;
+    ensure_ext();
+    $map = [];
+    foreach (db()->query('SELECT * FROM ext_files')->fetchAll() as $r) { $o = ext_row_out($r, false); $map[$r['id']] = ['size' => $o['size'], 'missing' => $o['missing']]; }
+    return $map;
+}
+
 function ext_row_out(array $r, bool $withPath): array
 {
     $abs = ext_resolve($r['path']);
     $o = ['id' => $r['id'], 'name' => $r['name'], 'desc' => $r['descr'], 'size' => $abs ? (int)filesize($abs) : 0, 'missing' => !$abs,
         'tasks' => array_values(array_filter((array)json_decode((string)$r['tasks'], true), 'is_string'))];
-    if ($withPath) $o += ['path' => $r['path'], 'modified' => $abs ? date('Y-m-d H:i', (int)filemtime($abs)) : '', 'by' => $r['created_by']];
+    if ($withPath) {
+        $q = db()->prepare('SELECT id, title FROM tasks WHERE body LIKE ?');   // このファイルを、マニュアルとして使っている作業
+        $q->execute(['%"ext":"' . $r['id'] . '"%']);
+        $o += ['path' => $r['path'], 'modified' => $abs ? date('Y-m-d H:i', (int)filemtime($abs)) : '', 'by' => $r['created_by'], 'manuals' => $q->fetchAll()];
+    }
     return $o;
 }
 
@@ -172,6 +203,9 @@ function route_ext_delete(): never
     $s = db()->prepare('SELECT * FROM ext_files WHERE id = ?');
     $s->execute([$id]);
     $r = $s->fetch() ?: fail(404, '登録が見つかりません');
+    $m = db()->prepare('SELECT title FROM tasks WHERE body LIKE ? LIMIT 1');
+    $m->execute(['%"ext":"' . $id . '"%']);
+    if ($t = $m->fetchColumn()) fail(409, "作業「{$t}」のマニュアルで使われているため、登録を解除できません。先にマニュアルのパスを外してください");
     db()->prepare('DELETE FROM ext_files WHERE id = ?')->execute([$id]);
     log_history($u['id'], 'delete', 'ext', '', $r['name'], '登録を解除（ファイルは FTP のフォルダに残っています）');
     json_out(['ok' => true, 'message' => '登録を解除しました。ファイルは FTP のフォルダに残っています']);
@@ -180,6 +214,9 @@ function route_ext_delete(): never
 function ext_can_download(array $u, array $r): bool
 {
     if (role_lv($u) >= 1) return true;
+    $m = db()->prepare("SELECT 1 FROM tasks WHERE status = 'published' AND body LIKE ? LIMIT 1");
+    $m->execute(['%"ext":"' . $r['id'] . '"%']);
+    if ($m->fetchColumn()) return true;   // 公開中の作業のマニュアルとして使われているファイル
     $tasks = array_values(array_filter((array)json_decode((string)$r['tasks'], true), 'is_string'));
     if (!$tasks) return false;
     $q = db()->prepare("SELECT 1 FROM tasks WHERE status = 'published' AND id IN (" . implode(',', array_fill(0, count($tasks), '?')) . ') LIMIT 1');

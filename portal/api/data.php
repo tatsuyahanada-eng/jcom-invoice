@@ -60,6 +60,12 @@ function bootstrap_payload(array $u): array
         if ($lv < 1 && $r['status'] !== 'published') continue;   // 閲覧のみ：公開中の作業だけ
         $t = task_out($r, $lv >= 1);
         $t['ext'] = $extMap[$r['id']] ?? [];   // FTP で置いたファイル（登録画面で、使う作業を指定したもの）
+        $t['manuals'] = $t['manuals'] ?? [];
+        foreach ($t['manuals'] as &$mm) {
+            if (!empty($mm['ext'])) { $xi = ext_info_all()[$mm['ext']] ?? null; $mm['fsize'] = $xi ? $xi['size'] : 0; $mm['missing'] = !$xi || $xi['missing']; }
+            if ($lv < 1) unset($mm['path']);   // FTP の置き場所は、設定を触る人だけに見せる
+        }
+        unset($mm);
         $tasks[] = $t;
     }
     $notices = [];
@@ -92,6 +98,7 @@ function normalize_task(array $in, array $orig): array
         if (!is_array($d)) continue;
         foreach (['form', 'example'] as $slot) if (isset($d[$slot]) && is_array($d[$slot])) $refs[] = $d[$slot];
     }
+    foreach (nt_list($in['manuals'] ?? [], 50) as $m) if (is_array($m) && isset($m['file']) && is_array($m['file'])) $refs[] = $m['file'];
     foreach ($refs as $f) {
         $fid = is_array($f) ? (string)($f['fid'] ?? '') : '';
         if ($fid === '') continue;
@@ -148,8 +155,42 @@ function normalize_task(array $in, array $orig): array
     foreach (nt_list($in['bring'] ?? [], 100) as $b) if (is_array($b)) $bring[] = ['name' => str($b['name'] ?? '', 255), 'qty' => str($b['qty'] ?? '', 40), 'required' => !empty($b['required'])];
     $steps = [];
     foreach (nt_list($in['steps'] ?? [], 100) as $s) if (is_array($s)) $steps[] = ['title' => str($s['title'] ?? '', 255), 'body' => str($s['body'] ?? '', 4000), 'caution' => str($s['caution'] ?? '', 1000)];
+    // マニュアル：アップロードしたファイル、または FTP で置いたファイルのパス（Web の場合は URL）。どれも付けなくてよい
+    $origManFiles = [];
+    foreach ($orig['manuals'] ?? [] as $m) if (!empty($m['file']) && empty($m['file']['fid'])) $origManFiles[$m['file']['name']] = $m['file'];
     $man = [];
-    foreach (nt_list($in['manuals'] ?? [], 50) as $m) if (is_array($m)) $man[] = ['kind' => in_array($m['kind'] ?? '', ['PDF', '動画', 'Web'], true) ? $m['kind'] : 'PDF', 'title' => str($m['title'] ?? '', 255), 'meta' => str($m['meta'] ?? '', 100), 'updated' => nt_date($m['updated'] ?? '')];
+    foreach (nt_list($in['manuals'] ?? [], 50) as $m) {
+        if (!is_array($m)) continue;
+        $kind = in_array($m['kind'] ?? '', ['PDF', '動画', 'Web'], true) ? $m['kind'] : 'PDF';
+        $e = ['kind' => $kind, 'title' => str($m['title'] ?? '', 255), 'meta' => str($m['meta'] ?? '', 100), 'updated' => nt_date($m['updated'] ?? '')];
+        if ($kind === 'Web') {
+            $url = trim((string)($m['url'] ?? ''));
+            if ($url !== '') {
+                if (strlen($url) > 500 || !preg_match('#^https?://[^\s<>"\']+$#i', $url)) fail(422, "マニュアル「{$e['title']}」のURLは、http:// か https:// で始まる形で入力してください");
+                $e['url'] = $url;
+            }
+        } else {
+            $f = $m['file'] ?? null;
+            if (is_array($f)) {
+                $fid = (string)($f['fid'] ?? '');
+                if ($fid !== '') {
+                    $r = $found[$fid] ?? fail(422, 'アップロードされていないファイルが指定されています');
+                    $e['file'] = ['name' => $r['orig_name'], 'size' => (int)$r['size'], 'fid' => $fid];
+                } elseif (isset($origManFiles[(string)($f['name'] ?? '')])) {   // サンプルのファイル情報だけ引き継げる
+                    $x = $origManFiles[(string)$f['name']];
+                    $e['file'] = ['name' => (string)$x['name'], 'size' => (int)($x['size'] ?? 0)];
+                } else fail(422, 'マニュアルのファイルは、アップロードで追加してください');
+            } else {
+                $path = ext_rel_clean(str($m['path'] ?? '', 500));
+                if ($path !== '') {   // FTP で置いた大きなファイル：パスだけを記載する。置き場所の外・リンク・存在しないものは受け付けない
+                    if (!ext_resolve($path)) fail(422, "マニュアル「{$e['title']}」のパスにファイルが見つかりません。FTP の転送先（" . ext_base_label() . "）からのパスで、ファイル名まで入力してください");
+                    $e['path'] = $path;
+                    $e['ext'] = ext_ensure($path);
+                }
+            }
+        }
+        $man[] = $e;
+    }
     return [
         'title' => str($in['title'] ?? '', 255),
         'summary' => str($in['summary'] ?? '', 2000),
@@ -525,7 +566,7 @@ function run_data_op(string $op): never
     if (!isset($handlers[$op])) fail(404, '不明な操作です');
     $pdo = db();
     if ($op === 'contacts.save') ensure_settings();
-    if ($op === 'task.delete') ensure_ext();   // 表の作成（DDL）はトランザクションの外で行う（MySQL は DDL で暗黙にコミットするため）
+    if (in_array($op, ['task.delete', 'task.save', 'task.create'], true)) ensure_ext();   // マニュアルの FTP パスの登録でも使う   // 表の作成（DDL）はトランザクションの外で行う（MySQL は DDL で暗黙にコミットするため）
     $pdo->beginTransaction();
     try {
         $res = $handlers[$op]($u, $b);
