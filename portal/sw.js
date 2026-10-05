@@ -1,6 +1,6 @@
 /* WorkBase Portal service worker: アプリ本体をキャッシュし、電波が弱い現場でも開けるようにする */
-const VERSION = "wbp-v11";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/icon.svg"];
+const VERSION = "wbp-v12";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/icon.svg", "./icons/welsys-logo.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
