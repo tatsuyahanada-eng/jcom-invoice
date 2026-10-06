@@ -385,6 +385,9 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     }
     .seg button { transition: background .15s, color .15s, transform .08s, box-shadow .15s; }
+    .seg button[aria-pressed="true"]:not([data-tone]) { background: var(--cyan); color: var(--ink); border-color: #fff; box-shadow: 0 0 14px rgba(208, 210, 212, .45); }
+    [data-group="saleKind"] button[aria-pressed="true"]::before { content: "✓ "; font-weight: 800; }
+    [data-group="saleKind"] button { min-height: 50px; font-size: 15px; flex-direction: row; justify-content: center; }
     .seg button:active { transform: scale(.96); background: rgba(208, 210, 212, .25); }
     .seg button svg { width: 18px; height: 18px; }
     .seg button[aria-pressed="true"] { color: #ffffff; border-color: transparent; }
@@ -486,11 +489,10 @@
     .sales .sh small { font-weight: 500; font-size: 11px; color: var(--dim); }
     .sales .sr { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 6px; font-size: 14px; color: var(--muted); }
     .sales .sr b { font-family: var(--mono); font-weight: 700; font-size: 17px; color: var(--text); letter-spacing: .02em; }
-    .sales .st { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+    .sales .st { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
     .sales .st div { font-size: 11px; color: var(--muted); }
     .sales .st b { display: block; font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--text); letter-spacing: .02em; }
-    .sales .st .big b { font-size: 22px; color: var(--gold-text); }
-    .sales .nt { font-size: 11px; color: var(--dim); }
+    .sales .st .big b { font-size: 24px; color: var(--gold-text); }
     .sale-in { font-family: var(--mono); font-size: 20px; letter-spacing: .04em; }
     .purge { padding: 10px 0 4px; border-bottom: 1px dashed var(--line); margin-bottom: 4px; }
     .purge .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
@@ -742,14 +744,9 @@
     </div>
     <div class="card">
       <h3><span class="yen">¥</span>売上（任意）</h3>
-      <label class="fl">金額を入力するときの初期設定（案件ごとに切り替えできます）</label>
-      <div class="seg c2" id="sTaxMode">
-        <button type="button" data-m="ex" aria-pressed="true">税抜き</button>
-        <button type="button" data-m="in" aria-pressed="false">税込み</button>
-      </div>
       <label class="fl" for="sTaxRate">消費税率（%）</label>
       <input class="input" id="sTaxRate" type="text" inputmode="decimal" value="10">
-      <p class="help">案件ごとに日当またはスポットの金額を入力すると、その日の合計（日当＋スポット）を税抜き・税込みで表示します。</p>
+      <p class="help">金額は税込みで入力します。その日の合計（日当＋スポット）を税込みで表示し、税抜き・消費税は参考として割り戻して出します。</p>
     </div>
     <div class="card">
       <h3><span data-icon="link"></span>連携アプリ（定型リンク）</h3>
@@ -895,22 +892,15 @@
   const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
   const saleOf = (j) => { const a = Number(j.sales && j.sales.amount); return a > 0 ? a : 0; };
   const saleKind = (j) => (j.sales && j.sales.kind === 'daily' ? 'daily' : 'spot');
-  const saleMode = (j) => ((j.sales && j.sales.mode) || settings.taxMode) === 'in' ? 'in' : 'ex';
-  const taxCalc = (sum, mode) => {
+  // 金額はすべて税込みで入力・集計する。税抜き・消費税は合計から割り戻して参考表示。
+  const taxSplit = (inc) => {
     const r = (Number(settings.taxRate) || 0) / 100;
-    if (mode === 'in') { const ex = Math.round(sum / (1 + r)); return { ex, tax: sum - ex, inc: sum }; }
-    const tax = Math.floor(sum * r); return { ex: sum, tax, inc: sum + tax };
+    const ex = Math.round(inc / (1 + r)); return { ex, tax: inc - ex, inc };
   };
-  const saleTax = (j) => taxCalc(saleOf(j), saleMode(j));
   const salesOfDay = (jobs) => {
-    const z = () => ({ ex: 0, tax: 0, inc: 0 });
-    const daily = z(), spot = z(), all = z();
-    jobs.forEach(j => {
-      if (!saleOf(j)) return;
-      const t = saleTax(j), k = saleKind(j) === 'daily' ? daily : spot;
-      for (const f of ['ex', 'tax', 'inc']) { k[f] += t[f]; all[f] += t[f]; }
-    });
-    return { daily, spot, all, sum: all.inc };
+    let daily = 0, spot = 0;
+    jobs.forEach(j => { if (saleKind(j) === 'daily') daily += saleOf(j); else spot += saleOf(j); });
+    return { daily, spot, sum: daily + spot };
   };
   const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms', 'mail'];
   const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent', mail: 'accent' };
@@ -1026,7 +1016,7 @@
   }
 
   /* ================= State ================= */
-  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null, taxMode: 'ex', taxRate: 10 };
+  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null, taxRate: 10 };
   let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
   if (!Array.isArray(settings.deviceCalendars)) settings.deviceCalendars = [];
   if (!Array.isArray(settings.googleCalendars)) settings.googleCalendars = [{ id: settings.calendarId || 'primary', name: settings.calendarName || 'メインカレンダー' }];
@@ -1083,10 +1073,10 @@
     const sl = salesOfDay(jobs), sb = $('#salesBox');
     sb.classList.toggle('hidden', !sl.sum);
     if (sl.sum) {
-      const t = sl.all;
-      sb.innerHTML = `<div class="sh"><span>本日の売上</span><small>日当 ＋ スポット</small></div>
-        <div class="sr"><span>日当</span><b>${yen(sl.daily.inc)}</b><span>＋ スポット</span><b>${yen(sl.spot.inc)}</b><span class="nt">（税込み）</span></div>
-        <div class="st"><div>税抜き<b>${yen(t.ex)}</b></div><div>消費税<b>${yen(t.tax)}</b></div><div class="big">税込み<b>${yen(t.inc)}</b></div></div>`;
+      const t = taxSplit(sl.sum);
+      sb.innerHTML = `<div class="sh"><span>本日の売上（税込み）</span><small>日当 ＋ スポット</small></div>
+        <div class="sr"><span>日当</span><b>${yen(sl.daily)}</b><span>＋ スポット</span><b>${yen(sl.spot)}</b></div>
+        <div class="st"><div class="big">合計（税込み）<b>${yen(t.inc)}</b></div><div>税抜き<b>${yen(t.ex)}</b></div><div>消費税<b>${yen(t.tax)}</b></div></div>`;
     }
 
     // Meta
@@ -1191,7 +1181,7 @@
     const missingChip = j.missing ? `<span class="chip danger">${icon('alert')}カレンダーから削除済</span>` : '';
     const multiCal = new Set(day.jobs.map(x => x.calendar).filter(Boolean)).size > 1;
     const calChip = (j.calendar && multiCal) ? `<span class="chip cal">${icon('calendar')}${esc(j.calendar)}</span>` : '';
-    const saleChip = saleOf(j) ? `<span class="chip warn"><span class="yen" style="width:auto">¥</span>${SALE_KIND[saleKind(j)]} ${saleOf(j).toLocaleString('ja-JP')}<small style="font-weight:500;opacity:.8">${saleMode(j) === 'in' ? '税込' : '税抜'}</small></span>` : '';
+    const saleChip = saleOf(j) ? `<span class="chip warn"><span class="yen" style="width:auto">¥</span>${SALE_KIND[saleKind(j)]} ${saleOf(j).toLocaleString('ja-JP')}<small style="font-weight:500;opacity:.8">税込</small></span>` : '';
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
@@ -1221,9 +1211,9 @@
   /* ================= Detail sheet ================= */
   function saleCalcText(j) {
     const a = saleOf(j);
-    if (!a) return '日当またはスポットを選んで金額を入れると、一日の売上に加算されます。';
-    const t = saleTax(j);
-    return `税抜き ${yen(t.ex)} ／ 消費税 ${yen(t.tax)} ／ 税込み ${yen(t.inc)}`;
+    if (!a) return '日当またはスポットを選んで税込みの金額を入れると、一日の売上に加算されます。';
+    const t = taxSplit(a);
+    return `税込み ${yen(t.inc)}（税抜き ${yen(t.ex)} ／ 消費税 ${yen(t.tax)}）`;
   }
 
   function openDetail(id) {
@@ -1329,11 +1319,7 @@
         <div class="seg c2" data-group="saleKind">
           ${Object.entries(SALE_KIND).map(([k, l]) => `<button type="button" data-val="${k}" aria-pressed="${saleKind(j) === k}">${l}</button>`).join('')}
         </div>
-        <div class="seg c2" data-group="saleMode" style="margin-top:8px;">
-          <button type="button" data-val="ex" aria-pressed="${saleMode(j) === 'ex'}">税抜きで入力</button>
-          <button type="button" data-val="in" aria-pressed="${saleMode(j) === 'in'}">税込みで入力</button>
-        </div>
-        <label class="fl" for="dSale" style="margin-top:12px;">金額（円）</label>
+        <label class="fl" for="dSale" style="margin-top:12px;">金額（円・税込み）</label>
         <input class="input sale-in" id="dSale" type="text" inputmode="numeric" placeholder="例: 15000" value="${saleOf(j) || ''}">
         <p class="help" id="dSaleCalc">${saleCalcText(j)}</p>
       </div>
@@ -1356,7 +1342,7 @@
     const saleIn = $('#dSale');
     const saveSale = debounce(() => {
       const n = parseInt(String(saleIn.value).normalize('NFKC').replace(/[^0-9]/g, ''), 10);
-      j.sales = Object.assign({ kind: 'spot' }, j.sales, { amount: n > 0 ? n : null, mode: saleMode(j) });
+      j.sales = Object.assign({ kind: 'spot' }, j.sales, { amount: n > 0 ? n : null });
       saveDay(); render(); flash('sales'); $('#dSaleCalc').textContent = saleCalcText(j);
     }, 350);
     saleIn.addEventListener('input', saveSale);
@@ -1378,7 +1364,6 @@
       const val = segBtn.dataset.val;
       if (group === 'work') j.work = val;
       if (group === 'parking') j.parking.status = val;
-      if (group === 'saleMode') { j.sales = Object.assign({ kind: 'spot', amount: null }, j.sales, { mode: val }); }
       if (group === 'saleKind') j.sales = Object.assign({ amount: null }, j.sales, { kind: val });
       if (group === 'contact') {
         j.contact.log.push({ status: val, at: new Date().toISOString() });
@@ -2180,11 +2165,7 @@
   $('#sExcludeAllDay').addEventListener('change', e => { settings.excludeAllDay = e.target.checked; saveSettings(); });
   $('#sKeyword').addEventListener('change', e => { settings.keyword = e.target.value.trim(); saveSettings(); });
   $('#sOrigin').addEventListener('change', e => { settings.origin = e.target.value.trim(); saveSettings(); });
-  function taxUi() {
-    document.querySelectorAll('#sTaxMode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === settings.taxMode)));
-    $('#sTaxRate').value = settings.taxRate;
-  }
-  $('#sTaxMode').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; settings.taxMode = b.dataset.m; saveSettings(); taxUi(); render(); });
+  function taxUi() { $('#sTaxRate').value = settings.taxRate; }
   $('#sTaxRate').addEventListener('change', (e) => {
     const v = parseFloat(String(e.target.value).normalize('NFKC'));
     settings.taxRate = v >= 0 && v <= 100 ? v : 10; saveSettings(); taxUi(); render();
