@@ -4,11 +4,15 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
@@ -20,6 +24,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.core.content.FileProvider;
 import androidx.webkit.WebViewAssetLoader;
 
 import com.google.android.gms.auth.api.identity.AuthorizationRequest;
@@ -31,6 +36,8 @@ import com.google.android.gms.common.api.Scope;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
@@ -167,6 +174,116 @@ public class MainActivity extends Activity {
         public void queryEvents(final String callbackId, final String date, final String idsJson) {
             deviceCall(callbackId, () -> doQueryEvents(date, idsJson));
         }
+
+        /** 売上のCSVなどを、共有シート（Drive・メール・ファイルへ保存など）で出力する */
+        @JavascriptInterface
+        public boolean shareFile(final String name, final String mime, final String base64) {
+            try {
+                byte[] data = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+                File f = exportFile(name);
+                try (FileOutputStream o = new FileOutputStream(f)) { o.write(data); }
+                shareExport(f, mime);
+                return true;
+            } catch (Exception e) {
+                runOnUiThread(() -> toast("出力できませんでした"));
+                return false;
+            }
+        }
+
+        /** 売上のPDFを作成して共有シートで出力する（json: {title, lines[], rows[[日付,案件,種別,金額]]}） */
+        @JavascriptInterface
+        public boolean sharePdf(final String name, final String json) {
+            try {
+                File f = exportFile(name);
+                writeSalesPdf(f, new JSONObject(json));
+                shareExport(f, "application/pdf");
+                return true;
+            } catch (Exception e) {
+                runOnUiThread(() -> toast("PDFを作成できませんでした"));
+                return false;
+            }
+        }
+    }
+
+    /* ---------- 売上の出力（CSV / PDF） ---------- */
+
+    private File exportFile(String name) {
+        File dir = new File(getCacheDir(), "exports");
+        if (!dir.exists()) dir.mkdirs();
+        String safe = name == null ? "export" : name.replaceAll("[^A-Za-z0-9._-]", "_");
+        return new File(dir, safe);
+    }
+
+    private void shareExport(File f, String mime) {
+        final Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".files", f);
+        runOnUiThread(() -> {
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType(mime);
+            send.putExtra(Intent.EXTRA_STREAM, uri);
+            send.setClipData(ClipData.newRawUri("export", uri));
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            try {
+                startActivity(Intent.createChooser(send, "売上を出力"));
+            } catch (ActivityNotFoundException e) {
+                toast("共有できるアプリがありません");
+            }
+        });
+    }
+
+    private void writeSalesPdf(File out, JSONObject d) throws Exception {
+        final int pw = 595, ph = 842, mx = 40, bottom = 800;
+        PdfDocument doc = new PdfDocument();
+        Paint title = new Paint(Paint.ANTI_ALIAS_FLAG);
+        title.setTextSize(18f); title.setTypeface(Typeface.DEFAULT_BOLD);
+        Paint body = new Paint(Paint.ANTI_ALIAS_FLAG);
+        body.setTextSize(10.5f);
+        Paint bold = new Paint(Paint.ANTI_ALIAS_FLAG);
+        bold.setTextSize(10.5f); bold.setTypeface(Typeface.DEFAULT_BOLD);
+        Paint right = new Paint(body); right.setTextAlign(Paint.Align.RIGHT);
+        Paint line = new Paint(); line.setStrokeWidth(0.6f); line.setColor(0xFF888888);
+
+        JSONArray lines = d.optJSONArray("lines");
+        JSONArray rows = d.optJSONArray("rows");
+        int pageNo = 1;
+        PdfDocument.Page page = doc.startPage(new PdfDocument.PageInfo.Builder(pw, ph, pageNo).create());
+        android.graphics.Canvas c = page.getCanvas();
+        float y = 56;
+        c.drawText(d.optString("title", "売上"), mx, y, title);
+        y += 26;
+        if (lines != null) {
+            for (int i = 0; i < lines.length(); i++) { c.drawText(lines.optString(i), mx, y, i == 0 ? bold : body); y += 17; }
+        }
+        y += 8;
+        c.drawLine(mx, y, pw - mx, y, line);
+        y += 15;
+        c.drawText("日付", mx, y, bold); c.drawText("案件", mx + 60, y, bold); c.drawText("種別", mx + 350, y, bold);
+        right.setTypeface(Typeface.DEFAULT_BOLD); c.drawText("金額（税込）", pw - mx, y, right); right.setTypeface(Typeface.DEFAULT);
+        y += 6; c.drawLine(mx, y, pw - mx, y, line); y += 14;
+        if (rows != null) {
+            for (int i = 0; i < rows.length(); i++) {
+                if (y > bottom) {
+                    c.drawText(String.valueOf(pageNo), pw / 2f, ph - 24, body);
+                    doc.finishPage(page);
+                    pageNo++;
+                    page = doc.startPage(new PdfDocument.PageInfo.Builder(pw, ph, pageNo).create());
+                    c = page.getCanvas();
+                    y = 56;
+                }
+                JSONArray r = rows.optJSONArray(i);
+                if (r == null) continue;
+                c.drawText(r.optString(0), mx, y, body);
+                String t = r.optString(1);
+                int n = body.breakText(t, true, 280f, null);
+                c.drawText(n < t.length() ? t.substring(0, n) + "…" : t, mx + 60, y, body);
+                c.drawText(r.optString(2), mx + 350, y, body);
+                c.drawText(r.optString(3), pw - mx, y, right);
+                y += 16;
+            }
+        }
+        c.drawText(String.valueOf(pageNo), pw / 2f, ph - 24, body);
+        doc.finishPage(page);
+        try (FileOutputStream o = new FileOutputStream(out)) { doc.writeTo(o); }
+        doc.close();
     }
 
     /* ---------- 端末のカレンダー（CalendarContract） ---------- */

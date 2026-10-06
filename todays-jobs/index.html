@@ -493,6 +493,32 @@
     .sales .st div { font-size: 11px; color: var(--muted); }
     .sales .st b { display: block; font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--text); letter-spacing: .02em; }
     .sales .st .big b { font-size: 24px; color: var(--gold-text); }
+    .sm-nav { display: grid; grid-template-columns: 48px 1fr 48px; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .sm-nav .lbl { text-align: center; font-family: var(--mono); font-size: 22px; letter-spacing: .06em; }
+    .sm-nav button { min-height: 44px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(18, 33, 54, .6); color: var(--text); font-size: 18px; }
+    .sm-total { text-align: center; padding: 12px; border: 1px solid var(--gold-line); border-radius: 12px; background: var(--warn-weak); }
+    .sm-total small { display: block; font-size: 12px; color: var(--muted); }
+    .sm-total b { font-family: var(--mono); font-size: 34px; color: var(--gold-text); letter-spacing: .02em; }
+    .sm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .sm-grid div { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 11px; color: var(--muted); }
+    .sm-grid b { display: block; font-family: var(--mono); font-size: 18px; color: var(--text); letter-spacing: .02em; }
+    .sm-day { margin-top: 12px; }
+    .sm-day .dh { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line-2); font-weight: 700; font-size: 14px; }
+    .sm-day .dh b { font-family: var(--mono); color: var(--gold-text); font-size: 16px; }
+    .sm-day .it { display: flex; gap: 8px; padding: 6px 0; font-size: 13px; border-bottom: 1px dashed var(--line); }
+    .sm-day .it .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sm-day .it .k { color: var(--muted); flex: none; }
+    .sm-day .it .a { font-family: var(--mono); flex: none; }
+    .sm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    #printArea { display: none; }
+    @media print {
+      body.printing > *:not(#printArea) { display: none !important; }
+      body.printing #printArea { display: block; color: #000; background: #fff; padding: 16px; font-family: sans-serif; }
+      body.printing { background: #fff !important; }
+      #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; }
+      #printArea td, #printArea th { border-bottom: 1px solid #aaa; padding: 4px 6px; text-align: left; }
+      #printArea td.r, #printArea th.r { text-align: right; }
+    }
     .sale-in { font-family: var(--mono); font-size: 20px; letter-spacing: .04em; }
     .purge { padding: 10px 0 4px; border-bottom: 1px dashed var(--line); margin-bottom: 4px; }
     .purge .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
@@ -749,6 +775,12 @@
       <p class="help">金額は税込みで入力します。その日の合計（日当＋スポット）を税込みで表示し、税抜き・消費税は参考として割り戻して出します。</p>
     </div>
     <div class="card">
+      <h3><span class="yen">¥</span>売上管理（管理者）</h3>
+      <p class="help" style="margin:0 0 10px;">月ごとの売上の合計の確認と、CSV・PDFでの出力ができます。管理パスワードが必要です（初回だけ設定します）。</p>
+      <button class="btn secondary block" id="btnSalesAdmin" type="button">売上管理を開く</button>
+      <p class="help">売上の記録は、30日を過ぎた自動削除や「データの範囲削除」をしても残ります。</p>
+    </div>
+    <div class="card">
       <h3><span data-icon="link"></span>連携アプリ（定型リンク）</h3>
       <p class="help" style="margin:0 0 8px;">名前とURLを登録すると、画面の一番上にボタンとして並びます（業務開始前に使うアプリなどに）。URLに差し込み記号を入れると、「次の訪問」の案件の情報が入ります。</p>
       <ul class="linklist" id="linkList"></ul>
@@ -827,6 +859,18 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastText"></span><button id="toastAction" class="hidden"></button></div>
+
+<section class="sheet" id="salesSheet" role="dialog" aria-modal="true" aria-labelledby="slTitle">
+  <div class="sheet-head">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <div class="t"><h2 id="slTitle">売上管理</h2></div>
+      <button class="icon-btn" data-close aria-label="閉じる"></button>
+    </div>
+  </div>
+  <div class="sheet-body" id="salesBody"></div>
+</section>
+<div id="printArea"></div>
 
 <script>
 (() => {
@@ -1029,7 +1073,18 @@
   const saveSettings = () => store.set(LS_SETTINGS, settings);
   const emptyDay = (date) => ({ date, jobs: [], deleted: [], syncedAt: null, source: null });
   const loadDay = (date) => Object.assign(emptyDay(date), store.get(LS_PREFIX + date, null) || {});
-  const saveDay = () => { store.set(LS_PREFIX + day.date, day); };
+  /* ===== 売上の記録（日ごとのデータが消えても月次集計に残すための台帳） ===== */
+  const LS_SALES = 'tj:sales', LS_ADMIN = 'tj:admin';
+  let ledger = store.get(LS_SALES, {}) || {};
+  const saveLedger = () => store.set(LS_SALES, ledger);
+  const ledgerEntries = (d) => (d.jobs || []).filter(j => saleOf(j) > 0).map(j => ({ id: j.id, title: j.title || '(件名なし)', kind: saleKind(j), amount: saleOf(j) }));
+  const syncLedger = (d, date) => { const a = ledgerEntries(d); if (a.length) ledger[date] = a; else delete ledger[date]; saveLedger(); };
+  store.keys().filter(k => k.startsWith(LS_PREFIX)).forEach(k => {
+    const d = store.get(k, null); if (!d) return;
+    const a = ledgerEntries(d); if (a.length) ledger[k.slice(LS_PREFIX.length)] = a;
+  });
+  saveLedger();
+  const saveDay = () => { store.set(LS_PREFIX + day.date, day); syncLedger(day, day.date); };
   const findJob = (id) => day.jobs.find(j => j.id === id);
 
   function newJob(base) {
@@ -2225,9 +2280,152 @@
   });
   document.addEventListener('click', (e) => { if (e.target.closest('[data-open-settings], #btnSettings')) setTimeout(purgeRefresh, 0); });
 
+  /* ===== 売上管理（管理パスワード・月次集計・CSV/PDF出力） ===== */
+  async function hashPw(pw, salt) {
+    const data = new TextEncoder().encode(salt + ':' + pw);
+    if (window.crypto && crypto.subtle) {
+      const h = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    let h = 2166136261; for (const b of data) { h ^= b; h = Math.imul(h, 16777619) >>> 0; }
+    return 'f' + h.toString(16);
+  }
+  async function pwDialog(title, o) {
+    let err = o.err || '';
+    for (;;) {
+      const buttons = [{ label: 'OK', value: 'ok', kind: 'primary' }];
+      if (o.forgot) buttons.push({ label: 'パスワードを忘れた', value: 'forgot', kind: 'ghost' });
+      buttons.push({ label: 'キャンセル', value: null, kind: 'ghost' });
+      const v = await askDialog({
+        title,
+        body: `${o.note ? `<p>${esc(o.note)}</p>` : ''}<label class="fl" for="dlgInput">${esc(o.label)}</label><input class="input" id="dlgInput" type="password" autocomplete="off">${o.confirm ? `<label class="fl" for="dlgInput2">確認のためもう一度</label><input class="input" id="dlgInput2" type="password" autocomplete="off">` : ''}${err ? `<p class="help" style="color:var(--danger)">${esc(err)}</p>` : ''}`,
+        buttons,
+      });
+      if (v !== 'ok') return v;
+      const a = $('#dlgInput').value, b = o.confirm ? $('#dlgInput2').value : a;
+      if (o.confirm) { if (a.length < 4) { err = '4文字以上で入力してください'; continue; } if (a !== b) { err = '確認用が一致しません'; continue; } }
+      else if (!a) { err = 'パスワードを入力してください'; continue; }
+      return { pw: a };
+    }
+  }
+  const newAdminPw = async (title, note) => {
+    const r = await pwDialog(title, { label: '管理パスワード（4文字以上）', confirm: true, note });
+    if (!r || r === 'forgot') return false;
+    const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    store.set(LS_ADMIN, { salt, hash: await hashPw(r.pw, salt) });
+    return true;
+  };
+  async function adminUnlock() {
+    const rec = store.get(LS_ADMIN, null);
+    if (!rec) {
+      const ok = await newAdminPw('管理パスワードを設定', '売上管理を開くためのパスワードです。初回だけ設定します。忘れた場合は、売上の記録を消してリセットすることになるので、控えておいてください。');
+      if (ok) toast('管理パスワードを設定しました');
+      return ok;
+    }
+    let err = '';
+    for (;;) {
+      const r = await pwDialog('管理パスワード', { label: 'パスワード', forgot: true, err });
+      if (!r) return false;
+      if (r === 'forgot') {
+        if (await askConfirm('パスワードをリセット', 'パスワードを忘れた場合は、売上の記録をすべて削除してから、新しいパスワードを設定できます。削除してリセットしますか？', '削除してリセット', true)) {
+          store.del(LS_ADMIN); ledger = {}; saveLedger();
+          store.keys().filter(k => k.startsWith(LS_PREFIX)).forEach(k => { const d = store.get(k, null); if (d && d.jobs) { d.jobs.forEach(j => { delete j.sales; }); store.set(k, d); } });
+          day = loadDay(current); render();
+          toast('リセットしました。もう一度開くと、新しいパスワードを設定できます');
+        }
+        return false;
+      }
+      if (await hashPw(r.pw, rec.salt) === rec.hash) return true;
+      err = 'パスワードが違います';
+    }
+  }
+  let salesMonth = todayStr().slice(0, 7);
+  const monthRows = (m) => Object.keys(ledger).filter(d => d.startsWith(m)).sort().flatMap(d => ledger[d].map(e => Object.assign({ date: d }, e)));
+  const monthLabel = (m) => `${m.slice(0, 4)}年${Number(m.slice(5))}月`;
+  const shiftMonth = (m, n) => { const d = new Date(Number(m.slice(0, 4)), Number(m.slice(5)) - 1 + n, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; };
+  function monthStats(m) {
+    const rows = monthRows(m);
+    const daily = rows.filter(r => r.kind === 'daily').reduce((a, r) => a + r.amount, 0);
+    const spot = rows.filter(r => r.kind !== 'daily').reduce((a, r) => a + r.amount, 0);
+    return { rows, daily, spot, sum: daily + spot, days: new Set(rows.map(r => r.date)).size, tax: taxSplit(daily + spot) };
+  }
+  function renderSales() {
+    const m = salesMonth, st = monthStats(m);
+    const byDate = {}; st.rows.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
+    $('#salesBody').innerHTML = `
+      <div class="sm-nav"><button type="button" data-sm="-1" aria-label="前の月">‹</button><div class="lbl">${monthLabel(m)}</div><button type="button" data-sm="1" aria-label="次の月">›</button></div>
+      <div class="sm-total"><small>${monthLabel(m)}の売上合計（税込み）</small><b>${yen(st.sum)}</b></div>
+      <div class="sm-grid">
+        <div>日当<b>${yen(st.daily)}</b></div><div>スポット<b>${yen(st.spot)}</b></div>
+        <div>税抜き<b>${yen(st.tax.ex)}</b></div><div>消費税<b>${yen(st.tax.tax)}</b></div>
+        <div>件数<b>${st.rows.length}件</b></div><div>売上のあった日<b>${st.days}日</b></div>
+      </div>
+      <div class="sm-actions">
+        <button class="btn" type="button" data-sa="csv" ${st.rows.length ? '' : 'disabled'}>CSVで出力</button>
+        <button class="btn" type="button" data-sa="pdf" ${st.rows.length ? '' : 'disabled'}>PDFで出力</button>
+      </div>
+      ${Object.keys(byDate).sort().map(d => { const tot = byDate[d].reduce((a, r) => a + r.amount, 0); return `<div class="sm-day"><div class="dh"><span>${fmtDateLabel(d)}</span><b>${yen(tot)}</b></div>${byDate[d].map(r => `<div class="it"><span class="t">${esc(r.title)}</span><span class="k">${SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot']}</span><span class="a">${yen(r.amount)}</span></div>`).join('')}</div>`; }).join('') || '<p class="help" style="text-align:center;margin-top:16px;">この月の売上の記録はありません。</p>'}
+      <div class="sm-actions">
+        <button class="btn secondary sm" type="button" data-sa="pw">パスワードを変更</button>
+        <button class="btn danger sm" type="button" data-sa="del" ${st.rows.length ? '' : 'disabled'}>この月の記録を削除</button>
+      </div>`;
+  }
+  const csvCell = (v) => `"${String(v).replace(/"/g, '""')}"`;
+  function csvOf(m) {
+    const st = monthStats(m);
+    const lines = [['日付', '案件名', '種別', '金額（税込み）', '税抜き', '消費税'].map(csvCell).join(',')];
+    st.rows.forEach(r => { const t = taxSplit(r.amount); lines.push([r.date, r.title, SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot'], t.inc, t.ex, t.tax].map(csvCell).join(',')); });
+    lines.push(['合計', '', `日当 ${st.daily} / スポット ${st.spot}`, st.tax.inc, st.tax.ex, st.tax.tax].map(csvCell).join(','));
+    return '\ufeff' + lines.join('\r\n') + '\r\n';
+  }
+  const toB64 = (str) => { let bin = ''; new TextEncoder().encode(str).forEach(b => { bin += String.fromCharCode(b); }); return btoa(bin); };
+  function reportOf(m) {
+    const st = monthStats(m);
+    return {
+      title: `${monthLabel(m)} 売上（税込み）`,
+      lines: [`合計（税込み） ${yen(st.sum)}`, `税抜き ${yen(st.tax.ex)} ／ 消費税 ${yen(st.tax.tax)}`, `日当 ${yen(st.daily)} ／ スポット ${yen(st.spot)}`, `${st.rows.length}件 ／ 売上のあった日 ${st.days}日`],
+      rows: st.rows.map(r => [r.date.slice(5).replace('-', '/'), r.title, SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot'], yen(r.amount)]),
+    };
+  }
+  function exportCsv() {
+    const name = `sales_${salesMonth}.csv`, csv = csvOf(salesMonth);
+    if (window.TJNative && window.TJNative.shareFile) { window.TJNative.shareFile(name, 'text/csv', toB64(csv)); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  function exportPdf() {
+    const rep = reportOf(salesMonth), name = `sales_${salesMonth}.pdf`;
+    if (window.TJNative && window.TJNative.sharePdf) { window.TJNative.sharePdf(name, JSON.stringify(rep)); return; }
+    $('#printArea').innerHTML = `<h2>${esc(rep.title)}</h2>${rep.lines.map(l => `<div>${esc(l)}</div>`).join('')}<br><table><tr><th>日付</th><th>案件</th><th>種別</th><th class="r">金額（税込み）</th></tr>${rep.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td class="r">${esc(r[3])}</td></tr>`).join('')}</table>`;
+    document.body.classList.add('printing');
+    window.addEventListener('afterprint', () => document.body.classList.remove('printing'), { once: true });
+    window.print();
+  }
+  $('#btnSalesAdmin').addEventListener('click', async () => {
+    if (!(await adminUnlock())) return;
+    salesMonth = todayStr().slice(0, 7); renderSales(); openSheet('#salesSheet');
+  });
+  $('#salesBody').addEventListener('click', async (e) => {
+    const nav = e.target.closest('[data-sm]'); if (nav) { salesMonth = shiftMonth(salesMonth, Number(nav.dataset.sm)); renderSales(); return; }
+    const b = e.target.closest('[data-sa]'); if (!b) return;
+    if (b.dataset.sa === 'csv') exportCsv();
+    if (b.dataset.sa === 'pdf') exportPdf();
+    if (b.dataset.sa === 'pw') { if (await newAdminPw('パスワードを変更', '新しい管理パスワードを入力してください。')) toast('パスワードを変更しました'); }
+    if (b.dataset.sa === 'del') {
+      if (!(await askConfirm('この月の売上記録を削除', `${monthLabel(salesMonth)}の売上の記録をすべて削除します。元に戻せません。`, '削除する', true))) return;
+      Object.keys(ledger).filter(d => d.startsWith(salesMonth)).forEach(d => {
+        delete ledger[d];
+        const k = LS_PREFIX + d, dd = store.get(k, null);
+        if (dd && dd.jobs) { dd.jobs.forEach(j => { delete j.sales; }); store.set(k, dd); }
+      });
+      saveLedger(); day = loadDay(current); render(); renderSales(); toast('削除しました');
+    }
+  });
+
   $('#sResetDay').addEventListener('click', async () => {
-    if (!(await askConfirm('この日のデータをリセット', `${fmtDateLabel(current)}のデータ（並び順・連絡状況・メモ・削除した案件）をリセットします。よろしいですか？`, 'リセットする', true))) return;
-    store.del(LS_PREFIX + current); day = loadDay(current); render(); closeSheets(); toast('リセットしました');
+    if (!(await askConfirm('この日のデータをリセット', `${fmtDateLabel(current)}のデータ（並び順・連絡状況・メモ・売上・削除した案件）をリセットします。よろしいですか？`, 'リセットする', true))) return;
+    store.del(LS_PREFIX + current); delete ledger[current]; saveLedger(); day = loadDay(current); render(); closeSheets(); toast('リセットしました');
   });
   $('#sResetAll').addEventListener('click', async () => {
     if (!(await askConfirm('すべてのデータを削除', 'すべての日付のデータを削除します。よろしいですか？（設定は残ります）', '削除する', true))) return;
