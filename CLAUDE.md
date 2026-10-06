@@ -52,4 +52,4 @@
 
 ## 売上（Today's Jobs）
 - 案件ごとの売上は任意入力。`job.sales = {kind:'daily'|'spot', amount}`。一日の合計は「日当＋スポット」（`salesOfDay`）で、税抜き／消費税／税込みを表示する（`taxCalc`）。
-- 設定 `settings.taxMode`（入力する金額が税抜き `ex` か税込み `in`）と `settings.taxRate`（既定10%）。金額が1件も無ければトップの売上パネルは出さない。
+- 金額は案件ごとに「税抜きで入力／税込みで入力」を選べる（`job.sales.mode`、金額を保存した時点で固定。未設定の案件は設定 `settings.taxMode` の初期値に従う）。税率は `settings.taxRate`（既定10%）。合計は案件ごとに税抜き・消費税・税込みを出して足す。金額が1件も無ければトップの売上パネルは出さない。

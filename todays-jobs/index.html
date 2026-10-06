@@ -490,6 +490,7 @@
     .sales .st div { font-size: 11px; color: var(--muted); }
     .sales .st b { display: block; font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--text); letter-spacing: .02em; }
     .sales .st .big b { font-size: 22px; color: var(--gold-text); }
+    .sales .nt { font-size: 11px; color: var(--dim); }
     .sale-in { font-family: var(--mono); font-size: 20px; letter-spacing: .04em; }
     .purge { padding: 10px 0 4px; border-bottom: 1px dashed var(--line); margin-bottom: 4px; }
     .purge .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
@@ -741,7 +742,7 @@
     </div>
     <div class="card">
       <h3><span class="yen">¥</span>売上（任意）</h3>
-      <label class="fl">入力する金額は</label>
+      <label class="fl">金額を入力するときの初期設定（案件ごとに切り替えできます）</label>
       <div class="seg c2" id="sTaxMode">
         <button type="button" data-m="ex" aria-pressed="true">税抜き</button>
         <button type="button" data-m="in" aria-pressed="false">税込み</button>
@@ -894,15 +895,22 @@
   const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
   const saleOf = (j) => { const a = Number(j.sales && j.sales.amount); return a > 0 ? a : 0; };
   const saleKind = (j) => (j.sales && j.sales.kind === 'daily' ? 'daily' : 'spot');
-  const taxCalc = (sum) => {
+  const saleMode = (j) => ((j.sales && j.sales.mode) || settings.taxMode) === 'in' ? 'in' : 'ex';
+  const taxCalc = (sum, mode) => {
     const r = (Number(settings.taxRate) || 0) / 100;
-    if (settings.taxMode === 'in') { const ex = Math.round(sum / (1 + r)); return { ex, tax: sum - ex, inc: sum }; }
+    if (mode === 'in') { const ex = Math.round(sum / (1 + r)); return { ex, tax: sum - ex, inc: sum }; }
     const tax = Math.floor(sum * r); return { ex: sum, tax, inc: sum + tax };
   };
+  const saleTax = (j) => taxCalc(saleOf(j), saleMode(j));
   const salesOfDay = (jobs) => {
-    let daily = 0, spot = 0;
-    jobs.forEach(j => { if (saleKind(j) === 'daily') daily += saleOf(j); else spot += saleOf(j); });
-    return { daily, spot, sum: daily + spot };
+    const z = () => ({ ex: 0, tax: 0, inc: 0 });
+    const daily = z(), spot = z(), all = z();
+    jobs.forEach(j => {
+      if (!saleOf(j)) return;
+      const t = saleTax(j), k = saleKind(j) === 'daily' ? daily : spot;
+      for (const f of ['ex', 'tax', 'inc']) { k[f] += t[f]; all[f] += t[f]; }
+    });
+    return { daily, spot, all, sum: all.inc };
   };
   const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms', 'mail'];
   const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent', mail: 'accent' };
@@ -1075,9 +1083,9 @@
     const sl = salesOfDay(jobs), sb = $('#salesBox');
     sb.classList.toggle('hidden', !sl.sum);
     if (sl.sum) {
-      const t = taxCalc(sl.sum);
-      sb.innerHTML = `<div class="sh"><span>本日の売上</span><small>入力は${settings.taxMode === 'in' ? '税込み' : '税抜き'}</small></div>
-        <div class="sr"><span>日当</span><b>${yen(sl.daily)}</b><span>＋ スポット</span><b>${yen(sl.spot)}</b></div>
+      const t = sl.all;
+      sb.innerHTML = `<div class="sh"><span>本日の売上</span><small>日当 ＋ スポット</small></div>
+        <div class="sr"><span>日当</span><b>${yen(sl.daily.inc)}</b><span>＋ スポット</span><b>${yen(sl.spot.inc)}</b><span class="nt">（税込み）</span></div>
         <div class="st"><div>税抜き<b>${yen(t.ex)}</b></div><div>消費税<b>${yen(t.tax)}</b></div><div class="big">税込み<b>${yen(t.inc)}</b></div></div>`;
     }
 
@@ -1183,7 +1191,7 @@
     const missingChip = j.missing ? `<span class="chip danger">${icon('alert')}カレンダーから削除済</span>` : '';
     const multiCal = new Set(day.jobs.map(x => x.calendar).filter(Boolean)).size > 1;
     const calChip = (j.calendar && multiCal) ? `<span class="chip cal">${icon('calendar')}${esc(j.calendar)}</span>` : '';
-    const saleChip = saleOf(j) ? `<span class="chip warn"><span class="yen" style="width:auto">¥</span>${SALE_KIND[saleKind(j)]} ${saleOf(j).toLocaleString('ja-JP')}</span>` : '';
+    const saleChip = saleOf(j) ? `<span class="chip warn"><span class="yen" style="width:auto">¥</span>${SALE_KIND[saleKind(j)]} ${saleOf(j).toLocaleString('ja-JP')}<small style="font-weight:500;opacity:.8">${saleMode(j) === 'in' ? '税込' : '税抜'}</small></span>` : '';
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
@@ -1214,7 +1222,7 @@
   function saleCalcText(j) {
     const a = saleOf(j);
     if (!a) return '日当またはスポットを選んで金額を入れると、一日の売上に加算されます。';
-    const t = taxCalc(a);
+    const t = saleTax(j);
     return `税抜き ${yen(t.ex)} ／ 消費税 ${yen(t.tax)} ／ 税込み ${yen(t.inc)}`;
   }
 
@@ -1321,7 +1329,11 @@
         <div class="seg c2" data-group="saleKind">
           ${Object.entries(SALE_KIND).map(([k, l]) => `<button type="button" data-val="${k}" aria-pressed="${saleKind(j) === k}">${l}</button>`).join('')}
         </div>
-        <label class="fl" for="dSale" style="margin-top:12px;">金額（円・${settings.taxMode === 'in' ? '税込み' : '税抜き'}で入力）</label>
+        <div class="seg c2" data-group="saleMode" style="margin-top:8px;">
+          <button type="button" data-val="ex" aria-pressed="${saleMode(j) === 'ex'}">税抜きで入力</button>
+          <button type="button" data-val="in" aria-pressed="${saleMode(j) === 'in'}">税込みで入力</button>
+        </div>
+        <label class="fl" for="dSale" style="margin-top:12px;">金額（円）</label>
         <input class="input sale-in" id="dSale" type="text" inputmode="numeric" placeholder="例: 15000" value="${saleOf(j) || ''}">
         <p class="help" id="dSaleCalc">${saleCalcText(j)}</p>
       </div>
@@ -1344,7 +1356,7 @@
     const saleIn = $('#dSale');
     const saveSale = debounce(() => {
       const n = parseInt(String(saleIn.value).normalize('NFKC').replace(/[^0-9]/g, ''), 10);
-      j.sales = Object.assign({ kind: 'spot' }, j.sales, { amount: n > 0 ? n : null });
+      j.sales = Object.assign({ kind: 'spot' }, j.sales, { amount: n > 0 ? n : null, mode: saleMode(j) });
       saveDay(); render(); flash('sales'); $('#dSaleCalc').textContent = saleCalcText(j);
     }, 350);
     saleIn.addEventListener('input', saveSale);
@@ -1366,6 +1378,7 @@
       const val = segBtn.dataset.val;
       if (group === 'work') j.work = val;
       if (group === 'parking') j.parking.status = val;
+      if (group === 'saleMode') { j.sales = Object.assign({ kind: 'spot', amount: null }, j.sales, { mode: val }); }
       if (group === 'saleKind') j.sales = Object.assign({ amount: null }, j.sales, { kind: val });
       if (group === 'contact') {
         j.contact.log.push({ status: val, at: new Date().toISOString() });
