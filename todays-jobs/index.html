@@ -416,6 +416,12 @@
 
     label.fl { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
     label.fl:first-child { margin-top: 0; }
+    /* 設定画面：タイトル・項目に蛍光青のラインを入れて区切りを分かりやすくする */
+    #settingsSheet .card { border-left: 3px solid var(--ok); }
+    #settingsSheet .card h3 { padding-bottom: 8px; border-bottom: 2px solid var(--ok); color: var(--text); font-size: 14px; }
+    #settingsSheet label.fl { padding-left: 8px; border-left: 3px solid var(--ok); line-height: 1.3; }
+    #settingsSheet .purge .wl { padding-left: 8px; border-left: 3px solid var(--ok); }
+    #settingsSheet .switch-row .tx { padding-left: 8px; border-left: 3px solid var(--ok); }
     .input, textarea.input, select.input {
       width: 100%; border: 1px solid var(--line-2); border-radius: 8px; background: #122137; color: var(--text);
       padding: 11px 12px; font-size: 16px; outline: none; color-scheme: dark;
