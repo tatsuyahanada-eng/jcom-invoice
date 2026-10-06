@@ -80,7 +80,7 @@
   h1, h2, h3 { text-wrap: balance; line-height: 1.35; }
 
   /* ---------- 全体の枠（スマホ：縦積み／PC：左メニュー＋上部コンソール） ---------- */
-  .app { min-height: 100vh; display: grid; grid-template-columns: 1fr; }
+  .app { min-height: 100vh; display: grid; grid-template-columns: 1fr; align-content: start; }
   .brandbar { background: var(--bg-2); border-bottom: 1px solid var(--line); }
   .brandbar h1 { margin: 0; }
   .brand {
@@ -216,6 +216,11 @@
   .st.need { color: var(--ng); border-color: rgba(255, 93, 118, .55); background: var(--ng-bg); }
   .st.ok { color: var(--free); border-color: rgba(60, 240, 164, .45); background: var(--free-bg); }
   .st.chk { color: var(--amber); border-color: rgba(255, 198, 74, .5); background: var(--cond-bg); }
+  .buyrule { display: grid; gap: 6px; margin: 8px 0 6px; }
+  .buyrule .br { display: grid; gap: 1px; padding: 7px 10px; border-radius: 6px; font-size: 13px; line-height: 1.5; }
+  .buyrule .br b { font-weight: 700; }
+  .buyrule .br.ok { background: var(--free-bg); color: var(--free); border: 1px solid rgba(60, 240, 164, .35); }
+  .buyrule .br.ng { background: var(--ng-bg); color: var(--ng); border: 1px solid rgba(255, 93, 118, .4); }
   .st.gd { color: var(--rule); border-color: rgba(143, 200, 255, .45); background: var(--rule-bg); }
 
   .st-free { background: var(--free-bg); color: var(--free); }
@@ -714,7 +719,7 @@
 
   const STATUS = {
     free:   { label: "ロックなし（SIMフリー）", short: "ロックなし", cls: "st-free" },
-    locked: { label: "ロックあり出荷", short: "ロックあり", cls: "st-locked" },
+    locked: { label: "発売時ロックあり（購入日で解除済の場合あり）", short: "購入日で判定", cls: "st-locked" },
     cond:   { label: "購入時期で解除済の可能性", short: "条件付き", cls: "st-cond" },
     rule:   { label: "発売日・購入日で判定", short: "要判定", cls: "st-rule" }
   };
@@ -786,7 +791,8 @@
 
   // 一覧の判定ラベル（楽天・SIMフリー・ロックなし出荷は解除不要）
   const judgeOf = v => (v.c === "rakuten" || v.c === "free" || v.ship === "free") ? ["ok", "解除不要"]
-    : v.ship === "locked" ? ["need", "要解除"] : v.ship === "cond" ? ["chk", "要確認"] : ["chk", "要判定"];
+    : v.ship === "locked" ? (UNLOCK[v.c] && UNLOCK[v.c].buy ? ["chk", "購入日で判定"] : ["need", "要解除"])
+    : v.ship === "cond" ? ["chk", "要確認"] : ["chk", "要判定"];
   // 暗い背景で沈む色（ソフトバンクのグレー等）は明るめに置き換えて表示
   const dotColor = k => ({ sb: "#b8c2cc", free: "#3cf0a4" }[k] || CARRIERS[k].color);
   const carDot = k => `<span class="dot" style="--c:${dotColor(k)}"><i></i>${esc(CARRIERS[k].name)}</span>`;
@@ -830,7 +836,7 @@
         <td class="code">—</td><td class="rel"></td></tr>`));
     const filteredOn = state.q || state.carrier !== "all" || state.os !== "all" || state.mfr !== "all";
     $("#count").innerHTML = `<span><b>${rows.length}</b>HITS <span style="margin-left:6px">${filteredOn ? `${specific.length}機種` : `登録 ${specific.length}機種`}${generic.length ? ` ＋ 汎用ガイド${generic.length}` : ""}</span></span>
-      <span class="legend"><span style="color:var(--ng)">要解除</span><span style="color:var(--amber)">要確認・要判定</span><span style="color:var(--free)">解除不要</span></span>`;
+      <span class="legend"><span style="color:var(--ng)">要解除</span><span style="color:var(--amber)">購入日で判定・要確認</span><span style="color:var(--free)">解除不要</span></span>`;
     $("#stHits").textContent = "HITS: " + rows.length;
     $("#stQuery").textContent = "QUERY: " + (state.q || "—") + (state.carrier !== "all" ? " / " + CARRIERS[state.carrier].name : "");
     if (!rows.length) {
@@ -927,10 +933,21 @@
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_OK}解除不要（ロックなし）</div>
       <div class="key-sub">${esc(v.note || d.note || "ロックなしで販売された機種です。")}</div></section>`;
-    if (v.ship === "locked") return `<section class="key need">
+    if (v.ship === "locked") {
+      const b = UNLOCK[v.c] && UNLOCK[v.c].buy;
+      if (!b) return `<section class="key need">
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_WARN}解除が必要（必ず確認）</div>
       <div class="key-sub">ロックあり出荷。<b>${esc(path)}</b> で解除済みか確認し、ロック中なら②から手続きしてください。</div></section>`;
+      return `<section class="key check">
+      <div class="key-label"><span class="num">1</span>SIMロック解除</div>
+      <div class="key-main">${ICON_Q}購入日で判定</div>
+      <div class="buyrule">
+        <div class="br ok"><b>${esc(b.since)}以降に購入</b><span>→ 解除不要（${esc(b.after)}）</span></div>
+        <div class="br ng"><b>それより前に購入／中古・譲渡で購入日不明</b><span>→ ロックの可能性あり。②から解除（無料）</span></div>
+      </div>
+      <div class="key-sub">発売時はロックあり出荷の機種です。確認場所：<b>${esc(path)}</b>（項目が無い機種は他社SIMを挿して確認）</div></section>`;
+    }
     return `<section class="key check">
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_Q}要確認${v.ship === "cond" ? "（解除済の可能性あり）" : ""}</div>
@@ -1090,6 +1107,7 @@
   function renderGuide() {
     const steps = [
       ["発売日・購入元を確認", "2021/10/1以降発売の機種、Apple／Google Store・メーカー直販・楽天モバイル購入品は原則ロックなし"],
+      ["それ以前の機種は購入日を確認", "発売日が古くても、購入日が ドコモ 2021/8/27・ソフトバンク／ワイモバイル 2021/5/12・au 2022/8/1 以降なら解除済で販売（中古・譲渡品は購入日不明なので実機で確認）"],
       ["設定画面で確認", "iPhone・Xperia・Galaxy・AQUOS等は設定に表示あり（機種検索で場所を確認）"],
       ["ダイヤルコード", "一部Androidのみ。国内キャリア版は無効化されていることが多い"],
       ["他社SIMを挿す", "解除コード入力画面や「SIM無効」が出たらロックあり"],
