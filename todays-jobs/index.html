@@ -7,11 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Job Board Today">
+  <meta name="apple-mobile-web-app-title" content="Today's Jobs">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.png" type="image/png">
   <link rel="apple-touch-icon" href="icon.png">
-  <title>Job Board Today</title>
+  <title>Today's Jobs</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     @font-face { font-family: "Anton"; src: url("anton.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
@@ -480,6 +480,17 @@
     .needcall .nc-grid .tx small { font-size: 11px; }
     .needcall .nc-grid .switch { transform: scale(.88); transform-origin: right center; }
     .needcall .help { margin: 6px 0 0; font-size: 11px; }
+    .yen { display: inline-grid; place-items: center; width: 16px; font-family: Arial, sans-serif; font-weight: 800; font-size: 15px; }
+    .sales { margin: 10px 0 0; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 12px; background: linear-gradient(180deg, rgba(40, 72, 120, .35), rgba(23, 41, 68, .75)); }
+    .sales .sh { display: flex; align-items: baseline; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--muted); }
+    .sales .sh small { font-weight: 500; font-size: 11px; color: var(--dim); }
+    .sales .sr { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 6px; font-size: 14px; color: var(--muted); }
+    .sales .sr b { font-family: var(--mono); font-weight: 700; font-size: 17px; color: var(--text); letter-spacing: .02em; }
+    .sales .st { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+    .sales .st div { font-size: 11px; color: var(--muted); }
+    .sales .st b { display: block; font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--text); letter-spacing: .02em; }
+    .sales .st .big b { font-size: 22px; color: var(--gold-text); }
+    .sale-in { font-family: var(--mono); font-size: 20px; letter-spacing: .04em; }
     .purge { padding: 10px 0 4px; border-bottom: 1px dashed var(--line); margin-bottom: 4px; }
     .purge .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
     .purge .seg { grid-template-columns: repeat(3, 1fr); }
@@ -544,8 +555,8 @@
 <body>
 <div class="app" id="app">
   <header class="hero">
-    <img class="hero-logo" src="icon.png" alt="Job Board Today" width="52" height="52">
-    <div class="hero-title">JOB BOARD TODAY<span class="tj" aria-hidden="true">JBT</span></div>
+    <img class="hero-logo" src="icon.png" alt="Today's Jobs" width="52" height="52">
+    <div class="hero-title">TODAY'S JOBS<span class="tj" aria-hidden="true">TJ</span></div>
     <div class="hero-sub">"FIELD×VISIT" 訪問業務ナビゲーション・システム</div>
     <div class="pill off" id="statePill"><i></i><span id="stateText">未同期</span></div>
   </header>
@@ -587,6 +598,7 @@
       <div class="cell"><div class="num" id="sumDone">0</div><div class="lbl">完了</div></div>
     </section>
     <div class="progress"><i id="progressBar"></i></div>
+    <section class="sales hidden" id="salesBox" aria-label="本日の売上"></section>
 
     <div id="noticeArea"></div>
     <div class="meta-line" id="metaLine">
@@ -615,7 +627,7 @@
   </main>
 
   <footer class="foot">
-    <div>© JOB BOARD TODAY<span class="tj-s"> · JBT</span></div>
+    <div>© TODAY'S JOBS<span class="tj-s"> · TJ</span></div>
     <div>データはこの端末に保存されます</div>
     <div>v1.1</div>
   </footer>
@@ -728,6 +740,17 @@
       </div>
     </div>
     <div class="card">
+      <h3><span class="yen">¥</span>売上（任意）</h3>
+      <label class="fl">入力する金額は</label>
+      <div class="seg c2" id="sTaxMode">
+        <button type="button" data-m="ex" aria-pressed="true">税抜き</button>
+        <button type="button" data-m="in" aria-pressed="false">税込み</button>
+      </div>
+      <label class="fl" for="sTaxRate">消費税率（%）</label>
+      <input class="input" id="sTaxRate" type="text" inputmode="decimal" value="10">
+      <p class="help">案件ごとに日当またはスポットの金額を入力すると、その日の合計（日当＋スポット）を税抜き・税込みで表示します。</p>
+    </div>
+    <div class="card">
       <h3><span data-icon="link"></span>連携アプリ（定型リンク）</h3>
       <p class="help" style="margin:0 0 8px;">名前とURLを登録すると、画面の一番上にボタンとして並びます（業務開始前に使うアプリなどに）。URLに差し込み記号を入れると、「次の訪問」の案件の情報が入ります。</p>
       <ul class="linklist" id="linkList"></ul>
@@ -778,7 +801,7 @@
         <button class="btn danger" id="sResetAll" type="button">すべてのデータを削除</button>
       </div>
     </div>
-    <p class="help" style="text-align:center;">JOB BOARD TODAY v1.0</p>
+    <p class="help" style="text-align:center;">TODAY'S JOBS v1.0</p>
   </div>
 </section>
 
@@ -866,6 +889,21 @@
   };
   const WHO = [['self', 'ご本人様'], ['spouse', '配偶者様'], ['family', 'ご家族様'], ['other', 'その他（別の方）']];
   const whoText = (c) => { const w = c.who || []; return w.length ? w.map(k => (k === 'other' && c.whoNote ? c.whoNote : (WHO.find(x => x[0] === k) || [0, k])[1])).join('・') : ''; };
+  /* ===== 売上（任意）：日当＋スポット、税抜き／税込み ===== */
+  const SALE_KIND = { daily: '日当', spot: 'スポット' };
+  const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
+  const saleOf = (j) => { const a = Number(j.sales && j.sales.amount); return a > 0 ? a : 0; };
+  const saleKind = (j) => (j.sales && j.sales.kind === 'daily' ? 'daily' : 'spot');
+  const taxCalc = (sum) => {
+    const r = (Number(settings.taxRate) || 0) / 100;
+    if (settings.taxMode === 'in') { const ex = Math.round(sum / (1 + r)); return { ex, tax: sum - ex, inc: sum }; }
+    const tax = Math.floor(sum * r); return { ex: sum, tax, inc: sum + tax };
+  };
+  const salesOfDay = (jobs) => {
+    let daily = 0, spot = 0;
+    jobs.forEach(j => { if (saleKind(j) === 'daily') daily += saleOf(j); else spot += saleOf(j); });
+    return { daily, spot, sum: daily + spot };
+  };
   const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms', 'mail'];
   const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent', mail: 'accent' };
   // 直前連絡の完了判定：電話は「通話済」、メールは「Mail送信」が履歴にあれば完了
@@ -980,7 +1018,7 @@
   }
 
   /* ================= State ================= */
-  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null };
+  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null, taxMode: 'ex', taxRate: 10 };
   let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
   if (!Array.isArray(settings.deviceCalendars)) settings.deviceCalendars = [];
   if (!Array.isArray(settings.googleCalendars)) settings.googleCalendars = [{ id: settings.calendarId || 'primary', name: settings.calendarName || 'メインカレンダー' }];
@@ -1034,6 +1072,14 @@
     $('#sumParking').innerHTML = `${parking}<small>/${total}</small>`;
     $('#sumDone').innerHTML = `${done}<small>/${total}</small>`;
     $('#progressBar').style.width = total ? (done / total * 100) + '%' : '0';
+    const sl = salesOfDay(jobs), sb = $('#salesBox');
+    sb.classList.toggle('hidden', !sl.sum);
+    if (sl.sum) {
+      const t = taxCalc(sl.sum);
+      sb.innerHTML = `<div class="sh"><span>本日の売上</span><small>入力は${settings.taxMode === 'in' ? '税込み' : '税抜き'}</small></div>
+        <div class="sr"><span>日当</span><b>${yen(sl.daily)}</b><span>＋ スポット</span><b>${yen(sl.spot)}</b></div>
+        <div class="st"><div>税抜き<b>${yen(t.ex)}</b></div><div>消費税<b>${yen(t.tax)}</b></div><div class="big">税込み<b>${yen(t.inc)}</b></div></div>`;
+    }
 
     // Meta
     $('#hintText').innerHTML = total
@@ -1137,6 +1183,7 @@
     const missingChip = j.missing ? `<span class="chip danger">${icon('alert')}カレンダーから削除済</span>` : '';
     const multiCal = new Set(day.jobs.map(x => x.calendar).filter(Boolean)).size > 1;
     const calChip = (j.calendar && multiCal) ? `<span class="chip cal">${icon('calendar')}${esc(j.calendar)}</span>` : '';
+    const saleChip = saleOf(j) ? `<span class="chip warn"><span class="yen" style="width:auto">¥</span>${SALE_KIND[saleKind(j)]} ${saleOf(j).toLocaleString('ja-JP')}</span>` : '';
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
@@ -1152,7 +1199,7 @@
           <div class="job-sub">
             ${j.location ? `<div class="job-addr">${icon('pin')}<span>${esc(j.location)}</span></div>` : ''}
             ${memoText ? `<div class="job-memo">${esc(memoText)}</div>` : ''}
-            <div class="chips">${workChip}${contactChip}${parkChip}${calChip}${missingChip}${manualChip}</div>
+            <div class="chips">${workChip}${contactChip}${parkChip}${saleChip}${calChip}${missingChip}${manualChip}</div>
           </div>
         </div>
         <div class="job-grip" aria-hidden="true">${icon('grip')}</div>
@@ -1164,6 +1211,13 @@
   }
 
   /* ================= Detail sheet ================= */
+  function saleCalcText(j) {
+    const a = saleOf(j);
+    if (!a) return '日当またはスポットを選んで金額を入れると、一日の売上に加算されます。';
+    const t = taxCalc(a);
+    return `税抜き ${yen(t.ex)} ／ 消費税 ${yen(t.tax)} ／ 税込み ${yen(t.inc)}`;
+  }
+
   function openDetail(id) {
     openId = id;
     renderDetail();
@@ -1263,6 +1317,16 @@
       </div>
 
       <div class="card">
+        <h3><span class="yen">¥</span>売上（任意）<span class="saved" data-saved="sales">保存しました</span></h3>
+        <div class="seg c2" data-group="saleKind">
+          ${Object.entries(SALE_KIND).map(([k, l]) => `<button type="button" data-val="${k}" aria-pressed="${saleKind(j) === k}">${l}</button>`).join('')}
+        </div>
+        <label class="fl" for="dSale" style="margin-top:12px;">金額（円・${settings.taxMode === 'in' ? '税込み' : '税抜き'}で入力）</label>
+        <input class="input sale-in" id="dSale" type="text" inputmode="numeric" placeholder="例: 15000" value="${saleOf(j) || ''}">
+        <p class="help" id="dSaleCalc">${saleCalcText(j)}</p>
+      </div>
+
+      <div class="card">
         <h3>${icon('alert')}注意事項・メモ<span class="saved" data-saved="memo">保存しました</span></h3>
         <textarea class="input" id="dMemo" rows="4" placeholder="例: 犬がいるのでインターホン前に連絡 / 養生必須 / 14時以降希望">${esc(j.memo)}</textarea>
       </div>
@@ -1277,6 +1341,13 @@
       </div>
     `;
 
+    const saleIn = $('#dSale');
+    const saveSale = debounce(() => {
+      const n = parseInt(String(saleIn.value).normalize('NFKC').replace(/[^0-9]/g, ''), 10);
+      j.sales = Object.assign({ kind: 'spot' }, j.sales, { amount: n > 0 ? n : null });
+      saveDay(); render(); flash('sales'); $('#dSaleCalc').textContent = saleCalcText(j);
+    }, 350);
+    saleIn.addEventListener('input', saveSale);
     const parkNote = $('#dParkNote'), memo = $('#dMemo');
     const flash = (k) => { const el = $(`[data-saved="${k}"]`); if (!el) return; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1200); };
     const saveParkNote = debounce(() => { j.parking.note = parkNote.value; saveDay(); render(); flash('parking'); $('#phoneChips').innerHTML = phoneChipsHtml(j); }, 400);
@@ -1295,6 +1366,7 @@
       const val = segBtn.dataset.val;
       if (group === 'work') j.work = val;
       if (group === 'parking') j.parking.status = val;
+      if (group === 'saleKind') j.sales = Object.assign({ amount: null }, j.sales, { kind: val });
       if (group === 'contact') {
         j.contact.log.push({ status: val, at: new Date().toISOString() });
         j.contact.status = val;
@@ -1727,7 +1799,7 @@
     const w = nativeWait[id]; delete nativeWait[id];
     if (!w) return;
     if (err) w.reject(new Error(err === 'PERMISSION_DENIED'
-      ? 'カレンダーへのアクセスが許可されていません。端末の「設定 → アプリ → Job Board Today → 権限」から許可してください'
+      ? 'カレンダーへのアクセスが許可されていません。端末の「設定 → アプリ → Today\'s Jobs → 権限」から許可してください'
       : err));
     else w.resolve(data);
   };
@@ -1981,6 +2053,7 @@
     $('#sKeyword').value = settings.keyword;
     $('#sOrigin').value = settings.origin;
     $('#sSkipDone').checked = settings.skipDone;
+    taxUi();
     resetLinkForm();
     if (!$('#gCalList').children.length) {
       $('#gCalHelp').textContent = '選択中: ' + (settings.googleCalendars.map(c => c.name).join('、') || 'なし') + '（「Googleに接続」を押すと、一覧から選べます）';
@@ -2094,6 +2167,15 @@
   $('#sExcludeAllDay').addEventListener('change', e => { settings.excludeAllDay = e.target.checked; saveSettings(); });
   $('#sKeyword').addEventListener('change', e => { settings.keyword = e.target.value.trim(); saveSettings(); });
   $('#sOrigin').addEventListener('change', e => { settings.origin = e.target.value.trim(); saveSettings(); });
+  function taxUi() {
+    document.querySelectorAll('#sTaxMode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === settings.taxMode)));
+    $('#sTaxRate').value = settings.taxRate;
+  }
+  $('#sTaxMode').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; settings.taxMode = b.dataset.m; saveSettings(); taxUi(); render(); });
+  $('#sTaxRate').addEventListener('change', (e) => {
+    const v = parseFloat(String(e.target.value).normalize('NFKC'));
+    settings.taxRate = v >= 0 && v <= 100 ? v : 10; saveSettings(); taxUi(); render();
+  });
   $('#sSkipDone').addEventListener('change', e => { settings.skipDone = e.target.checked; saveSettings(); });
   $('#sConnect').addEventListener('click', async () => {
     if (!NATIVE) {

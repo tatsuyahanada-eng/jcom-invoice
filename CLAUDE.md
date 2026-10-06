@@ -17,7 +17,7 @@
   versionCode は Actions の実行番号で自動的に増える。
 
 ## デザイン方針（Today's Jobs）
-- **アプリ名は「Job Board Today」**（略称 JBT。2026-10 に Today's Jobs から変更）。ただし APK のファイル名 `today'sjobs.apk`、フォルダ名 `todays-jobs/`、パッケージ名 `jp.todaysjobs.app` は変えない（上書きインストール・配布手順のため）。
+- **アプリ名は「TODAY'S JOBS」**（略称 TJ）。一度 Job Board Today に変えたが、2026-10-06 に戻した。APK のファイル名 `today'sjobs.apk`、フォルダ名 `todays-jobs/`、パッケージ名 `jp.todaysjobs.app` は変えない（上書きインストール・配布手順のため）。
 - フォントは Impact 系の太くて細長い書体。Impact は Android に無く再配布もできないため、同系統のオープンフォント **Anton**（`todays-jobs/anton.woff2`、OFL）を同梱し、`--mono` に `Anton, Impact, …` の順で指定している。英字ラベルは全部大文字。`build.gradle` の `copyWebAssets` に `anton.woff2` を含めること。
 - 見た目は、ユーザーが提示した参考画像（CASE BY CASE）のダークHUD調で統一する: **背景は濃いネイビー（B案・標準ネイビー #122136）**、パネルは少し明るい紺 #172944、線は #213B63。文字は白に近い #F6F6F6、補助文字は #CFD2D5 / #B0B4B7、主色は銀 #D0D2D4。ユーザーがA〜D案の比較から選んだ色なので勝手に変えない。蛍光シアン/青緑は他アプリで使用済みのため使わない）／黄色（強調・主ボタン。文字に使う金色は #FFCC33）、
   等幅フォントのラベル、四隅にブラケットのあるパネル、色分けした上部タブ（通常＝シルバー塗り）、破線ボタン。
@@ -49,3 +49,7 @@
 - 送信は `mailto:`（宛先・CC・件名・本文）で端末のメールアプリを開く。WebView側は既存の外部リンク処理で起動する。
 - 詳細画面の「予定の内容」の住所の文字は大きめ（20px・太字）。
 - 時間は大きく強調する（案件カード17px・詳細の見出し26px・「次の訪問」20px、等幅・太字・金色 #FFCC33）。一番下のボタンは「前の日／今日へ／次の日」。
+
+## 売上（Today's Jobs）
+- 案件ごとの売上は任意入力。`job.sales = {kind:'daily'|'spot', amount}`。一日の合計は「日当＋スポット」（`salesOfDay`）で、税抜き／消費税／税込みを表示する（`taxCalc`）。
+- 設定 `settings.taxMode`（入力する金額が税抜き `ex` か税込み `in`）と `settings.taxRate`（既定10%）。金額が1件も無ければトップの売上パネルは出さない。

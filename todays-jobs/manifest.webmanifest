@@ -1,6 +1,6 @@
 {
-  "name": "Job Board Today",
-  "short_name": "Job Board Today",
+  "name": "Today's Jobs",
+  "short_name": "Today's Jobs",
   "description": "Googleカレンダーから当日の訪問案件を取り込み、訪問順・事前連絡・駐車場・注意事項を管理する業務補助アプリ",
   "start_url": "./",
   "scope": "./",
