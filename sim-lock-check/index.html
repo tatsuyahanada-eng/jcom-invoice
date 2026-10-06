@@ -216,6 +216,10 @@
   .st.need { color: var(--ng); border-color: rgba(255, 93, 118, .55); background: var(--ng-bg); }
   .st.ok { color: var(--free); border-color: rgba(60, 240, 164, .45); background: var(--free-bg); }
   .st.chk { color: var(--amber); border-color: rgba(255, 198, 74, .5); background: var(--cond-bg); }
+  .buyin { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 10px 0 2px; }
+  .buyin label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--strong); }
+  .buyin input[type="date"] { font: inherit; font-size: 15px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--accent-deep); background: var(--well); color: var(--strong); color-scheme: dark; min-height: 36px; }
+  .buyin .chip.on { background: var(--accent); color: #1c1f23; border-color: var(--accent); }
   .buyrule { display: grid; gap: 6px; margin: 8px 0 6px; }
   .buyrule .br { display: grid; gap: 1px; padding: 7px 10px; border-radius: 6px; font-size: 13px; line-height: 1.5; }
   .buyrule .br b { font-weight: 700; }
@@ -738,7 +742,7 @@
     sb: "Y!mobile・LINEMO・ソフトバンク系MVNO"
   };
 
-  const state = { limit: 300, q: "", carrier: "all", os: "all", mfr: "all", sort: "new", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set() };
+  const state = { limit: 300, q: "", carrier: "all", os: "all", mfr: "all", sort: "new", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set(), buy: "" };
 
   const deviceOs = d => MAKERS[d.maker].os;
   const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
@@ -933,25 +937,49 @@
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_OK}解除不要（ロックなし）</div>
       <div class="key-sub">${esc(v.note || d.note || "ロックなしで販売された機種です。")}</div></section>`;
-    if (v.ship === "locked") {
-      const b = UNLOCK[v.c] && UNLOCK[v.c].buy;
-      if (!b) return `<section class="key need">
+    const b = UNLOCK[v.c] && UNLOCK[v.c].buy;
+    if (v.ship === "locked" && !b) return `<section class="key need">
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_WARN}解除が必要（必ず確認）</div>
       <div class="key-sub">ロックあり出荷。<b>${esc(path)}</b> で解除済みか確認し、ロック中なら②から手続きしてください。</div></section>`;
-      return `<section class="key check">
-      <div class="key-label"><span class="num">1</span>SIMロック解除</div>
-      <div class="key-main">${ICON_Q}購入日で判定</div>
-      <div class="buyrule">
-        <div class="br ok"><b>${esc(b.since)}以降に購入</b><span>→ 解除不要（${esc(b.after)}）</span></div>
-        <div class="br ng"><b>それより前に購入／中古・譲渡で購入日不明</b><span>→ ロックの可能性あり。②から解除（無料）</span></div>
-      </div>
-      <div class="key-sub">発売時はロックあり出荷の機種です。確認場所：<b>${esc(path)}</b>（項目が無い機種は他社SIMを挿して確認）</div></section>`;
-    }
+    if ((v.ship === "locked" || v.ship === "cond") && b) return buyCard(v, b, path);
     return `<section class="key check">
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_Q}要確認${v.ship === "cond" ? "（解除済の可能性あり）" : ""}</div>
       <div class="key-sub">${esc(v.ship === "cond" ? (v.note || UNLOCK[v.c].rules[0]) : "発売日・購入日で判定")}。確認場所：<b>${esc(path)}</b></div></section>`;
+  }
+
+  // 購入日で判定：購入日を入れると「要解除／解除不要／実機確認」を確定表示する
+  const jpDate = s => { const m = /(\d{4})年(\d{1,2})月(\d{1,2})日/.exec(s || ""); return m ? `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}` : ""; };
+  function buyVerdict(v, b) {
+    const since = jpDate(b.since);
+    if (state.buy === "unknown") return { cls: "ng", icon: ICON_WARN, main: "実機で確認が必要",
+      sub: "購入日が分からない端末（中古・譲渡など）は、データだけでは確定できません。下の確認場所、または他社SIMを挿して確認し、ロック中なら②から解除してください。" };
+    if (!state.buy) return null;
+    if (state.buy >= since) return b.sure === false
+      ? { cls: "ok", icon: ICON_OK, main: "解除不要（原則）", sub: `${b.since}以降の購入のため、原則として解除済で販売されています。${CARRIERS[v.c].name}は購入方法などで例外があるため、確認場所で「解除済」を一度だけ確認してください。` }
+      : { cls: "ok", icon: ICON_OK, main: "解除不要", sub: `${b.since}以降の購入のため、解除済で販売されています（${b.after}）。` };
+    return { cls: "ng", icon: ICON_WARN, main: "解除が必要",
+      sub: `${b.since}より前の購入のため、ロックあり出荷です。前の持ち主などが解除済みの場合もあるので、確認場所で「ロック中」を確かめてから②で解除してください。` };
+  }
+  function buyCard(v, b, path) {
+    const r = buyVerdict(v, b);
+    const head = r
+      ? `<div class="key-main">${r.icon}${esc(r.main)}</div><div class="key-sub">${esc(r.sub)}</div>`
+      : `<div class="key-main">${ICON_Q}購入日で判定</div><div class="key-sub">購入日を入れると、解除が必要かどうかを確定表示します。</div>`;
+    return `<section class="key ${r ? (r.cls === "ok" ? "ok" : "need") : "check"}">
+      <div class="key-label"><span class="num">1</span>SIMロック解除</div>
+      ${head}
+      <div class="buyin">
+        <label>購入日<input type="date" id="buyDate" value="${state.buy && state.buy !== "unknown" ? state.buy : ""}" max="${new Date().toISOString().slice(0, 10)}"></label>
+        <button type="button" class="chip${state.buy === "unknown" ? " on" : ""}" data-buy="unknown">不明・中古</button>
+        ${state.buy ? `<button type="button" class="chip" data-buy="">クリア</button>` : ""}
+      </div>
+      <div class="buyrule">
+        <div class="br ok"><b>${esc(b.since)}以降に購入</b><span>→ 解除不要（${esc(b.after)}）</span></div>
+        <div class="br ng"><b>それより前に購入／中古・譲渡で購入日不明</b><span>→ ロックの可能性あり。確認して②から解除（無料）</span></div>
+      </div>
+      <div class="key-sub">${v.ship === "cond" ? "発売時期によりロック有無が分かれる機種です。" : "発売時はロックあり出荷の機種です。"}確認場所：<b>${esc(path)}</b>（項目が無い機種は他社SIMを挿して確認）</div></section>`;
   }
 
   // ② SIMロック解除の入口
@@ -1229,6 +1257,9 @@
     $("#q").focus();
     refresh();
   });
+  document.addEventListener("change", e => {
+    if (e.target.id === "buyDate") { state.buy = e.target.value || ""; renderDetail(); }
+  });
   document.addEventListener("click", e => {
     const t = e.target.closest("button, tr[data-id]");
     if (!t) return;
@@ -1238,6 +1269,7 @@
     if (t.dataset.mfr) { state.mfr = t.dataset.mfr; refresh(); return; }
     if (t.dataset.more) { state.limit += 500; renderResults(); return; }
     if (t.dataset.sort) { state.sort = t.dataset.sort; refresh(); return; }
+    if (t.dataset.buy !== undefined) { state.buy = t.dataset.buy; renderDetail(); return; }
     if (t.dataset.tab) { setTab(t.dataset.tab); return; }
     if (t.tagName === "TR" && t.dataset.id) { if (state.tab !== "search") setTab("search"); openDevice(t.dataset.id, t.dataset.vc); return; }
     if (t.dataset.vc) { state.selCarrier = t.dataset.vc; state.mailSrc = null; renderDetail(); renderResults();
