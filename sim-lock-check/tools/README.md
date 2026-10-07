@@ -23,3 +23,11 @@ python3 tools/build.py                          # → data.js
 `tools/official_locked.json`（各キャリア公式の「SIMロック解除対応機種」一覧）を `build.py` が読み込み、
 ロックあり／なしを公式ルールで確定させます。変更内容は `tools/official_changes.log` に出力されます。
 一覧を更新したときは JSON を差し替えて `python3 tools/build.py` を実行してください。
+
+## J:COMチェッカーとの照合（上書きなし）
+```
+curl -sL -A "Mozilla/5.0" https://www.jcom.co.jp/service/mobile/device/sim/detail/device.html -o device.html
+python3 tools/extract_jcom_checker.py device.html   # → tools/jcom_checker.json
+node tools/jcom_compare.js                          # → jcom_ref.js（詳細画面の参考表示）／JCOM_COMPARE.md／tools/jcom_compare.csv
+```
+本ツールの判定は変更せず、J:COMの判定を「参考」として並べて表示します。build.py でデータを作り直したら jcom_compare.js も再実行してください。

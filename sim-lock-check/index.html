@@ -216,6 +216,15 @@
   .st.need { color: var(--ng); border-color: rgba(255, 93, 118, .55); background: var(--ng-bg); }
   .st.ok { color: var(--free); border-color: rgba(60, 240, 164, .45); background: var(--free-bg); }
   .st.chk { color: var(--amber); border-color: rgba(255, 198, 74, .5); background: var(--cond-bg); }
+  .jref { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: -4px 0 12px; padding: 8px 12px; border-radius: 8px; font-size: 12.5px; border: 1px dashed var(--line-strong); background: var(--well); color: var(--muted); }
+  .jref .jl { font-weight: 800; letter-spacing: .04em; color: var(--ink); }
+  .jref b { color: var(--strong); }
+  .jref .jt { margin-left: auto; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px; border: 1px solid; }
+  .jref.ok .jt { color: var(--free); border-color: rgba(60, 240, 164, .45); }
+  .jref.info .jt { color: var(--rule); border-color: rgba(143, 200, 255, .45); }
+  .jref.ng { border-color: rgba(255, 93, 118, .55); }
+  .jref.ng .jt { color: var(--ng); border-color: rgba(255, 93, 118, .55); }
+  .jref .jw { flex-basis: 100%; font-size: 12px; line-height: 1.6; }
   .buyin { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 10px 0 2px; }
   .buyin label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--strong); }
   .buyin input[type="date"] { font: inherit; font-size: 15px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--accent-deep); background: var(--well); color: var(--strong); color-scheme: dark; min-height: 36px; }
@@ -705,6 +714,7 @@
 </div>
 
 <script src="data.js"></script>
+<script src="jcom_ref.js"></script>
 <script src="vendor/qrcode.min.js"></script>
 <script>
   // ---------- ログイン（管理者／一般ユーザー） ----------
@@ -923,7 +933,13 @@
   }
 
   // 一覧の判定ラベル（楽天・SIMフリー・ロックなし出荷は解除不要）
-  const judgeOf = v => (v.c === "rakuten" || v.c === "free" || v.ship === "free") ? ["ok", "解除不要"]
+  // 発売月が「購入日の基準日」より後なら、どの購入も基準日以降＝販売時点で解除済（例：SB版 Xperia 1 III 2021/7発売）
+  const soldUnlocked = v => {
+    const b = UNLOCK[v.c] && UNLOCK[v.c].buy;
+    if (!b || v.ship !== "locked" || !/\d{4}年\d{1,2}月/.test(v.rel || "")) return false;
+    return relKey(v.rel) > relKey(b.since);
+  };
+  const judgeOf = v => (v.c === "rakuten" || v.c === "free" || v.ship === "free" || soldUnlocked(v)) ? ["ok", "解除不要"]
     : v.ship === "locked" ? (UNLOCK[v.c] && UNLOCK[v.c].buy ? ["chk", "購入日で判定"] : UNLOCK[v.c] && UNLOCK[v.c].remote ? ["chk", "要確認"] : ["need", "要解除"])
     : v.ship === "cond" ? ["chk", "要確認"] : ["chk", "要判定"];
   // 暗い背景で沈む色（ソフトバンクのグレー等）は明るめに置き換えて表示
@@ -1062,6 +1078,10 @@
   // ① SIMロック解除が必要か
   function lockCard(d, v, pathList) {
     const path = pathListText(pathList);
+    if (soldUnlocked(v)) return `<section class="key ok">
+      <div class="key-label"><span class="num">1</span>SIMロック解除</div>
+      <div class="key-main">${ICON_OK}解除不要（販売時に解除済）</div>
+      <div class="key-sub">ロック機能付きの機種ですが、発売（${esc(v.rel)}）が${esc(UNLOCK[v.c].buy.since)}より後のため、どの購入分も${esc(CARRIERS[v.c].name)}が販売時に解除済で渡しています（${esc(CARRIERS[v.c].name)}公式）。念のため確認する場合：<b>${esc(path)}</b></div></section>`;
     if (v.ship === "free") return `<section class="key ok">
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_OK}解除不要（ロックなし）</div>
@@ -1120,10 +1140,22 @@
       <div class="key-sub">${v.ship === "cond" ? "発売時期によりロック有無が分かれる機種です。" : "発売時はロックあり出荷の機種です。"}確認場所：<b>${esc(path)}</b>（項目が無い機種は他社SIMを挿して確認）</div></section>`;
   }
 
+  // J:COMチェッカーの判定（参考表示。本ツールの判定は上書きしない）
+  function jcomRef(d, v) {
+    const r = typeof JCOM_REF !== "undefined" && JCOM_REF[d.id + "|" + v.c];
+    if (!r) return `<div class="jref none"><span class="jl">J:COMチェッカー</span><span>掲載なし</span></div>`;
+    const [u, name, st, why] = r;
+    const cls = st === "一致" ? "ok" : st === "基準の違い" ? "info" : "ng";
+    const tag = st === "一致" ? "一致" : st === "基準の違い" ? "基準の違い" : "相違あり";
+    return `<div class="jref ${cls}">
+      <span class="jl">J:COMチェッカー</span><span>SIMロック解除：<b>${esc(u)}</b>（${esc(name)}）</span><span class="jt">${tag}</span>
+      ${why ? `<div class="jw">${esc(why)}</div>` : ""}</div>`;
+  }
+
   // ② SIMロック解除の入口
   function unlockCard(v) {
     const ur = UNLOCK[v.c];
-    const noNeed = v.c === "rakuten" || v.c === "free" || v.ship === "free";
+    const noNeed = v.c === "rakuten" || v.c === "free" || v.ship === "free" || soldUnlocked(v);
     return `<section class="key entry">
       <div class="key-label"><span class="num">2</span>SIMロック解除の入口（${esc(CARRIERS[v.c].name)}）</div>
       ${noNeed ? `<div class="key-main" style="font-size:17px">手続き不要</div>
@@ -1188,6 +1220,7 @@
 
       <div class="keys">
         ${lockCard(d, v, pathList)}
+        ${jcomRef(d, v)}
         <section class="card check-detail">
           <h3 style="margin:0;font-size:15px">SIMロックの確認方法</h3>
           ${pathListChips(pathList)}
