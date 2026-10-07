@@ -36,3 +36,12 @@ node tools/jcom_compare.js                          # → jcom_ref.js（詳細�
 - `bash tools/update_from_jcom.sh` … J:COMのページを取得し直し、前回との差分を `tools/jcom_changes.json` に出力、`jcom_ref.js`・`JCOM_COMPARE.md` を更新（終了コード 10＝差分あり）
 - `.github/workflows/jcom-check.yml` … 毎週月曜9:00(JST)に上記を自動実行し、差分があればプルリクエストを作成
 - アプリの「確認の基本」タブ（管理者）に確認日・差分件数・未登録機種を表示
+
+## 管理者用「J:COM差分確認」ボタン（アプリ内）
+ログインした管理者の「確認の基本」タブ（ヘッダーの「J:COM差分確認」ボタンからも移動可）に、パスワード入力欄と「J:COMと差分を確認」ボタンがあります。
+1. サーバー上の `api/jcom.php` がJ:COMのページを取得し、保存済みスナップショット（`data/jcom_snapshot.json`）との差分を返す
+2. ブラウザが `jcom_lib.js` でアプリとの一致／相違を照合して結果を表示（この時点では何も書き換えない）
+3. 「反映する」を押すと、`jcom_ref.js` と `data/jcom_snapshot.json` をサーバーに保存（変更前はバックアップ `data/*.bak.*`）→ 自動で最新データを読み込み直す
+
+サーバー側の条件：PHP（cURL または allow_url_fopen）が動くこと、`jcom_ref.js` と `data/` にPHPから書き込めること。
+`api/jcom.php` の管理者パスワード確認はサーバー側で行います（パスワードを変えるときは `ADMIN_HASH` を `sha256('psc-v1:admin:新パスワード')` に更新し、`index.html` の `AUTH_USERS` も同じ値に更新）。

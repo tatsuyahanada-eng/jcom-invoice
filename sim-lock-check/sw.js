@@ -1,12 +1,13 @@
 // SMARTPHONE SHIFT CHECK TOOL — サービスワーカー
 // アプリ本体一式をキャッシュし、オフラインでも起動・閲覧できるようにする。
 // キャッシュ名のバージョンを上げると、次回アクセス時に新しいキャッシュへ切り替わる。
-const CACHE_NAME = "sim-lock-check-v25";
+const CACHE_NAME = "sim-lock-check-v26";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./data.js",
   "./jcom_ref.js",
+  "./jcom_lib.js",
   "./vendor/qrcode.min.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",

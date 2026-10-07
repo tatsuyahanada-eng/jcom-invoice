@@ -232,6 +232,26 @@
   .cmp.none .cmp-mid { color: var(--faint); font-weight: 400; }
   .cmp-why { grid-column: 1 / -1; padding: 7px 12px; font-size: 11.5px; line-height: 1.6; color: var(--muted); border-top: 1px solid var(--line); }
   .cmp.ng .cmp-why { color: var(--ink); }
+  /* J:COM差分確認（管理者）※白パネル(.entry)内なので色は明示 */
+  .jcheck { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #b9bfc7; color: #2c2f34; }
+  .jcheck h3 { margin: 0 0 4px; font-size: 14px; color: #1c1f23; }
+  .jcheck .hint { margin: 0 0 8px; font-size: 12px; color: #55606b; line-height: 1.6; }
+  .jrow { display: flex; flex-wrap: wrap; gap: 8px; }
+  .jrow input { flex: 1 1 160px; min-width: 0; font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 8px; border: 1px solid #8a939d; background: #fff; color: #1c1f23; min-height: 40px; }
+  .jrow input:focus { outline: 2px solid #2c2f34; }
+  .jbtn { flex: none; min-height: 40px; padding: 0 14px; border: 0; border-radius: 8px; background: #2c2f34; color: #dfff4f; font: inherit; font-weight: 800; font-size: 13.5px; cursor: pointer; }
+  .jbtn:hover { background: #1c1f23; }
+  .jbtn:disabled { opacity: .5; cursor: default; }
+  #jcOut { margin-top: 10px; font-size: 13px; line-height: 1.7; color: #2c2f34; }
+  #jcOut .jerr { color: #c4122f; font-weight: 700; }
+  #jcOut .jok { color: #0b7a4b; font-weight: 700; }
+  #jcOut .jsum { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  #jcOut .jsum span { padding: 3px 9px; border-radius: 10px; border: 1px solid #b9bfc7; background: #f1f3f5; font-size: 12px; font-weight: 700; color: #2c2f34; }
+  #jcOut .jsum .jok { color: #0b7a4b; border-color: #7bc9a5; background: #e3f6ec; }
+  #jcOut .jsum .jerr { color: #c4122f; border-color: #e58a99; background: #fde8ec; }
+  #jcOut .jsum .n0 { color: #7a838d; font-weight: 400; }
+  #jcOut ul { margin: 4px 0 8px; padding-left: 18px; }
+  #jcOut li { margin: 2px 0; font-size: 12.5px; }
   /* J:COM照合バッジ */
   .jdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
   .jdot.ok { background: var(--free); box-shadow: 0 0 6px rgba(60, 240, 164, .7); }
@@ -757,6 +777,7 @@
 
 <script src="data.js"></script>
 <script src="jcom_ref.js"></script>
+<script src="jcom_lib.js"></script>
 <script src="vendor/qrcode.min.js"></script>
 <script>
   // ---------- ログイン（管理者／一般ユーザー） ----------
@@ -811,7 +832,8 @@
     if (!bar) return;
     const ver = typeof DATA_UPDATED !== "undefined" ? `<span class="dataver" title="データ更新日"><span class="dl">DATA </span>${DATA_UPDATED}</span>` : "";
     const rb = `<button type="button" class="reloadbtn" id="reloadBtn" title="サーバーから最新のデータを読み込み直します"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>最新データに更新</button>`;
-    bar.innerHTML = s ? `${ver}${rb}<span class="userchip"><span class="rolebadge ${s.r}">${AUTH_USERS[s.u].label}</span><b class="uname">${s.u}</b></span><button type="button" class="logout" id="logoutBtn">ログアウト</button>` : "";
+    const jb = s && s.r === "admin" ? `<button type="button" class="reloadbtn" id="jcGo" title="管理者専用：J:COMチェッカーの差分を確認します">J:COM差分確認</button>` : "";
+    bar.innerHTML = s ? `${ver}${jb}${rb}<span class="userchip"><span class="rolebadge ${s.r}">${AUTH_USERS[s.u].label}</span><b class="uname">${s.u}</b></span><button type="button" class="logout" id="logoutBtn">ログアウト</button>` : "";
   }
   document.getElementById("loginForm").addEventListener("submit", e => {
     e.preventDefault();
@@ -835,6 +857,11 @@
     location.replace(u.toString());
   }
   document.addEventListener("click", e => {
+    if (e.target.closest("#jcGo")) {
+      const nav = document.querySelector('.nav[data-tab="guide"]'); if (nav) nav.click();
+      setTimeout(() => { const el = document.getElementById("jcheck"); if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); const p = document.getElementById("jcPass"); if (p) p.focus({ preventScroll: true }); } }, 150);
+      return;
+    }
     const rbtn = e.target.closest("#reloadBtn");
     if (rbtn) { hardRefresh(rbtn); return; }
     if (e.target.closest("#logoutBtn")) { AUTH.logout(); renderUserbar(); setTimeout(() => document.getElementById("loginUser").focus(), 0); }
@@ -1408,7 +1435,16 @@
           <li>au・UQ mobile は2026/8/19から会社側で順次一括解除中。UQ mobileのAndroidはもともとSIMロックなし</li>
           ${typeof JCOM_CHANGES !== "undefined" ? `<li>J:COMチェッカー照合：確認日 <b>${esc(JCOM_REF_DATE)}</b>（${JCOM_CHANGES.total}件）。前回からの差分：追加 <b>${JCOM_CHANGES.added.length}</b>／削除 <b>${JCOM_CHANGES.removed.length}</b>／要否変更 <b>${JCOM_CHANGES.changed.length}</b>。アプリ未登録 <b>${JCOM_CHANGES.unregistered.length}</b>件。毎週月曜に自動確認し、差分があればプルリクエストで通知します</li>${JCOM_CHANGES.changed.length ? `<li style="color:var(--ng)">要否が変わった機種：${JCOM_CHANGES.changed.map(x => esc(x.cat + " " + x.name + "（" + x.from + "→" + x.to + "）")).join("、")}</li>` : ""}${JCOM_CHANGES.unregistered.length ? `<li style="color:var(--amber)">アプリ未登録：${JCOM_CHANGES.unregistered.map(x => esc(x.cat + " " + x.name)).join("、")}</li>` : ""}` : ""}
           <li>補正の詳細はリポジトリの <span class="mono">sim-lock-check/tools/official_changes.log</span> と <span class="mono">DATA_NOTES.md</span> を参照</li>
-        </ul></div>` : "";
+        </ul>
+        <div class="jcheck" id="jcheck">
+          <h3>J:COMチェッカーの差分確認（管理者専用）</h3>
+          <p class="hint">J:COMのページをサーバー経由で取得し、前回保存したデータとの差分と、アプリとの一致／相違を確認します。確認だけでは何も書き換えません。</p>
+          <div class="jrow">
+            <input type="password" id="jcPass" placeholder="管理者パスワード" autocomplete="off">
+            <button type="button" class="jbtn" id="jcRun">J:COMと差分を確認</button>
+          </div>
+          <div id="jcOut" aria-live="polite"></div>
+        </div></div>` : "";
     $("#view-guide").innerHTML = `<div class="guide">${adminCard}
       <div class="card"><h2>STEP 0 ─ 確認の順番（上から試せば迷わない）</h2><ol class="flow">${steps.map(([t, s]) => `<li><b>${esc(t)}</b>${esc(s)}</li>`).join("")}</ol>
         <div class="callout info"><b>現場の最短ルート：</b>① <span class="mono">*#06#</span> でIMEIを控える → ② 設定画面で表示確認 → ③ 表示なし・不明なら他社回線SIMを挿す → ④ それでも不明ならIMEIで販売キャリアへ照会</div></div>
@@ -1607,6 +1643,64 @@
     state.sel = "iphone-se2"; state.selCarrier = "docomo";
     renderResults(); renderDetail();
   }
+
+
+  // ---------- J:COM差分確認（管理者専用）：サーバー(api/jcom.php)でJ:COMを取得 → ブラウザで照合 → 確認後に保存 ----------
+  (function () {
+    let pending = null;
+    const out = () => document.getElementById("jcOut");
+    const li = a => a.map(x => `<li>${esc(x)}</li>`).join("");
+    async function post(body) {
+      const r = await fetch("api/jcom.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), cache: "no-store" });
+      const t = await r.text(); let j;
+      try { j = JSON.parse(t); } catch (e) { throw new Error(r.status === 404 ? "api/jcom.php が見つかりません（サーバーにPHP用ファイルをアップロードしてください）" : "サーバーの応答を読み取れません（PHPが動作していない可能性）"); }
+      if (!j.ok) throw new Error(j.error || "エラー");
+      return j;
+    }
+    async function run() {
+      if (!isAdmin()) return;
+      const pw = document.getElementById("jcPass").value, btn = document.getElementById("jcRun");
+      if (!pw) { out().innerHTML = `<div class="jerr">管理者パスワードを入力してください</div>`; return; }
+      btn.disabled = true; out().innerHTML = "J:COMのページを取得して照合しています…（数十秒かかることがあります）";
+      try {
+        const j = await post({ action: "check", password: pw });
+        const res = JCOMLIB.compare(DEVICES, UNLOCK, j.snapshot);
+        const chg = { added: j.added, removed: j.removed, changed: j.changed };
+        const tot = { ok: 0, ng: 0, info: 0, un: 0 };
+        res.rows.forEach(r => { if (r.status === "一致") tot.ok++; else if (r.status === "相違") tot.ng++; else if (r.status === "基準の違い") tot.info++; else tot.un++; });
+        pending = { pw, refJs: JCOMLIB.refJs(res, j.total, j.checkedAt, chg), snapshot: j.snapshot };
+        const diffs = chg.added.length + chg.removed.length + chg.changed.length;
+        const ngRows = res.rows.filter(r => r.status === "相違").map(r => `${r.j.cat} ${r.j.name}（J:COM ${r.j.unlock} ／ アプリ ${r.lab}）`);
+        const n = (v, label) => `<span class="${v ? "" : "n0"}">${label} ${v}</span>`;
+        out().innerHTML = `
+          <div>確認日 <b>${esc(j.checkedAt)}</b>：J:COM ${j.total}件（前回保存 ${j.prevTotal}件）</div>
+          <div class="jsum">${n(chg.added.length, "追加")}${n(chg.removed.length, "削除")}${n(chg.changed.length, "要否変更")}</div>
+          ${chg.changed.length ? `<div class="jerr">要否が変わった機種</div><ul>${li(chg.changed.map(x => `${x.cat} ${x.name}：${x.from} → ${x.to}`))}</ul>` : ""}
+          ${chg.added.length ? `<div>追加された機種</div><ul>${li(chg.added.map(x => `${x.cat} ${x.name}（${x.unlock}）`))}</ul>` : ""}
+          ${chg.removed.length ? `<div>削除された機種</div><ul>${li(chg.removed.map(x => `${x.cat} ${x.name}`))}</ul>` : ""}
+          <div>アプリとの照合（新しいデータ）</div>
+          <div class="jsum"><span class="jok">一致 ${tot.ok}</span><span>基準の違い ${tot.info}</span><span class="${tot.ng ? "jerr" : "n0"}">相違 ${tot.ng}</span><span class="${tot.un ? "jerr" : "n0"}">アプリ未登録 ${tot.un}</span></div>
+          ${ngRows.length ? `<ul>${li(ngRows)}</ul>` : ""}
+          ${diffs ? `<div class="jerr">J:COM側に差分があります。「反映する」で、サーバーの照合データ（jcom_ref.js）を更新できます。</div>` : `<div class="jok">J:COM側の差分はありません（前回と同じです）。</div>`}
+          <div class="jrow" style="margin-top:8px"><button type="button" class="jbtn" id="jcApply">${diffs ? "この内容を反映する（サーバーに保存）" : "照合データを今の内容で保存する"}</button></div>`;
+      } catch (e) { out().innerHTML = `<div class="jerr">${esc(e.message)}</div>`; pending = null; }
+      btn.disabled = false;
+    }
+    async function apply(btn) {
+      if (!pending || !isAdmin()) return;
+      btn.disabled = true; btn.textContent = "保存しています…";
+      try {
+        await post({ action: "apply", password: pending.pw, refJs: pending.refJs, snapshot: pending.snapshot });
+        out().innerHTML = `<div class="jok">保存しました。最新データを読み込み直します…</div>`;
+        pending = null; setTimeout(() => hardRefresh(null), 800);
+      } catch (e) { out().innerHTML += `<div class="jerr">${esc(e.message)}</div>`; btn.disabled = false; btn.textContent = "もう一度保存する"; }
+    }
+    document.addEventListener("click", e => {
+      if (e.target.closest("#jcRun")) run();
+      const a = e.target.closest("#jcApply"); if (a) apply(a);
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "jcPass") { e.preventDefault(); run(); } });
+  })();
 
   // ログイン後：権限で変わる表示（管理者情報）を描き直す
   window.__afterLogin = () => { renderGuide(); renderResults(); };
