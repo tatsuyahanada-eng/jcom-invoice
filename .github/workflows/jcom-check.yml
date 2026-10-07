@@ -1,0 +1,49 @@
+name: J:COMチェッカー定期確認
+
+# 毎週月曜 9:00(JST) にJ:COMチェッカーを取得し、前回と差分があればブランチを作ってプルリクエストにする。
+# 手動実行（Actions → このワークフロー → Run workflow）も可能。
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/sim-lock-check-tool-sa4ru8
+      - name: J:COMチェッカーを取得して照合
+        id: upd
+        run: |
+          set +e
+          bash sim-lock-check/tools/update_from_jcom.sh
+          echo "rc=$?" >> "$GITHUB_OUTPUT"
+      - name: 差分があればPRを作成
+        if: steps.upd.outputs.rc == '10'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          B="jcom-auto-update-$(TZ=Asia/Tokyo date +%Y%m%d)"
+          git config user.name "jcom-check-bot"
+          git config user.email "jcom-check-bot@users.noreply.github.com"
+          git checkout -b "$B"
+          git add sim-lock-check
+          git commit -m "J:COMチェッカーの差分を反映($(TZ=Asia/Tokyo date +%F))"
+          git push origin "$B"
+          python3 - <<'PY' > body.md
+          import json
+          c = json.load(open('sim-lock-check/tools/jcom_changes.json', encoding='utf-8'))
+          print('J:COMチェッカー（%d件）の前回からの差分です。マージするとアプリの J:COM照合表示が更新されます。\n' % c['total'])
+          for k, t in (('added', '追加'), ('removed', '削除')):
+              print('### %s（%d）' % (t, len(c[k])))
+              for x in c[k]: print('- %s：%s（%s）' % (x['cat'], x['name'], x['unlock']))
+          print('### SIMロック解除の要否が変わった（%d）' % len(c['changed']))
+          for x in c['changed']: print('- %s：%s　%s → %s' % (x['cat'], x['name'], x['from'], x['to']))
+          PY
+          gh pr create --base claude/sim-lock-check-tool-sa4ru8 --head "$B" --title "J:COMチェッカーの差分を反映" --body-file body.md || true

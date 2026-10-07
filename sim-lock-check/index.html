@@ -216,6 +216,22 @@
   .st.need { color: var(--ng); border-color: rgba(255, 93, 118, .55); background: var(--ng-bg); }
   .st.ok { color: var(--free); border-color: rgba(60, 240, 164, .45); background: var(--free-bg); }
   .st.chk { color: var(--amber); border-color: rgba(255, 198, 74, .5); background: var(--cond-bg); }
+  /* アプリ と J:COM の判定比較（ひと目で） */
+  .cmp { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 0; margin: 10px 0 2px; border-radius: 10px; border: 2px solid var(--line-strong); background: var(--well); overflow: hidden; }
+  .cmp.ok { border-color: rgba(60, 240, 164, .6); }
+  .cmp.ng { border-color: var(--ng); box-shadow: 0 0 14px rgba(255, 93, 118, .3); }
+  .cmp.info { border-color: rgba(143, 200, 255, .6); }
+  .cmp-side { display: grid; gap: 2px; padding: 8px 10px; text-align: center; align-content: center; }
+  .cmp-side .cl { font-size: 10.5px; letter-spacing: .06em; color: var(--muted); }
+  .cmp-side .cv { font-size: 17px; font-weight: 800; line-height: 1.2; }
+  .cv.ok { color: var(--free); } .cv.ng { color: var(--ng); } .cv.chk { color: var(--amber); } .cv.none { color: var(--faint); }
+  .cmp-mid { display: grid; place-items: center; padding: 0 10px; font-size: 12px; font-weight: 800; white-space: nowrap; border-left: 1px solid var(--line); border-right: 1px solid var(--line); background: rgba(255,255,255,.03); }
+  .cmp.ok .cmp-mid { color: var(--free); }
+  .cmp.ng .cmp-mid { color: #1a0409; background: var(--ng); border-color: var(--ng); }
+  .cmp.info .cmp-mid { color: var(--rule); }
+  .cmp.none .cmp-mid { color: var(--faint); font-weight: 400; }
+  .cmp-why { grid-column: 1 / -1; padding: 7px 12px; font-size: 11.5px; line-height: 1.6; color: var(--muted); border-top: 1px solid var(--line); }
+  .cmp.ng .cmp-why { color: var(--ink); }
   /* J:COM照合バッジ */
   .jdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
   .jdot.ok { background: var(--free); box-shadow: 0 0 6px rgba(60, 240, 164, .7); }
@@ -970,12 +986,20 @@
 
   /* ---------- J:COMチェッカーとの照合状況（キャリア版ごと） ---------- */
   const JC_LABEL = { ok: "J:COM一致", ng: "J:COM相違", info: "J:COM基準差", none: "J:COM掲載なし" };
+  const jref = (d, v) => (typeof JCOM_REF !== "undefined" && JCOM_REF[d.id + "|" + v.c]) || null;
   const jstat = (d, v) => {
-    const r = typeof JCOM_REF !== "undefined" && JCOM_REF[d.id + "|" + v.c];
+    const r = jref(d, v);
     if (!r) return "none";
     return r[2] === "一致" ? "ok" : r[2] === "基準の違い" ? "info" : "ng";
   };
-  const jcBadge = (d, v) => { const s = jstat(d, v); return `<span class="jcb ${s}" title="${esc(JC_LABEL[s])}"><i class="jdot ${s}"></i>${JC_LABEL[s]}</span>`; };
+  // 一覧のバッジ：J:COMの判定（要／不要）をそのまま出し、アプリと一致か相違かを色と記号で示す
+  const jcBadge = (d, v) => {
+    const s = jstat(d, v), r = jref(d, v);
+    if (!r) return `<span class="jcb none" title="J:COMチェッカーに掲載なし">J:COM掲載なし</span>`;
+    const mark = s === "ok" ? "✔" : s === "ng" ? "✖" : "△";
+    const tip = s === "ok" ? "アプリと一致" : s === "ng" ? "アプリと相違" : "判定基準の違い（au回線での判定）";
+    return `<span class="jcb ${s}" title="${esc(tip)}">J:COM ${r[0] === "要" ? "要" : "不要"} ${mark}</span>`;
+  };
 
   /* ---------- filtering ---------- */
   function filtered() {
@@ -1200,16 +1224,22 @@
       <div class="key-sub">${v.ship === "cond" ? "発売時期によりロック有無が分かれる機種です。" : "発売時はロックあり出荷の機種です。"}確認場所：<b>${esc(path)}</b>（項目が無い機種は他社SIMを挿して確認）</div></section>`;
   }
 
-  // J:COMチェッカーの判定（参考表示。本ツールの判定は上書きしない）
+  // アプリの判定 と J:COMチェッカーの判定 を横に並べて、一致／相違をひと目で見せる（本ツールの判定は上書きしない）
   function jcomRef(d, v) {
     const r = typeof JCOM_REF !== "undefined" && JCOM_REF[d.id + "|" + v.c];
-    if (!r) return `<div class="jref none"><span class="jl">J:COMチェッカー</span><span>掲載なし</span></div>`;
+    const [ac, al] = judgeOf(v);
+    const appCls = ac === "ok" ? "ok" : ac === "need" ? "ng" : "chk";
+    const when = typeof JCOM_REF_DATE !== "undefined" ? JCOM_REF_DATE : "";
+    if (!r) return `<div class="cmp none"><div class="cmp-side"><span class="cl">このアプリ</span><b class="cv ${appCls}">${esc(al)}</b></div>
+      <div class="cmp-mid">J:COM掲載なし</div><div class="cmp-side"><span class="cl">J:COMチェッカー</span><b class="cv none">—</b></div></div>`;
     const [u, name, st, why] = r;
+    const jl = u === "要" ? "要解除" : "解除不要", jcls = u === "要" ? "ng" : "ok";
     const cls = st === "一致" ? "ok" : st === "基準の違い" ? "info" : "ng";
-    const tag = st === "一致" ? "一致" : st === "基準の違い" ? "基準の違い" : "相違あり";
-    return `<div class="jref ${cls}">
-      <span class="jl">J:COMチェッカー</span><span>SIMロック解除：<b>${esc(u)}</b>（${esc(name)}）</span><span class="jt">${tag}</span>
-      ${why ? `<div class="jw">${esc(why)}</div>` : ""}</div>`;
+    const mid = st === "一致" ? "✔ 一致" : st === "基準の違い" ? "△ 基準の違い" : "✖ 相違";
+    return `<div class="cmp ${cls}"><div class="cmp-side"><span class="cl">このアプリ</span><b class="cv ${appCls}">${esc(al)}</b></div>
+      <div class="cmp-mid">${mid}</div>
+      <div class="cmp-side"><span class="cl">J:COMチェッカー</span><b class="cv ${jcls}">${jl}</b></div>
+      ${why ? `<div class="cmp-why">${esc(why)}${when ? `（J:COM確認日 ${esc(when)}）` : ""}</div>` : `<div class="cmp-why">J:COM掲載名：${esc(name)}${when ? `（確認日 ${esc(when)}）` : ""}</div>`}</div>`;
   }
 
   // ② SIMロック解除の入口
@@ -1276,11 +1306,11 @@
         <div class="d-meta">${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 ${esc(v.rel)}</span></div>
         ${prodName(d, v) !== d.name ? `<div class="d-pn">${esc(CARRIERS[v.c].name)}での製品名：<b>${esc(prodName(d, v))}</b></div>` : ""}
         <div class="ctabs" role="group" aria-label="販売キャリアを選択">${d.variants.map(x => `<button class="ctab" data-vc="${x.c}" aria-pressed="${x.c === v.c}">${clogo(x.c)}${esc(CARRIERS[x.c].name)}版</button>`).join("")}</div>
+        ${jcomRef(d, v)}
       </div>
 
       <div class="keys">
         ${lockCard(d, v, pathList)}
-        ${jcomRef(d, v)}
         <section class="card check-detail">
           <h3 style="margin:0;font-size:15px">SIMロックの確認方法</h3>
           ${pathListChips(pathList)}
@@ -1379,6 +1409,7 @@
           <li>登録：<b>${DEVICES.filter(d => !d.generic).length}機種</b>／キャリア版 <b>${DEVICES.filter(d => !d.generic).reduce((n, d) => n + d.variants.length, 0)}件</b></li>
           <li>ロックあり出荷の判定は、各キャリア公式の「SIMロック解除対応機種」一覧と照合済み（2026/10/7 取得）：ドコモ（2015/5以降・2011/4〜2015/4）、ソフトバンク（FAQ 10614）、ワイモバイル（解除手続きページ）、au（FAQ：発売日基準）、UQ mobile（解除手続きページ）</li>
           <li>au・UQ mobile は2026/8/19から会社側で順次一括解除中。UQ mobileのAndroidはもともとSIMロックなし</li>
+          ${typeof JCOM_CHANGES !== "undefined" ? `<li>J:COMチェッカー照合：確認日 <b>${esc(JCOM_REF_DATE)}</b>（${JCOM_CHANGES.total}件）。前回からの差分：追加 <b>${JCOM_CHANGES.added.length}</b>／削除 <b>${JCOM_CHANGES.removed.length}</b>／要否変更 <b>${JCOM_CHANGES.changed.length}</b>。アプリ未登録 <b>${JCOM_CHANGES.unregistered.length}</b>件。毎週月曜に自動確認し、差分があればプルリクエストで通知します</li>${JCOM_CHANGES.changed.length ? `<li style="color:var(--ng)">要否が変わった機種：${JCOM_CHANGES.changed.map(x => esc(x.cat + " " + x.name + "（" + x.from + "→" + x.to + "）")).join("、")}</li>` : ""}${JCOM_CHANGES.unregistered.length ? `<li style="color:var(--amber)">アプリ未登録：${JCOM_CHANGES.unregistered.map(x => esc(x.cat + " " + x.name)).join("、")}</li>` : ""}` : ""}
           <li>補正の詳細はリポジトリの <span class="mono">sim-lock-check/tools/official_changes.log</span> と <span class="mono">DATA_NOTES.md</span> を参照</li>
         </ul></div>` : "";
     $("#view-guide").innerHTML = `<div class="guide">${adminCard}

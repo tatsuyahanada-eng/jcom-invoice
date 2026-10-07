@@ -37,7 +37,10 @@ for (const j of J) {
 // アプリの参考表示用（id|キャリア → J:COMの判定）
 const ref = {};
 for (const r of rows) if (r.x) ref[r.x.d.id + '|' + r.c] = [r.j.unlock, r.j.name, r.status, r.why];
-fs.writeFileSync(path.join(ROOT, 'jcom_ref.js'), '/* J:COM「モバイル動作確認端末チェッカー」の判定（参考表示用・自動生成：tools/jcom_compare.js） */\nconst JCOM_REF_DATE = "' + (process.env.JCOM_DATE || '2026-10-07') + '";\nconst JCOM_REF = ' + JSON.stringify(ref) + ';\n');
+let chg = { date: '', total: J.length, added: [], removed: [], changed: [] };
+try { chg = JSON.parse(fs.readFileSync(path.join(__dirname, 'jcom_changes.json'), 'utf8')); } catch (e) {}
+const unreg = rows.filter(r => r.status === 'アプリ未登録').map(r => ({ cat: r.j.cat, name: r.j.name, unlock: r.j.unlock }));
+fs.writeFileSync(path.join(ROOT, 'jcom_ref.js'), '/* J:COM「モバイル動作確認端末チェッカー」の判定（参考表示用・自動生成：tools/jcom_compare.js） */\nconst JCOM_REF_DATE = "' + (process.env.JCOM_DATE || chg.date || '2026-10-07') + '";\nconst JCOM_REF = ' + JSON.stringify(ref) + ';\n/* 前回確認からの差分（追加・削除・要否変更）と、アプリ未登録の機種 */\nconst JCOM_CHANGES = ' + JSON.stringify({ date: chg.date, total: J.length, added: chg.added, removed: chg.removed, changed: chg.changed, unregistered: unreg }) + ';\n');
 // CSV
 const esc = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
 fs.writeFileSync(path.join(__dirname, 'jcom_compare.csv'), '﻿' + [['結果', 'J:COM区分', 'メーカー', 'J:COM機種名', 'J:COM判定', '本ツール機種名', '型番', '発売', '本ツール判定', '理由'].map(esc).join(',')]
@@ -45,7 +48,7 @@ fs.writeFileSync(path.join(__dirname, 'jcom_compare.csv'), '﻿' + [['結果', '
 // レポート
 const cnt = {}; for (const r of rows) { const k = r.j.cat; cnt[k] = cnt[k] || { 一致: 0, 基準の違い: 0, 相違: 0, アプリ未登録: 0 }; cnt[k][r.status]++; }
 const notInJ = idx.filter(x => !used.has(x.v) && x.v.c !== 'free' && x.v.c !== 'rakuten');
-let md = `# J:COMチェッカーとの照合レポート\n\n- J:COM：「モバイル動作確認端末チェッカー」https://www.jcom.co.jp/service/mobile/device/sim/detail/device.html （${J.length}件、取得 ${process.env.JCOM_DATE || '2026-10-07'}）\n- 本ツール：data.js（各キャリア公式で補正済み）。**本ツールのデータは上書きしていません**\n\n`;
+let md = `# J:COMチェッカーとの照合レポート\n\n- J:COM：「モバイル動作確認端末チェッカー」https://www.jcom.co.jp/service/mobile/device/sim/detail/device.html （${J.length}件、取得 ${process.env.JCOM_DATE || chg.date || '2026-10-07'}）\n- 本ツール：data.js（各キャリア公式で補正済み）。**本ツールのデータは上書きしていません**\n\n`;
 md += '## 集計\n\n| J:COM区分 | 一致 | 基準の違い | 相違 | 本ツール未登録 |\n|---|---|---|---|---|\n' + Object.entries(cnt).map(([k, v]) => `| ${k} | ${v.一致} | ${v.基準の違い} | ${v.相違} | ${v.アプリ未登録} |`).join('\n') + '\n\n';
 md += '## 相違（要確認）\n\n| J:COM区分 | 機種 | 型番 | 発売 | J:COM | 本ツール | 理由 |\n|---|---|---|---|---|---|---|\n' + rows.filter(r => r.status === '相違').map(r => `| ${r.j.cat} | ${r.j.name} | ${r.x.v.code || '—'} | ${r.x.v.rel} | ${r.j.unlock} | ${r.lab} | ${r.why} |`).join('\n') + '\n\n';
 md += '## 基準の違い（au版：J:COMは「au回線で使う場合」、本ツールは「他社回線で使う場合」）\n\n' + rows.filter(r => r.status === '基準の違い').map(r => `${r.j.name}（${r.x.v.rel}）`).join('、') + '\n\n';

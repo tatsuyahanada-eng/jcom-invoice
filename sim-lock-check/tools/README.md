@@ -31,3 +31,8 @@ python3 tools/extract_jcom_checker.py device.html   # → tools/jcom_checker.jso
 node tools/jcom_compare.js                          # → jcom_ref.js（詳細画面の参考表示）／JCOM_COMPARE.md／tools/jcom_compare.csv
 ```
 本ツールの判定は変更せず、J:COMの判定を「参考」として並べて表示します。build.py でデータを作り直したら jcom_compare.js も再実行してください。
+
+## J:COMチェッカーの定期確認
+- `bash tools/update_from_jcom.sh` … J:COMのページを取得し直し、前回との差分を `tools/jcom_changes.json` に出力、`jcom_ref.js`・`JCOM_COMPARE.md` を更新（終了コード 10＝差分あり）
+- `.github/workflows/jcom-check.yml` … 毎週月曜9:00(JST)に上記を自動実行し、差分があればプルリクエストを作成
+- アプリの「確認の基本」タブ（管理者）に確認日・差分件数・未登録機種を表示
