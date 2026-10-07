@@ -998,7 +998,7 @@
     if (!r) return `<span class="jcb none" title="J:COMチェッカーに掲載なし">J:COM掲載なし</span>`;
     const mark = s === "ok" ? "✔" : s === "ng" ? "✖" : "△";
     const tip = s === "ok" ? "アプリと一致" : s === "ng" ? "アプリと相違" : "判定基準の違い（au回線での判定）";
-    return `<span class="jcb ${s}" title="${esc(tip)}">J:COM ${r[0] === "要" ? "要" : "不要"} ${mark}</span>`;
+    return `<span class="jcb ${r[0] === "要" ? "ng" : "ok"}" title="${esc(tip)}">J:COM ${r[0] === "要" ? "要" : "不要"} ${mark}</span>`;
   };
 
   /* ---------- filtering ---------- */
