@@ -593,8 +593,6 @@
     background: var(--well); color: var(--strong); min-height: 44px; width: 100%;
   }
   .login input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(223, 255, 79, .18); }
-  .login .keep { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); margin: 2px 0 14px; }
-  .login .keep input { width: 18px; height: 18px; accent-color: var(--accent); }
   .login button[type="submit"] { width: 100%; min-height: 46px; border: 0; border-radius: 8px; background: var(--accent); color: #1c1f23; font: inherit; font-weight: 800; font-size: 15px; letter-spacing: .08em; cursor: pointer; }
   .login button[type="submit"]:hover { filter: brightness(1.06); }
   .login .err { min-height: 1.4em; margin: 0 0 10px; color: var(--ng); font-size: 13px; font-weight: 700; }
@@ -646,25 +644,24 @@
   /* ログイン状態の確認（未ログインなら表示前にログイン画面へ） */
   (function () {
     var s = null;
-    try { s = JSON.parse(localStorage.getItem("psc-auth") || sessionStorage.getItem("psc-auth") || "null"); } catch (e) {}
-    var ok = s && s.u && s.r && (!s.exp || s.exp > Date.now());
+    try { localStorage.removeItem("psc-auth"); s = JSON.parse(sessionStorage.getItem("psc-auth") || "null"); } catch (e) {}
+    var ok = s && s.u && s.r;
     document.documentElement.classList.toggle("auth-out", !ok);
   })();
 </script>
 </head>
 <body data-tab="search">
 <main class="login" id="login" aria-label="ログイン">
-  <form class="login-box" id="loginForm" autocomplete="on">
+  <form class="login-box" id="loginForm" autocomplete="off">
     <div class="login-brand">
       <img src="icons/icon-192.png" alt="" width="46" height="46">
       <div><div class="t1">SMARTPHONE SHIFT</div><div class="t2">CHECK TOOL</div></div>
     </div>
-    <label>ユーザーID<input type="text" id="loginUser" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
-    <label>パスワード<input type="password" id="loginPass" name="password" autocomplete="current-password" required></label>
-    <div class="keep"><input type="checkbox" id="loginKeep" checked><label for="loginKeep" style="display:inline;margin:0;color:inherit;font-size:13px">この端末でログイン状態を保持する（30日）</label></div>
+    <label>ユーザーID<input type="text" id="loginUser" name="username" autocomplete="off" autocapitalize="off" spellcheck="false" required></label>
+    <label>パスワード<input type="password" id="loginPass" name="password" autocomplete="off" required></label>
     <p class="err" id="loginErr" role="alert"></p>
     <button type="submit">ログイン</button>
-    <div class="foot">関係者専用ツールです。ID・パスワードは管理者にお問い合わせください。</div>
+    <div class="foot">関係者専用ツールです。ID・パスワードは管理者から案内します。</div>
   </form>
 </main>
 <button type="button" class="viewtoggle" id="viewToggle" aria-pressed="false"></button>
@@ -794,14 +791,14 @@
   }
   const AUTH = {
     get() {
-      try { const s = JSON.parse(localStorage.getItem("psc-auth") || sessionStorage.getItem("psc-auth") || "null");
-        return s && AUTH_USERS[s.u] && (!s.exp || s.exp > Date.now()) ? s : null; } catch (e) { return null; }
+      try { const s = JSON.parse(sessionStorage.getItem("psc-auth") || "null");
+        return s && AUTH_USERS[s.u] ? s : null; } catch (e) { return null; }
     },
-    login(u, p, keep) {
+    login(u, p) {
       u = (u || "").trim(); const a = AUTH_USERS[u];
       if (!a || sha256("psc-v1:" + u + ":" + p) !== a.hash) return null;
-      const s = { u, r: a.role, exp: keep ? Date.now() + 30 * 864e5 : 0 };
-      try { (keep ? localStorage : sessionStorage).setItem("psc-auth", JSON.stringify(s)); } catch (e) {}
+      const s = { u, r: a.role };
+      try { sessionStorage.setItem("psc-auth", JSON.stringify(s)); } catch (e) {}
       return s;
     },
     logout() { try { localStorage.removeItem("psc-auth"); sessionStorage.removeItem("psc-auth"); } catch (e) {} }
@@ -818,7 +815,7 @@
   }
   document.getElementById("loginForm").addEventListener("submit", e => {
     e.preventDefault();
-    const s = AUTH.login(document.getElementById("loginUser").value, document.getElementById("loginPass").value, document.getElementById("loginKeep").checked);
+    const s = AUTH.login(document.getElementById("loginUser").value, document.getElementById("loginPass").value);
     const err = document.getElementById("loginErr");
     if (!s) { err.textContent = "ユーザーIDまたはパスワードが違います"; document.getElementById("loginPass").select(); return; }
     err.textContent = ""; document.getElementById("loginPass").value = "";
