@@ -217,12 +217,12 @@ def write(models, order):
         return '\n'.join(lines)
 
     # メーカー順に並べる
-    MAKER_ORDER = ['iphone', 'pixel', 'xperia', 'galaxy', 'aquos', 'kyocera', 'fcnt', 'oppo', 'xiaomi', 'motorola', 'zte', 'huawei', 'asus', 'lg', 'tcl', 'balmuda', 'htc', 'nothing', 'microsoft', 'android', 'garaho']
+    MAKER_ORDER = ['iphone', 'pixel', 'xperia', 'galaxy', 'aquos', 'kyocera', 'fcnt', 'oppo', 'xiaomi', 'motorola', 'zte', 'huawei', 'asus', 'lg', 'tcl', 'balmuda', 'htc', 'nothing', 'microsoft', 'android', 'garaho', 'ipad', 'tablet', 'other']
     def first_rel(d): return max((ym(v['rel']) for v in d['variants']), default=0)
     specific = [models[i] for i in order if not models[i].get('generic')]
     generic = [models[i] for i in order if models[i].get('generic')]
     LABEL = {'iphone': 'iPhone', 'pixel': 'Pixel / Nexus', 'xperia': 'Xperia', 'galaxy': 'Galaxy', 'aquos': 'AQUOS・BASIO(シャープ製)', 'kyocera': '京セラ', 'fcnt': 'arrows・らくらくスマートフォン', 'oppo': 'OPPO',
-             'xiaomi': 'Xiaomi', 'motorola': 'Motorola', 'zte': 'ZTE (Libero)', 'huawei': 'HUAWEI', 'asus': 'ASUS', 'lg': 'LG', 'tcl': 'TCL', 'balmuda': 'BALMUDA', 'htc': 'HTC', 'nothing': 'Nothing', 'microsoft': 'Microsoft', 'android': 'その他Android', 'garaho': 'ガラホ'}
+             'xiaomi': 'Xiaomi', 'motorola': 'Motorola', 'zte': 'ZTE (Libero)', 'huawei': 'HUAWEI', 'asus': 'ASUS', 'lg': 'LG', 'tcl': 'TCL', 'balmuda': 'BALMUDA', 'htc': 'HTC', 'nothing': 'Nothing', 'microsoft': 'Microsoft', 'android': 'その他Android', 'garaho': 'ガラホ', 'ipad': 'iPad', 'tablet': 'Androidタブレット', 'other': 'PC・ルーター・その他'}
     out = []
     for mk in MAKER_ORDER:
         grp = [d for d in specific if d['maker'] == mk]

@@ -1,3 +1,6 @@
+/* データ更新日（照合・取り込みを行った日） */
+const DATA_UPDATED = "2026-10-07";
+
 /* =========================================================
    SIMロックチェックツール データ定義
    - 機種を追加するときは DEVICES に1件追加するだけでOK
@@ -263,6 +266,34 @@ const MAKERS = {
     notes: ["EMUI機種のみ。反応しない場合は他社SIMテストで判定"],
     codes: ["*#06#", "*#*#2846579#*#*"]
   },
+  ipad: {
+    name: "iPad（Apple）", os: "tablet",
+    path: P(["設定", "一般", "情報"], "SIMロック", "画面を下にスクロールすると表示されます（iPadOS 14以降）"),
+    ok: "SIMロックなし ＝ 解除済／SIMフリー",
+    ng: "SIMロックあり ＝ ロック中",
+    notes: [
+      "iPhoneと同じ確認方法。Wi-Fiモデル（SIMスロットなし）は対象外",
+      "キャリア版は2021年秋以降発売ならロックなし（au版はiPad（第9世代）・iPad mini（第6世代）もロックなし）",
+      "ロック中に他社SIMを挿すと「SIMはサポートされていません」と表示"
+    ],
+    codes: ["*#06#", "iphone-none"]
+  },
+  tablet: {
+    name: "Androidタブレット", os: "tablet",
+    path: P(["設定", "タブレット情報（端末情報）"], "SIMのステータス／SIMカードの状態", "見つからない場合は設定の検索窓に「SIMロック」と入力"),
+    ok: "許可／解除済 ＝ ロックなし",
+    ng: "許可されていません／ロック中 ＝ ロックあり",
+    notes: ["表示が無い機種は他社SIMテスト → 販売キャリアへIMEI照会で判定"],
+    codes: ["*#06#"]
+  },
+  other: {
+    name: "PC・ルーター・その他", os: "other",
+    path: P(["本体またはメーカーの設定ツール"], "SIM／モバイル通信の状態", "SIMフリー製品のためSIMロックの確認は不要"),
+    ok: "SIMフリー製品 ＝ ロックなし",
+    ng: "—",
+    notes: ["J:COMチェッカー掲載のPC・ルーター類はすべてSIMフリー製品", "APN設定はJ:COMの案内に従う"],
+    codes: []
+  },
   android: {
     name: "その他のAndroid", os: "android",
     path: P(["設定", "デバイス情報（端末情報）"], "SIMのステータス／機器の状態", "見つからない場合は設定の検索窓に「SIMロック」と入力"),
@@ -389,13 +420,15 @@ const MFRS = [
   { k: "iodata",    name: "アイ・オー・データ機器", alias: "iodata アイオーデータ" },
   { k: "idy",       name: "IDY",               alias: "" },
   { k: "nothing",   name: "Nothing",           alias: "ナッシング cmf" },
-  { k: "panasonic", name: "Panasonic",         alias: "パナソニック" }
+  { k: "panasonic", name: "Panasonic",         alias: "パナソニック" },
+  { k: "vaio",      name: "VAIO",              alias: "バイオ パソコン" },
+  { k: "seiko",     name: "セイコーソリューションズ", alias: "seiko skybridge" }
 ];
 /* 確認手順グループ（MAKERS）→ メーカー。機種ごとに mfr を持たせた場合はそちらを優先 */
 const MAKER_MFR = {
   iphone: "apple", pixel: "google", xperia: "sony", galaxy: "samsung", aquos: "sharp", kyocera: "kyocera",
   oppo: "oppo", xiaomi: "xiaomi", fcnt: "fcnt", huawei: "huawei", motorola: "motorola", zte: "zte",
-  asus: "asus", lg: "lg", tcl: "tcl", balmuda: "balmuda", htc: "htc", nothing: "nothing"
+  asus: "asus", lg: "lg", tcl: "tcl", balmuda: "balmuda", htc: "htc", nothing: "nothing", ipad: "apple"
 };
 
 /* ダイヤルコード */
@@ -2171,6 +2204,10 @@ const DEVICES = [
     variants: [
       { c: "au", code: "KYV32", rel: "2016年", ship: "locked" }
     ] },
+  { id: "digno-phone-uq", name: "DIGNO Phone", maker: "kyocera", kana: "ディグノ フォン 京セラ",
+    variants: [
+      { c: "uq", rel: "2016年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加" },
   { id: "urbano-v04", name: "URBANO V04", maker: "kyocera", kana: "京セラ",
     variants: [
       { c: "au", code: "KYV45", rel: "—", ship: "locked" }
@@ -3616,6 +3653,312 @@ const DEVICES = [
     variants: [
       { c: "au", code: "SHF31", rel: "2015年2月", ship: "locked" }
     ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+
+  // ---------- iPad ----------
+  { id: "ipad-11-ipad-air-m4", name: "11インチ iPad Air（M4）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2026年", ship: "free" },
+      { c: "au", rel: "2026年", ship: "free" },
+      { c: "sb", rel: "2026年", ship: "free" },
+      { c: "free", rel: "2026年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-13-ipad-air-m4", name: "13インチ iPad Air（M4）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2026年", ship: "free" },
+      { c: "au", rel: "2026年", ship: "free" },
+      { c: "sb", rel: "2026年", ship: "free" },
+      { c: "free", rel: "2026年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-pro-m5", name: "11インチ iPad Pro（M5）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2025年10月", ship: "free" },
+      { c: "au", rel: "2025年10月", ship: "free" },
+      { c: "sb", rel: "2025年10月", ship: "free" },
+      { c: "free", rel: "2025年10月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-13-ipad-pro-m5", name: "13インチ iPad Pro（M5）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2025年10月", ship: "free" },
+      { c: "au", rel: "2025年10月", ship: "free" },
+      { c: "sb", rel: "2025年10月", ship: "free" },
+      { c: "free", rel: "2025年10月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-air-m3", name: "11インチ iPad Air（M3）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2025年3月", ship: "free" },
+      { c: "au", rel: "2025年3月", ship: "free" },
+      { c: "sb", rel: "2025年3月", ship: "free" },
+      { c: "free", rel: "2025年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-13-ipad-air-m3", name: "13インチ iPad Air（M3）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2025年3月", ship: "free" },
+      { c: "au", rel: "2025年3月", ship: "free" },
+      { c: "sb", rel: "2025年3月", ship: "free" },
+      { c: "free", rel: "2025年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-a16", name: "11インチ iPad（A16）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2025年3月", ship: "free" },
+      { c: "au", rel: "2025年3月", ship: "free" },
+      { c: "sb", rel: "2025年3月", ship: "free" },
+      { c: "free", rel: "2025年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-mini-a17-pro", name: "iPad mini（A17 Pro）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2024年10月", ship: "free" },
+      { c: "au", rel: "2024年10月", ship: "free" },
+      { c: "sb", rel: "2024年10月", ship: "free" },
+      { c: "free", rel: "2024年10月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-13-ipad-pro-m4", name: "13インチ iPad Pro（M4）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2024年5月", ship: "free" },
+      { c: "au", rel: "2024年5月", ship: "free" },
+      { c: "sb", rel: "2024年5月", ship: "free" },
+      { c: "free", rel: "2024年5月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-pro-m4", name: "11インチ iPad Pro（M4）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2024年5月", ship: "free" },
+      { c: "au", rel: "2024年5月", ship: "free" },
+      { c: "sb", rel: "2024年5月", ship: "free" },
+      { c: "free", rel: "2024年5月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-13-ipad-air-m2", name: "13インチ iPad Air（M2）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2024年5月", ship: "free" },
+      { c: "au", rel: "2024年5月", ship: "free" },
+      { c: "sb", rel: "2024年5月", ship: "free" },
+      { c: "free", rel: "2024年5月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-air-m2", name: "11インチ iPad Air（M2）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2024年5月", ship: "free" },
+      { c: "au", rel: "2024年5月", ship: "free" },
+      { c: "sb", rel: "2024年5月", ship: "free" },
+      { c: "free", rel: "2024年5月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-12-9-ipad-pro-6", name: "12.9インチ iPad Pro（第6世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2022年10月", ship: "free" },
+      { c: "au", rel: "2022年10月", ship: "free" },
+      { c: "sb", rel: "2022年10月", ship: "free" },
+      { c: "free", rel: "2022年10月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-pro-4", name: "11インチ iPad Pro（第4世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2022年10月", ship: "free" },
+      { c: "au", rel: "2022年10月", ship: "free" },
+      { c: "sb", rel: "2022年10月", ship: "free" },
+      { c: "free", rel: "2022年10月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-10", name: "iPad（第10世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2022年10月", ship: "free" },
+      { c: "au", rel: "2022年10月", ship: "free" },
+      { c: "sb", rel: "2022年10月", ship: "free" },
+      { c: "free", rel: "2022年10月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-air-5", name: "iPad Air（第5世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2022年3月", ship: "free" },
+      { c: "au", rel: "2022年3月", ship: "free" },
+      { c: "sb", rel: "2022年3月", ship: "free" },
+      { c: "free", rel: "2022年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-9", name: "iPad（第9世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2021年9月", ship: "free" },
+      { c: "au", rel: "2021年9月", ship: "free" },
+      { c: "sb", rel: "2021年9月", ship: "free" },
+      { c: "free", rel: "2021年9月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-mini-6", name: "iPad mini（第6世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2021年9月", ship: "free" },
+      { c: "au", rel: "2021年9月", ship: "free" },
+      { c: "sb", rel: "2021年9月", ship: "free" },
+      { c: "free", rel: "2021年9月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-pro-3", name: "11インチ iPad Pro（第3世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2021年5月", ship: "locked" },
+      { c: "au", rel: "2021年5月", ship: "locked" },
+      { c: "sb", rel: "2021年5月", ship: "locked" },
+      { c: "free", rel: "2021年5月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-12-9-ipad-pro-5", name: "12.9インチ iPad Pro（第5世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2021年5月", ship: "locked" },
+      { c: "au", rel: "2021年5月", ship: "locked" },
+      { c: "sb", rel: "2021年5月", ship: "locked" },
+      { c: "free", rel: "2021年5月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-air-4", name: "iPad Air（第4世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2020年10月", ship: "locked" },
+      { c: "au", rel: "2020年10月", ship: "locked" },
+      { c: "sb", rel: "2020年10月", ship: "locked" },
+      { c: "free", rel: "2020年10月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-8", name: "iPad（第8世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2020年9月", ship: "locked" },
+      { c: "au", rel: "2020年9月", ship: "locked" },
+      { c: "sb", rel: "2020年9月", ship: "locked" },
+      { c: "free", rel: "2020年9月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-pro-2", name: "11インチ iPad Pro（第2世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2020年3月", ship: "locked" },
+      { c: "au", rel: "2020年3月", ship: "locked" },
+      { c: "sb", rel: "2020年3月", ship: "locked" },
+      { c: "free", rel: "2020年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-12-9-ipad-pro-4", name: "12.9インチ iPad Pro（第4世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2020年3月", ship: "locked" },
+      { c: "au", rel: "2020年3月", ship: "locked" },
+      { c: "sb", rel: "2020年3月", ship: "locked" },
+      { c: "free", rel: "2020年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-7", name: "iPad（第7世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2019年9月", ship: "locked" },
+      { c: "au", rel: "2019年9月", ship: "locked" },
+      { c: "sb", rel: "2019年9月", ship: "locked" },
+      { c: "free", rel: "2019年9月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-air-3", name: "iPad Air（第3世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2019年3月", ship: "locked" },
+      { c: "au", rel: "2019年3月", ship: "locked" },
+      { c: "sb", rel: "2019年3月", ship: "locked" },
+      { c: "free", rel: "2019年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-mini-5", name: "iPad mini（第5世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2019年3月", ship: "locked" },
+      { c: "au", rel: "2019年3月", ship: "locked" },
+      { c: "sb", rel: "2019年3月", ship: "locked" },
+      { c: "free", rel: "2019年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-11-ipad-pro-1", name: "11インチ iPad Pro（第1世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2018年11月", ship: "locked" },
+      { c: "au", rel: "2018年11月", ship: "locked" },
+      { c: "sb", rel: "2018年11月", ship: "locked" },
+      { c: "free", rel: "2018年11月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-12-9-ipad-pro-3", name: "12.9インチ iPad Pro（第3世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2018年11月", ship: "locked" },
+      { c: "au", rel: "2018年11月", ship: "locked" },
+      { c: "sb", rel: "2018年11月", ship: "locked" },
+      { c: "free", rel: "2018年11月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-6", name: "iPad（第6世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2018年3月", ship: "locked" },
+      { c: "au", rel: "2018年3月", ship: "locked" },
+      { c: "sb", rel: "2018年3月", ship: "locked" },
+      { c: "free", rel: "2018年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-10-5-ipad-pro", name: "10.5インチ iPad Pro", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2017年6月", ship: "locked" },
+      { c: "au", rel: "2017年6月", ship: "locked" },
+      { c: "sb", rel: "2017年6月", ship: "locked" },
+      { c: "free", rel: "2017年6月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-12-9-ipad-pro-2", name: "12.9インチ iPad Pro（第2世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2017年6月", ship: "locked" },
+      { c: "au", rel: "2017年6月", ship: "locked" },
+      { c: "sb", rel: "2017年6月", ship: "locked" },
+      { c: "free", rel: "2017年6月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-5", name: "iPad（第5世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2017年3月", ship: "locked" },
+      { c: "au", rel: "2017年3月", ship: "locked" },
+      { c: "sb", rel: "2017年3月", ship: "locked" },
+      { c: "free", rel: "2017年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-9-7-ipad-pro", name: "9.7インチ iPad Pro", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2016年3月", ship: "locked" },
+      { c: "au", rel: "2016年3月", ship: "locked" },
+      { c: "sb", rel: "2016年3月", ship: "locked" },
+      { c: "free", rel: "2016年3月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-12-9-ipad-pro-1", name: "12.9インチ iPad Pro（第1世代）", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2015年11月", ship: "locked" },
+      { c: "au", rel: "2015年11月", ship: "locked" },
+      { c: "sb", rel: "2015年11月", ship: "locked" },
+      { c: "free", rel: "2015年11月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+  { id: "ipad-ipad-mini-4", name: "iPad mini 4", maker: "ipad", kana: "アイパッド タブレット Apple",
+    variants: [
+      { c: "docomo", rel: "2015年9月", ship: "locked" },
+      { c: "au", rel: "2015年9月", ship: "locked" },
+      { c: "sb", rel: "2015年9月", ship: "locked" },
+      { c: "free", rel: "2015年9月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月" },
+
+  // ---------- Androidタブレット ----------
+  { id: "lenovo-tab-m10a-5g", name: "Lenovo Tab M10a 5G", maker: "tablet", mfr: "lenovo", kana: "レノボ タブ タブレット",
+    variants: [
+      { c: "au", code: "LET02", rel: "2024年2月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加" },
+  { id: "galaxy-tab-s9-fe-plus-5g", name: "Galaxy Tab S9 FE+ 5G", maker: "tablet", mfr: "samsung", kana: "ギャラクシー タブ タブレット サムスン",
+    variants: [
+      { c: "au", code: "SCT22", rel: "2023年10月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加" },
+  { id: "lenovo-tab-p11-5g", name: "Lenovo Tab P11 5G", maker: "tablet", mfr: "lenovo", kana: "レノボ タブ タブレット",
+    variants: [
+      { c: "au", code: "LET01", rel: "2022年12月", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加" },
+
+  // ---------- PC・ルーター・その他 ----------
+  { id: "surface-pro-x", name: "Surface Pro X", maker: "other", mfr: "microsoft", kana: "サーフェス マイクロソフト PC パソコン",
+    variants: [
+      { c: "free", rel: "2020年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
+  { id: "idy-ir700b", name: "iR700B-LTE4", maker: "other", mfr: "idy", kana: "IDY ルーター",
+    variants: [
+      { c: "free", rel: "2020年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
+  { id: "plusf-fs040u", name: "+F FS040U", maker: "other", mfr: "fsoft", kana: "富士ソフト モバイルルーター",
+    variants: [
+      { c: "free", rel: "2019年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
+  { id: "iodata-ud-lt1-ex", name: "UD-LT1 EX", maker: "other", mfr: "iodata", kana: "アイオーデータ USB LTE",
+    variants: [
+      { c: "free", rel: "2019年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
+  { id: "vaio-sx14", name: "VAIO SX14（VJS1411シリーズ）", maker: "other", mfr: "vaio", kana: "バイオ PC パソコン",
+    variants: [
+      { c: "free", rel: "2019年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
+  { id: "skybridge-mb-a200", name: "SkyBridge MB-A200", maker: "other", mfr: "seiko", kana: "セイコー ルーター",
+    variants: [
+      { c: "free", rel: "2018年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
+  { id: "vaio-a12", name: "VAIO A12（VJA1211シリーズ）", maker: "other", mfr: "vaio", kana: "バイオ PC パソコン",
+    variants: [
+      { c: "free", rel: "2018年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
+  { id: "vaio-s13", name: "VAIO S13（VJS132*シリーズ）", maker: "other", mfr: "vaio", kana: "バイオ PC パソコン",
+    variants: [
+      { c: "free", rel: "2017年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
+  { id: "vaio-s11", name: "VAIO S11（VJS112*シリーズ）", maker: "other", mfr: "vaio", kana: "バイオ PC パソコン",
+    variants: [
+      { c: "free", rel: "2017年", ship: "free" }
+    ], note: "J:COMチェッカー掲載機種から追加（発売年はおおよそ）" },
 
   // ---------- 汎用（機種が見つからない時） ----------
   ...["iphone", "pixel", "xperia", "galaxy", "aquos", "kyocera", "oppo", "xiaomi", "fcnt", "motorola", "zte", "asus", "lg", "tcl", "htc", "balmuda", "android", "garaho"].map(m => ({

@@ -1,7 +1,7 @@
 // SMARTPHONE SHIFT CHECK TOOL — サービスワーカー
 // アプリ本体一式をキャッシュし、オフラインでも起動・閲覧できるようにする。
 // キャッシュ名のバージョンを上げると、次回アクセス時に新しいキャッシュへ切り替わる。
-const CACHE_NAME = "sim-lock-check-v19";
+const CACHE_NAME = "sim-lock-check-v21";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -41,13 +41,16 @@ self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
 
+  // ブラウザのHTTPキャッシュも使わず、毎回サーバーに最新か確認する（no-cache）
+  const fresh = req.mode === "navigate" ? new Request(req.url, { cache: "no-cache", credentials: "same-origin" }) : new Request(req, { cache: "no-cache" });
+  const key = new URL(req.url); key.search = "";   // 「最新データに更新」で付ける ?r= は除いてキャッシュ
   event.respondWith(
-    fetch(req).then(res => {
+    fetch(fresh).then(res => {
       if (res.ok) {
         const copy = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+        caches.open(CACHE_NAME).then(cache => cache.put(key.href, copy));
       }
       return res;
-    }).catch(() => caches.match(req).then(cached => cached || caches.match("./index.html")))
+    }).catch(() => caches.match(key.href).then(cached => cached || caches.match("./index.html")))
   );
 });

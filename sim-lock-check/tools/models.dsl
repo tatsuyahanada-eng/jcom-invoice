@@ -302,3 +302,55 @@ dcm-sh-06g | AQUOS ケータイ SH-06G | garaho | AQUOS ケータイ ドコモ |
 dcm-f-02j | らくらくホン F-02J | garaho | らくらくホン ドコモ | d:F-02J!L | 2016 | brand=fcnt ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
 dcm-sh-03m | キッズケータイ SH-03M | garaho | キッズケータイ ドコモ | d:SH-03M!L | 2020 | brand=aquos ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
 dcm-f-03j | キッズケータイ F-03J | garaho | キッズケータイ ドコモ | d:F-03J!L | 2017 | brand=fcnt ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+
+# ---------- J:COMチェッカーから追加：iPad（2026-10） ----------
+ipad-11-ipad-air-m4 | 11インチ iPad Air（M4） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2026 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-13-ipad-air-m4 | 13インチ iPad Air（M4） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2026 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-pro-m5 | 11インチ iPad Pro（M5） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2025.10 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-13-ipad-pro-m5 | 13インチ iPad Pro（M5） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2025.10 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-air-m3 | 11インチ iPad Air（M3） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2025.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-13-ipad-air-m3 | 13インチ iPad Air（M3） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2025.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-a16 | 11インチ iPad（A16） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2025.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-mini-a17-pro | iPad mini（A17 Pro） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2024.10 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-13-ipad-pro-m4 | 13インチ iPad Pro（M4） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2024.05 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-pro-m4 | 11インチ iPad Pro（M4） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2024.05 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-13-ipad-air-m2 | 13インチ iPad Air（M2） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2024.05 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-air-m2 | 11インチ iPad Air（M2） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2024.05 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-12-9-ipad-pro-6 | 12.9インチ iPad Pro（第6世代） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2022.10 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-pro-4 | 11インチ iPad Pro（第4世代） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2022.10 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-10 | iPad（第10世代） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2022.10 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-air-5 | iPad Air（第5世代） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2022.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-9 | iPad（第9世代） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2021.09 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-mini-6 | iPad mini（第6世代） | ipad | アイパッド タブレット Apple | d!F,a!F,s!F,f!F | 2021.09 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-pro-3 | 11インチ iPad Pro（第3世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2021.05 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-12-9-ipad-pro-5 | 12.9インチ iPad Pro（第5世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2021.05 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-air-4 | iPad Air（第4世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2020.10 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-8 | iPad（第8世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2020.09 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-pro-2 | 11インチ iPad Pro（第2世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2020.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-12-9-ipad-pro-4 | 12.9インチ iPad Pro（第4世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2020.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-7 | iPad（第7世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2019.09 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-air-3 | iPad Air（第3世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2019.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-mini-5 | iPad mini（第5世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2019.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-11-ipad-pro-1 | 11インチ iPad Pro（第1世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2018.11 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-12-9-ipad-pro-3 | 12.9インチ iPad Pro（第3世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2018.11 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-6 | iPad（第6世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2018.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-10-5-ipad-pro | 10.5インチ iPad Pro | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2017.06 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-12-9-ipad-pro-2 | 12.9インチ iPad Pro（第2世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2017.06 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-5 | iPad（第5世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2017.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-9-7-ipad-pro | 9.7インチ iPad Pro | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2016.03 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-12-9-ipad-pro-1 | 12.9インチ iPad Pro（第1世代） | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2015.11 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+ipad-ipad-mini-4 | iPad mini 4 | ipad | アイパッド タブレット Apple | d!L,a!L,s!L,f!F | 2015.09 ## J:COMチェッカー掲載機種から追加。発売時期はApple発表の国内発売月
+# ---------- J:COMチェッカーから追加：タブレット・PC・ルーターなど ----------
+galaxy-tab-s9-fe-plus-5g | Galaxy Tab S9 FE+ 5G | tablet | ギャラクシー タブ タブレット サムスン | a:SCT22 | 2023.10 | mfr=samsung ## J:COMチェッカー掲載機種から追加
+lenovo-tab-m10a-5g | Lenovo Tab M10a 5G | tablet | レノボ タブ タブレット | a:LET02 | 2024.02 | mfr=lenovo ## J:COMチェッカー掲載機種から追加
+lenovo-tab-p11-5g | Lenovo Tab P11 5G | tablet | レノボ タブ タブレット | a:LET01 | 2022.12 | mfr=lenovo ## J:COMチェッカー掲載機種から追加
+surface-pro-x | Surface Pro X | other | サーフェス マイクロソフト PC パソコン | f | 2020 | mfr=microsoft ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+plusf-fs040u | +F FS040U | other | 富士ソフト モバイルルーター | f | 2019 | mfr=fsoft ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+iodata-ud-lt1-ex | UD-LT1 EX | other | アイオーデータ USB LTE | f | 2019 | mfr=iodata ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+idy-ir700b | iR700B-LTE4 | other | IDY ルーター | f | 2020 | mfr=idy ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+skybridge-mb-a200 | SkyBridge MB-A200 | other | セイコー ルーター | f | 2018 | mfr=seiko ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+vaio-sx14 | VAIO SX14（VJS1411シリーズ） | other | バイオ PC パソコン | f | 2019 | mfr=vaio ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+vaio-a12 | VAIO A12（VJA1211シリーズ） | other | バイオ PC パソコン | f | 2018 | mfr=vaio ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+vaio-s13 | VAIO S13（VJS132*シリーズ） | other | バイオ PC パソコン | f | 2017 | mfr=vaio ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+vaio-s11 | VAIO S11（VJS112*シリーズ） | other | バイオ PC パソコン | f | 2017 | mfr=vaio ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
+digno-phone-uq | DIGNO Phone | kyocera | ディグノ フォン 京セラ | u | 2016 ## J:COMチェッカー掲載機種から追加

@@ -6,9 +6,9 @@ eval(fs.readFileSync(path.join(ROOT, 'data.js'), 'utf8').replace(/^const /gm, 'v
 const J = JSON.parse(fs.readFileSync(path.join(__dirname, 'jcom_checker.json'), 'utf8'));
 const CAT = { au: 'au', docomo: 'docomo', SoftBank: 'sb', UQ: 'uq', 'Y!mobile': 'ymobile', '楽天モバイル': 'rakuten', 'SIMフリー': 'free' };
 const CNAME = { au: 'au', docomo: 'ドコモ', sb: 'ソフトバンク', uq: 'UQモバイル', ymobile: 'ワイモバイル', rakuten: '楽天モバイル', free: 'SIMフリー' };
-const CODE = /\b([A-Z]{2,3}-\d{2}[A-Z]|[A-Z]{3}\d{2}|[A-Z]{2}[VGFTX]\d{2}|A\d{3}[A-Z]{2}|\d{3}[A-Z]{2,3}|LP-\d{2})\b/g;
-const N = x => (x || '').toLowerCase().normalize('NFKC').replace(/samsung|google|motorola|xiaomi|sony|sharp|kyocera|fcnt|®|™|（.*?）|\(.*?\)|\s|-|・/g, '');
-const NG = x => (x || '').toLowerCase().normalize('NFKC').replace(/samsung|google|®|™|\s|-|・/g, '').replace(/[（）()]/g, '');
+const CODE = /(?<![A-Za-z0-9-])([A-Z]{1,3}-\d{2}[A-Z]|[A-Z]{3}\d{2}|[A-Z]{2}[VGFTX]\d{2}|A\d{3}[A-Z]{2}|\d{3}[A-Z]{2,3}|LP-\d{2}|SH-R?M\d{2}s?|XQ-[A-Z]{2}\d{2}|SM-[A-Z]\d{3}[A-Z]|XT\d{4}-\d|J\d{4}|AT-M\d{3}J|[A-Z]{3}-L[A-Z0-9]{2,3}J?)(?![A-Za-z0-9])/g;
+const N = x => (x || '').normalize('NFKC').toLowerCase().replace(/samsung|google|motorola|xiaomi|sony|sharp|kyocera|fcnt|®|™|（.*?）|\(.*?\)|\s|-|・/g, '');
+const NG = x => (x || '').normalize('NFKC').toLowerCase().replace(/samsung|google|®|™|\s|-|・/g, '').replace(/[（）()]/g, '');
 const rk = r => { const m = /(\d{4})年(?:(\d{1,2})月)?/.exec(r || ''); return m ? +m[1] * 100 + (m[2] ? +m[2] : 6) : 0; };
 const sold = v => { const b = (UNLOCK[v.c] || {}).buy; return !!(b && v.ship === 'locked' && /\d{4}年\d{1,2}月/.test(v.rel || '') && rk(v.rel) > rk(b.since)); };
 const verdict = v => { const u = UNLOCK[v.c] || {};
@@ -23,6 +23,7 @@ for (const j of J) {
   let hit = cand.filter(x => jc.some(k => x.codes.includes(k)));
   if (!hit.length) hit = cand.filter(x => x.ng === NG(j.name));
   if (!hit.length) hit = cand.filter(x => x.n === N(j.name) || (x.nn && x.nn === N(j.name)));
+  if (!hit.length) { const bare = j.name.replace(/\s+(?=\S*\d)[A-Z0-9][A-Za-z0-9\-]{2,}$/, ''); if (bare !== j.name) hit = cand.filter(x => x.ng === NG(bare) || x.n === N(bare)); }
   if (!hit.length) { rows.push({ j, c, status: 'アプリ未登録' }); continue; }
   hit.forEach(h => used.add(h.v));
   const x = hit[0], [a, lab] = verdict(x.v);
