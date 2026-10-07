@@ -261,7 +261,7 @@ gratina-4g-kyf34 | GRATINA 4G（KYF34） | garaho | グラティーナ ガラホ
 gratina-kyf37 | GRATINA KYF37 | garaho | グラティーナ ガラホ 京セラ | a:KYF37 | 2017.12 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
 gratina | GRATINA KYF39 | garaho | グラティーナ ガラホ 京セラ | a:KYF39 | 2019.05 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
 gratina-kyf42 | GRATINA KYF42 | garaho | グラティーナ ガラホ 京セラ | a:KYF42 | 2021.08 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
-gratina-2 | GRATINA KYV48 | garaho | グラティーナ ガラホ 京セラ | a:KYV48@2022!C~発売時期が未確認のため「条件付き」表示。他社SIMで要確認 | 2022 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+gratina-2 | GRATINA KYV48 | garaho | グラティーナ ガラホ 京セラ | a:KYV48 | 2020 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
 infobar-xv | INFOBAR xv | garaho | インフォバー ガラホ 京セラ | a:KYX01 | 2018.11 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
 digno-keitai | DIGNOケータイ | garaho | ディグノ ケータイ 京セラ ガラホ | s:501KC@2016.02,y:502KC@2016.02 | 2016.02 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
 aquos-keitai-601sh | AQUOSケータイ 2 | garaho | アクオス ケータイ ガラホ シャープ | s:601SH,y:602SH | 2016 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
@@ -271,3 +271,34 @@ aquos-keitai3 | AQUOSケータイ3 | garaho | アクオス ケータイ ガラ�
 kantan-keitai10 | かんたん携帯10 | garaho | かんたん ケータイ 簡単 シャープ ガラホ | s:807SH | 2019 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
 digno-keitai4 | DIGNOケータイ4 | garaho | ディグノ ケータイ 京セラ ガラホ | s | 2022.09 | brand=kyocera ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
 aquos-keitai4 | AQUOSケータイ4 | garaho | アクオス ケータイ ガラホ シャープ | s | 2022.10 | brand=aquos ## ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース
+
+# ---------- ドコモ公式「2015年5月以降に発売されたSIMロック解除対応機種」にあり未登録だった機種（2026-10 追加） ----------
+dcm-l-02k | JOJO（L-02K） | lg | JOJO（L-02K） ドコモ | d:L-02K!L | 2018 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-z-01k | M Z-01K | zte | M Z-01K ドコモ | d:Z-01K!L | 2018 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-dm-01j | Disney Mobile on docomo DM-01J | android | Disney Mobile on docomo ドコモ | d:DM-01J!L | 2017 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-l-01j | V20 PRO L-01J | lg | V20 PRO ドコモ | d:L-01J!L | 2017 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-dm-02h | Disney Mobile on docomo DM-02H | android | Disney Mobile on docomo ドコモ | d:DM-02H!L | 2016 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-f-03h | arrows SV F-03H | fcnt | arrows SV ドコモ | d:F-03H!L | 2016 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-mo-01j | MONO MO-01J | zte | MONO ドコモ | d:MO-01J!L | 2016 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-sh-02j | AQUOS EVER SH-02J | aquos | AQUOS EVER ドコモ | d:SH-02J!L | 2016 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-dm-01h | Disney Mobile on docomo DM-01H | android | Disney Mobile on docomo ドコモ | d:DM-01H!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-f-01h | arrows Fit F-01H | fcnt | arrows Fit ドコモ | d:F-01H!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-sc-01h | Galaxy Active neo SC-01H | galaxy | Galaxy Active neo ドコモ | d:SC-01H!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-sh-02h | AQUOS Compact SH-02H | aquos | AQUOS Compact ドコモ | d:SH-02H!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-so-01h | Xperia Z5 SO-01H | xperia | Xperia Z5 ドコモ | d:SO-01H!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-so-02h | Xperia Z5 Compact SO-02H | xperia | Xperia Z5 Compact ドコモ | d:SO-02H!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-so-03h | Xperia Z5 Premium SO-03H | xperia | Xperia Z5 Premium ドコモ | d:SO-03H!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-dm-01g | Disney Mobile on docomo DM-01G | android | Disney Mobile on docomo ドコモ | d:DM-01G!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-f-04g | ARROWS NX F-04G | fcnt | ARROWS NX ドコモ | d:F-04G!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-sh-03g | AQUOS ZETA SH-03G | aquos | AQUOS ZETA ドコモ | d:SH-03G!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-sh-04g | AQUOS EVER SH-04G | aquos | AQUOS EVER ドコモ | d:SH-04G!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-so-03g | Xperia Z4 SO-03G | xperia | Xperia Z4 ドコモ | d:SO-03G!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-so-04g | Xperia A4 SO-04G | xperia | Xperia A4 ドコモ | d:SO-04G!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-sh-05g | AQUOS PAD SH-05G | aquos | AQUOS PAD ドコモ | d:SH-05G!L | 2015 ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-f-03l | arrows ケータイ F-03L | garaho | arrows ケータイ ドコモ | d:F-03L!L | 2019 | brand=fcnt ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-p-01h | P-01H（ケータイ） | garaho | P-01H（ケータイ） ドコモ | d:P-01H!L | 2015 | mfr=panasonic ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-f-05g | ARROWS ケータイ F-05G | garaho | ARROWS ケータイ ドコモ | d:F-05G!L | 2015 | brand=fcnt ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-sh-06g | AQUOS ケータイ SH-06G | garaho | AQUOS ケータイ ドコモ | d:SH-06G!L | 2015 | brand=aquos ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-f-02j | らくらくホン F-02J | garaho | らくらくホン ドコモ | d:F-02J!L | 2016 | brand=fcnt ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-sh-03m | キッズケータイ SH-03M | garaho | キッズケータイ ドコモ | d:SH-03M!L | 2020 | brand=aquos ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）
+dcm-f-03j | キッズケータイ F-03J | garaho | キッズケータイ ドコモ | d:F-03J!L | 2017 | brand=fcnt ## ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）

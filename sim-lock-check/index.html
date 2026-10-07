@@ -527,6 +527,43 @@
   html:not(.pc) .search { padding: 8px 10px; gap: 6px; }
   html:not(.pc) .rtable tr { padding: 8px 10px; margin-bottom: 5px; }
 
+  /* ---------- ログイン ---------- */
+  html.auth-out .app, html.auth-out .viewtoggle { display: none !important; }
+  .login { display: none; min-height: 100vh; min-height: 100dvh; place-items: center; padding: 24px 16px; background: radial-gradient(circle at 50% 25%, #383c43, var(--bg) 70%); }
+  html.auth-out .login { display: grid; }
+  .login-box { width: 100%; max-width: 360px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 26px 22px 22px; box-shadow: 0 0 0 1px rgba(223, 255, 79, .08), 0 20px 50px rgba(0, 0, 0, .45); }
+  .login-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .login-brand img { width: 46px; height: 46px; border-radius: 11px; box-shadow: var(--glow); }
+  .login-brand .t1 { font-family: var(--brandfont); font-size: 21px; letter-spacing: .03em; color: var(--strong); line-height: 1.1; }
+  .login-brand .t2 { font-family: var(--brandfont); font-size: 13px; letter-spacing: .3em; color: var(--accent); }
+  .login label { display: grid; gap: 5px; margin-bottom: 12px; font-size: 12.5px; color: var(--muted); letter-spacing: .04em; }
+  .login input[type="text"], .login input[type="password"] {
+    font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line-strong);
+    background: var(--well); color: var(--strong); min-height: 44px; width: 100%;
+  }
+  .login input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(223, 255, 79, .18); }
+  .login .keep { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); margin: 2px 0 14px; }
+  .login .keep input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .login button[type="submit"] { width: 100%; min-height: 46px; border: 0; border-radius: 8px; background: var(--accent); color: #1c1f23; font: inherit; font-weight: 800; font-size: 15px; letter-spacing: .08em; cursor: pointer; }
+  .login button[type="submit"]:hover { filter: brightness(1.06); }
+  .login .err { min-height: 1.4em; margin: 0 0 10px; color: var(--ng); font-size: 13px; font-weight: 700; }
+  .login .foot { margin-top: 14px; font-size: 11.5px; color: var(--faint); line-height: 1.6; }
+  .userbar { display: flex; align-items: center; gap: 8px; margin-left: auto; padding-right: 12px; }
+  .userchip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .userchip b { color: var(--strong); font-weight: 700; }
+  .rolebadge { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; padding: 2px 6px; border-radius: 4px; background: var(--well); border: 1px solid var(--line-strong); color: var(--muted); }
+  .rolebadge.admin { background: var(--accent); border-color: var(--accent); color: #1c1f23; }
+  .logout { border: 1px solid var(--line-strong); background: var(--well); color: var(--muted); border-radius: 6px; padding: 5px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+  .logout:hover { color: var(--strong); border-color: var(--accent-deep); }
+  .brandbar { display: flex; align-items: center; }
+  .brandbar h1 { flex: 1 1 auto; min-width: 0; }
+  html.pc .brandbar { flex-wrap: wrap; }
+  html.pc .userbar { width: 100%; padding: 0 12px 10px; margin: 0; }
+  .logout { white-space: nowrap; }
+  html:not(.pc) .userbar { flex-direction: column; align-items: flex-end; gap: 4px; padding-right: 10px; flex: none; }
+  html:not(.pc) .userchip .uname { display: none; }
+  html:not(.pc) .logout { padding: 3px 8px; font-size: 11px; }
+
   /* 表示切替ボタン（PCブラウザのみ） */
   .viewtoggle {
     display: none; position: fixed; top: 10px; right: 14px; z-index: 60; align-items: center; gap: 7px;
@@ -552,8 +589,31 @@
     r.classList.toggle("spframe", wide && mode === "sp");
   })();
 </script>
+<script>
+  /* ログイン状態の確認（未ログインなら表示前にログイン画面へ） */
+  (function () {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem("psc-auth") || sessionStorage.getItem("psc-auth") || "null"); } catch (e) {}
+    var ok = s && s.u && s.r && (!s.exp || s.exp > Date.now());
+    document.documentElement.classList.toggle("auth-out", !ok);
+  })();
+</script>
 </head>
 <body data-tab="search">
+<main class="login" id="login" aria-label="ログイン">
+  <form class="login-box" id="loginForm" autocomplete="on">
+    <div class="login-brand">
+      <img src="icons/icon-192.png" alt="" width="46" height="46">
+      <div><div class="t1">SMARTPHONE SHIFT</div><div class="t2">CHECK TOOL</div></div>
+    </div>
+    <label>ユーザーID<input type="text" id="loginUser" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
+    <label>パスワード<input type="password" id="loginPass" name="password" autocomplete="current-password" required></label>
+    <div class="keep"><input type="checkbox" id="loginKeep" checked><label for="loginKeep" style="display:inline;margin:0;color:inherit;font-size:13px">この端末でログイン状態を保持する（30日）</label></div>
+    <p class="err" id="loginErr" role="alert"></p>
+    <button type="submit">ログイン</button>
+    <div class="foot">関係者専用ツールです。ID・パスワードは管理者にお問い合わせください。</div>
+  </form>
+</main>
 <button type="button" class="viewtoggle" id="viewToggle" aria-pressed="false"></button>
 <div class="app">
   <header class="brandbar">
@@ -566,6 +626,7 @@
         </span>
       </button>
     </h1>
+    <div class="userbar" id="userbar"></div>
   </header>
 
   <div class="top">
@@ -645,6 +706,74 @@
 
 <script src="data.js"></script>
 <script src="vendor/qrcode.min.js"></script>
+<script>
+  // ---------- ログイン（管理者／一般ユーザー） ----------
+  // パスワードはそのまま保存せず、SHA-256 のハッシュ値だけを持つ（静的サイトのため見た目の制限。厳密な保護はサーバー側の認証で行う）
+  const AUTH_USERS = {
+    "admin":      { role: "admin", label: "管理者",     hash: "82e4b91688eae1b2691a29549d5b8b28a590a6303ad543637ffce0544296a5e3" },
+    "welsysjcom": { role: "user",  label: "一般ユーザー", hash: "9f061d1dd112c7325086f12f331e759dc0136e76e0feaadb215bb1b97bd75ff9" }
+  };
+  function sha256(str) {
+    const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    const bytes = new TextEncoder().encode(str), len = bytes.length;
+    const n = ((len + 9 + 63) >> 6) << 6, m = new Uint8Array(n);
+    m.set(bytes); m[len] = 0x80;
+    const dv = new DataView(m.buffer); dv.setUint32(n - 4, len * 8); dv.setUint32(n - 8, Math.floor(len / 0x20000000));
+    let H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    const w = new Uint32Array(64), r = (x, k) => (x >>> k) | (x << (32 - k));
+    for (let o = 0; o < n; o += 64) {
+      for (let i = 0; i < 16; i++) w[i] = dv.getUint32(o + i * 4);
+      for (let i = 16; i < 64; i++) {
+        const s0 = r(w[i-15], 7) ^ r(w[i-15], 18) ^ (w[i-15] >>> 3), s1 = r(w[i-2], 17) ^ r(w[i-2], 19) ^ (w[i-2] >>> 10);
+        w[i] = (w[i-16] + s0 + w[i-7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, hh] = H;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (hh + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0;
+        const t2 = ((r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H = H.map((x, i) => (x + [a, b, c, d, e, f, g, hh][i]) | 0);
+    }
+    return H.map(x => (x >>> 0).toString(16).padStart(8, "0")).join("");
+  }
+  const AUTH = {
+    get() {
+      try { const s = JSON.parse(localStorage.getItem("psc-auth") || sessionStorage.getItem("psc-auth") || "null");
+        return s && AUTH_USERS[s.u] && (!s.exp || s.exp > Date.now()) ? s : null; } catch (e) { return null; }
+    },
+    login(u, p, keep) {
+      u = (u || "").trim(); const a = AUTH_USERS[u];
+      if (!a || sha256("psc-v1:" + u + ":" + p) !== a.hash) return null;
+      const s = { u, r: a.role, exp: keep ? Date.now() + 30 * 864e5 : 0 };
+      try { (keep ? localStorage : sessionStorage).setItem("psc-auth", JSON.stringify(s)); } catch (e) {}
+      return s;
+    },
+    logout() { try { localStorage.removeItem("psc-auth"); sessionStorage.removeItem("psc-auth"); } catch (e) {} }
+  };
+  const isAdmin = () => { const s = AUTH.get(); return !!(s && s.r === "admin"); };
+  function renderUserbar() {
+    const s = AUTH.get(), bar = document.getElementById("userbar");
+    document.documentElement.classList.toggle("auth-out", !s);
+    document.documentElement.classList.toggle("is-admin", !!(s && s.r === "admin"));
+    if (!bar) return;
+    bar.innerHTML = s ? `<span class="userchip"><span class="rolebadge ${s.r}">${AUTH_USERS[s.u].label}</span><b class="uname">${s.u}</b></span><button type="button" class="logout" id="logoutBtn">ログアウト</button>` : "";
+  }
+  document.getElementById("loginForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const s = AUTH.login(document.getElementById("loginUser").value, document.getElementById("loginPass").value, document.getElementById("loginKeep").checked);
+    const err = document.getElementById("loginErr");
+    if (!s) { err.textContent = "ユーザーIDまたはパスワードが違います"; document.getElementById("loginPass").select(); return; }
+    err.textContent = ""; document.getElementById("loginPass").value = "";
+    renderUserbar(); window.scrollTo({ top: 0 });
+    if (typeof window.__afterLogin === "function") window.__afterLogin();
+  });
+  document.addEventListener("click", e => {
+    if (e.target.closest("#logoutBtn")) { AUTH.logout(); renderUserbar(); setTimeout(() => document.getElementById("loginUser").focus(), 0); }
+  });
+  renderUserbar();
+  if (!AUTH.get()) setTimeout(() => { const u = document.getElementById("loginUser"); if (u) u.focus(); }, 0);
+</script>
 <script>
   // ---------- 表示切替（PC表示 ⇄ スマホ表示） ----------
   function isSP() { return !document.documentElement.classList.contains("pc"); }
@@ -795,7 +924,7 @@
 
   // 一覧の判定ラベル（楽天・SIMフリー・ロックなし出荷は解除不要）
   const judgeOf = v => (v.c === "rakuten" || v.c === "free" || v.ship === "free") ? ["ok", "解除不要"]
-    : v.ship === "locked" ? (UNLOCK[v.c] && UNLOCK[v.c].buy ? ["chk", "購入日で判定"] : ["need", "要解除"])
+    : v.ship === "locked" ? (UNLOCK[v.c] && UNLOCK[v.c].buy ? ["chk", "購入日で判定"] : UNLOCK[v.c] && UNLOCK[v.c].remote ? ["chk", "要確認"] : ["need", "要解除"])
     : v.ship === "cond" ? ["chk", "要確認"] : ["chk", "要判定"];
   // 暗い背景で沈む色（ソフトバンクのグレー等）は明るめに置き換えて表示
   const dotColor = k => ({ sb: "#b8c2cc", free: "#3cf0a4" }[k] || CARRIERS[k].color);
@@ -938,10 +1067,19 @@
       <div class="key-main">${ICON_OK}解除不要（ロックなし）</div>
       <div class="key-sub">${esc(v.note || d.note || "ロックなしで販売された機種です。")}</div></section>`;
     const b = UNLOCK[v.c] && UNLOCK[v.c].buy;
+    const rm = UNLOCK[v.c] && UNLOCK[v.c].remote;
+    if (v.ship === "locked" && !b && rm) return `<section class="key check">
+      <div class="key-label"><span class="num">1</span>SIMロック解除</div>
+      <div class="key-main">${ICON_Q}要確認（${esc(CARRIERS[v.c].name)}側で順次解除中）</div>
+      <div class="buyrule">
+        <div class="br ng"><b>購入時点ではSIMロックあり</b><span>2021/10/1までに発売された${esc(CARRIERS[v.c].name)}の機種（公式）</span></div>
+        <div class="br ok"><b>${esc(rm)}から${esc(CARRIERS[v.c].name)}側で一括解除を順次実施中</b><span>設定変更が済んだ端末は手続き不要で他社SIMが使える（公式）</span></div>
+      </div>
+      <div class="key-sub">済んでいるかは端末ごとに違うため、<b>${v.c === "uq" ? "My UQ mobile" : "My au"} の「SIMロック解除可否」</b>か <b>${esc(path)}</b> で確認し、ロック中なら②から解除（無料）。</div></section>`;
     if (v.ship === "locked" && !b) return `<section class="key need">
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
       <div class="key-main">${ICON_WARN}解除が必要（必ず確認）</div>
-      <div class="key-sub">ロックあり出荷。<b>${esc(path)}</b> で解除済みか確認し、ロック中なら②から手続きしてください。</div></section>`;
+      <div class="key-sub">ロックあり出荷（${esc(CARRIERS[v.c].name)}公式の解除対応機種一覧に掲載）。${v.c === "docomo" ? "購入時期・方法によっては解除済で渡している場合もあるため、" : ""}<b>${esc(path)}</b> で解除済みか確認し、ロック中なら②から手続きしてください。</div></section>`;
     if ((v.ship === "locked" || v.ship === "cond") && b) return buyCard(v, b, path);
     return `<section class="key check">
       <div class="key-label"><span class="num">1</span>SIMロック解除</div>
@@ -958,9 +1096,9 @@
     if (!state.buy) return null;
     if (state.buy >= since) return b.sure === false
       ? { cls: "ok", icon: ICON_OK, main: "解除不要（原則）", sub: `${b.since}以降の購入のため、原則として解除済で販売されています。${CARRIERS[v.c].name}は購入方法などで例外があるため、確認場所で「解除済」を一度だけ確認してください。` }
-      : { cls: "ok", icon: ICON_OK, main: "解除不要", sub: `${b.since}以降の購入のため、解除済で販売されています（${b.after}）。` };
+      : { cls: "ok", icon: ICON_OK, main: "解除不要", sub: `${b.since}以降の購入のため、解除済で渡されています（${b.after}）。` };
     return { cls: "ng", icon: ICON_WARN, main: "解除が必要",
-      sub: `${b.since}より前の購入のため、ロックあり出荷です。前の持ち主などが解除済みの場合もあるので、確認場所で「ロック中」を確かめてから②で解除してください。` };
+      sub: `${b.since}より前の購入のため、ロックあり出荷です。前の持ち主などが解除済みの場合${UNLOCK[v.c].remote ? `や、${UNLOCK[v.c].remote}から${CARRIERS[v.c].name}側で順次実施中の一括解除が済んでいる場合` : ""}もあるので、確認場所で「ロック中」を確かめてから②で解除してください。` };
   }
   function buyCard(v, b, path) {
     const r = buyVerdict(v, b);
@@ -1135,13 +1273,20 @@
   function renderGuide() {
     const steps = [
       ["発売日・購入元を確認", "2021/10/1以降発売の機種、Apple／Google Store・メーカー直販・楽天モバイル購入品は原則ロックなし"],
-      ["それ以前の機種は購入日を確認", "発売日が古くても、購入日が ドコモ 2021/8/27・ソフトバンク／ワイモバイル 2021/5/12・au 2022/8/1 以降なら解除済で販売（中古・譲渡品は購入日不明なので実機で確認）"],
+      ["それ以前の機種は購入日・キャリアの解除状況を確認", "ソフトバンク／ワイモバイルは2021/5/12以降、UQのiPhoneは2022/8/1以降の購入なら解除済。au・UQは2026/8/19から会社側で順次一括解除中。UQのAndroidはもともとロックなし。ドコモは購入方法で異なる（中古・譲渡品は実機で確認）"],
       ["設定画面で確認", "iPhone・Xperia・Galaxy・AQUOS等は設定に表示あり（機種検索で場所を確認）"],
       ["ダイヤルコード", "一部Androidのみ。国内キャリア版は無効化されていることが多い"],
       ["他社SIMを挿す", "解除コード入力画面や「SIM無効」が出たらロックあり"],
       ["販売キャリアに照会", "IMEIを伝えればショップ・電話・Webで確認できる"]
     ];
-    $("#view-guide").innerHTML = `<div class="guide">
+    const adminCard = isAdmin() ? `<div class="card entry"><h2>管理者情報 ─ データの出典と照合状況</h2>
+        <ul class="notes">
+          <li>登録：<b>${DEVICES.filter(d => !d.generic).length}機種</b>／キャリア版 <b>${DEVICES.filter(d => !d.generic).reduce((n, d) => n + d.variants.length, 0)}件</b></li>
+          <li>ロックあり出荷の判定は、各キャリア公式の「SIMロック解除対応機種」一覧と照合済み（2026/10/7 取得）：ドコモ（2015/5以降・2011/4〜2015/4）、ソフトバンク（FAQ 10614）、ワイモバイル（解除手続きページ）、au（FAQ：発売日基準）、UQ mobile（解除手続きページ）</li>
+          <li>au・UQ mobile は2026/8/19から会社側で順次一括解除中。UQ mobileのAndroidはもともとSIMロックなし</li>
+          <li>補正の詳細はリポジトリの <span class="mono">sim-lock-check/tools/official_changes.log</span> と <span class="mono">DATA_NOTES.md</span> を参照</li>
+        </ul></div>` : "";
+    $("#view-guide").innerHTML = `<div class="guide">${adminCard}
       <div class="card"><h2>STEP 0 ─ 確認の順番（上から試せば迷わない）</h2><ol class="flow">${steps.map(([t, s]) => `<li><b>${esc(t)}</b>${esc(s)}</li>`).join("")}</ol>
         <div class="callout info"><b>現場の最短ルート：</b>① <span class="mono">*#06#</span> でIMEIを控える → ② 設定画面で表示確認 → ③ 表示なし・不明なら他社回線SIMを挿す → ④ それでも不明ならIMEIで販売キャリアへ照会</div></div>
       <div class="card"><h2>キャリア別 ─ ロックなし販売の目安と照会先</h2>
@@ -1338,6 +1483,9 @@
     state.sel = "iphone-se2"; state.selCarrier = "docomo";
     renderResults(); renderDetail();
   }
+
+  // ログイン後：権限で変わる表示（管理者情報）を描き直す
+  window.__afterLogin = () => { renderGuide(); renderResults(); };
 
   // PWA: オフラインでも起動できるようアプリ一式をキャッシュするサービスワーカーを登録
   if ("serviceWorker" in navigator) {

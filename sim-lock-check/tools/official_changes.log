@@ -1,0 +1,71 @@
+iPhone SE（第2世代）	ymobile		cond -> locked	Y!mobile公式一覧に掲載
+Xperia 10 II	ymobile	A001SO	cond -> locked	Y!mobile公式一覧に掲載
+Xperia 10 III	ymobile	A102SO	cond -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Xperia 1 III	sb	A101SO	cond -> locked	SB公式：2021/6以降発売で唯一のロックあり
+Xperia 8	sb	902SO	removed	SB版は存在しない
+Xperia 8	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+Xperia 8	ymobile	902SO	cond -> locked	Y!mobile公式一覧に掲載
+Galaxy A21	uq	SCV49	locked -> free	UQ公式：Android機種はSIMロック設定なし
+Galaxy A20	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+Galaxy A30	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+Galaxy A41	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+AQUOS sense3 basic	uq	SHV48	locked -> free	UQ公式：Android機種はSIMロック設定なし
+AQUOS sense5G	sb	A004SH	cond -> locked	SB公式一覧に掲載
+AQUOS sense5G	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+AQUOS sense（初代）	sb	603SH	removed	SB版は存在しない
+AQUOS sense（初代）	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+AQUOS sense2	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+AQUOS sense3	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+BASIO4	uq	KYV47	locked -> free	UQ公式：Android機種はSIMロック設定なし
+OPPO A54 5G	uq	OPG02	locked -> free	UQ公式：Android機種はSIMロック設定なし
+OPPO Reno3 A	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+OPPO Reno3 A	ymobile	A002OP	cond -> locked	Y!mobile公式一覧に掲載
+OPPO Reno5 A	ymobile	A101OP	cond -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Redmi 9T	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+Redmi 9T	ymobile		cond -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Redmi Note 10 JE	uq	XIG02	free -> free	UQ公式：Android機種はSIMロック設定なし
+HUAWEI P20 lite	ymobile	ANE-LX2J	cond -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Libero 5G	ymobile	A003ZT	cond -> locked	Y!mobile公式一覧に掲載
+iPhone 6s	ymobile		cond -> locked	Y!mobile公式一覧に掲載
+iPhone 7	ymobile		cond -> locked	Y!mobile公式一覧に掲載
+iPhone SE（第1世代）	ymobile		cond -> locked	Y!mobile公式一覧に掲載
+iPhone 8	ymobile		cond -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+iPhone 8 Plus	ymobile		cond -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+iPhone 11	ymobile		locked -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+iPhone 12 mini	ymobile		cond -> locked	Y!mobile公式一覧に掲載
+iPhone 13	uq		locked -> free	UQ：2021/10/1以降発売はロックなし
+Pixel 5a (5G)	sb		cond -> free	SB公式：2021/6以降発売はSIMフリー
+AQUOS sense4 basic	ymobile	A003SH	cond -> locked	Y!mobile公式一覧に掲載
+AQUOS R6	sb	A101SH	cond -> free	SB公式：2021/6以降発売はSIMフリー
+かんたんスマホ2	ymobile	A001KC	cond -> locked	Y!mobile公式一覧に掲載
+OPPO A5 2020	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+HUAWEI P30 lite	ymobile	MAR-LX2J	locked -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Xperia 8 Lite	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+DIGNO BX2	sb	A101KC	cond -> free	個別訂正（公式情報）
+LEITZ PHONE 1	sb	LP-01	cond -> free	個別訂正（公式情報）
+Android One S5	sb		rule -> locked	SB公式一覧に掲載
+Android One S5	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+Android One S3	sb		rule -> locked	SB公式一覧に掲載
+Android One S3	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+おてがるスマホ01	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+DIGNO A	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+DIGNO V	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+DIGNO W	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+DIGNO L	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+OPPO R17 Neo	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+AQUOS L2	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+AQUOS L	uq		locked -> free	UQ公式：Android機種はSIMロック設定なし
+HUAWEI nova lite for Y!mobile	ymobile		rule -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Android One S10	ymobile		rule -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Android One S9	ymobile		rule -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Android One S8	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+Android One S6	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+Android One S4	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+Android One X3	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+Android One X5	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+OPPO Reno5 A（eSIM対応版）	ymobile	A103OP	cond -> free	Y!mobile公式一覧に無い＝SIMフリー端末として販売
+Android One S7	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+Android One X4	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+Android One X1	ymobile		rule -> locked	Y!mobile公式一覧に掲載
+Libero S10	ymobile	901ZT	cond -> locked	Y!mobile公式一覧に掲載
+Android One X2	ymobile		rule -> locked	Y!mobile公式一覧に掲載

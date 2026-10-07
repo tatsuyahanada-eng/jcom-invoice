@@ -23,11 +23,11 @@ const CARRIERS = {
 /* キャリアごとのSIMロック解除・照会情報 */
 const UNLOCK = {
   docomo: {
-    buy: { since: "2021年8月27日", sure: false, after: "原則として解除済で販売。購入方法などにより例外あり" },
     rules: [
-      "2021/8/27以降に発売された機種はSIMロックなしで販売",
-      "それ以前の機種でも、2020/8/19以降に一括 or クレジットカード払いで購入したものは解除済で渡されている場合あり",
-      "2015/4以前発売の機種は解除非対応の場合あり（ドコモは一部対応）"
+      "2021/8/27以降に発売された機種はSIMロックなしで販売（ドコモ公式）",
+      "2021/8/26までに発売された機種は、購入時期・購入方法・申込窓口によってSIMロックありで渡している場合がある（ドコモ公式）→ 実機かMy docomoで確認",
+      "ロックあり出荷の機種はドコモ公式「SIMロック解除対応機種」一覧に掲載（本ツールの「ロックあり」はこの一覧と照合済み）",
+      "2015/4以前発売の機種はドコモショップでのみ解除手続き"
     ],
     how: [
       "IMEI（*#06#）を控える",
@@ -43,10 +43,12 @@ const UNLOCK = {
     ]
   },
   au: {
-    buy: { since: "2022年8月1日", after: "2022年8〜9月の購入分は購入後に自動解除、10月以降は解除済で販売" },
+    remote: "2026年8月19日",
     rules: [
-      "2021/10/1以降に発売された機種はSIMロックなしで販売",
-      "My au の「SIMロック解除可否」欄で状態を確認できる"
+      "2021/10/1以降に発売された機種はSIMロックなしで販売。iPhone 13シリーズ（2021/9/24発売）もロックなし（au公式）",
+      "2021/10/1までに発売された機種は購入時点でSIMロックあり（au公式）",
+      "2026/8/19から、au側の設定変更でSIMロック解除を順次実施中。設定変更が完了した端末は手続き不要で他社SIMが使える（au公式）",
+      "My au の「SIMロック解除可否」欄で状態を確認できる。Redmi Note 10 JEは表示にかかわらず手続き不要"
     ],
     how: [
       "IMEI（*#06#）を控える",
@@ -61,10 +63,12 @@ const UNLOCK = {
     ]
   },
   uq: {
-    buy: { since: "2022年8月1日", sure: false, after: "auと同じ扱い。UQは対象を順次拡大中のため My UQ mobile でも確認" },
+    buy: { since: "2022年8月1日", after: "2022/10/1以降の購入は解除済で販売、8/1〜9/30の購入分は販売後に順次解除（UQ公式）" },
+    remote: "2026年8月19日",
     rules: [
-      "au（KDDI）と同じ基準：2021/10/1以降に発売された機種はSIMロックなしで販売",
-      "2026/8/19以降、UQ側の設定変更で解除手続きが不要になる端末が順次拡大中（公式ページで最新を確認）",
+      "Android機種はもともとSIMロック設定なし（UQ公式）。Redmi Note 10 JE・OPPO A54 5G・Galaxy A41・Galaxy A21・AQUOS sense3 basic・AQUOS sense5Gは「一部Android機種での利用設定」の操作が必要",
+      "iPhoneは2021/9/30以前発売ならロックあり。2022/10/1以降の購入は解除済で販売、2022/8/1〜9/30の購入分は販売後に順次解除（UQ公式）",
+      "2026/8/19から、UQ側の設定変更でSIMロック解除を順次実施中（UQ公式）",
       "au回線網のため、povo・au系MVNOのSIMでは判定できない"
     ],
     how: [
@@ -80,11 +84,11 @@ const UNLOCK = {
     ]
   },
   sb: {
-    buy: { since: "2021年5月12日", after: "解除済で渡し。発売日でなく購入日が基準" },
+    buy: { since: "2021年5月12日", after: "購入時に解除済で渡し（ソフトバンク公式）" },
     rules: [
-      "2021/5/12以降の購入分は解除済で渡し（発売日でなく購入日が基準）",
-      "2021/6以降に発売された機種は原則SIMロックなしで販売（一部例外あり）",
-      "2021/10/1以降に発売された機種はSIMロックなしで販売"
+      "2021/5/12以降の購入分は購入時に解除済で渡し（発売日でなく購入日が基準・ソフトバンク公式）",
+      "2021/6以降にソフトバンクから発売された機種はSIMフリー。例外はXperia 1 III（ロックあり）（ソフトバンク公式）",
+      "ロックあり出荷の機種はソフトバンク公式FAQ「SIMロック解除機能が搭載されている機種」に掲載（本ツールはこの一覧と照合済み）"
     ],
     how: [
       "IMEI（*#06#）を控える",
@@ -99,10 +103,10 @@ const UNLOCK = {
     ]
   },
   ymobile: {
-    buy: { since: "2021年5月12日", after: "解除済で渡し。ソフトバンクと同じ基準" },
+    buy: { since: "2021年5月12日", after: "購入時に解除済で渡し（ワイモバイル公式）" },
     rules: [
-      "ソフトバンクと同じ基準：2021/5/12以降の購入分は解除済で渡し",
-      "2021/10/1以降に発売された機種はSIMロックなしで販売"
+      "2021/5/12以降の購入分は購入時に解除済で渡し（ワイモバイル公式）",
+      "SIMフリー端末として販売された機種（OPPO Reno5 A・Nexus 5/6など）は解除不要。ロックあり機種はワイモバイル公式の「SIMロック解除が可能な製品」に掲載（本ツールはこの一覧と照合済み）"
     ],
     how: [
       "IMEI（*#06#）を控える",
@@ -545,7 +549,7 @@ const DEVICES = [
       { c: "docomo", rel: "2021年9月", ship: "free" },
       { c: "au", rel: "2021年9月", ship: "free" },
       { c: "sb", rel: "2021年9月", ship: "free" },
-      { c: "uq", rel: "2021年9月", ship: "locked" },
+      { c: "uq", rel: "2021年9月", ship: "free" },
       { c: "ymobile", rel: "2023年11月", ship: "free" },
       { c: "rakuten", rel: "2021年9月", ship: "free" },
       { c: "free", rel: "2021年9月", ship: "free" }
@@ -648,7 +652,7 @@ const DEVICES = [
       { c: "au", rel: "2020年11月", ship: "locked" },
       { c: "sb", rel: "2020年11月", ship: "locked" },
       { c: "uq", rel: "2020年11月", ship: "locked" },
-      { c: "ymobile", rel: "2020年11月", ship: "cond" },
+      { c: "ymobile", rel: "2020年11月", ship: "locked" },
       { c: "rakuten", rel: "2020年11月", ship: "free" },
       { c: "free", rel: "2020年11月", ship: "free" }
     ] },
@@ -684,7 +688,7 @@ const DEVICES = [
       { c: "au", rel: "2020年5月", ship: "locked" },
       { c: "sb", rel: "2020年5月", ship: "locked" },
       { c: "uq", rel: "2020年", ship: "locked" },
-      { c: "ymobile", rel: "2020年〜", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" },
+      { c: "ymobile", rel: "2020年〜", ship: "locked", note: "2021/5/12以降の購入分は解除済で渡し" },
       { c: "rakuten", rel: "2020年5月", ship: "free" },
       { c: "free", rel: "2020年5月", ship: "free" }
     ] },
@@ -694,7 +698,7 @@ const DEVICES = [
       { c: "au", rel: "2019年9月", ship: "locked" },
       { c: "sb", rel: "2019年9月", ship: "locked" },
       { c: "uq", rel: "2019年9月", ship: "locked" },
-      { c: "ymobile", rel: "2019年9月", ship: "locked" },
+      { c: "ymobile", rel: "2019年9月", ship: "free" },
       { c: "free", rel: "2019年9月", ship: "free" }
     ] },
   { id: "iphone-11-pro", name: "iPhone 11 Pro", maker: "iphone", kana: "アイフォン 11 プロ",
@@ -745,7 +749,7 @@ const DEVICES = [
       { c: "au", rel: "2017年9月", ship: "locked" },
       { c: "sb", rel: "2017年9月", ship: "locked" },
       { c: "uq", rel: "2017年9月", ship: "locked" },
-      { c: "ymobile", rel: "2017年9月", ship: "cond" },
+      { c: "ymobile", rel: "2017年9月", ship: "free" },
       { c: "free", rel: "2017年9月", ship: "free" }
     ] },
   { id: "iphone-8-plus", name: "iPhone 8 Plus", maker: "iphone", kana: "アイフォン 8 プラス",
@@ -754,7 +758,7 @@ const DEVICES = [
       { c: "au", rel: "2017年9月", ship: "locked" },
       { c: "sb", rel: "2017年9月", ship: "locked" },
       { c: "uq", rel: "2017年9月", ship: "locked" },
-      { c: "ymobile", rel: "2017年9月", ship: "cond" },
+      { c: "ymobile", rel: "2017年9月", ship: "free" },
       { c: "free", rel: "2017年9月", ship: "free" }
     ] },
   { id: "iphone-7", name: "iPhone 7", maker: "iphone", kana: "アイフォン 7",
@@ -763,7 +767,7 @@ const DEVICES = [
       { c: "au", rel: "2016年9月", ship: "locked" },
       { c: "sb", rel: "2016年9月", ship: "locked" },
       { c: "uq", rel: "2016年9月", ship: "locked" },
-      { c: "ymobile", rel: "2016年9月", ship: "cond" },
+      { c: "ymobile", rel: "2016年9月", ship: "locked" },
       { c: "free", rel: "2016年9月", ship: "free" }
     ] },
   { id: "iphone-7-plus", name: "iPhone 7 Plus", maker: "iphone", kana: "アイフォン 7 プラス",
@@ -779,7 +783,7 @@ const DEVICES = [
       { c: "au", rel: "2016年3月", ship: "locked" },
       { c: "sb", rel: "2016年3月", ship: "locked" },
       { c: "uq", rel: "2016年3月", ship: "locked" },
-      { c: "ymobile", rel: "2016年3月", ship: "cond" },
+      { c: "ymobile", rel: "2016年3月", ship: "locked" },
       { c: "free", rel: "2016年3月", ship: "free" }
     ], note: "iOS 14以上に更新できない機種は設定に「SIMロック」項目が出ない → 他社SIMテストで判定" },
   { id: "iphone-6s", name: "iPhone 6s", maker: "iphone", kana: "アイフォン 6s",
@@ -788,7 +792,7 @@ const DEVICES = [
       { c: "au", rel: "2015年9月", ship: "locked" },
       { c: "sb", rel: "2015年9月", ship: "locked" },
       { c: "uq", rel: "2015年9月", ship: "locked" },
-      { c: "ymobile", rel: "2015年9月", ship: "cond" },
+      { c: "ymobile", rel: "2015年9月", ship: "locked" },
       { c: "free", rel: "2015年9月", ship: "free" }
     ] },
   { id: "iphone-6s-plus", name: "iPhone 6s Plus", maker: "iphone", kana: "アイフォン 6s プラス",
@@ -988,7 +992,7 @@ const DEVICES = [
     ], note: "Google Store版・キャリア版ともSIMロックなし" },
   { id: "pixel-5a", name: "Pixel 5a (5G)", maker: "pixel", kana: "ピクセル グーグル 5a 5g",
     variants: [
-      { c: "sb", rel: "2021年8月", ship: "cond" },
+      { c: "sb", rel: "2021年8月", ship: "free" },
       { c: "free", rel: "2021年8月", ship: "free" }
     ] },
   { id: "pixel-4a-5g", name: "Pixel 4a (5G)", maker: "pixel", kana: "ピクセル グーグル 4a 5g",
@@ -1173,14 +1177,14 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SO-51B", rel: "2021年7月", ship: "locked" },
       { c: "au", code: "SOG03", rel: "2021年7月", ship: "locked" },
-      { c: "sb", code: "A101SO", rel: "2021年7月", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" },
+      { c: "sb", code: "A101SO", rel: "2021年7月", ship: "locked", note: "2021/5/12以降の購入分は解除済で渡し" },
       { c: "free", code: "XQ-BC42", rel: "2021年7月", ship: "free" }
     ] },
   { id: "xperia-10-iii", name: "Xperia 10 III", maker: "xperia", kana: "エクスペリア",
     variants: [
       { c: "docomo", code: "SO-52B", rel: "2021年6月", ship: "locked" },
       { c: "au", code: "SOG04", rel: "2021年6月", ship: "locked" },
-      { c: "ymobile", code: "A102SO", rel: "2021年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" }
+      { c: "ymobile", code: "A102SO", rel: "2021年", ship: "free", note: "2021/5/12以降の購入分は解除済で渡し" }
     ] },
   { id: "xperia-ace2", name: "Xperia Ace II", maker: "xperia", kana: "エクスペリア エース ツー",
     variants: [
@@ -1202,7 +1206,7 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SO-41A", rel: "2020年", ship: "locked" },
       { c: "au", code: "SOV43", rel: "2020年", ship: "locked" },
-      { c: "ymobile", code: "A001SO", rel: "2020年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" },
+      { c: "ymobile", code: "A001SO", rel: "2020年", ship: "locked", note: "2021/5/12以降の購入分は解除済で渡し" },
       { c: "free", code: "XQ-AU42", rel: "2020年", ship: "free" }
     ] },
   { id: "xperia-1-ii", name: "Xperia 1 II", maker: "xperia", kana: "エクスペリア ワン マークツー",
@@ -1228,9 +1232,8 @@ const DEVICES = [
   { id: "xperia-8", name: "Xperia 8", maker: "xperia", kana: "エクスペリア エイト",
     variants: [
       { c: "au", code: "SOV42", rel: "2019年", ship: "locked" },
-      { c: "sb", code: "902SO", rel: "2019年", ship: "locked" },
-      { c: "uq", rel: "2019年", ship: "locked" },
-      { c: "ymobile", code: "902SO", rel: "2019年", ship: "cond" }
+      { c: "uq", rel: "2019年", ship: "free" },
+      { c: "ymobile", code: "902SO", rel: "2019年", ship: "locked" }
     ] },
   { id: "xperia-ace", name: "Xperia Ace", maker: "xperia", kana: "エクスペリア エース",
     variants: [
@@ -1239,7 +1242,7 @@ const DEVICES = [
     ] },
   { id: "xperia-8-lite", name: "Xperia 8 Lite", maker: "xperia", kana: "エクスペリア",
     variants: [
-      { c: "uq", rel: "2019年", ship: "locked" },
+      { c: "uq", rel: "2019年", ship: "free" },
       { c: "free", code: "J3273", rel: "2019年", ship: "free" }
     ] },
   { id: "xperia-xz2-premium", name: "Xperia XZ2 Premium", maker: "xperia", kana: "エクスペリア エックスゼットツー プレミアム",
@@ -1299,6 +1302,26 @@ const DEVICES = [
       { c: "au", code: "SOV33", rel: "2016年5月", ship: "locked" },
       { c: "sb", code: "502SO", rel: "2016年5月", ship: "locked" }
     ] },
+  { id: "dcm-so-01h", name: "Xperia Z5 SO-01H", maker: "xperia", kana: "Xperia Z5 ドコモ",
+    variants: [
+      { c: "docomo", code: "SO-01H", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-so-02h", name: "Xperia Z5 Compact SO-02H", maker: "xperia", kana: "Xperia Z5 Compact ドコモ",
+    variants: [
+      { c: "docomo", code: "SO-02H", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-so-03h", name: "Xperia Z5 Premium SO-03H", maker: "xperia", kana: "Xperia Z5 Premium ドコモ",
+    variants: [
+      { c: "docomo", code: "SO-03H", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-so-03g", name: "Xperia Z4 SO-03G", maker: "xperia", kana: "Xperia Z4 ドコモ",
+    variants: [
+      { c: "docomo", code: "SO-03G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-so-04g", name: "Xperia A4 SO-04G", maker: "xperia", kana: "Xperia A4 ドコモ",
+    variants: [
+      { c: "docomo", code: "SO-04G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "xperia-z5", name: "Xperia Z5", maker: "xperia", kana: "エクスペリア",
     variants: [
       { c: "au", code: "SOV32", rel: "2015年", ship: "locked" }
@@ -1539,13 +1562,13 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SC-42A", rel: "2020年", ship: "locked" },
       { c: "au", code: "SCV49", rel: "2020年", ship: "locked" },
-      { c: "uq", code: "SCV49", rel: "2020年", ship: "locked" }
+      { c: "uq", code: "SCV49", rel: "2020年", ship: "free", note: "UQ版AndroidはSIMロックなし（公式）。ただし「一部Android機種での利用設定」の操作が必要" }
     ] },
   { id: "galaxy-a41", name: "Galaxy A41", maker: "galaxy", kana: "ギャラクシー エーヨンジューイチ",
     variants: [
       { c: "docomo", code: "SC-41A", rel: "2020年", ship: "locked" },
       { c: "au", code: "SCV48", rel: "2020年", ship: "locked" },
-      { c: "uq", rel: "2020年", ship: "locked" }
+      { c: "uq", rel: "2020年", ship: "free", note: "UQ版AndroidはSIMロックなし（公式）。ただし「一部Android機種での利用設定」の操作が必要" }
     ] },
   { id: "galaxy-s20-ultra", name: "Galaxy S20 Ultra 5G", maker: "galaxy", kana: "ギャラクシー エストゥエンティ ウルトラ",
     variants: [
@@ -1565,12 +1588,12 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SC-02M", rel: "2019年", ship: "locked" },
       { c: "au", code: "SCV46", rel: "2019年", ship: "locked" },
-      { c: "uq", rel: "2019年", ship: "locked" }
+      { c: "uq", rel: "2019年", ship: "free" }
     ] },
   { id: "galaxy-a30", name: "Galaxy A30", maker: "galaxy", kana: "ギャラクシー エーサーティ",
     variants: [
       { c: "au", code: "SCV43", rel: "2019年", ship: "locked" },
-      { c: "uq", rel: "2019年", ship: "locked" },
+      { c: "uq", rel: "2019年", ship: "free" },
       { c: "rakuten", rel: "2019年", ship: "free" }
     ] },
   { id: "galaxy-s10", name: "Galaxy S10", maker: "galaxy", kana: "ギャラクシー エステン",
@@ -1637,6 +1660,10 @@ const DEVICES = [
       { c: "docomo", code: "SC-02H", rel: "2016年", ship: "locked" },
       { c: "au", code: "SCV33", rel: "2016年", ship: "locked" }
     ] },
+  { id: "dcm-sc-01h", name: "Galaxy Active neo SC-01H", maker: "galaxy", kana: "Galaxy Active neo ドコモ",
+    variants: [
+      { c: "docomo", code: "SC-01H", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "galaxy-m23-5g", name: "Galaxy M23 5G", maker: "galaxy", kana: "ギャラクシー",
     variants: [
       { c: "free", rel: "—", ship: "free" }
@@ -1826,20 +1853,24 @@ const DEVICES = [
   { id: "aquos-r6", name: "AQUOS R6", maker: "aquos", kana: "アクオス アール シックス",
     variants: [
       { c: "docomo", code: "SH-51B", rel: "2021年6月", ship: "locked" },
-      { c: "sb", code: "A101SH", rel: "2021年7月", ship: "cond" },
+      { c: "sb", code: "A101SH", rel: "2021年7月", ship: "free" },
       { c: "free", code: "SH-M22", rel: "2021年6月", ship: "free" }
+    ] },
+  { id: "leitz-phone-1", name: "LEITZ PHONE 1", maker: "aquos", kana: "アクオス",
+    variants: [
+      { c: "sb", code: "LP-01", rel: "2021年7月", ship: "free" }
     ] },
   { id: "aquos-sense5g", name: "AQUOS sense5G", maker: "aquos", kana: "アクオス センス",
     variants: [
       { c: "docomo", code: "SH-53A", rel: "2021年2月", ship: "locked" },
       { c: "au", code: "SHG03", rel: "2021年2月", ship: "locked" },
-      { c: "sb", code: "A004SH", rel: "2021年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" },
-      { c: "uq", rel: "2021年2月", ship: "locked" },
+      { c: "sb", code: "A004SH", rel: "2021年", ship: "locked", note: "2021/5/12以降の購入分は解除済で渡し" },
+      { c: "uq", rel: "2021年2月", ship: "free", note: "UQ版AndroidはSIMロックなし（公式）。ただし「一部Android機種での利用設定」の操作が必要" },
       { c: "free", code: "SH-M17", rel: "2021年2月", ship: "free" }
     ] },
   { id: "aquos-sense4-basic", name: "AQUOS sense4 basic", maker: "aquos", kana: "アクオス センス フォー ベーシック",
     variants: [
-      { c: "ymobile", code: "A003SH", rel: "2021年", ship: "cond" }
+      { c: "ymobile", code: "A003SH", rel: "2021年", ship: "locked" }
     ] },
   { id: "aquos-sense4", name: "AQUOS sense4", maker: "aquos", kana: "アクオス センス フォー",
     variants: [
@@ -1854,7 +1885,7 @@ const DEVICES = [
   { id: "aquos-sense3-basic", name: "AQUOS sense3 basic", maker: "aquos", kana: "アクオス センス",
     variants: [
       { c: "au", code: "SHV48", rel: "2020年6月", ship: "locked" },
-      { c: "uq", code: "SHV48", rel: "2020年", ship: "locked" }
+      { c: "uq", code: "SHV48", rel: "2020年", ship: "free", note: "UQ版AndroidはSIMロックなし（公式）。ただし「一部Android機種での利用設定」の操作が必要" }
     ] },
   { id: "aquos-r5g", name: "AQUOS R5G", maker: "aquos", kana: "アクオス アール ファイブジー",
     variants: [
@@ -1873,7 +1904,7 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SH-02M", rel: "2019年", ship: "locked" },
       { c: "au", code: "SHV45", rel: "2019年", ship: "locked" },
-      { c: "uq", rel: "2019年", ship: "locked" },
+      { c: "uq", rel: "2019年", ship: "free" },
       { c: "free", code: "SH-M12", rel: "2019年", ship: "free" }
     ] },
   { id: "aquos-zero2", name: "AQUOS zero2", maker: "aquos", kana: "アクオス",
@@ -1893,14 +1924,13 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SH-01K", n: "AQUOS sense SH-01K", rel: "2017年", ship: "locked" },
       { c: "au", code: "SHV40", n: "AQUOS sense SHV40", rel: "2018年", ship: "locked" },
-      { c: "sb", code: "603SH", rel: "2018年", ship: "locked" },
-      { c: "uq", n: "AQUOS sense", rel: "2017年", ship: "locked" }
+      { c: "uq", n: "AQUOS sense", rel: "2017年", ship: "free" }
     ] },
   { id: "aquos-sense2", name: "AQUOS sense2", maker: "aquos", kana: "アクオス センス",
     variants: [
       { c: "docomo", code: "SH-01L", rel: "2018年", ship: "locked" },
       { c: "au", code: "SHV43", rel: "2018年", ship: "locked" },
-      { c: "uq", rel: "2018年", ship: "locked" },
+      { c: "uq", rel: "2018年", ship: "free" },
       { c: "free", code: "SH-M08", rel: "2018年", ship: "free" }
     ] },
   { id: "aquos-r", name: "AQUOS R", maker: "aquos", kana: "アクオス アール",
@@ -1909,11 +1939,31 @@ const DEVICES = [
       { c: "au", code: "SHV39", rel: "2017年", ship: "locked" },
       { c: "sb", code: "605SH", rel: "2017年", ship: "locked" }
     ] },
+  { id: "dcm-sh-02j", name: "AQUOS EVER SH-02J", maker: "aquos", kana: "AQUOS EVER ドコモ",
+    variants: [
+      { c: "docomo", code: "SH-02J", rel: "2016年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "aquos-zeta", name: "AQUOS ZETA", maker: "aquos", kana: "アクオス ゼータ",
     variants: [
       { c: "docomo", code: "SH-01H／SH-04H", rel: "2015〜16年", ship: "locked" },
       { c: "au", code: "SHV32", rel: "2015年", ship: "locked" }
     ] },
+  { id: "dcm-sh-02h", name: "AQUOS Compact SH-02H", maker: "aquos", kana: "AQUOS Compact ドコモ",
+    variants: [
+      { c: "docomo", code: "SH-02H", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-sh-03g", name: "AQUOS ZETA SH-03G", maker: "aquos", kana: "AQUOS ZETA ドコモ",
+    variants: [
+      { c: "docomo", code: "SH-03G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-sh-04g", name: "AQUOS EVER SH-04G", maker: "aquos", kana: "AQUOS EVER ドコモ",
+    variants: [
+      { c: "docomo", code: "SH-04G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-sh-05g", name: "AQUOS PAD SH-05G", maker: "aquos", kana: "AQUOS PAD ドコモ",
+    variants: [
+      { c: "docomo", code: "SH-05G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "aquos-sense4-plus", name: "AQUOS sense4 plus", maker: "aquos", kana: "アクオス",
     variants: [
       { c: "rakuten", code: "SH-M16", rel: "—", ship: "free" },
@@ -2001,10 +2051,6 @@ const DEVICES = [
     variants: [
       { c: "sb", code: "A201SH", rel: "—", ship: "free" }
     ] },
-  { id: "leitz-phone-1", name: "LEITZ PHONE 1", maker: "aquos", kana: "アクオス",
-    variants: [
-      { c: "sb", code: "LP-01", rel: "—", ship: "cond" }
-    ] },
   { id: "aquos-zero5g-basic", name: "AQUOS zero5G basic", maker: "aquos", kana: "アクオス",
     variants: [
       { c: "sb", code: "A002SH", rel: "—", ship: "locked" }
@@ -2015,8 +2061,8 @@ const DEVICES = [
     ] },
   { id: "android-one-s5", name: "Android One S5", maker: "aquos", kana: "アクオス",
     variants: [
-      { c: "sb", rel: "—", ship: "rule" },
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "sb", rel: "—", ship: "locked" },
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
   { id: "4", name: "シンプルスマホ4", maker: "aquos", kana: "アクオス",
     variants: [
@@ -2024,8 +2070,8 @@ const DEVICES = [
     ] },
   { id: "android-one-s3", name: "Android One S3", maker: "aquos", kana: "アクオス",
     variants: [
-      { c: "sb", rel: "—", ship: "rule" },
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "sb", rel: "—", ship: "locked" },
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
   { id: "aquos-ea", name: "AQUOS ea", maker: "aquos", kana: "アクオス",
     variants: [
@@ -2033,23 +2079,23 @@ const DEVICES = [
     ] },
   { id: "aquos-l2", name: "AQUOS L2", maker: "aquos", kana: "アクオス",
     variants: [
-      { c: "uq", rel: "—", ship: "locked" }
+      { c: "uq", rel: "—", ship: "free" }
     ] },
   { id: "aquos-l", name: "AQUOS L", maker: "aquos", kana: "アクオス",
     variants: [
-      { c: "uq", rel: "—", ship: "locked" }
+      { c: "uq", rel: "—", ship: "free" }
     ] },
   { id: "android-one-s7", name: "Android One S7", maker: "aquos", kana: "アクオス",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
   { id: "android-one-x4", name: "Android One X4", maker: "aquos", kana: "アクオス",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
   { id: "android-one-x1", name: "Android One X1", maker: "aquos", kana: "アクオス",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
   { id: "aquos-sense3-lite", name: "AQUOS sense3 lite", maker: "aquos", kana: "アクオス",
     variants: [
@@ -2092,13 +2138,13 @@ const DEVICES = [
     ] },
   { id: "kantan-sumaho2", name: "かんたんスマホ2", maker: "kyocera", kana: "かんたんスマホ シニア",
     variants: [
-      { c: "ymobile", code: "A001KC", rel: "2021年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し。他社SIMで解除コード画面の有無を確認" }
+      { c: "ymobile", code: "A001KC", rel: "2021年", ship: "locked", note: "2021/5/12以降の購入分は解除済で渡し。他社SIMで解除コード画面の有無を確認" }
     ] },
   { id: "basio4", name: "BASIO4", maker: "kyocera", kana: "ベイシオ シニア",
     path: { steps: ["その他の設定", "デバイス情報"], target: "SIMカードの状態" },
     variants: [
       { c: "au", code: "KYV47", rel: "2020年", ship: "locked" },
-      { c: "uq", code: "KYV47", rel: "2020年", ship: "locked" }
+      { c: "uq", code: "KYV47", rel: "2020年", ship: "free" }
     ] },
   { id: "torque-g04", name: "TORQUE G04", maker: "kyocera", kana: "トルク",
     variants: [
@@ -2113,6 +2159,10 @@ const DEVICES = [
     variants: [
       { c: "au", code: "KYV41", rel: "2018年", ship: "locked" }
     ] },
+  { id: "m-8a14723d", name: "かんたんスマホ", maker: "kyocera", kana: "京セラ",
+    variants: [
+      { c: "ymobile", code: "705KC", rel: "2018年", ship: "locked" }
+    ] },
   { id: "basio2", name: "BASIO2", maker: "kyocera", kana: "ベイシオ シニア",
     variants: [
       { c: "au", code: "SHV36", rel: "2017年", ship: "locked" }
@@ -2120,10 +2170,6 @@ const DEVICES = [
   { id: "basio", name: "BASIO（初代）", maker: "kyocera", kana: "ベイシオ シニア",
     variants: [
       { c: "au", code: "KYV32", rel: "2016年", ship: "locked" }
-    ] },
-  { id: "kantan-sumaho1", name: "かんたんスマホ（初代）", maker: "kyocera", kana: "かんたんスマホ シニア",
-    variants: [
-      { c: "ymobile", code: "501KC", rel: "2016年", ship: "locked" }
     ] },
   { id: "urbano-v04", name: "URBANO V04", maker: "kyocera", kana: "京セラ",
     variants: [
@@ -2167,7 +2213,7 @@ const DEVICES = [
     ] },
   { id: "digno-bx2", name: "DIGNO BX2", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "sb", code: "A101KC", rel: "—", ship: "cond" }
+      { c: "sb", code: "A101KC", rel: "—", ship: "free" }
     ] },
   { id: "digno-j", name: "DIGNO J", maker: "kyocera", kana: "京セラ",
     variants: [
@@ -2179,51 +2225,47 @@ const DEVICES = [
     ] },
   { id: "01", name: "おてがるスマホ01", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "uq", rel: "—", ship: "locked" }
+      { c: "uq", rel: "—", ship: "free" }
     ] },
   { id: "digno-a", name: "DIGNO A", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "uq", rel: "—", ship: "locked" }
+      { c: "uq", rel: "—", ship: "free" }
     ] },
   { id: "digno-v", name: "DIGNO V", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "uq", rel: "—", ship: "locked" }
+      { c: "uq", rel: "—", ship: "free" }
     ] },
   { id: "digno-w", name: "DIGNO W", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "uq", rel: "—", ship: "locked" }
+      { c: "uq", rel: "—", ship: "free" }
     ] },
   { id: "digno-l", name: "DIGNO L", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "uq", rel: "—", ship: "locked" }
+      { c: "uq", rel: "—", ship: "free" }
     ] },
   { id: "android-one-s10", name: "Android One S10", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "free" }
     ] },
   { id: "android-one-s9", name: "Android One S9", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "free" }
     ] },
   { id: "android-one-s8", name: "Android One S8", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
   { id: "android-one-s6", name: "Android One S6", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
-    ] },
-  { id: "m-8a14723d", name: "かんたんスマホ", maker: "kyocera", kana: "京セラ",
-    variants: [
-      { c: "ymobile", code: "705KC", rel: "—", ship: "cond" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
   { id: "android-one-s4", name: "Android One S4", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
   { id: "android-one-x3", name: "Android One X3", maker: "kyocera", kana: "京セラ",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
 
   // ---------- arrows・らくらくスマートフォン ----------
@@ -2338,10 +2380,22 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "F-01K", rel: "2017年", ship: "locked" }
     ] },
+  { id: "dcm-f-03h", name: "arrows SV F-03H", maker: "fcnt", kana: "arrows SV ドコモ",
+    variants: [
+      { c: "docomo", code: "F-03H", rel: "2016年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "arrows-be-f-05j", name: "arrows Be F-05J", maker: "fcnt", kana: "富士通 アローズ",
     variants: [
       { c: "docomo", code: "F-05J", rel: "2016年", ship: "locked" }
     ] },
+  { id: "dcm-f-01h", name: "arrows Fit F-01H", maker: "fcnt", kana: "arrows Fit ドコモ",
+    variants: [
+      { c: "docomo", code: "F-01H", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-f-04g", name: "ARROWS NX F-04G", maker: "fcnt", kana: "ARROWS NX ドコモ",
+    variants: [
+      { c: "docomo", code: "F-04G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "arrows-nx", name: "arrows NX", maker: "fcnt", kana: "アローズ エヌエックス",
     variants: [
       { c: "docomo", code: "F-01J／F-02H", rel: "2016〜17年", ship: "locked" }
@@ -2460,11 +2514,11 @@ const DEVICES = [
   { id: "oppo-a54", name: "OPPO A54 5G", maker: "oppo", kana: "オッポ",
     variants: [
       { c: "au", code: "OPG02", rel: "2021年6月", ship: "locked" },
-      { c: "uq", code: "OPG02", rel: "2021年6月", ship: "locked" }
+      { c: "uq", code: "OPG02", rel: "2021年6月", ship: "free", note: "UQ版AndroidはSIMロックなし（公式）。ただし「一部Android機種での利用設定」の操作が必要" }
     ] },
   { id: "oppo-reno5a", name: "OPPO Reno5 A", maker: "oppo", kana: "オッポ リノ",
     variants: [
-      { c: "ymobile", code: "A101OP", rel: "2021年6月", ship: "cond", note: "2021/5/12以降の購入なら解除済で渡し。他社SIMで確認" },
+      { c: "ymobile", code: "A101OP", rel: "2021年6月", ship: "free", note: "2021/5/12以降の購入なら解除済で渡し。他社SIMで確認" },
       { c: "rakuten", rel: "2021年6月", ship: "free" },
       { c: "free", code: "CPH2199", rel: "2021年6月", ship: "free" }
     ] },
@@ -2475,8 +2529,8 @@ const DEVICES = [
     ] },
   { id: "oppo-reno3a", name: "OPPO Reno3 A", maker: "oppo", kana: "オッポ リノ",
     variants: [
-      { c: "uq", n: "Reno3 A", rel: "2020年", ship: "locked" },
-      { c: "ymobile", code: "A002OP", rel: "2020年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" },
+      { c: "uq", n: "Reno3 A", rel: "2020年", ship: "free" },
+      { c: "ymobile", code: "A002OP", rel: "2020年", ship: "locked", note: "2021/5/12以降の購入分は解除済で渡し" },
       { c: "rakuten", rel: "2020年", ship: "free" },
       { c: "free", code: "CPH2013", rel: "2020年", ship: "free" }
     ] },
@@ -2491,7 +2545,7 @@ const DEVICES = [
     ] },
   { id: "oppo-a5-2020", name: "OPPO A5 2020", maker: "oppo", kana: "オッポ エーファイブ",
     variants: [
-      { c: "uq", n: "A5 2020", rel: "2020年", ship: "locked" },
+      { c: "uq", n: "A5 2020", rel: "2020年", ship: "free" },
       { c: "rakuten", rel: "2020年", ship: "free" },
       { c: "free", rel: "2020年", ship: "free" }
     ] },
@@ -2510,7 +2564,7 @@ const DEVICES = [
     ] },
   { id: "oppo-r17-neo", name: "OPPO R17 Neo", maker: "oppo", kana: "オッポ",
     variants: [
-      { c: "uq", n: "R17 Neo", rel: "2019年", ship: "locked" }
+      { c: "uq", n: "R17 Neo", rel: "2019年", ship: "free" }
     ] },
   { id: "oppo-r17-pro", name: "OPPO R17 Pro", maker: "oppo", kana: "オッポ",
     variants: [
@@ -2542,7 +2596,7 @@ const DEVICES = [
     ] },
   { id: "oppo-reno5-a-esim", name: "OPPO Reno5 A（eSIM対応版）", maker: "oppo", kana: "オッポ",
     variants: [
-      { c: "ymobile", code: "A103OP", n: "OPPO Reno5 A (eSIM) A103OP", rel: "—", ship: "cond" }
+      { c: "ymobile", code: "A103OP", n: "OPPO Reno5 A (eSIM) A103OP", rel: "—", ship: "free" }
     ] },
 
   // ---------- Xiaomi ----------
@@ -2631,12 +2685,12 @@ const DEVICES = [
   { id: "redmi-note-10-je", name: "Redmi Note 10 JE", maker: "xiaomi", kana: "レッドミー シャオミ",
     variants: [
       { c: "au", code: "XIG02", rel: "2021年8月", ship: "free", note: "解除済みの状態で出荷（au取説に記載）" },
-      { c: "uq", code: "XIG02", rel: "2021年8月", ship: "free", note: "解除済みの状態で出荷" }
+      { c: "uq", code: "XIG02", rel: "2021年8月", ship: "free", note: "UQ版AndroidはSIMロックなし（公式）。ただし「一部Android機種での利用設定」の操作が必要" }
     ] },
   { id: "redmi-9t", name: "Redmi 9T", maker: "xiaomi", kana: "レッドミー シャオミ",
     variants: [
-      { c: "uq", rel: "2021年", ship: "locked" },
-      { c: "ymobile", rel: "2021年", ship: "cond" },
+      { c: "uq", rel: "2021年", ship: "free" },
+      { c: "ymobile", rel: "2021年", ship: "free" },
       { c: "rakuten", rel: "2021年", ship: "free" },
       { c: "free", rel: "2021年", ship: "free" }
     ] },
@@ -2895,7 +2949,11 @@ const DEVICES = [
     ] },
   { id: "libero-5g", name: "Libero 5G", maker: "zte", kana: "リベロ ゼットティーイー",
     variants: [
-      { c: "ymobile", code: "A003ZT", rel: "2021年4月", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" }
+      { c: "ymobile", code: "A003ZT", rel: "2021年4月", ship: "locked", note: "2021/5/12以降の購入分は解除済で渡し" }
+    ] },
+  { id: "zte-a1", name: "ZTE a1", maker: "zte", kana: "ゼットティーイー",
+    variants: [
+      { c: "au", code: "ZTG01", rel: "2020年8月", ship: "locked" }
     ] },
   { id: "axon-10-pro-5g", name: "Axon 10 Pro 5G", maker: "zte", kana: "ゼットティーイー",
     variants: [
@@ -2903,20 +2961,24 @@ const DEVICES = [
     ] },
   { id: "libero-s10", name: "Libero S10", maker: "zte", kana: "ゼットティーイー",
     variants: [
-      { c: "ymobile", code: "901ZT", rel: "2019年", ship: "cond" }
+      { c: "ymobile", code: "901ZT", rel: "2019年", ship: "locked" }
     ] },
+  { id: "dcm-z-01k", name: "M Z-01K", maker: "zte", kana: "M Z-01K ドコモ",
+    variants: [
+      { c: "docomo", code: "Z-01K", rel: "2018年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "mono", name: "MONO", maker: "zte", kana: "ゼットティーイー",
     variants: [
       { c: "docomo", code: "MO-01K", rel: "2017年", ship: "locked" }
     ] },
+  { id: "dcm-mo-01j", name: "MONO MO-01J", maker: "zte", kana: "MONO ドコモ",
+    variants: [
+      { c: "docomo", code: "MO-01J", rel: "2016年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "blade-v770", name: "BLADE V770", maker: "zte", kana: "ゼットティーイー",
     variants: [
       { c: "uq", rel: "2016年", ship: "free" },
       { c: "free", rel: "2016年", ship: "free" }
-    ] },
-  { id: "zte-a1", name: "ZTE a1", maker: "zte", kana: "ゼットティーイー",
-    variants: [
-      { c: "au", code: "ZTG01", rel: "—", ship: "rule" }
     ] },
 
   // ---------- HUAWEI ----------
@@ -2944,7 +3006,7 @@ const DEVICES = [
   { id: "huawei-p30-lite", name: "HUAWEI P30 lite", maker: "huawei", kana: "ファーウェイ",
     variants: [
       { c: "uq", rel: "2019年", ship: "free" },
-      { c: "ymobile", code: "MAR-LX2J", rel: "2019年", ship: "locked" },
+      { c: "ymobile", code: "MAR-LX2J", rel: "2019年", ship: "free" },
       { c: "free", rel: "2019年", ship: "free" }
     ] },
   { id: "huawei-nova-lite-3-2", name: "HUAWEI nova lite 3", maker: "huawei", kana: "ファーウェイ",
@@ -2964,7 +3026,7 @@ const DEVICES = [
     variants: [
       { c: "au", code: "HWV32", n: "P20 lite HWV32", rel: "2018年", ship: "locked" },
       { c: "uq", rel: "2018年", ship: "free" },
-      { c: "ymobile", code: "ANE-LX2J", rel: "2018年", ship: "cond", note: "2021/5/12以降の購入分は解除済で渡し" },
+      { c: "ymobile", code: "ANE-LX2J", rel: "2018年", ship: "free", note: "2021/5/12以降の購入分は解除済で渡し" },
       { c: "free", code: "ANE-LX2J", rel: "2018年", ship: "free" }
     ] },
   { id: "huawei-mate-20-pro", name: "HUAWEI Mate 20 Pro", maker: "huawei", kana: "ファーウェイ",
@@ -3018,7 +3080,7 @@ const DEVICES = [
     ] },
   { id: "huawei-nova-lite-for-y-mobile", name: "HUAWEI nova lite for Y!mobile", maker: "huawei", kana: "ファーウェイ",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "free" }
     ] },
 
   // ---------- ASUS ----------
@@ -3249,6 +3311,10 @@ const DEVICES = [
     variants: [
       { c: "sb", code: "802LG", rel: "2019年", ship: "locked" }
     ] },
+  { id: "dcm-l-02k", name: "JOJO（L-02K）", maker: "lg", kana: "JOJO（L-02K） ドコモ",
+    variants: [
+      { c: "docomo", code: "L-02K", rel: "2018年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "lg-style", name: "LG style", maker: "lg", kana: "エルジー",
     variants: [
       { c: "docomo", code: "L-03K", rel: "2018年", ship: "locked" }
@@ -3261,6 +3327,10 @@ const DEVICES = [
     variants: [
       { c: "au", code: "LGV35", rel: "2018年", ship: "locked" }
     ] },
+  { id: "dcm-l-01j", name: "V20 PRO L-01J", maker: "lg", kana: "V20 PRO ドコモ",
+    variants: [
+      { c: "docomo", code: "L-01J", rel: "2017年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "disney-mobile-on-docomo", name: "Disney Mobile on docomo", maker: "lg", kana: "エルジー",
     variants: [
       { c: "docomo", code: "DM-01K", rel: "2017年", ship: "locked" }
@@ -3287,7 +3357,7 @@ const DEVICES = [
     ] },
   { id: "android-one-x5", name: "Android One X5", maker: "lg", kana: "エルジー",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
 
   // ---------- TCL ----------
@@ -3337,7 +3407,7 @@ const DEVICES = [
     ] },
   { id: "android-one-x2", name: "Android One X2", maker: "htc", kana: "エイチティーシー",
     variants: [
-      { c: "ymobile", rel: "—", ship: "rule" }
+      { c: "ymobile", rel: "—", ship: "locked" }
     ] },
 
   // ---------- Nothing ----------
@@ -3391,6 +3461,22 @@ const DEVICES = [
     variants: [
       { c: "rakuten", code: "C330", rel: "2019年10月", ship: "free" }
     ], note: "eSIMのみ" },
+  { id: "dcm-dm-01j", name: "Disney Mobile on docomo DM-01J", maker: "android", kana: "Disney Mobile on docomo ドコモ",
+    variants: [
+      { c: "docomo", code: "DM-01J", rel: "2017年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-dm-02h", name: "Disney Mobile on docomo DM-02H", maker: "android", kana: "Disney Mobile on docomo ドコモ",
+    variants: [
+      { c: "docomo", code: "DM-02H", rel: "2016年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-dm-01h", name: "Disney Mobile on docomo DM-01H", maker: "android", kana: "Disney Mobile on docomo ドコモ",
+    variants: [
+      { c: "docomo", code: "DM-01H", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-dm-01g", name: "Disney Mobile on docomo DM-01G", maker: "android", kana: "Disney Mobile on docomo ドコモ",
+    variants: [
+      { c: "docomo", code: "DM-01G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
 
   // ---------- ガラホ ----------
   { id: "digno-keitai-ky42c", name: "DIGNOケータイ KY-42C", maker: "garaho", brand: "kyocera", kana: "ディグノ ケータイ 京セラ ガラホ",
@@ -3405,14 +3491,18 @@ const DEVICES = [
     variants: [
       { c: "sb", rel: "2022年9月", ship: "free" }
     ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
-  { id: "gratina-2", name: "GRATINA KYV48", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
-    variants: [
-      { c: "au", code: "KYV48", rel: "2022年", ship: "cond", note: "発売時期が未確認のため「条件付き」表示。他社SIMで要確認" }
-    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
   { id: "gratina-kyf42", name: "GRATINA KYF42", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
     variants: [
       { c: "au", code: "KYF42", rel: "2021年8月", ship: "locked" }
     ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "gratina-2", name: "GRATINA KYV48", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
+    variants: [
+      { c: "au", code: "KYV48", rel: "2020年", ship: "locked" }
+    ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "dcm-sh-03m", name: "キッズケータイ SH-03M", maker: "garaho", brand: "aquos", kana: "キッズケータイ ドコモ",
+    variants: [
+      { c: "docomo", code: "SH-03M", rel: "2020年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "digno-keitai3", name: "DIGNOケータイ3", maker: "garaho", brand: "kyocera", kana: "ディグノ ケータイ 京セラ ガラホ",
     variants: [
       { c: "sb", code: "902KC", rel: "2020年3月", ship: "locked", note: "My SoftBankでIMEI照会も可" },
@@ -3431,6 +3521,10 @@ const DEVICES = [
     variants: [
       { c: "sb", code: "807SH", rel: "2019年", ship: "locked" }
     ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "dcm-f-03l", name: "arrows ケータイ F-03L", maker: "garaho", brand: "fcnt", kana: "arrows ケータイ ドコモ",
+    variants: [
+      { c: "docomo", code: "F-03L", rel: "2019年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "gratina", name: "GRATINA KYF39", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
     variants: [
       { c: "au", code: "KYF39", rel: "2019年5月", ship: "locked", note: "他社SIM挿入でアンテナが立つか／My auで「SIMロック解除可否」確認" }
@@ -3464,6 +3558,10 @@ const DEVICES = [
     variants: [
       { c: "docomo", code: "SH-02K", rel: "2017年11月", ship: "locked" }
     ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "dcm-f-03j", name: "キッズケータイ F-03J", maker: "garaho", brand: "fcnt", kana: "キッズケータイ ドコモ",
+    variants: [
+      { c: "docomo", code: "F-03J", rel: "2017年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "gratina-4g-kyf34", name: "GRATINA 4G（KYF34）", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
     variants: [
       { c: "au", code: "KYF34", rel: "2017年4月", ship: "locked" }
@@ -3485,6 +3583,10 @@ const DEVICES = [
       { c: "sb", code: "601SH", rel: "2016年", ship: "locked" },
       { c: "ymobile", code: "602SH", rel: "2016年", ship: "locked" }
     ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "dcm-f-02j", name: "らくらくホン F-02J", maker: "garaho", brand: "fcnt", kana: "らくらくホン ドコモ",
+    variants: [
+      { c: "docomo", code: "F-02J", rel: "2016年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "gratina-4g-kyf31", name: "GRATINA 4G", maker: "garaho", brand: "kyocera", kana: "グラティーナ ガラホ 京セラ",
     variants: [
       { c: "au", code: "KYF31", rel: "2016年2月", ship: "locked" }
@@ -3498,6 +3600,18 @@ const DEVICES = [
     variants: [
       { c: "au", code: "SHF32", rel: "2015年", ship: "locked" }
     ], note: "ケータイ型は「SIMロックステータス」の項目が無いことが多い → 他社SIMを挿して確認／発売時期・型番は公開情報ベース" },
+  { id: "dcm-p-01h", name: "P-01H（ケータイ）", maker: "garaho", mfr: "panasonic", kana: "P-01H（ケータイ） ドコモ",
+    variants: [
+      { c: "docomo", code: "P-01H", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-f-05g", name: "ARROWS ケータイ F-05G", maker: "garaho", brand: "fcnt", kana: "ARROWS ケータイ ドコモ",
+    variants: [
+      { c: "docomo", code: "F-05G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
+  { id: "dcm-sh-06g", name: "AQUOS ケータイ SH-06G", maker: "garaho", brand: "aquos", kana: "AQUOS ケータイ ドコモ",
+    variants: [
+      { c: "docomo", code: "SH-06G", rel: "2015年", ship: "locked" }
+    ], note: "ドコモ公式のSIMロック解除対応機種一覧に掲載（ロックあり出荷）" },
   { id: "aquos-k-shf31", name: "AQUOS K SHF31", maker: "garaho", brand: "aquos", kana: "アクオス ケー ガラホ シャープ",
     variants: [
       { c: "au", code: "SHF31", rel: "2015年2月", ship: "locked" }

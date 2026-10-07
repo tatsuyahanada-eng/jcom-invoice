@@ -83,6 +83,7 @@ def base_models():
         # 誤りが判明したもの（訂正版を models.dsl に記載）
         'oppo-a55s', 'oppo-a5-2020', 'raku-4', 'arrows-u', 'xperia-ace', 'kyocera-kyg04', 'torque-5g', 'basio-active',
     'aquos-keitai', 'gratina', 'digno-keitai3',   # ガラホは models.dsl で機種ごとに再定義
+    'kantan-sumaho1',   # 型番501KCはDIGNOケータイ（SB）の型番で誤り。初代かんたんスマホは705KC（J:COM一覧分）
     'digno',   # 個別の DIGNO 機種（一覧取り込み分）に置き換え
     }
     for d in legacy:
@@ -116,6 +117,68 @@ def overlay_models():
     p = D_DIR + 'jcom_overlay.json'
     return json.load(open(p, encoding='utf-8')) if os.path.exists(p) else []
 
+
+# ---------- 公式ルール補正（tools/official_locked.json：各キャリア公式の「SIMロック解除対応機種一覧」） ----------
+# 一覧に載っている＝ロックあり出荷。各社の公式ルールで ship を確定させ、変更内容を official_changes.log に残す
+def norm_name(s):
+    s = (s or '').lower().replace('（', '(').replace('）', ')')
+    s = re.sub(r'google|®|™|xperia\s*™', lambda m: '' if m.group(0) != 'xperia™' else 'xperia', s)
+    return re.sub(r'[\s　\-・]', '', s)
+
+UQ_SETTING = {'Redmi Note 10 JE', 'OPPO A54 5G', 'Galaxy A41', 'Galaxy A21', 'AQUOS sense3 basic', 'AQUOS sense5G'}
+DROP = {('aquos-sense', 'sb'), ('xperia-8', 'sb')}   # SB版は存在しない（J:COM一覧の取り込み時にY!mobile等と混在）
+IPHONE13 = re.compile(r'^iPhone 13( mini| Pro| Pro Max)?$')
+
+# 公式情報・公式一覧の並び順で確定した個別の訂正（id, キャリア）→ 上書き値
+FIX = {
+    ('zte-a1', 'au'): {'rel': '2020年8月'},                      # au発表：2020/8/5発売
+    ('leitz-phone-1', 'sb'): {'rel': '2021年7月', 'ship': 'free'},   # SB公式：2021/6以降発売はSIMフリー（ロックあり一覧に無し）
+    ('digno-bx2', 'sb'): {'ship': 'free'},                        # SB公式のロックあり一覧に無し（DIGNO BXのみ掲載）
+    ('m-8a14723d', 'ymobile'): {'rel': '2018年'},                 # かんたんスマホ 705KC
+}
+
+def official_pass(models):
+    o = json.load(open(D_DIR + 'official_locked.json', encoding='utf-8'))
+    dcodes = set(o['docomo_locked_codes'])
+    sbl = {norm_name(x) for x in o['sb_locked_names']}
+    yml = {norm_name(x) for x in o['ymobile_locked_names']}
+    log = []
+    def setv(d, v, ship, why, note=None):
+        if v['ship'] != ship or (note and v.get('note') != note):
+            log.append('%s\t%s\t%s\t%s -> %s\t%s' % (d['name'], v['c'], v.get('code', ''), v['ship'], ship, why))
+            v['ship'] = ship
+            if note: v['note'] = note
+    for d in models.values():
+        if d.get('generic'): continue
+        d['variants'] = [v for v in d['variants'] if (d['id'], v['c']) not in DROP or log.append('%s\t%s\t%s\tremoved\tSB版は存在しない' % (d['name'], v['c'], v.get('code', '')))]
+        name = d['name']; n = norm_name(name); iphone = d['maker'] == 'iphone'
+        for v in d['variants']:
+            fx = FIX.get((d['id'], v['c']))
+            if fx:
+                if 'rel' in fx: v['rel'] = fx['rel']
+                if 'ship' in fx: setv(d, v, fx['ship'], '個別訂正（公式情報）')
+                if fx.get('rel') and 'ship' not in fx: v['ship'] = auto_ship(v['c'], v['rel'])
+            c = v['c']; k = ym(v['rel'])
+            if c == 'docomo':
+                if set(re.findall(r'[A-Z]{1,3}-\d{2}[A-Z]', v.get('code', ''))) & dcodes: setv(d, v, 'locked', 'ドコモ公式一覧に掲載')
+            elif c == 'uq':
+                if not iphone and d['maker'] != 'garaho':
+                    note = 'UQ版AndroidはSIMロックなし（公式）。ただし「一部Android機種での利用設定」の操作が必要' if name in UQ_SETTING else None
+                    setv(d, v, 'free', 'UQ公式：Android機種はSIMロック設定なし', note)
+                elif iphone and (k >= 202110 or IPHONE13.match(name)): setv(d, v, 'free', 'UQ：2021/10/1以降発売はロックなし')
+            elif c == 'au':
+                if IPHONE13.match(name) or name == 'Redmi Note 10 JE': setv(d, v, 'free', 'au公式：ロックなし')
+            elif c == 'sb':
+                if name == 'Xperia 1 III': setv(d, v, 'locked', 'SB公式：2021/6以降発売で唯一のロックあり')
+                elif n in sbl or (iphone and k and k <= 202012) or ('google' + n) in sbl: setv(d, v, 'locked', 'SB公式一覧に掲載')
+                elif k >= 202106: setv(d, v, 'free', 'SB公式：2021/6以降発売はSIMフリー')
+            elif c == 'ymobile':
+                if n == norm_name('iPhone SE（第1世代）'): n = 'iphonese'   # 公式一覧の表記は「iPhone SE」
+                if n in yml or n.replace('(', '').replace(')', '') in yml: setv(d, v, 'locked', 'Y!mobile公式一覧に掲載')
+                elif k == 0 or k >= 201505: setv(d, v, 'free', 'Y!mobile公式一覧に無い＝SIMフリー端末として販売')
+    open(D_DIR + 'official_changes.log', 'w', encoding='utf-8').write('\n'.join(log) + '\n')
+    print('official corrections', len(log))
+
 # ---------- 2) 出力 ----------
 def main():
     models, order = base_models()
@@ -123,6 +186,7 @@ def main():
         if d['id'] in OVERLAY_SKIP: continue   # models.dsl 側で定義済み
         if d['id'] not in models: order.append(d['id'])
         models[d['id']] = d
+    official_pass(models)
     write(models, order)
 
 def write(models, order):

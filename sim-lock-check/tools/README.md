@@ -18,3 +18,8 @@ python3 tools/extract_jcom_pdf.py <PDFのパス>   # → tools/jcom_source.json
 python3 tools/import_jcom.py                    # → tools/jcom_overlay.json（既存データと突き合わせ）
 python3 tools/build.py                          # → data.js
 ```
+
+## 公式一覧による自動補正
+`tools/official_locked.json`（各キャリア公式の「SIMロック解除対応機種」一覧）を `build.py` が読み込み、
+ロックあり／なしを公式ルールで確定させます。変更内容は `tools/official_changes.log` に出力されます。
+一覧を更新したときは JSON を差し替えて `python3 tools/build.py` を実行してください。
