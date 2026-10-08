@@ -493,6 +493,9 @@
     .sales { margin: 10px 0 0; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 12px; background: linear-gradient(180deg, rgba(40, 72, 120, .35), rgba(23, 41, 68, .75)); }
     .sales .sh { display: flex; align-items: baseline; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--muted); }
     .sales .sh small { font-weight: 500; font-size: 11px; color: var(--dim); }
+    .sales .eye { min-height: 30px; padding: 2px 12px; border: 1px solid var(--line-2); border-radius: 999px; background: rgba(18, 33, 54, .6); color: var(--text); font-size: 12px; font-weight: 700; }
+    .sales .eye[aria-pressed="true"] { background: var(--cyan); color: var(--ink); border-color: #fff; box-shadow: 0 0 12px rgba(208, 210, 212, .4); }
+    .sales .eye:active { transform: scale(.95); }
     .sales .sr { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 6px; font-size: 14px; color: var(--muted); }
     .sales .sr b { font-family: var(--mono); font-weight: 700; font-size: 17px; color: var(--text); letter-spacing: .02em; }
     .sales .st { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
@@ -1066,7 +1069,7 @@
   }
 
   /* ================= State ================= */
-  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null, taxRate: 10 };
+  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null, taxRate: 10, hideSales: false };
   let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
   if (!Array.isArray(settings.deviceCalendars)) settings.deviceCalendars = [];
   if (!Array.isArray(settings.googleCalendars)) settings.googleCalendars = [{ id: settings.calendarId || 'primary', name: settings.calendarName || 'メインカレンダー' }];
@@ -1134,10 +1137,10 @@
     const sl = salesOfDay(jobs), sb = $('#salesBox');
     sb.classList.toggle('hidden', !sl.sum);
     if (sl.sum) {
-      const t = taxSplit(sl.sum);
-      sb.innerHTML = `<div class="sh"><span>本日の売上（税込み）</span><small>日当 ＋ スポット</small></div>
-        <div class="sr"><span>日当</span><b>${yen(sl.daily)}</b><span>＋ スポット</span><b>${yen(sl.spot)}</b></div>
-        <div class="st"><div class="big">合計（税込み）<b>${yen(t.inc)}</b></div><div>税抜き<b>${yen(t.ex)}</b></div><div>消費税<b>${yen(t.tax)}</b></div></div>`;
+      const t = taxSplit(sl.sum), hide = !!settings.hideSales, m = (v) => hide ? '¥＊＊＊＊' : yen(v);
+      sb.innerHTML = `<div class="sh"><span>本日の売上（税込み）</span><button type="button" class="eye" data-act="toggleSales" aria-pressed="${hide}">${hide ? '表示する' : '隠す'}</button></div>
+        <div class="sr"><span>日当</span><b>${m(sl.daily)}</b><span>＋ スポット</span><b>${m(sl.spot)}</b></div>
+        <div class="st"><div class="big">合計（税込み）<b>${m(t.inc)}</b></div><div>税抜き<b>${m(t.ex)}</b></div><div>消費税<b>${m(t.tax)}</b></div></div>`;
     }
 
     // Meta
@@ -1242,7 +1245,7 @@
     const missingChip = j.missing ? `<span class="chip danger">${icon('alert')}カレンダーから削除済</span>` : '';
     const multiCal = new Set(day.jobs.map(x => x.calendar).filter(Boolean)).size > 1;
     const calChip = (j.calendar && multiCal) ? `<span class="chip cal">${icon('calendar')}${esc(j.calendar)}</span>` : '';
-    const saleChip = saleOf(j) ? `<span class="chip warn"><span class="yen" style="width:auto">¥</span>${SALE_KIND[saleKind(j)]} ${saleOf(j).toLocaleString('ja-JP')}<small style="font-weight:500;opacity:.8">税込</small></span>` : '';
+    const saleChip = saleOf(j) ? `<span class="chip warn"><span class="yen" style="width:auto">¥</span>${SALE_KIND[saleKind(j)]} ${settings.hideSales ? '＊＊＊＊' : saleOf(j).toLocaleString('ja-JP')}<small style="font-weight:500;opacity:.8">税込</small></span>` : '';
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
@@ -2285,6 +2288,11 @@
     day = loadDay(current); render(); purgeRefresh(); toast(`${t.keys.length}日分のデータを削除しました`);
   });
   document.addEventListener('click', (e) => { if (e.target.closest('[data-open-settings], #btnSettings')) setTimeout(purgeRefresh, 0); });
+
+  $('#salesBox').addEventListener('click', (e) => {
+    if (!e.target.closest('[data-act="toggleSales"]')) return;
+    settings.hideSales = !settings.hideSales; saveSettings(); render();
+  });
 
   /* ===== 売上管理（管理パスワード・月次集計・CSV/PDF出力） ===== */
   async function hashPw(pw, salt) {
