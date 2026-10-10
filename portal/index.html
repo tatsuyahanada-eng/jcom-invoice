@@ -993,6 +993,16 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
 .lg-period .inp { width: auto; }
 .lg-period .lb { font-weight: 700; color: var(--muted); margin-right: 2px; }
 .lg-chips { display: inline-flex; gap: 6px; margin-left: 6px; }
+.lg-back-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; padding: 8px 0 0; border-top: 1px dashed var(--line); font-size: 13px; }
+.lg-cur b { font-size: 15px; }
+.lg-months { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.lg-months[hidden] { display: none; }
+.lg-months .lb { font-size: 12px; font-weight: 700; color: var(--muted); margin-right: 2px; }
+.lg-months button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 3px 12px; font-size: 12.5px; color: var(--fg); }
+.lg-months button small { color: var(--muted); font-size: 11px; }
+.lg-months button:hover { border-color: var(--accent); color: var(--accent); }
+.lg-months button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.lg-months button[aria-pressed="true"] small { color: rgba(255,255,255,.85); }
 .lg-chips button { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 3px 12px; font-size: 12.5px; color: var(--muted); }
 .lg-chips button:hover { color: var(--accent); border-color: var(--accent); }
 .lg-sel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -1006,10 +1016,62 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
 .lg-date { font-weight: 700; font-size: 14.5px; white-space: nowrap; }
 .lg-date small { margin-left: 4px; font-size: 11.5px; font-weight: 400; color: var(--muted); }
 .lg-place { font-weight: 700; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lg-task, .lg-who { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-task, .lg-by { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lgrow .chip { justify-self: start; }
 .lg-clip { color: var(--muted); display: grid; place-items: center; }
 .lg-clip svg.i { width: 16px; height: 16px; }
+.lg-more { display: grid; justify-items: center; padding: 6px 0; }
+.lgf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.lgf { display: grid; gap: 6px; align-content: start; border: 1px solid var(--line); border-radius: 12px; padding: 8px; background: var(--surface); text-align: left; color: var(--fg); text-decoration: none; }
+.lgf:hover { border-color: var(--accent); }
+.lgf.img img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; border-radius: 8px; background: var(--surface-2); }
+.lgf.img span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lgf.pdf, .lgf:not(.img) { grid-template-columns: auto minmax(0, 1fr); align-items: center; grid-column: span 2; }
+.lgf-ic { width: 44px; height: 54px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--muted); }
+.lgf-ic.pdf { color: var(--danger); }
+.lgf-n { display: grid; gap: 2px; font-size: 13px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.lgf-n small { font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.lgform { padding: 20px 22px; display: grid; gap: 16px; }
+.lgform h1 { font-size: 20px; }
+.lg-by-box { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; min-height: 42px; flex-wrap: wrap; }
+.lg-by-box svg.i { color: var(--accent); }
+.lg-by-box small { color: var(--muted); font-size: 12px; }
+.lg-res { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.lg-res button { border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 8px; font-size: 15px; font-weight: 700; color: var(--muted); }
+.lg-res button[aria-pressed="true"].done { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+.lg-res button[aria-pressed="true"].partial { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.lg-res button[aria-pressed="true"].stopped { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+.lg-drop { padding: 18px; display: grid; justify-items: center; text-align: center; gap: 4px; }
+.lg > * { min-width: 0; }
+.lg-filters { overflow: hidden; }
+.lgu-list { display: grid; gap: 8px; margin-top: 8px; }
+.lgu { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.lgu.err { border-color: var(--danger); background: var(--danger-soft); }
+.lgu-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; flex: none; background: var(--surface-2); }
+.lgu-ic { width: 48px; height: 48px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--muted); flex: none; }
+.lgu-ic.pdf { color: var(--danger); }
+.lgd { padding: 0; overflow: hidden; display: grid; }
+.lgd-h { display: grid; gap: 6px; justify-items: start; padding: 22px 26px 18px; background: linear-gradient(135deg, var(--major), var(--major-2)); color: #fff; }
+.lgd-h h1 { font-size: 23px; line-height: 1.4; overflow-wrap: anywhere; color: #fff; }
+.lgd-t { margin: 0; font-size: 14px; color: rgba(255,255,255,.88); }
+.lgd-t .link { color: #fff; text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
+.lgd-h .chip { background: #fff; }
+.lgd-f { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 0; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.lgd-f > div { display: flex; align-items: center; gap: 10px; padding: 14px 26px; }
+.lgd-f > div + div { border-left: 1px solid var(--line); }
+.lgd-f .fi { width: 34px; height: 34px; border-radius: 10px; background: var(--surface); color: var(--accent); display: grid; place-items: center; flex: none; box-shadow: var(--shadow); }
+.lgd-f .fi svg.i { width: 17px; height: 17px; }
+.lgd-f dl, .lgd-f .fx { display: grid; gap: 1px; min-width: 0; }
+.lgd-f dt { font-size: 11.5px; color: var(--muted); }
+.lgd-f dd { margin: 0; font-weight: 700; font-size: 14.5px; overflow-wrap: anywhere; }
+.lgd-f small { display: block; font-weight: 400; font-size: 11.5px; margin: 0; }
+.lgd-s { display: grid; gap: 10px; padding: 20px 26px 4px; }
+.lgd-s h2 { font-size: 14px; display: flex; align-items: center; gap: 8px; padding-left: 10px; border-left: 4px solid var(--accent); line-height: 1.3; }
+.lgd-s h2 .muted { font-size: 12px; font-weight: 400; margin-left: auto; }
+.lgd-notes { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.85; font-size: 14.5px; background: var(--surface-2); border-radius: 12px; padding: 14px 16px; }
+.lgd-acts { display: flex; gap: 8px; flex-wrap: wrap; padding: 18px 26px 22px; border-top: 1px solid var(--line); margin-top: 20px; }
+.lgd > p.muted { padding: 16px 26px 20px; margin: 0; }
+@media (max-width: 760px) { .lgd-f { grid-template-columns: minmax(0, 1fr); } .lgd-f > div + div { border-left: 0; border-top: 1px solid var(--line); } .lgd-h, .lgd-s, .lgd-acts, .lgd-f > div { padding-left: 16px; padding-right: 16px; } }
 .lgu-n { display: grid; gap: 2px; min-width: 0; flex: 1; }
 .lgu-n b { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lgu-n small { font-size: 12px; color: var(--muted); }
@@ -1020,10 +1082,10 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .lgrow { grid-template-columns: auto minmax(0, 1fr) auto auto; padding: 10px 12px; gap: 4px 10px; }
   .lgrow .lg-place { grid-column: 2 / 4; }
   .lgrow .lg-task { grid-column: 1 / -1; grid-row: 2; }
-  .lgrow .lg-who { grid-column: 1 / 4; grid-row: 3; }
+  .lgrow .lg-by { grid-column: 1 / 4; grid-row: 3; }
   .lgrow .chip { grid-column: 4; grid-row: 1; }
   .lgrow .lg-clip { grid-column: 4; grid-row: 3; justify-self: end; }
-  .lgd, .lgform { padding: 16px 14px; }
+  .lgform { padding: 16px 14px; }
   .lg-period .inp { flex: 1 1 120px; min-width: 0; width: auto; }
   .lg-sel .sel { flex: 1 1 45%; min-width: 0; }
   .lg-period > span:not(.lg-chips):not(.lb) { flex: none; }
@@ -1760,7 +1822,7 @@ const S = {
   ex: { data: null, err: "" },
   fl: { items: null, totals: null, err: "", filter: "" },
   w: { view: "home", listMode: store.get("portal4.listMode", false), taskId: null, cat: null, ind: null, q: "", logId: null },
-  lg: { f: { q: "", from: "", to: "", task: "", user: "", result: "" }, list: [], total: 0, users: [], places: [], loading: false, err: "", detail: null, form: null },
+  lg: { f: lgDefaultF(), back: store.get("portal4.lgBack", false), list: [], total: 0, users: [], places: [], loading: false, err: "", detail: null, form: null },
   a: { list: { q: "", cat: "", st: "" }, sel: null, tab: "basic", draft: null, dirty: false, open: { pos: true }, treeQ: "", stepOpen: new Set(), pending: null, pvModal: false, reviewing: false, note: "", hist: { type: "", user: "", q: "" } },
   layer: null   // {type:'focus'|'manual'|'modal', ...}
 };
@@ -2451,19 +2513,33 @@ function makeDemoLogs() {
 }
 let DEMO_LOGS = store.get("portal5.logs", null) || makeDemoLogs();
 const saveDemoLogs = () => store.set("portal5.logs", DEMO_LOGS);
-function demoFilter(f) {
+function demoFilter(f0) {
+  const f = { ...f0, ...lgRange(f0) };
   const terms = f.q.trim().toLowerCase().split(/[\s　]+/).filter(Boolean);
   return DEMO_LOGS.filter(l => terms.every(t => [l.place, l.user.name, l.user.username, l.taskTitle, l.taskId, l.notes].join("\n").toLowerCase().includes(t))
     && (!f.from || l.date >= f.from) && (!f.to || l.date <= f.to) && (!f.task || l.taskId === f.task) && (!f.user || l.user.id === f.user) && (!f.result || l.result === f.result))
-    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+    .sort((a, b) => f.sort === "old" ? a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt)
+      : f.sort === "place" ? a.place.localeCompare(b.place, "ja") || b.date.localeCompare(a.date)
+      : f.sort === "task" ? a.taskTitle.localeCompare(b.taskTitle, "ja") || b.date.localeCompare(a.date)
+      : b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
 }
 function demoMeta() {
   const users = new Map(); DEMO_LOGS.forEach(l => users.set(l.user.id, l.user.name));
-  return { users: [...users].map(([id, name]) => ({ id, name })), places: [...new Set(DEMO_LOGS.map(l => l.place))] };
+  return { users: [...users].map(([id, name]) => ({ id, name })), places: [...new Set(DEMO_LOGS.map(l => l.place))],
+    months: Object.entries(DEMO_LOGS.reduce((o, l) => { const m = l.date.slice(0, 7); o[m] = (o[m] || 0) + 1; return o; }, {})).sort((a, b) => b[0].localeCompare(a[0])).map(([m, n]) => ({ m, n })) };
 }
 
 /* ---- 読み込み ---- */
-const lgParams = (offset, limit) => { const f = S.lg.f; return { q: f.q.trim(), from: f.from, to: f.to, task: f.task, user: f.user, result: f.result, limit, offset }; };
+const lgParams = (offset, limit) => { const f = S.lg.f, r = lgRange(f); return { q: f.q.trim(), from: r.from, to: r.to, task: f.task, user: f.user, result: f.result, sort: f.sort, limit, offset }; };
+function curMonth() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
+function lgDefaultF() { return { q: "", from: "", to: "", month: curMonth(), sort: "new", task: "", user: "", result: "" }; }
+const lgMonthLabel = m => { const [y, mo] = m.split("-"); return `${y}年${+mo}月`; };
+/* 表示する期間：日付を指定していればその期間、なければ選んだ月（キーワードで探すときは、全期間から探す） */
+function lgRange(f) {
+  if (f.from || f.to) return { from: f.from, to: f.to };
+  if (f.month && !f.q.trim()) { const [y, m] = f.month.split("-").map(Number); return { from: ymd(new Date(y, m - 1, 1)), to: ymd(new Date(y, m, 0)) }; }
+  return { from: "", to: "" };
+}
 async function loadLogs(reset = true) {
   const L = S.lg, seq = L.seq = (L.seq || 0) + 1;
   if (isSrv() && AUTH.offline) { L.err = "オフラインのため、作業記録を表示できません。通信できる場所でもう一度開いてください。"; L.list = []; L.total = 0; paintLogs(); return; }
@@ -2477,6 +2553,7 @@ async function loadLogs(reset = true) {
     L.list = reset ? r.logs : [...L.list, ...r.logs]; L.total = r.total;
     if (r.users) L.users = r.users;
     if (r.places) L.places = r.places;
+    if (r.months) L.months = r.months;
   } catch (e) { if (seq === L.seq) L.err = e.message || "読み込めませんでした"; }
   finally { if (seq === L.seq) { L.loading = false; paintLogs(); } }
 }
@@ -2519,9 +2596,15 @@ function logsHtml() {
     <section class="card lg-filters" aria-label="絞り込み">
       <div class="lg-period"><span class="lb">期間</span><input class="inp num" type="date" id="lfFrom" value="${esc(f.from)}" aria-label="開始日"><span>〜</span><input class="inp num" type="date" id="lfTo" value="${esc(f.to)}" aria-label="終了日">
         <span class="lg-chips">${chip("month", "今月")}${chip("last", "先月")}${chip("all", "全期間")}</span></div>
+      <div class="lg-back-bar">
+        <span class="lg-cur" id="lgCur">${lgCurHtml()}</span>
+        <button class="btn sm ghost" type="button" data-act="lgBack2" aria-expanded="${!!S.lg.back}">${ic("history")}バックナンバー（過去の月）を${S.lg.back ? "隠す" : "表示"}</button>
+      </div>
+      <div class="lg-months" id="lgMonths" ${S.lg.back ? "" : "hidden"}>${lgMonthsHtml()}</div>
       <div class="lg-sel">
         <select class="sel" id="lfTask" aria-label="作業で絞り込み">${lgTaskOpts()}</select>
         <select class="sel" id="lfUser" aria-label="担当者で絞り込み">${lgUserOpts()}</select>
+        <select class="sel" id="lfSort" aria-label="並び順">${[["new", "並び順：日付の新しい順"], ["old", "日付の古い順"], ["place", "店舗名順"], ["task", "作業名順"]].map(([k, n]) => `<option value="${k}" ${f.sort === k ? "selected" : ""}>${n}</option>`).join("")}</select>
         <select class="sel" id="lfResult" aria-label="結果で絞り込み"><option value="">結果：すべて</option>${Object.entries(LG_RESULT).map(([k, v]) => `<option value="${k}" ${f.result === k ? "selected" : ""}>${v[0]}</option>`).join("")}</select>
         <button class="link" type="button" data-act="lgClear">条件をクリア</button>
         <button class="btn sm" type="button" data-act="lgCsv" style="margin-left:auto" ${isSrv() ? "" : "disabled"} title="${isSrv() ? "いまの絞り込み結果を CSV で書き出します" : "サーバーに接続しているときだけ使えます"}">${ic("dl")}CSVで書き出す</button>
@@ -2530,13 +2613,23 @@ function logsHtml() {
     <div id="lgList">${lgListHtml()}</div>
   </div>`;
 }
+function lgCurHtml() {
+  const f = S.lg.f, r = lgRange(f), L = S.lg;
+  const lab = f.from || f.to ? `${f.from ? fmtDate(f.from) : "…"} 〜 ${f.to ? fmtDate(f.to) : "…"}` : (f.month && !f.q.trim()) ? lgMonthLabel(f.month) : f.q.trim() ? "全期間（キーワード検索）" : "全期間";
+  return `<b>${esc(lab)}</b>の記録`;
+}
+function lgMonthsHtml() {
+  const f = S.lg.f, ms = S.lg.months || [], cm = curMonth(), act = (!f.from && !f.to) ? f.month : null;
+  const past = ms.filter(x => x.m !== cm);
+  return `<span class="lb">バックナンバー</span>${past.map(x => `<button type="button" data-act="lgMonth" data-v="${x.m}" aria-pressed="${act === x.m}">${lgMonthLabel(x.m)}<small class="num">${x.n}</small></button>`).join("") || `<span class="muted" style="font-size:12.5px">過去の記録はまだありません</span>`}`;
+}
 function lgRow(l) {   // 1行に収める。メモや画像は載せず、添付があればクリップのマークだけ出す（中身は開いて確認する）
   const [rl, rc] = LG_RESULT[l.result] || ["—", ""];
   return `<button class="card lgrow" type="button" data-act="lgOpen" data-id="${esc(l.id)}">
     <span class="lg-date num">${lgMD(l.date)}<small>${lgWeekday(l.date)}</small></span>
     <span class="lg-place">${lgHl(l.place)}</span>
     <span class="lg-task">${lgHl(l.taskTitle)}</span>
-    <span class="lg-who">${lgHl(l.user.name)}</span>
+    <span class="lg-by">${lgHl(l.user.name)}</span>
     <span class="chip ${rc}">${rl}</span>
     <span class="lg-clip" ${l.files.length ? `title="添付 ${l.files.length}件" aria-label="添付 ${l.files.length}件"` : ""}>${l.files.length ? ic("clip") : ""}</span>
   </button>`;
@@ -2552,6 +2645,8 @@ function lgListHtml() {
 function paintLogs() {
   if (S.mode !== "work" || S.w.view !== "logs") return;
   const box = $("#lgList"); if (box) box.innerHTML = lgListHtml();
+  const cu = $("#lgCur"); if (cu) cu.innerHTML = lgCurHtml();
+  const mo = $("#lgMonths"); if (mo) mo.innerHTML = lgMonthsHtml();
   const u = $("#lfUser"); if (u) { u.innerHTML = lgUserOpts(); u.value = S.lg.f.user; }
   const c = document.querySelector('[data-act="lgClearQ"]'); if (c) c.hidden = !S.lg.f.q;
 }
@@ -2582,11 +2677,11 @@ function logDetailHtml() {
         <h1>${esc(l.place)}</h1>
         <p class="lgd-t">${t && t.status === "published" ? `<button class="link" type="button" data-act="openTask" data-id="${esc(t.id)}">${esc(l.taskTitle)} →</button>` : esc(l.taskTitle)}</p>
       </header>
-      <dl class="lgd-f">
-        <div><dt>作業日</dt><dd class="num">${dayLabel(l.date)}</dd></div>
-        <div><dt>担当者</dt><dd>${esc(l.user.name)}${l.user.username ? `<small class="muted">（${esc(l.user.username)}）</small>` : ""}</dd></div>
-        <div><dt>記録した日時</dt><dd class="num">${esc(l.createdAt.replaceAll("-", "/"))}${l.updatedAt !== l.createdAt ? `<small class="muted">（更新 ${esc(l.updatedAt.replaceAll("-", "/"))}）</small>` : ""}</dd></div>
-      </dl>
+      <div class="lgd-f">
+        <div><span class="fi">${ic("clock")}</span><dl><dt>作業日</dt><dd class="num">${dayLabel(l.date)}</dd></dl></div>
+        <div><span class="fi">${ic("users")}</span><dl><dt>担当者</dt><dd>${esc(l.user.name)}${l.user.username ? `<small class="muted">ID ${esc(l.user.username)}</small>` : ""}</dd></dl></div>
+        <div><span class="fi">${ic("history")}</span><dl><dt>記録した日時</dt><dd class="num">${esc(l.createdAt.replaceAll("-", "/"))}${l.updatedAt !== l.createdAt ? `<small class="muted">更新 ${esc(l.updatedAt.replaceAll("-", "/"))}</small>` : ""}</dd></dl></div>
+      </div>
       <section class="lgd-s"><h2>作業の結果・メモ</h2>${l.notes ? `<p class="lgd-notes">${esc(l.notes)}</p>` : `<p class="muted" style="font-size:13px">メモはありません</p>`}</section>
       <section class="lgd-s"><h2>添付（作業報告書・チェックシート・写真）<span class="muted num">${l.files.length}件</span></h2>${l.files.length ? lgTiles(l) : `<p class="muted" style="font-size:13px">添付はありません</p>`}</section>
       ${can ? `<div class="lgd-acts"><button class="btn primary" type="button" data-act="lgEdit">${ic("steps")}編集する</button><button class="btn ghost danger" type="button" data-act="lgDel">${ic("trash")}削除</button></div>`
@@ -2636,7 +2731,7 @@ function logFormHtml() {
     <section class="card lgform">
       <h1>${edit ? "作業記録を編集" : "作業記録を登録"}</h1>
       <div class="fgrid">
-        <div class="fld"><span class="lb">担当者</span><div class="lg-who">${ic("users")}<b>${esc(who || "")}</b><small>${edit ? "記録した人" : "ログイン中のあなた（自動で入ります）"}</small></div></div>
+        <div class="fld"><span class="lb">担当者</span><div class="lg-by-box">${ic("users")}<b>${esc(who || "")}</b><small>${edit ? "記録した人" : "ログイン中のあなた（自動で入ります）"}</small></div></div>
         <div class="fld"><label for="lgDate">作業日<em>必須</em></label><input class="inp num" type="date" id="lgDate" data-lgf="date" value="${esc(F.date)}" max="${esc(ymd(new Date(Date.now() + 86400000)))}"></div>
         <div class="fld full"><label for="lgPlace">店舗名<em>必須</em></label><input class="inp" id="lgPlace" data-lgf="place" value="${esc(F.place)}" list="lgPlaces" placeholder="例：渋谷駅前店" autocomplete="off"><datalist id="lgPlaces">${lgPlaceOpts()}</datalist></div>
         <div class="fld full"><label for="lgTaskSel">作業<em>必須</em></label>${lgTaskSelect(F)}
@@ -4114,17 +4209,18 @@ const ACT = {
   lgViewGo: el => { const n = S.lg.detail.files.filter(x => LG_IMG.test(x.name) && lgReal(x)).length; S.layer.i = Math.max(0, Math.min(n - 1, S.layer.i + +el.dataset.d)); renderLayer(); },
   lgMore: () => loadLogs(false),
   lgClearQ: () => { S.lg.f.q = ""; const n = $("#lgQ"); if (n) { n.value = ""; n.focus(); } loadLogs(true); },
-  lgClear: () => { S.lg.f = { q: "", from: "", to: "", task: "", user: "", result: "" }; render(); loadLogs(true); },
+  lgClear: () => { S.lg.f = lgDefaultF(); render(); loadLogs(true); },
+  lgBack2: () => { S.lg.back = !S.lg.back; store.set("portal4.lgBack", S.lg.back); render(); paintLogs(); },
+  lgMonth: el => { const f = S.lg.f; f.month = el.dataset.v; f.from = ""; f.to = ""; const a = $("#lfFrom"), b = $("#lfTo"); if (a) a.value = ""; if (b) b.value = ""; loadLogs(true); },
   lgQuick: el => {
     const f = S.lg.f, now = new Date(), v = el.dataset.v;
-    if (v === "all") { f.from = ""; f.to = ""; }
-    else if (v === "month") { f.from = ymd(new Date(now.getFullYear(), now.getMonth(), 1)); f.to = ymd(now); }
-    else { f.from = ymd(new Date(now.getFullYear(), now.getMonth() - 1, 1)); f.to = ymd(new Date(now.getFullYear(), now.getMonth(), 0)); }
-    $("#lfFrom").value = f.from; $("#lfTo").value = f.to; loadLogs(true);
+    f.from = ""; f.to = "";
+    f.month = v === "all" ? "" : v === "month" ? curMonth() : (() => { const d = new Date(now.getFullYear(), now.getMonth() - 1, 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); })();
+    $("#lfFrom").value = ""; $("#lfTo").value = ""; loadLogs(true);
   },
   lgCsv: () => {
     const u = new URLSearchParams({ r: "logs/export" }), f = S.lg.f;
-    [["q", f.q.trim()], ["from", f.from], ["to", f.to], ["task", f.task], ["user", f.user], ["result", f.result]].forEach(([k, v]) => { if (v) u.set(k, v); });
+    [["q", f.q.trim()], ["from", lgRange(f).from], ["to", lgRange(f).to], ["task", f.task], ["user", f.user], ["result", f.result]].forEach(([k, v]) => { if (v) u.set(k, v); });
     location.href = "api/?" + u;
   },
 
@@ -4357,6 +4453,7 @@ document.addEventListener("change", e => {
   if (el.id === "f-pub" && S.a.draft) { S.a.draft.status = el.checked ? "published" : "draft"; touched(); renderSavebar(); return; }
   if (el.dataset.doc != null && el.type === "file") { addDocFile(+el.dataset.doc, el.dataset.slot, el.files[0]); el.value = ""; return; }
   if (el.id === "lfFrom" || el.id === "lfTo") { S.lg.f[el.id === "lfFrom" ? "from" : "to"] = el.value; loadLogs(true); return; }
+  if (el.id === "lfSort") { S.lg.f.sort = el.value; loadLogs(true); return; }
   if (el.id === "lfTask" || el.id === "lfUser" || el.id === "lfResult") { S.lg.f[{ lfTask: "task", lfUser: "user", lfResult: "result" }[el.id]] = el.value; loadLogs(true); return; }
   if (el.id === "lgFile") { lgAddFiles(el.files); el.value = ""; return; }
   if (el.id === "lgTaskSel" && S.lg.form) { const F = S.lg.form; F.taskId = el.value; F.touched = true; const o = $("#lgTitle"); o.hidden = el.value !== "__other"; if (!o.hidden) o.focus(); return; }

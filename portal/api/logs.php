@@ -104,7 +104,10 @@ function route_log_list(): never
     $c = db()->prepare("SELECT COUNT(*) FROM work_logs l WHERE $where");
     $c->execute($args);
     $total = (int)$c->fetchColumn();
-    $s = db()->prepare("SELECT l.* FROM work_logs l WHERE $where ORDER BY l.worked_on DESC, l.created_at DESC, l.id DESC LIMIT $limit OFFSET $offset");
+    $orders = ['new' => 'l.worked_on DESC, l.created_at DESC, l.id DESC', 'old' => 'l.worked_on ASC, l.created_at ASC, l.id ASC',
+        'place' => 'l.place ASC, l.worked_on DESC, l.id DESC', 'task' => 'l.task_title ASC, l.worked_on DESC, l.id DESC'];
+    $order = $orders[(string)($_GET['sort'] ?? '')] ?? $orders['new'];
+    $s = db()->prepare("SELECT l.* FROM work_logs l WHERE $where ORDER BY $order LIMIT $limit OFFSET $offset");
     $s->execute($args);
     $rows = $s->fetchAll();
     $files = log_files_for(array_column($rows, 'id'));
@@ -112,6 +115,8 @@ function route_log_list(): never
     if ($offset === 0) {   // 絞り込みの選択肢・店舗名の入力補助
         $out['users'] = array_map(fn($r) => ['id' => $r['user_id'], 'name' => $r['user_name']],
             db()->query('SELECT user_id, MAX(user_name) AS user_name FROM work_logs GROUP BY user_id ORDER BY user_name')->fetchAll());
+        $out['months'] = array_map(fn($r) => ['m' => $r['m'], 'n' => (int)$r['n']],   // バックナンバー（月ごとの件数）
+            db()->query("SELECT DATE_FORMAT(worked_on, '%Y-%m') AS m, COUNT(*) AS n FROM work_logs GROUP BY m ORDER BY m DESC")->fetchAll());
         $out['places'] = db()->query('SELECT place FROM work_logs GROUP BY place ORDER BY MAX(worked_on) DESC, MAX(created_at) DESC LIMIT 200')->fetchAll(PDO::FETCH_COLUMN);
     }
     json_out($out);
