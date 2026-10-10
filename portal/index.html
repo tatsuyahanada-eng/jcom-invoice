@@ -2346,8 +2346,7 @@ function wkDetail(t, preview = false) {
           ${AF.length ? `
             ${AF.length > 1 ? `<div class="bundle"><span><b>まとめてダウンロード</b><small class="num">${AF.length}ファイル（${fmtBytes(total)}）・100Mbps回線で${dlTime(total)}</small></span>
               <button class="btn primary" type="button" data-act="dlAll" ${dis}>${ic("dl")}すべてダウンロード</button></div>` : ""}
-            <div class="files">${AF.map(x => {
-              const got = on_("file:" + x.name);
+            <div class="files">${AF.map((x, fi) => {
               return `<div class="file">
                 <span class="file-ico">${ic(/\.zip$/i.test(x.name) ? "zip" : "file")}</span>
                 <span style="display:grid;gap:3px;min-width:0">
@@ -2357,7 +2356,7 @@ function wkDetail(t, preview = false) {
                   <span class="file-meta">${x.desc ? `<span>${esc(x.desc)}</span>` : ""}<span class="num">${fmtBytes(x.size)}（${dlTime(x.size)}）</span>
                   ${x.sha ? `<span class="hash">SHA-256 <span class="mono">${esc(String(x.sha).slice(0, 10))}…</span><button class="icon-btn" type="button" data-act="copy" data-v="${esc(x.sha)}" data-l="ハッシュ値" aria-label="ハッシュ値をコピー">${ic("copy")}</button></span>` : ""}${x.missing ? `<span class="chip danger">サーバーにファイルが見つかりません。サポートに連絡してください</span>` : ""}</span>
                 </span>
-                <button class="btn ${got ? "done" : "primary"}" type="button" data-act="dl" data-v="${esc(x.name)}" ${dis}>${got ? ic("check") + "取得済み" : ic("dl") + "ダウンロード"}</button>
+                <button class="btn primary" type="button" data-act="dl" data-i="${fi}" ${dis}>${ic("dl")}ダウンロード</button>
               </div>`;
             }).join("")}</div>
             ${HF.length ? `<div class="code-h"><span>ファイル確認（表示される値が上の SHA-256 と一致するか）<label class="ck-mini"><input type="checkbox" data-wck="hash" ${on_("hash") ? "checked" : ""} ${dis}>確認した</label></span><button class="btn sm" type="button" data-act="copy" data-v="${esc(hashCmd)}" data-l="コマンド">${ic("copy")}コピー</button></div>
@@ -3971,13 +3970,11 @@ const ACT = {
     if (scr) scr.scrollTo({ top: sec.getBoundingClientRect().top - scr.getBoundingClientRect().top + scr.scrollTop - 50, behavior: "smooth" });
     else sec.scrollIntoView({ behavior: "smooth", block: "start" });
   },
-  dl: async el => {
+  dl: async el => {   // 同じファイル名が複数あっても取り違えないよう、並び順の番号で、押したファイルだけを指す
     const t = taskById(S.w.taskId); if (!t) return;
-    const f = allFiles(t).find(x => x.name === el.dataset.v);
-    if (f && f.fid && isSrv()) {
-      if (await startDownload(f)) { setChk(t, "file:" + f.name, true); toast(`ダウンロードを開始しました：${f.name}`); }
-    } else { setChk(t, "file:" + el.dataset.v, true); toast(isSrv() ? `このファイルは、まだサーバーに登録されていません：${el.dataset.v}` : `サンプルのためダウンロードは行いません：${el.dataset.v}`); }
-    refreshWork();
+    const f = allFiles(t)[+el.dataset.i]; if (!f) return;
+    if (f.fid && isSrv()) { if (await startDownload(f)) toast(`ダウンロードを開始しました：${f.name}`); }
+    else toast(isSrv() ? `このファイルは、まだサーバーに登録されていません：${f.name}` : `サンプルのためダウンロードは行いません：${f.name}`);
   },
   dlAll: async () => {
     const t = taskById(S.w.taskId); if (!t) return;
@@ -3985,10 +3982,8 @@ const ACT = {
     const AF = allFiles(t);
     for (const f of AF) {
       if (f.fid && isSrv()) { if (!(await startDownload(f))) break; n++; await sleep(900); }
-      setChk(t, "file:" + f.name, true);
     }
     toast(isSrv() ? `${n}件のダウンロードを開始しました` : `サンプルのためダウンロードは行いません（${AF.length}ファイル）`);
-    refreshWork();
   },
   docDl: async el => {
     const t = taskById(S.layer?.id || S.w.taskId), f = t?.docs[+el.dataset.i]?.[el.dataset.slot]; if (!f) return;
