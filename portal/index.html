@@ -235,7 +235,9 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .arow-d { opacity: .55; }
 .arow:hover .arow-d, .arow:focus-within .arow-d { opacity: 1; }
 @media (max-width: 640px) { .arow { grid-template-columns: 38px minmax(0, 1fr) auto; } .arow-s { display: none; } }
-.fchip { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; font-size: 11.5px; font-weight: 700; vertical-align: 2px; }
+.file-tags { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.fchip { display: inline-block; padding: 1px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 700; line-height: 1.6; overflow-wrap: anywhere; }
+.fchip.warn { background: var(--surface-2); color: var(--muted); font-weight: 400; }
 .fchip.use { background: var(--accent-soft); color: var(--accent); }
 .fchip.ver { background: #fff3d6; color: #8a5a00; }
 .file-fn { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); min-width: 0; }
@@ -2349,7 +2351,8 @@ function wkDetail(t, preview = false) {
               return `<div class="file">
                 <span class="file-ico">${ic(/\.zip$/i.test(x.name) ? "zip" : "file")}</span>
                 <span style="display:grid;gap:3px;min-width:0">
-                  <span class="file-name">${esc(x.label || x.name)}${x.purpose ? `<span class="fchip use">${esc(x.purpose)}</span>` : ""}${x.version ? `<span class="fchip ver">ver. ${esc(x.version)}</span>` : ""}</span>
+                  <span class="file-name">${esc(x.label || x.name)}</span>
+                  ${x.purpose || x.version ? `<span class="file-tags">${x.purpose ? `<span class="fchip use">${esc(x.purpose)}</span>` : ""}${x.version ? `<span class="fchip ver">ver. ${esc(x.version)}</span>` : ""}</span>` : ""}
                   ${x.label ? `<span class="file-fn"><small>ファイル名</small><span class="mono">${esc(x.name)}</span></span>` : ""}
                   <span class="file-meta">${x.desc ? `<span>${esc(x.desc)}</span>` : ""}<span class="num">${fmtBytes(x.size)}（${dlTime(x.size)}）</span>
                   ${x.sha ? `<span class="hash">SHA-256 <span class="mono">${esc(String(x.sha).slice(0, 10))}…</span><button class="icon-btn" type="button" data-act="copy" data-v="${esc(x.sha)}" data-l="ハッシュ値" aria-label="ハッシュ値をコピー">${ic("copy")}</button></span>` : ""}${x.missing ? `<span class="chip danger">サーバーにファイルが見つかりません。サポートに連絡してください</span>` : ""}</span>
@@ -3533,7 +3536,7 @@ function extAdminHtml() {
     <section class="card blk">
       <div class="blk-h"><h3>登録済みのファイル</h3><span class="chip right">${X.items.length}件</span></div>
       <div class="ex-list">${X.items.map(x => `<div class="ex-row reg">
-        <span class="ex-p"><b>${esc(x.label || x.name)}${x.purpose ? `<span class="fchip use">${esc(x.purpose)}</span>` : ""}${x.version ? `<span class="fchip ver">ver. ${esc(x.version)}</span>` : ""}${x.label || x.purpose || x.version ? "" : `<span class="chip warn" style="margin-left:8px">名称・用途・バージョン未入力</span>`}</b><span class="mono ex-dir">${esc(x.path)}</span>
+        <span class="ex-p"><b>${esc(x.label || x.name)}</b><span class="file-tags">${x.purpose ? `<span class="fchip use">${esc(x.purpose)}</span>` : ""}${x.version ? `<span class="fchip ver">ver. ${esc(x.version)}</span>` : ""}${x.label || x.purpose || x.version ? "" : `<span class="fchip warn">名称・用途・バージョン未入力</span>`}</span><span class="mono ex-dir">${esc(x.path)}</span>
           <small class="num">${x.missing ? "" : fmtBytes(x.size) + "・" + x.modified}</small>
           ${x.desc ? `<span class="ex-d">${esc(x.desc)}</span>` : ""}
           <span class="ex-t">${x.missing ? `<span class="chip danger">FTP のフォルダに見つかりません</span>` : ""}${x.tasks.map(id => `<span class="chip ${taskById(id) ? "accent" : "warn"}">${esc(taskLabel(id))}</span>`).join("")}${(x.manuals || []).map(t => `<span class="chip ok">マニュアル：${esc(t.title)}</span>`).join("")}${x.tasks.length || (x.manuals || []).length ? "" : `<span class="chip warn">使う作業が未指定（現場には表示されません）</span>`}</span></span>
