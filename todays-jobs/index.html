@@ -349,6 +349,17 @@
     .mapbtn .logo.y { background: #ff0033; }
     .webbtn { flex: none; min-height: 34px; border: 1px solid var(--line-2); border-radius: 8px; background: rgba(18, 33, 54, .6); font-size: 11.5px; font-weight: 700; color: var(--cyan); display: flex; align-items: center; justify-content: center; gap: 3px; padding: 4px 8px; }
     .webbtn svg { width: 13px; height: 13px; }
+    .xaddr { margin-top: 8px; }
+    .xrow { display: flex; align-items: stretch; gap: 4px; margin-top: 6px; }
+    .xrow .xt { flex: 1; min-width: 0; text-align: left; padding: 5px 10px; border: 1px solid var(--line-2); border-radius: 8px; background: rgba(18, 33, 54, .6); color: var(--text); display: flex; flex-direction: column; justify-content: center; }
+    .xrow .xt b { font-size: 11px; color: var(--cyan); letter-spacing: .04em; font-weight: 700; }
+    .xrow .xt span { font-size: 14px; line-height: 1.35; word-break: break-word; }
+    .xrow .xb { flex: none; width: 36px; border: 1px solid var(--line-2); border-radius: 8px; font-size: 12px; font-weight: 800; font-family: Arial, sans-serif; color: #fff; }
+    .xrow .xb.g { background: #1a73e8; }
+    .xrow .xb.y { background: #ff0033; }
+    .xrow .xb:active, .xrow .xt:active { transform: scale(.95); filter: brightness(1.2); }
+    .xadd { width: 100%; margin-top: 8px; min-height: 34px; border: 1px dashed var(--line-2); border-radius: 8px; background: transparent; color: var(--text); font-size: 13px; font-weight: 700; }
+    .xadd:active { background: rgba(208, 210, 212, .2); }
     .mapbtn:active, .webbtn:active { background: rgba(208, 210, 212, .25); transform: scale(.96); }
     .mapbtn:disabled, .webbtn:disabled, .linkbtn:disabled { opacity: .35; }
     .toplinks { display: flex; align-items: center; gap: 8px; margin-top: 10px; overflow-x: auto; padding: 2px 0 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -1246,6 +1257,7 @@
     const multiCal = new Set(day.jobs.map(x => x.calendar).filter(Boolean)).size > 1;
     const calChip = (j.calendar && multiCal) ? `<span class="chip cal">${icon('calendar')}${esc(j.calendar)}</span>` : '';
     const saleChip = saleOf(j) ? `<span class="chip warn"><span class="yen" style="width:auto">¥</span>${SALE_KIND[saleKind(j)]} ${settings.hideSales ? '＊＊＊＊' : saleOf(j).toLocaleString('ja-JP')}<small style="font-weight:500;opacity:.8">税込</small></span>` : '';
+    const extraChip = (j.extra && j.extra.length) ? `<span class="chip">${icon('pin')}住所＋${j.extra.length}</span>` : '';
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
@@ -1261,7 +1273,7 @@
           <div class="job-sub">
             ${j.location ? `<div class="job-addr">${icon('pin')}<span>${esc(j.location)}</span></div>` : ''}
             ${memoText ? `<div class="job-memo">${esc(memoText)}</div>` : ''}
-            <div class="chips">${workChip}${contactChip}${parkChip}${saleChip}${calChip}${missingChip}${manualChip}</div>
+            <div class="chips">${workChip}${contactChip}${parkChip}${saleChip}${extraChip}${calChip}${missingChip}${manualChip}</div>
           </div>
         </div>
         <div class="job-grip" aria-hidden="true">${icon('grip')}</div>
@@ -1326,6 +1338,14 @@
             <button class="webbtn" type="button" data-map="yahoo" data-mode="web" title="ブラウザで開く">${icon('globe')}Web</button>
           </div>
         </div>` : ''}
+        <div class="xaddr">
+          ${(j.extra || []).map((x, i) => `<div class="xrow">
+            <button class="xt" type="button" data-act="editX" data-i="${i}" title="タップで編集"><b>${esc(x.place || ('住所' + (i + 2)))}</b><span>${esc(x.addr)}</span></button>
+            <button class="xb g" type="button" data-map="google" data-mode="app" data-xi="${i}" title="Googleマップ">G</button>
+            <button class="xb y" type="button" data-map="yahoo" data-mode="app" data-xi="${i}" title="Yahoo!マップ">Y!</button>
+          </div>`).join('')}
+          <button class="xadd" type="button" data-act="addX">＋ 住所を追加</button>
+        </div>
       </div>
 
       <div class="card needcall">
@@ -1420,7 +1440,7 @@
     memo.addEventListener('input', saveMemo);
   }
 
-  $('#dBody').addEventListener('click', (e) => {
+  $('#dBody').addEventListener('click', async (e) => {
     const j = findJob(openId); if (!j) return;
     const segBtn = e.target.closest('.seg button');
     if (segBtn) {
@@ -1439,9 +1459,30 @@
       return;
     }
     const mapBtn = e.target.closest('[data-map]');
-    if (mapBtn) { openMap(mapBtn.dataset.map, mapBtn.dataset.mode, j.location); return; }
+    if (mapBtn) {
+      const xi = mapBtn.dataset.xi;
+      openMap(mapBtn.dataset.map, mapBtn.dataset.mode, xi !== undefined ? ((j.extra || [])[Number(xi)] || {}).addr : j.location);
+      return;
+    }
     const act = e.target.closest('[data-act]');
     if (!act) return;
+    if (act.dataset.act === 'addX' || act.dataset.act === 'editX') {
+      const idx = act.dataset.act === 'editX' ? Number(act.dataset.i) : -1;
+      const cur = idx >= 0 ? (j.extra || [])[idx] : null;
+      const r = await askDialog({
+        title: cur ? '住所を編集' : '住所を追加',
+        body: `<label class="fl" for="dlgInput">住所</label><input class="input" id="dlgInput" value="${esc(cur ? cur.addr : '')}" placeholder="例: 東京都北区浮間3丁目29-2"><label class="fl" for="xPlace">場所名（任意）</label><input class="input" id="xPlace" value="${esc(cur ? cur.place : '')}" placeholder="例: 資材置き場 / 2件目の現場">`,
+        buttons: [{ label: cur ? '保存' : '追加', value: 'ok', kind: 'primary' }].concat(cur ? [{ label: 'この住所を削除', value: 'del', kind: 'danger' }] : []).concat([{ label: 'キャンセル', value: null, kind: 'ghost' }]),
+      });
+      if (r === 'del') { j.extra.splice(idx, 1); saveDay(); render(); renderDetail(); return; }
+      if (r !== 'ok') return;
+      const addr = $('#dlgInput').value.trim(), place = $('#xPlace').value.trim();
+      if (!addr) { toast('住所を入力してください'); return; }
+      j.extra = j.extra || [];
+      if (cur) j.extra[idx] = { place, addr }; else j.extra.push({ place, addr });
+      saveDay(); render(); renderDetail();
+      return;
+    }
     if (act.dataset.act === 'delLog') {
       j.contact.log.splice(Number(act.dataset.i), 1);
       const last = j.contact.log[j.contact.log.length - 1];
