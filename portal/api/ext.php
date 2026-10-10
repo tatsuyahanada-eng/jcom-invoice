@@ -22,6 +22,9 @@ function ensure_ext(): void
       path_hash  CHAR(64)      NOT NULL,
       name       VARCHAR(255)  NOT NULL,
       descr      VARCHAR(1000) NOT NULL DEFAULT \'\',
+      label      VARCHAR(200)  NOT NULL DEFAULT \'\',
+      purpose    VARCHAR(100)  NOT NULL DEFAULT \'\',
+      version    VARCHAR(50)   NOT NULL DEFAULT \'\',
       tasks      TEXT          NOT NULL,
       created_by VARCHAR(24)   NOT NULL DEFAULT \'\',
       created_at DATETIME      NOT NULL,
@@ -29,6 +32,11 @@ function ensure_ext(): void
       PRIMARY KEY (id),
       UNIQUE KEY uq_path (path_hash)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    // 以前の版の表には、名称・用途・バージョンの列を足す
+    $have = array_column(db()->query('SHOW COLUMNS FROM ext_files')->fetchAll(), 'Field');
+    foreach (['label' => 200, 'purpose' => 100, 'version' => 50] as $col => $len) {
+        if (!in_array($col, $have, true)) db()->exec("ALTER TABLE ext_files ADD COLUMN $col VARCHAR($len) NOT NULL DEFAULT '' AFTER descr");
+    }
     $done = true;
 }
 
@@ -93,7 +101,7 @@ function ext_info_all(): array
 function ext_row_out(array $r, bool $withPath): array
 {
     $abs = ext_resolve($r['path']);
-    $o = ['id' => $r['id'], 'name' => $r['name'], 'desc' => $r['descr'], 'size' => $abs ? (int)filesize($abs) : 0, 'missing' => !$abs,
+    $o = ['id' => $r['id'], 'name' => $r['name'], 'label' => $r['label'] ?? '', 'purpose' => $r['purpose'] ?? '', 'version' => $r['version'] ?? '', 'desc' => $r['descr'], 'size' => $abs ? (int)filesize($abs) : 0, 'missing' => !$abs,
         'tasks' => array_values(array_filter((array)json_decode((string)$r['tasks'], true), 'is_string'))];
     if ($withPath) {
         $q = db()->prepare('SELECT id, title FROM tasks WHERE body LIKE ?');   // このファイルを、マニュアルとして使っている作業
@@ -110,7 +118,7 @@ function ext_by_task(): array
     $map = [];
     foreach (db()->query('SELECT * FROM ext_files ORDER BY name')->fetchAll() as $r) {
         $o = ext_row_out($r, false);
-        foreach ($o['tasks'] as $tid) $map[$tid][] = ['id' => $o['id'], 'name' => $o['name'], 'desc' => $o['desc'], 'size' => $o['size'], 'missing' => $o['missing']];
+        foreach ($o['tasks'] as $tid) $map[$tid][] = ['id' => $o['id'], 'name' => $o['name'], 'label' => $o['label'], 'purpose' => $o['purpose'], 'version' => $o['version'], 'desc' => $o['desc'], 'size' => $o['size'], 'missing' => $o['missing']];
     }
     return $map;
 }
@@ -166,6 +174,9 @@ function route_ext_save(): never
     ensure_ext();
     $b = read_json(65536);
     $desc = str($b['desc'] ?? '', 1000);
+    $label = str($b['label'] ?? '', 200);
+    $purpose = str($b['purpose'] ?? '', 100);
+    $version = str($b['version'] ?? '', 50);
     $tasks = ext_valid_tasks($b['tasks'] ?? []);
     $id = (string)($b['id'] ?? '');
     if ($id !== '') {
@@ -173,9 +184,9 @@ function route_ext_save(): never
         $s->execute([$id]);
         $r = $s->fetch() ?: fail(404, '登録が見つかりません');
         $name = $r['name'];   // 名前は、FTP に置いたファイルの名前そのまま（現場でダウンロードされる名前と同じ）
-        db()->prepare('UPDATE ext_files SET descr = ?, tasks = ?, updated_at = ? WHERE id = ?')
-            ->execute([$desc, json_encode($tasks), date('Y-m-d H:i:s'), $id]);
-        log_history($u['id'], 'update', 'ext', '', $name, '使う作業・説明を更新' . ($tasks ? '（' . implode('、', $tasks) . '）' : '（作業の指定なし）'));
+        db()->prepare('UPDATE ext_files SET descr = ?, label = ?, purpose = ?, version = ?, tasks = ?, updated_at = ? WHERE id = ?')
+            ->execute([$desc, $label, $purpose, $version, json_encode($tasks), date('Y-m-d H:i:s'), $id]);
+        log_history($u['id'], 'update', 'ext', '', $name, '名称・用途・バージョン・使う作業を更新' . ($tasks ? '（' . implode('、', $tasks) . '）' : '（作業の指定なし）'));
         json_out(['ok' => true, 'id' => $id, 'message' => '保存しました']);
     }
     $rel = ext_rel_clean((string)($b['path'] ?? ''));
@@ -186,8 +197,8 @@ function route_ext_save(): never
     if ($dup->fetchColumn()) fail(409, 'このファイルは、すでに登録されています');
     $name = mb_substr(basename($rel), 0, 255);
     $id = new_id('x');
-    db()->prepare('INSERT INTO ext_files (id, path, path_hash, name, descr, tasks, created_by, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)')
-        ->execute([$id, $rel, $hash, $name, $desc, json_encode($tasks), $u['id'], date('Y-m-d H:i:s'), date('Y-m-d H:i:s')]);
+    db()->prepare('INSERT INTO ext_files (id, path, path_hash, name, descr, label, purpose, version, tasks, created_by, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+        ->execute([$id, $rel, $hash, $name, $desc, $label, $purpose, $version, json_encode($tasks), $u['id'], date('Y-m-d H:i:s'), date('Y-m-d H:i:s')]);
     log_history($u['id'], 'create', 'ext', '', $name, 'FTP のファイルを登録（' . $rel . '）' . ($tasks ? '。使う作業：' . implode('、', $tasks) : ''));
     json_out(['ok' => true, 'id' => $id, 'message' => '登録しました']);
 }

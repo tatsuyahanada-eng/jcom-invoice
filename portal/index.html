@@ -235,6 +235,11 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .arow-d { opacity: .55; }
 .arow:hover .arow-d, .arow:focus-within .arow-d { opacity: 1; }
 @media (max-width: 640px) { .arow { grid-template-columns: 38px minmax(0, 1fr) auto; } .arow-s { display: none; } }
+.fchip { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; font-size: 11.5px; font-weight: 700; vertical-align: 2px; }
+.fchip.use { background: var(--accent-soft); color: var(--accent); }
+.fchip.ver { background: #fff3d6; color: #8a5a00; }
+.file-fn { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); min-width: 0; }
+.file-fn .mono { color: var(--fg); overflow-wrap: anywhere; }
 .copyfrom { padding: 0; }
 .copyfrom > summary { list-style: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; cursor: pointer; }
 .copyfrom > summary::-webkit-details-marker { display: none; }
@@ -1826,7 +1831,7 @@ const catsSorted = () => [...DATA.categories].sort((a, b) => a.order - b.order);
 const tasksOf = cid => DATA.tasks.filter(t => t.cat === cid).sort((a, b) => a.order - b.order);
 const taskById = id => DATA.tasks.find(t => t.id === id);
 /** この作業のダウンロード用ファイル：画面からアップロードしたもの＋FTP で置いて登録したもの */
-function allFiles(t) { return [...t.files, ...(t.ext || []).map(x => ({ name: x.name, size: x.size, desc: x.desc, sha: "", fid: x.id, ext: true, missing: x.missing }))]; }
+function allFiles(t) { return [...t.files, ...(t.ext || []).map(x => ({ name: x.name, label: x.label || "", purpose: x.purpose || "", version: x.version || "", size: x.size, desc: x.desc, sha: "", fid: x.id, ext: true, missing: x.missing }))]; }
 function totalSize(t) { return allFiles(t).reduce((a, x) => a + (x.size || 0), 0); }
 function hl(text, q) {
   const s = String(text ?? "");
@@ -1898,8 +1903,8 @@ function searchHit(t, q) {
   if (has(t.title) || has(t.id)) return { hit: true };
   const d = t.devices.find(d => has(d.model) || has(d.name) || has(d.type));
   if (d) return { hit: true, why: has(d.model) ? `型番「${d.model}」に一致` : `機器「${d.name}」に一致` };
-  const fl = allFiles(t).find(x => has(x.name) || has(x.desc));
-  if (fl) return { hit: true, why: `ファイル「${fl.name}」に一致` };
+  const fl = allFiles(t).find(x => has(x.name) || has(x.desc) || has(x.label) || has(x.purpose) || has(x.version));
+  if (fl) return { hit: true, why: `ファイル「${fl.label || fl.name}」に一致` };
   const tg = t.tags.find(has);
   if (tg) return { hit: true, why: `キーワード「${tg}」に一致` };
   if (has(t.summary)) return { hit: true, why: "作業内容に一致" };
@@ -2344,7 +2349,8 @@ function wkDetail(t, preview = false) {
               return `<div class="file">
                 <span class="file-ico">${ic(/\.zip$/i.test(x.name) ? "zip" : "file")}</span>
                 <span style="display:grid;gap:3px;min-width:0">
-                  <span class="file-name">${esc(x.name)}</span>
+                  <span class="file-name">${esc(x.label || x.name)}${x.purpose ? `<span class="fchip use">${esc(x.purpose)}</span>` : ""}${x.version ? `<span class="fchip ver">ver. ${esc(x.version)}</span>` : ""}</span>
+                  ${x.label ? `<span class="file-fn"><small>ファイル名</small><span class="mono">${esc(x.name)}</span></span>` : ""}
                   <span class="file-meta">${x.desc ? `<span>${esc(x.desc)}</span>` : ""}<span class="num">${fmtBytes(x.size)}（${dlTime(x.size)}）</span>
                   ${x.sha ? `<span class="hash">SHA-256 <span class="mono">${esc(String(x.sha).slice(0, 10))}…</span><button class="icon-btn" type="button" data-act="copy" data-v="${esc(x.sha)}" data-l="ハッシュ値" aria-label="ハッシュ値をコピー">${ic("copy")}</button></span>` : ""}${x.missing ? `<span class="chip danger">サーバーにファイルが見つかりません。サポートに連絡してください</span>` : ""}</span>
                 </span>
@@ -3527,7 +3533,7 @@ function extAdminHtml() {
     <section class="card blk">
       <div class="blk-h"><h3>登録済みのファイル</h3><span class="chip right">${X.items.length}件</span></div>
       <div class="ex-list">${X.items.map(x => `<div class="ex-row reg">
-        <span class="ex-p"><b>${esc(x.name)}</b><span class="mono ex-dir">${esc(x.path)}</span>
+        <span class="ex-p"><b>${esc(x.label || x.name)}${x.purpose ? `<span class="fchip use">${esc(x.purpose)}</span>` : ""}${x.version ? `<span class="fchip ver">ver. ${esc(x.version)}</span>` : ""}${x.label || x.purpose || x.version ? "" : `<span class="chip warn" style="margin-left:8px">名称・用途・バージョン未入力</span>`}</b><span class="mono ex-dir">${esc(x.path)}</span>
           <small class="num">${x.missing ? "" : fmtBytes(x.size) + "・" + x.modified}</small>
           ${x.desc ? `<span class="ex-d">${esc(x.desc)}</span>` : ""}
           <span class="ex-t">${x.missing ? `<span class="chip danger">FTP のフォルダに見つかりません</span>` : ""}${x.tasks.map(id => `<span class="chip ${taskById(id) ? "accent" : "warn"}">${esc(taskLabel(id))}</span>`).join("")}${(x.manuals || []).map(t => `<span class="chip ok">マニュアル：${esc(t.title)}</span>`).join("")}${x.tasks.length || (x.manuals || []).length ? "" : `<span class="chip warn">使う作業が未指定（現場には表示されません）</span>`}</span></span>
@@ -3538,7 +3544,14 @@ function extAdminHtml() {
 function extModalBody(v) {
   const q = v.q || "";
   const groups = catsSorted().map(c => ({ c, ts: tasksOf(c.id) })).filter(g => g.ts.length);
-  return `<div class="fld"><label for="exDesc">説明（任意）</label><input class="inp" id="exDesc" value="${esc(v.desc)}" placeholder="例：POS 本体の初期設定イメージ（Windows 用）"></div>
+  const uses = ["設定用イメージ", "インストーラー", "アップデート", "ドライバー", "ファームウェア", "OSイメージ", "マニュアル・動画", "その他"];
+  return `<p class="hint" style="margin:0 0 8px">現場の画面には「名称・用途・バージョン」と、実際のファイル名が並んで表示されます。取り違えを防ぐため、できるだけ入力してください。</p>
+    <div class="fgrid">
+      <div class="fld full"><label for="exLabel">名称</label><input class="inp" id="exLabel" value="${esc(v.label || "")}" placeholder="例：POS 初期設定イメージ（Windows）" autocomplete="off"></div>
+      <div class="fld"><label for="exPurpose">用途</label><input class="inp" id="exPurpose" list="exPurposeList" value="${esc(v.purpose || "")}" placeholder="選ぶか、自由に入力" autocomplete="off"><datalist id="exPurposeList">${uses.map(u => `<option value="${u}">`).join("")}</datalist></div>
+      <div class="fld"><label for="exVer">バージョン</label><input class="inp" id="exVer" value="${esc(v.version || "")}" placeholder="例：6.2.1" autocomplete="off"></div>
+    </div>
+    <div class="fld"><label for="exDesc">説明・注意点（任意）</label><input class="inp" id="exDesc" value="${esc(v.desc)}" placeholder="例：旧型番（PT-1400）では使用しないでください"></div>
     <div class="fld"><span class="lb">使う作業（複数選べます）</span>
       <input class="inp" id="exTq" type="search" placeholder="作業名・作業IDで絞り込み" value="${esc(q)}" autocomplete="off">
       <div class="ex-tasks" id="exTasks">${groups.map(g => `<div class="ex-g"><b>${esc(g.c.name)}</b>${g.ts.map(t => `<label class="ck" data-tx="${esc((t.id + " " + t.title).toLowerCase())}"><input type="checkbox" value="${esc(t.id)}" ${v.tasks.includes(t.id) ? "checked" : ""}><span>${esc(t.title)} <small class="mono muted">${esc(t.id)}</small>${t.status === "published" ? "" : ` <small class="muted">（非公開）</small>`}</span></label>`).join("")}</div>`).join("") || `<p class="muted" style="font-size:13px">作業がまだありません。先に作業を登録してください。</p>`}</div>
@@ -4230,7 +4243,7 @@ const ACT = {
   exRefresh: () => loadExt(),
   exReg: el => {
     const path = el.dataset.path;
-    S.layer = { type: "modal", wide: true, title: "FTP のファイルを登録", text: path, ex: { path }, body: extModalBody({ desc: "", tasks: [] }),
+    S.layer = { type: "modal", wide: true, title: "FTP のファイルを登録", text: path, ex: { path }, body: extModalBody({ desc: "", tasks: [], label: "", purpose: "", version: "" }),
       buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "登録する", act: "exSave", cls: "primary" }] };
     renderLayer();
   },
@@ -4241,16 +4254,16 @@ const ACT = {
   },
   exEdit: el => {
     const x = S.ex.data.items.find(i => i.id === el.dataset.id); if (!x) return;
-    S.layer = { type: "modal", wide: true, title: "登録内容の変更", text: x.path, ex: { id: x.id }, body: extModalBody({ desc: x.desc, tasks: x.tasks }),
+    S.layer = { type: "modal", wide: true, title: "登録内容の変更", text: x.path, ex: { id: x.id }, body: extModalBody({ desc: x.desc, tasks: x.tasks, label: x.label, purpose: x.purpose, version: x.version }),
       buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "保存", act: "exSave", cls: "primary" }] };
     renderLayer();
   },
   exSave: async () => {
-    const ex = S.layer.ex, body = { desc: $("#exDesc").value.trim(), tasks: [...document.querySelectorAll("#exTasks input:checked")].map(i => i.value) };
+    const ex = S.layer.ex, body = { desc: $("#exDesc").value.trim(), label: $("#exLabel").value.trim(), purpose: $("#exPurpose").value.trim(), version: $("#exVer").value.trim(), tasks: [...document.querySelectorAll("#exTasks input:checked")].map(i => i.value) };
     if (ex.id) body.id = ex.id; else body.path = ex.path;
     try {
       const r = await api("ext/save", {}, { method: "POST", body });
-      S.layer = null; renderLayer(); await refreshHistory(); await loadExt(); toast(r.message + (body.tasks.length ? "" : "。使う作業を指定すると、現場に表示されます"));
+      S.layer = null; renderLayer(); await refreshHistory(); await loadExt(); toast(r.message + (body.tasks.length ? "" : "。使う作業を指定すると、現場に表示されます") + (body.label && body.purpose && body.version ? "" : "。名称・用途・バージョンも入れておくと、取り違えを防げます"));
     } catch (e) { failToast(e); }
   },
   exDel: el => {
