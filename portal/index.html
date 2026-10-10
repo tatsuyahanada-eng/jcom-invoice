@@ -999,64 +999,17 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
 .lg-sel .sel { width: auto; max-width: 100%; }
 .lg-count { font-size: 13px; color: var(--muted); }
 .lg-count b { color: var(--fg); font-size: 16px; }
-.lgrow { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 16px; text-align: left; width: 100%; }
-.lgrow:hover { border-color: var(--accent); }
-.lg-date { display: grid; justify-items: center; gap: 1px; background: var(--surface-2); border-radius: 10px; padding: 8px 4px; }
-.lg-date b { font-size: 18px; line-height: 1.2; }
-.lg-date small { font-size: 11px; color: var(--muted); }
-.lg-main { display: grid; gap: 3px; min-width: 0; }
-.lg-place { font-weight: 700; font-size: 15.5px; line-height: 1.4; overflow-wrap: anywhere; }
-.lg-task { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lg-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12.5px; color: var(--muted); }
-.lg-meta > span { display: inline-flex; align-items: center; gap: 4px; }
-.lg-meta svg.i { width: 14px; height: 14px; }
-.lg-note { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lg-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1px solid var(--line); background: var(--surface-2); flex: none; }
-.lg-thumb.ph { display: grid; place-items: center; color: var(--line-strong); }
-.lg-more { display: grid; justify-items: center; padding: 6px 0; }
-.lgd { padding: 20px 22px; display: grid; gap: 16px; }
-.lgd-h { display: grid; gap: 4px; justify-items: start; }
-.lgd-h h1 { font-size: 22px; line-height: 1.4; overflow-wrap: anywhere; }
-.lgd-t { margin: 0; font-size: 14px; color: var(--muted); }
-.lgd-f { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.lgd-f div { display: grid; gap: 1px; }
-.lgd-f dt { font-size: 11.5px; color: var(--muted); }
-.lgd-f dd { margin: 0; font-weight: 700; font-size: 14.5px; }
-.lgd-f small { font-weight: 400; margin-left: 4px; }
-.lgd-s { display: grid; gap: 8px; }
-.lgd-s h2 { font-size: 14px; display: flex; align-items: baseline; gap: 8px; }
-.lgd-s h2 .muted { font-size: 12px; font-weight: 400; }
-.lgd-notes { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; font-size: 14.5px; background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
-.lgd-acts { display: flex; gap: 8px; flex-wrap: wrap; }
-.lgf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.lgf { display: grid; gap: 6px; align-content: start; border: 1px solid var(--line); border-radius: 12px; padding: 8px; background: var(--surface); text-align: left; color: var(--fg); text-decoration: none; }
-.lgf:hover { border-color: var(--accent); }
-.lgf.img img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; border-radius: 8px; background: var(--surface-2); }
-.lgf.img span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lgf.pdf, .lgf:not(.img) { grid-template-columns: auto minmax(0, 1fr); align-items: center; grid-column: span 2; }
-.lgf-ic { width: 44px; height: 54px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--muted); }
-.lgf-ic.pdf { color: var(--danger); }
-.lgf-n { display: grid; gap: 2px; font-size: 13px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
-.lgf-n small { font-size: 11.5px; font-weight: 400; color: var(--muted); }
-.lgform { padding: 20px 22px; display: grid; gap: 16px; }
-.lgform h1 { font-size: 20px; }
-.lg-who { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; min-height: 42px; flex-wrap: wrap; }
-.lg-who svg.i { color: var(--accent); }
-.lg-who small { color: var(--muted); font-size: 12px; }
-.lg-res { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.lg-res button { border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 8px; font-size: 15px; font-weight: 700; color: var(--muted); }
-.lg-res button[aria-pressed="true"].done { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
-.lg-res button[aria-pressed="true"].partial { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
-.lg-res button[aria-pressed="true"].stopped { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
-.lg-drop { padding: 18px; display: grid; justify-items: center; text-align: center; gap: 4px; }
-.lg > * { min-width: 0; }
-.lg-filters { overflow: hidden; }
-.lgu-list { display: grid; gap: 8px; margin-top: 8px; }
-.lgu { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
-.lgu.err { border-color: var(--danger); background: var(--danger-soft); }
-.lgu-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; flex: none; background: var(--surface-2); }
-.lgu-ic { width: 48px; height: 48px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--muted); flex: none; }
-.lgu-ic.pdf { color: var(--danger); }
+.lgrow { display: grid; grid-template-columns: 92px minmax(0, 1.2fr) minmax(0, 1.6fr) 104px 52px 20px; gap: 14px; align-items: center; padding: 11px 16px; text-align: left; width: 100%; }
+.home > * { min-width: 0; }
+.lgrow { min-width: 0; max-width: 100%; }
+.lgrow:hover { border-color: var(--accent); background: var(--accent-soft); }
+.lg-date { font-weight: 700; font-size: 14.5px; white-space: nowrap; }
+.lg-date small { margin-left: 4px; font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.lg-place { font-weight: 700; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-task, .lg-who { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lgrow .chip { justify-self: start; }
+.lg-clip { color: var(--muted); display: grid; place-items: center; }
+.lg-clip svg.i { width: 16px; height: 16px; }
 .lgu-n { display: grid; gap: 2px; min-width: 0; flex: 1; }
 .lgu-n b { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lgu-n small { font-size: 12px; color: var(--muted); }
@@ -1064,8 +1017,12 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
 @media (max-width: 640px) {
   .hero .btn.lg-new { height: 48px; width: 100%; justify-content: center; }
   .lg-top .bigsearch { min-width: 0; flex-basis: 100%; }
-  .lgrow { grid-template-columns: 56px minmax(0, 1fr); padding: 12px; gap: 10px; }
-  .lgrow .lg-thumb { display: none; }
+  .lgrow { grid-template-columns: auto minmax(0, 1fr) auto auto; padding: 10px 12px; gap: 4px 10px; }
+  .lgrow .lg-place { grid-column: 2 / 4; }
+  .lgrow .lg-task { grid-column: 1 / -1; grid-row: 2; }
+  .lgrow .lg-who { grid-column: 1 / 4; grid-row: 3; }
+  .lgrow .chip { grid-column: 4; grid-row: 1; }
+  .lgrow .lg-clip { grid-column: 4; grid-row: 3; justify-self: end; }
   .lgd, .lgform { padding: 16px 14px; }
   .lg-period .inp { flex: 1 1 120px; min-width: 0; width: auto; }
   .lg-sel .sel { flex: 1 1 45%; min-width: 0; }
@@ -1412,6 +1369,7 @@ button.who:hover { background: var(--surface-2); }
    アイコン
    ========================================================= */
 const ICONS = {
+  clip: '<path d="M20 11.5 12 19.5a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.5-7.5"/>',
   link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
   register: '<rect x="3" y="11" width="18" height="9" rx="1.5"/><path d="M7 11V5h10v6M9.5 8h5M7 15h2M11 15h2M15 15h2"/>',
   kiosk: '<rect x="6" y="2.5" width="12" height="13" rx="1.5"/><path d="M12 15.5V21M8 21h8M9 7h6M9 10h4"/>',
@@ -2572,18 +2530,15 @@ function logsHtml() {
     <div id="lgList">${lgListHtml()}</div>
   </div>`;
 }
-function lgRow(l) {
-  const img = l.files.find(x => LG_IMG.test(x.name));
+function lgRow(l) {   // 1行に収める。メモや画像は載せず、添付があればクリップのマークだけ出す（中身は開いて確認する）
   const [rl, rc] = LG_RESULT[l.result] || ["—", ""];
   return `<button class="card lgrow" type="button" data-act="lgOpen" data-id="${esc(l.id)}">
-    <span class="lg-date"><b class="num">${lgMD(l.date)}</b><small class="num">${lgWeekday(l.date)}</small></span>
-    <span class="lg-main">
-      <span class="lg-place">${lgHl(l.place)}</span>
-      <span class="lg-task">${lgHl(l.taskTitle)}</span>
-      <span class="lg-meta"><span>${ic("users")}${lgHl(l.user.name)}</span><span class="chip ${rc}">${rl}</span>${l.files.length ? `<span>${ic("file")}${l.files.length}</span>` : ""}</span>
-      ${l.notes ? `<span class="lg-note">${lgHl(l.notes.replace(/\s+/g, " "))}</span>` : ""}
-    </span>
-    ${img && lgReal(img) ? `<img class="lg-thumb" src="${lgFileUrl(img)}" alt="" loading="lazy">` : l.files.length ? `<span class="lg-thumb ph">${ic("file")}</span>` : ""}
+    <span class="lg-date num">${lgMD(l.date)}<small>${lgWeekday(l.date)}</small></span>
+    <span class="lg-place">${lgHl(l.place)}</span>
+    <span class="lg-task">${lgHl(l.taskTitle)}</span>
+    <span class="lg-who">${lgHl(l.user.name)}</span>
+    <span class="chip ${rc}">${rl}</span>
+    <span class="lg-clip" ${l.files.length ? `title="添付 ${l.files.length}件" aria-label="添付 ${l.files.length}件"` : ""}>${l.files.length ? ic("clip") : ""}</span>
   </button>`;
 }
 function lgListHtml() {
