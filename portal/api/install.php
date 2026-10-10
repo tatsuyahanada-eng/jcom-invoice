@@ -19,8 +19,8 @@ function install_admin(string $pw): bool
 {
     $pdo = db();
     if ((int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn() > 0) return false;
-    $pdo->prepare('INSERT INTO users (id, username, display_name, email, dept, role, active, password_hash, must_change) VALUES (?,?,?,?,?,?,1,?,?)')
-        ->execute(['u1', 'admin', '管理者', 'admin@example.co.jp', '', 'admin', password_hash($pw, PASSWORD_DEFAULT), $pw === DEFAULT_ADMIN_PASSWORD ? 1 : 0]);
+    $pdo->prepare('INSERT INTO users (id, username, display_name, dept, role, active, password_hash, must_change) VALUES (?,?,?,?,?,1,?,?)')
+        ->execute(['u1', 'admin', '管理者', '', 'admin', password_hash($pw, PASSWORD_DEFAULT), $pw === DEFAULT_ADMIN_PASSWORD ? 1 : 0]);
     return true;
 }
 

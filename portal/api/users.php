@@ -20,16 +20,13 @@ function op_users_save(array $me, array $b): array
 
     $rows = [];
     $names = [];
-    $mails = [];
     foreach ($in as $x) {
         if (!is_array($x)) fail(422, 'ユーザーの形式が正しくありません');
         $id = (string)($x['id'] ?? '');
         $isNew = !isset($old[$id]);
         $name = str($x['name'] ?? '', 100);
-        $email = str($x['email'] ?? '', 255);
         $role = (string)($x['role'] ?? 'viewer');
-        if ($name === '' || $email === '') fail(422, '氏名とメールアドレスは必須です');
-        if (!preg_match('/^\S+@\S+\.\S+$/', $email)) fail(422, 'メールアドレスの形式を確認してください');
+        if ($name === '') fail(422, '氏名は必須です');
         if ($role === 'approver') $role = 'editor';   // 旧版の「公開承認」は「編集」にまとめた
         if (!in_array($role, ['viewer', 'editor', 'admin'], true)) fail(422, '権限の指定が正しくありません');
         $username = $isNew ? strtolower(str($x['username'] ?? '', 50)) : $old[$id]['username'];
@@ -40,11 +37,10 @@ function op_users_save(array $me, array $b): array
             $id = new_id('u');
         }
         if (isset($names[$username])) fail(422, "ユーザー名「{$username}」が重複しています");
-        if (isset($mails[strtolower($email)])) fail(422, 'メールアドレスが重複しています');
-        $names[$username] = $mails[strtolower($email)] = true;
+        $names[$username] = true;
         $active = !empty($x['active']);
         if (!$isNew && $id === $me['id'] && ($role !== $me['role'] || !$active)) fail(422, '自分自身の権限と状態は変更できません');
-        $rows[] = compact('id', 'isNew', 'username', 'name', 'email', 'role', 'active') + ['dept' => str($x['dept'] ?? '', 100), 'pw' => $isNew ? $pw : null];
+        $rows[] = compact('id', 'isNew', 'username', 'name', 'role', 'active') + ['dept' => str($x['dept'] ?? '', 100), 'pw' => $isNew ? $pw : null];
     }
     foreach ($old as $id => $_) {   // ユーザーは削除できない（無効にする）
         if (!in_array($id, array_column($rows, 'id'), true)) fail(422, 'ユーザーは削除できません。無効にしてください');
@@ -53,17 +49,17 @@ function op_users_save(array $me, array $b): array
 
     foreach ($rows as $r) {
         if ($r['isNew']) {
-            $pdo->prepare('INSERT INTO users (id, username, display_name, email, dept, role, active, password_hash, must_change) VALUES (?,?,?,?,?,?,?,?,1)')
-                ->execute([$r['id'], $r['username'], $r['name'], $r['email'], $r['dept'], $r['role'], $r['active'] ? 1 : 0, password_hash($r['pw'], PASSWORD_DEFAULT)]);
+            $pdo->prepare('INSERT INTO users (id, username, display_name, dept, role, active, password_hash, must_change) VALUES (?,?,?,?,?,?,?,1)')
+                ->execute([$r['id'], $r['username'], $r['name'], $r['dept'], $r['role'], $r['active'] ? 1 : 0, password_hash($r['pw'], PASSWORD_DEFAULT)]);
             log_history($me['id'], 'create', 'user', '', $r['name'], 'ユーザーを追加（' . ROLE_LABEL[$r['role']] . '）');
             continue;
         }
         $o = $old[$r['id']];
-        $pdo->prepare('UPDATE users SET display_name = ?, email = ?, dept = ?, role = ?, active = ? WHERE id = ?')
-            ->execute([$r['name'], $r['email'], $r['dept'], $r['role'], $r['active'] ? 1 : 0, $r['id']]);
+        $pdo->prepare('UPDATE users SET display_name = ?, dept = ?, role = ?, active = ? WHERE id = ?')
+            ->execute([$r['name'], $r['dept'], $r['role'], $r['active'] ? 1 : 0, $r['id']]);
         if ($o['role'] !== $r['role']) log_history($me['id'], 'update', 'user', '', $r['name'], '権限を変更：' . ROLE_LABEL[$o['role']] . ' → ' . ROLE_LABEL[$r['role']]);
         if ((bool)$o['active'] !== $r['active']) log_history($me['id'], 'update', 'user', '', $r['name'], $r['active'] ? 'ユーザーを有効にしました' : 'ユーザーを無効にしました');
-        if ($o['display_name'] !== $r['name'] || $o['email'] !== $r['email'] || $o['dept'] !== $r['dept']) log_history($me['id'], 'update', 'user', '', $r['name'], '登録情報を変更');
+        if ($o['display_name'] !== $r['name'] || $o['dept'] !== $r['dept']) log_history($me['id'], 'update', 'user', '', $r['name'], '登録情報を変更');
     }
     return ['message' => 'ユーザー情報を保存しました'];
 }

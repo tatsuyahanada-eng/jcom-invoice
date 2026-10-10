@@ -188,7 +188,7 @@ function role_lv(array $u): int
 function public_user(array $r, bool $full = true): array
 {
     $o = ['id' => $r['id'], 'name' => $r['display_name'], 'dept' => $r['dept'], 'role' => $r['role'] === 'approver' ? 'editor' : $r['role'], 'active' => (bool)$r['active']];
-    if ($full) $o += ['username' => $r['username'], 'email' => $r['email'], 'last' => $r['last_login'] ? substr((string)$r['last_login'], 0, 16) : '', 'mustChange' => (bool)$r['must_change']];
+    if ($full) $o += ['username' => $r['username'], 'last' => $r['last_login'] ? substr((string)$r['last_login'], 0, 16) : '', 'mustChange' => (bool)$r['must_change']];
     return $o;
 }
 

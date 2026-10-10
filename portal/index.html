@@ -781,6 +781,16 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
 .row-dev { grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) 90px; }
 .row-pre { grid-template-columns: 26px minmax(0, 1fr) 90px; }
 .row-bring { grid-template-columns: minmax(0, 1fr) 84px auto 90px; }
+.row-lnk { grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1.5fr) auto; }
+.row-lnk-h { }
+.lnks { display: grid; gap: 8px; }
+.lnk { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--fg); text-decoration: none; background: var(--surface); transition: background .15s ease, border-color .15s ease; }
+.lnk:hover, .lnk:focus-visible { background: var(--accent-soft); border-color: var(--accent); }
+.lnk-ic { width: 32px; height: 32px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+.lnk-ic svg.i { width: 17px; height: 17px; }
+.lnk-tx { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.lnk-tx b { font-size: 14px; }
+.lnk-tx small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-man, .man-top { grid-template-columns: 96px minmax(0, 1.6fr) minmax(0, .8fr) 150px 90px; }
 .man-ed { display: grid; gap: 8px; }
 .man-top { display: grid; gap: 8px; align-items: center; }
@@ -888,6 +898,9 @@ details.old summary { padding: 10px 14px; font-size: 13px; color: var(--muted); 
   .row-dev { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .row-dev > .tools { grid-column: 1 / -1; justify-content: flex-end; }
   .row-man, .man-top { grid-template-columns: 90px minmax(0, 1fr); }
+  .row-lnk { grid-template-columns: 28px minmax(0, 1fr); }
+  .row-lnk > .tools { grid-column: 1 / -1; justify-content: flex-end; }
+  .cols-h.row-lnk { display: none; }
   .row-man > .tools, .man-top > .tools { grid-column: 1 / -1; justify-content: flex-end; }
   .row-bring { grid-template-columns: minmax(0, 1fr) 72px; }
   .row-bring > .req-tg { justify-self: start; }
@@ -1152,7 +1165,14 @@ table.perm .ok { color: var(--ok); display: inline-grid; }
 table.perm .no { color: var(--line-strong); }
 .role-list { display: grid; gap: 6px; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
 .role-list b { color: var(--fg); }
-.row-user { grid-template-columns: 34px minmax(0, 1.1fr) minmax(0, 1.5fr) minmax(0, 1fr) 124px 74px; }
+.perm-fold { padding: 10px 16px; font-size: 12px; }
+.perm-fold > summary { list-style: none; display: flex; align-items: baseline; gap: 10px; cursor: pointer; }
+.perm-fold > summary::-webkit-details-marker { display: none; }
+.perm-fold > summary h3 { font-size: 13px; margin: 0; }
+.perm-fold > summary small { color: var(--muted); font-size: 11.5px; }
+.perm-fold[open] > summary { margin-bottom: 10px; }
+.perm-fold table, .perm-fold .role-list { font-size: 12px; }
+.row-user { grid-template-columns: 34px minmax(0, 1.4fr) minmax(0, 1.2fr) 124px 74px; }
 .row-user.off { opacity: .62; }
 .row-user .ls { font-size: 11px; color: var(--muted); }
 .req-tg:disabled { opacity: .4; pointer-events: none; }
@@ -1351,6 +1371,7 @@ button.who:hover { background: var(--surface-2); }
    アイコン
    ========================================================= */
 const ICONS = {
+  link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
   register: '<rect x="3" y="11" width="18" height="9" rx="1.5"/><path d="M7 11V5h10v6M9.5 8h5M7 15h2M11 15h2M15 15h2"/>',
   kiosk: '<rect x="6" y="2.5" width="12" height="13" rx="1.5"/><path d="M12 15.5V21M8 21h8M9 7h6M9 10h4"/>',
   hotel: '<path d="M3 20.5V9l9-5 9 5v11.5"/><path d="M9.5 20.5v-5h5v5M8 11h.01M12 11h.01M16 11h.01"/>',
@@ -1662,12 +1683,12 @@ const DEFAULT_DATA = {
     { id: "c3", name: "ネットワーク担当（高橋）", dept: "サポート課", phone: "090-0000-5678", email: "net-support@example.co.jp", hours: "平日 9:00–18:00", topics: "VPN がつながらない、回線事業者との調整", cats: ["net"] }
   ],
   users: [
-    { id: "u1", name: "山田 太郎", email: "yamada@example.co.jp", dept: "技術課", role: "admin", active: true, last: "2026-10-03 09:12" },
-    { id: "u2", name: "佐藤 花子", email: "sato@example.co.jp", dept: "技術課", role: "editor", active: true, last: "2026-10-02 17:45" },
-    { id: "u3", name: "鈴木 一郎", email: "suzuki@example.co.jp", dept: "技術課", role: "editor", active: true, last: "2026-10-02 10:30" },
-    { id: "u4", name: "高橋 健", email: "takahashi@example.co.jp", dept: "サポート課", role: "editor", active: true, last: "2026-10-02 17:20" },
-    { id: "u5", name: "田中 美咲", email: "tanaka@example.co.jp", dept: "施工チーム A", role: "viewer", active: true, last: "2026-10-03 08:05" },
-    { id: "u6", name: "伊藤 大輔", email: "ito@example.co.jp", dept: "施工チーム B", role: "viewer", active: false, last: "2026-06-30 18:00" }
+    { id: "u1", name: "山田 太郎", dept: "技術課", role: "admin", active: true, last: "2026-10-03 09:12" },
+    { id: "u2", name: "佐藤 花子", dept: "技術課", role: "editor", active: true, last: "2026-10-02 17:45" },
+    { id: "u3", name: "鈴木 一郎", dept: "技術課", role: "editor", active: true, last: "2026-10-02 10:30" },
+    { id: "u4", name: "高橋 健", dept: "サポート課", role: "editor", active: true, last: "2026-10-02 17:20" },
+    { id: "u5", name: "田中 美咲", dept: "施工チーム A", role: "viewer", active: true, last: "2026-10-03 08:05" },
+    { id: "u6", name: "伊藤 大輔", dept: "施工チーム B", role: "viewer", active: false, last: "2026-06-30 18:00" }
   ],
   history: [
     { id: "h1", at: "2026-10-02 17:20", user: "u4", action: "request", type: "task", tid: "WK-2102", name: "自動釣銭機の接続と動作確認", detail: "公開中の内容への変更を申請（変更箇所：準備・持参品、作業手順、公開設定）　メモ：テスト後に準備金を確認する手順を追加しました。" },
@@ -1723,7 +1744,7 @@ const isSrv = () => AUTH.mode === "server";
 /** 以前の版で保存したデータにも、新しい項目（書類・連絡先）を補う */
 function fixData(d) {
   d.contacts ||= (AUTH.mode === "server" ? [] : clone(DEFAULT_DATA.contacts));
-  (d.tasks || []).forEach(t => { t.docs ||= []; t.ext ||= []; t.review = null; t.rejected = null; });   // 承認の仕組みは廃止した
+  (d.tasks || []).forEach(t => { t.docs ||= []; t.links ||= []; t.ext ||= []; t.review = null; t.rejected = null; });   // 承認の仕組みは廃止した
   (d.users || []).forEach(u => { if (!ROLES[u.role]) u.role = "editor"; });   // 旧版の「公開承認」は「編集」に
   return d;
 }
@@ -1797,7 +1818,7 @@ function setPath(o, path, v) { const k = path.split("."); let x = o; for (let i 
 /* 入力状況の判定（設定画面のタブ表示・ツリー・ダッシュボードで共通利用） */
 const TABS = [
   ["basic", "作業名・内容"], ["dev", "対象機器"], ["prep", "準備・持参品"], ["files", "設定データ"],
-  ["steps", "作業手順"], ["man", "マニュアル"], ["docs", "書類"]
+  ["steps", "作業手順"], ["man", "マニュアル"], ["links", "参考URL"], ["docs", "書類"]
 ];
 function sectionState(t) {
   const n = t.precheck.length + t.bring.length;
@@ -1809,6 +1830,7 @@ function sectionState(t) {
     steps: t.steps.length || "need",
     man: t.manuals.length || "opt",
     docs: t.docs.length || "opt",
+    links: t.links.length || "opt",
     pub: t.status === "published" ? "ok" : "draft",
     hist: DATA.history.filter(x => x.tid === t.id).length || "opt"
   };
@@ -1850,6 +1872,8 @@ function searchHit(t, q) {
   const dc = t.docs.find(x => has(x.title));
   if (dc) return { hit: true, why: `書類「${dc.title}」に一致` };
   if (t.bring.some(b => has(b.name))) return { hit: true, why: "持参品に一致" };
+  const lk = t.links.find(l => has(l.title) || has(l.url));
+  if (lk) return { hit: true, why: `参考URL「${lk.title || lk.url}」に一致` };
   const mn = t.manuals.find(m => has(m.title));
   if (mn) return { hit: true, why: `マニュアル「${mn.title}」に一致` };
   const st = t.steps.find(x => has(x.title) || has(x.body));
@@ -2006,6 +2030,8 @@ function workList() {
 function viewToggle() {
   return `<div class="vtog" role="group" aria-label="表示の切り替え"><button type="button" data-act="wView" data-v="cat" aria-pressed="${!S.w.listMode}">${ic("grid")}大項目ごと</button><button type="button" data-act="wView" data-v="list" aria-pressed="${!!S.w.listMode}">${ic("steps")}一覧</button></div>`;
 }
+/* 参考URL：http / https だけを通す（javascript: などは無効にする）。スキームが無ければ https:// を補う */
+function safeUrl(u) { u = String(u || "").trim(); if (u && !/^[a-z][a-z0-9+.-]*:/i.test(u)) u = "https://" + u; return /^https?:\/\//i.test(u) ? u : "#"; }
 function cntChip(icon, label, n) { return `<span class="cnt ${n ? "" : "zero"}" title="${label}">${ic(icon)}<b class="num">${n}</b><small>${label}</small></span>`; }
 function fieldListHtml() {
   const rows = workList();
@@ -2201,7 +2227,7 @@ function wkDetail(t, preview = false) {
   const expandCmd = zips.map(x => `Expand-Archive "$env:USERPROFILE\\Downloads\\${x.name}" -DestinationPath "${t.extractTo}" -Force`).join("\n");
   const hashCmd = HF.map(x => `Get-FileHash "$env:USERPROFILE\\Downloads\\${x.name}"`).join("\n");
   const none = s => `<p class="muted" style="font-size:13px">${s}</p>`;
-  const navItems = [...(t.precheck.length || t.bring.length ? [["prep", "準備・持参品", t.precheck.length + t.bring.length]] : []), ["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ...(t.docs.length ? [["docs", "書類", t.docs.length]] : []), ["files", "設定データ", AF.length], ["dev", "機器", t.devices.length], ["ct", "連絡先", 0]];
+  const navItems = [...(t.precheck.length || t.bring.length ? [["prep", "準備・持参品", t.precheck.length + t.bring.length]] : []), ["steps", "作業手順", t.steps.length], ["man", "マニュアル", t.manuals.length], ...(t.links.length ? [["links", "参考URL", t.links.length]] : []), ...(t.docs.length ? [["docs", "書類", t.docs.length]] : []), ["files", "設定データ", AF.length], ["dev", "機器", t.devices.length], ["ct", "連絡先", 0]];
 
   return `<div class="wk-c"><div class="wk">
     ${preview ? "" : `<nav class="crumb" aria-label="現在の位置"><button type="button" data-act="goHome">${ic("grid")}トップ</button>${ic("chev")}<button type="button" data-act="openCat" data-id="${esc(t.cat)}">${esc(c.name)}</button>${ic("chev")}<span class="mono">${esc(t.id)}</span></nav>`}
@@ -2263,6 +2289,11 @@ function wkDetail(t, preview = false) {
             ${isSrv() && !manUrl(m) && !(m.kind === "Web" && m.url) ? `<span class="chip">ファイル未登録</span>` : `<button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-act="manual" data-i="${i}" ${dis || (m.missing ? "disabled" : "")}>${m.kind === "動画" ? "再生" : "開く"}</button>`}
           </div>`).join("") : none("マニュアルは登録されていません")}</div>
         </section>
+
+        ${t.links.length ? `<section class="card wsec" data-sec="links">
+          <div class="wsec-h"><h2>参考URL</h2><span class="sub">タップすると新しいタブで開きます</span></div>
+          <div class="lnks">${t.links.map(l => `<a class="lnk" href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener noreferrer"><span class="lnk-ic">${ic("link")}</span><span class="lnk-tx"><b>${esc(l.title || l.url)}</b><small>${esc(l.url)}</small></span>${ic("chev")}</a>`).join("")}</div>
+        </section>` : ""}
 
         ${t.docs.length ? `<section class="card wsec" data-sec="docs">
           <div class="wsec-h"><h2>現場で作成する書類</h2><span class="sub">様式をダウンロードし、記入例を見ながら作成してください</span></div>
@@ -2942,7 +2973,7 @@ function contactsHtml() {
 function userCell(u, i, self) {
   const isNew = isSrv() && !DATA.users.some(x => x.id === u.id);
   let extra;
-  if (!isSrv()) extra = `<span class="ls">${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン（案内メール送信前）"}${self ? "・ログイン中" : ""}</span>`;
+  if (!isSrv()) extra = `<span class="ls">${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン"}${self ? "・ログイン中" : ""}</span>`;
   else if (isNew) extra = `<span class="uidrow">${inp(`${i}.username`, u.username || "", "ログインID（英数字）", "mono")}<input class="inp" type="password" id="${fid(`${i}.password`)}" data-bind="${i}.password" value="${esc(u.password || "")}" placeholder="初期パスワード（8文字以上）" autocomplete="new-password"></span>`;
   else extra = `<span class="ls">ID <b class="mono">${esc(u.username)}</b>・${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン"}${self ? "・ログイン中" : ""}${u.mustChange ? "・初期パスワード" : ""}　<button class="link" type="button" style="font-size:11px" data-act="uPw" data-i="${i}">パスワード再設定</button></span>`;
   return `<span style="display:grid;gap:2px;min-width:0">${inp(`${i}.name`, u.name, "氏名")}${extra}</span>`;
@@ -2953,27 +2984,26 @@ function usersHtml() {
   return edHead("ユーザー・権限", "ユーザー・権限", `<button class="btn sm primary" type="button" data-act="uAdd">${ic("plus")}ユーザーを追加</button>`) + `<div class="sect">
     <p class="sect-intro">ユーザーの登録と権限の変更ができるのは管理者だけです。使わなくなったユーザーは削除せず「無効」にします（ログインできなくなり、変更履歴の記録は残ります）。</p>
     <section class="card blk">
-      <div class="blk-h"><h3>権限でできること</h3></div>
-      <div class="tbl-wrap"><table class="perm"><thead><tr><th scope="col">できること</th>${Object.values(ROLES).map(r => `<th scope="col"><span class="chip ${r.cls}">${r.label}</span></th>`).join("")}</tr></thead>
-      <tbody>${PERMS.map(([n, v]) => `<tr><td>${n}</td>${v.map(x => `<td>${x ? `<span class="ok" role="img" aria-label="できる">${ic("check")}</span>` : `<span class="no" role="img" aria-label="できない">—</span>`}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
-      <div class="role-list">${Object.values(ROLES).map(r => `<span><b>${r.label}</b>：${r.desc}</span>`).join("")}</div>
-    </section>
-    <section class="card blk">
       <div class="blk-h"><h3>ユーザー</h3><span class="chip right num">${act}名が有効</span></div>
-      ${d.length ? `<div class="cols-h row-user"><span></span><span>氏名</span><span>メールアドレス</span><span>部署</span><span>権限</span><span>状態</span></div>` : ""}
+      ${d.length ? `<div class="cols-h row-user"><span></span><span>氏名</span><span>部署</span><span>権限</span><span>状態</span></div>` : ""}
       <div class="rows">${d.map((u, i) => {
         const self = u.id === S.me;
         return `<div class="row row-user ${u.active ? "" : "off"}">
           <span class="h-av">${esc((u.name || "?").slice(0, 1))}</span>
           ${userCell(u, i, self)}
-          ${inp(`${i}.email`, u.email, "name@example.co.jp")}
           ${inp(`${i}.dept`, u.dept, "部署")}
           <select class="sel" id="${fid(`${i}.role`)}" data-bind="${i}.role" aria-label="権限" ${self ? "disabled" : ""}>${roleOpts(u.role)}</select>
           <button class="req-tg ${u.active ? "" : "on"}" type="button" data-act="togActive" data-i="${i}" ${self ? "disabled" : ""} aria-label="${u.active ? "有効（押すと無効にします）" : "無効（押すと有効にします）"}">${u.active ? "有効" : "無効"}</button>
         </div>`;
       }).join("")}</div>
       <p class="hint">${isSrv() ? "新しいユーザーは、ログインIDと初期パスワードを決めて登録し、本人に伝えてください（初期パスワードのまま使うと、本人に変更の案内が出ます）。自分自身の権限と状態は変更できません。" : "登録したユーザーには、初回ログイン用の案内メールが送られます（本番）。自分自身の権限と状態は変更できません。"}</p>
-    </section></div>`;
+    </section>
+    <details class="card blk perm-fold">
+      <summary><h3>権限でできること</h3><small>クリックで表示</small></summary>
+      <div class="tbl-wrap"><table class="perm"><thead><tr><th scope="col">できること</th>${Object.values(ROLES).map(r => `<th scope="col"><span class="chip ${r.cls}">${r.label}</span></th>`).join("")}</tr></thead>
+      <tbody>${PERMS.map(([n, v]) => `<tr><td>${n}</td>${v.map(x => `<td>${x ? `<span class="ok" role="img" aria-label="できる">${ic("check")}</span>` : `<span class="no" role="img" aria-label="できない">—</span>`}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <div class="role-list">${Object.values(ROLES).map(r => `<span><b>${r.label}</b>：${r.desc}</span>`).join("")}</div>
+    </details></div>`;
 }
 
 function catEditor() {
@@ -3008,9 +3038,9 @@ function catEditor() {
 }
 
 /* 作業の入力：1ページにすべての項目を並べる（上の目次から各項目へ移動できる） */
-const ED_SECS = [["basic", "作業名・内容"], ["dev", "対象機器"], ["steps", "作業手順"], ["files", "設定データ"], ["man", "マニュアル"], ["docs", "書類"], ["prep", "準備・持参品"], ["pub", "表示"]];
+const ED_SECS = [["basic", "作業名・内容"], ["dev", "対象機器"], ["steps", "作業手順"], ["files", "設定データ"], ["man", "マニュアル"], ["links", "参考URL"], ["docs", "書類"], ["prep", "準備・持参品"], ["pub", "表示"]];
 function edCount(d, k) {
-  return { dev: d.devices.length, steps: d.steps.length, files: d.files.length, man: d.manuals.length, docs: d.docs.length, prep: d.precheck.length + d.bring.length }[k];
+  return { dev: d.devices.length, steps: d.steps.length, files: d.files.length, man: d.manuals.length, links: d.links.length, docs: d.docs.length, prep: d.precheck.length + d.bring.length }[k];
 }
 function tabsHtml() {
   const d = S.a.draft;
@@ -3027,7 +3057,7 @@ function allSectionsHtml() {
 }
 
 /* すでにある作業から、事前準備・手順などを、必要な部分だけコピーする（共通の内容を、何度も入力しなくてよい） */
-const CP_SECS = [["prep", "事前準備・持参品"], ["dev", "対象機器"], ["steps", "作業手順"], ["man", "マニュアル"], ["docs", "書類"], ["files", "設定データ（アップロード済みのファイル）"]];
+const CP_SECS = [["prep", "事前準備・持参品"], ["dev", "対象機器"], ["steps", "作業手順"], ["man", "マニュアル"], ["links", "参考URL"], ["docs", "書類"], ["files", "設定データ（アップロード済みのファイル）"]];
 function copyFromHtml() {
   const d = S.a.draft, others = DATA.tasks.filter(t => t.id !== d.id);
   if (!others.length) return "";
@@ -3168,6 +3198,14 @@ function sectionHtml(tab) {
         ${d.manuals.length ? `<div class="cols-h row-man"><span>種類</span><span>タイトル</span><span>ページ数・時間</span><span>更新日</span><span></span></div>` : ""}
         <div class="rows">${d.manuals.map((m, i) => manualRow(m, i, d.manuals.length)).join("") || `<div class="empty-row">マニュアルはまだありません</div>`}</div>
         ${addBtn("manuals", "ファイルなしで追加（Web・パス指定など）")}
+      </section></div>`;
+
+    case "links": return `<div class="sect">
+      <p class="sect-intro">参考にするWebページや、社内ポータル・メーカーのマニュアルなどのURLを、<b>名前とURL</b>で登録します。現場では、タップするとそのページが新しいタブで開きます。</p>
+      <section class="card blk">
+        ${d.links.length ? `<div class="cols-h row-lnk"><span></span><span>名前</span><span>URL</span><span></span></div>` : ""}
+        <div class="rows">${d.links.map((l, i) => `<div class="row row-lnk"><span class="row-no">${i + 1}</span>${inp(`links.${i}.title`, l.title, "名前（例：メーカーの設定ガイド）")}${inp(`links.${i}.url`, l.url, "https://example.com/manual", "mono")}${tools("links", i, d.links.length)}</div>`).join("") || `<div class="empty-row">参考URLはまだありません</div>`}</div>
+        ${addBtn("links", "参考URLを追加")}
       </section></div>`;
 
     case "docs": return docsTab(d);
@@ -3323,7 +3361,7 @@ function nextId(cat) {
 }
 function newTask(cat) {   // 登録するまではサーバーに作らない（id は登録時に付く）
   return { id: "", cat, order: 0, status: "published", title: "", summary: "", minutes: 0, people: 1, industries: [], tags: [],
-    version: "1.0", updated: today(), os: "", devices: [], precheck: [], bring: [], files: [], extractTo: "C:\\Setup", steps: [], manuals: [], docs: [], changelog: "", old: [] };
+    version: "1.0", updated: today(), os: "", devices: [], precheck: [], bring: [], files: [], extractTo: "C:\\Setup", steps: [], manuals: [], docs: [], links: [], changelog: "", old: [] };
 }
 async function save() {
   const t = S.a.sel?.type;
@@ -3353,6 +3391,11 @@ async function saveTask() {
   const a = S.a, d = a.draft, isNew = !d.id;
   if (!d.title.trim()) { toast("作業名を入力してください"); $("#f-title")?.focus(); return false; }
   if (S.up.items.some(u => u.target && ["wait", "up", "fin"].includes(u.state))) { toast("ファイルのアップロードが終わるまで、少しお待ちください"); return false; }
+  for (const l of d.links) { l.title = l.title.trim(); l.url = l.url.trim(); }
+  d.links = d.links.filter(l => l.title || l.url);
+  const badL = d.links.findIndex(l => safeUrl(l.url) === "#");
+  if (badL >= 0) { toast(`参考URLの ${badL + 1} 件目のURLを確認してください（http:// または https:// で始まるアドレス）`); return false; }
+  d.links.forEach(l => { l.url = safeUrl(l.url); });
   const okMsg = nd => nd.status === "published" ? (isNew ? "登録しました。TOPページと検索に反映されています" : "保存しました。TOPページに反映されています") : (isNew ? "登録しました（非公開）" : "保存しました（非公開）");
   if (isSrv()) {
     try {
@@ -3406,21 +3449,18 @@ async function saveContacts() {
 }
 async function saveUsers() {
   const a = S.a, d = a.draft, old = DATA.users;
-  if (d.some(u => !u.name.trim() || !u.email.trim())) { toast("氏名とメールアドレスは必須です"); return false; }
-  if (d.some(u => !/^\S+@\S+\.\S+$/.test(u.email.trim()))) { toast("メールアドレスの形式を確認してください"); return false; }
-  const em = d.map(u => u.email.trim().toLowerCase());
-  if (new Set(em).size !== em.length) { toast("同じメールアドレスのユーザーが重複しています"); return false; }
+  if (d.some(u => !u.name.trim())) { toast("氏名は必須です"); return false; }
   if (!d.some(u => u.role === "admin" && u.active)) { toast("有効な管理者が1人以上必要です"); return false; }
   if (isSrv()) {
     try { await srvOp("users.save", { users: d }); a.dirty = false; a.draft = clone(DATA.users); render(); toast("ユーザー情報を保存しました"); return true; } catch (e) { failToast(e); return false; }
   }
-  d.forEach(u => { u.name = u.name.trim(); u.email = u.email.trim(); u.dept = u.dept.trim(); });
+  d.forEach(u => { u.name = u.name.trim(); u.dept = u.dept.trim(); });
   d.forEach(u => {
     const o = old.find(x => x.id === u.id);
     if (!o) { log("create", "user", "", u.name, `ユーザーを追加（${ROLES[u.role].label}）`); return; }
     if (o.role !== u.role) log("update", "user", "", u.name, `権限を変更：${ROLES[o.role].label} → ${ROLES[u.role].label}`);
     if (o.active !== u.active) log("update", "user", "", u.name, u.active ? "ユーザーを有効にしました" : "ユーザーを無効にしました");
-    if (o.name !== u.name || o.email !== u.email || o.dept !== u.dept) log("update", "user", "", u.name, "登録情報を変更");
+    if (o.name !== u.name || o.dept !== u.dept) log("update", "user", "", u.name, "登録情報を変更");
   });
   DATA.users = clone(d); saveData(); a.dirty = false; a.draft = clone(DATA.users); render(); toast("ユーザー情報を保存しました");
   return true;
@@ -3823,7 +3863,8 @@ const ADD_DEFAULTS = {
   bring: () => ({ name: "", qty: "1", required: true }),
   steps: () => ({ title: "", body: "", caution: "" }),
   manuals: () => ({ kind: "PDF", title: "", meta: "", updated: today() }),
-  docs: () => ({ title: "", note: "", form: null, example: null })
+  docs: () => ({ title: "", note: "", form: null, example: null }),
+  links: () => ({ title: "", url: "" })
 };
 
 function scrollToMain() {
@@ -3929,6 +3970,7 @@ const ACT = {
       if (k === "man") {   // 本物のファイルは、アップロード済みのもの（fid）と FTP のパスだけをコピーできる
         put("manuals", cl(src.manuals).map(m => { if (srv && m.file && !m.file.fid) delete m.file; delete m.fsize; delete m.missing; return m; })); names.push("マニュアル");
       }
+      if (k === "links") { put("links", cl(src.links)); names.push("参考URL"); }
       if (k === "docs") { put("docs", cl(src.docs).map(x => { for (const sl of ["form", "example"]) if (srv && x[sl] && !x[sl].fid) x[sl] = null; return x; })); names.push("書類"); }
       if (k === "files") { put("files", cl(src.files).filter(f => !srv || f.fid).filter(f => !append || !d.files.some(y => y.name === f.name))); names.push("設定データ"); }
     });
@@ -4025,10 +4067,10 @@ const ACT = {
   setStatus: el => { S.a.draft.status = el.dataset.v; rerenderSection(); },
   dupTask: el => guard(async () => {
     const id0 = el?.dataset?.id || S.a.sel?.id; if (!id0) return;
-    const msg = id => `複製して ${id} を作りました（非公開）。内容を直して、「TOPページに表示する」にチェックを入れて保存してください`;
+    const msg = id => `複製して ${id} を作りました。TOPページに表示されています。内容を直して保存してください`;
     if (isSrv()) { try { const r = await srvOp("task.duplicate", { id: id0 }); S.a.tab = "basic"; select({ type: "task", id: r.id }); toast(msg(r.id)); } catch (e) { failToast(e); } return; }
     const src = taskById(id0); const t = clone(src); const id = nextId(src.cat);
-    Object.assign(t, { id, title: src.title + "（コピー）", status: "draft", order: tasksOf(src.cat).length + 1, updated: today(), old: [], extractTo: "C:\\Setup\\" + id });
+    Object.assign(t, { id, title: src.title + "（コピー）", status: "published", order: tasksOf(src.cat).length + 1, updated: today(), old: [], extractTo: "C:\\Setup\\" + id });
     DATA.tasks.push(t); log("create", "task", id, t.title, `${src.id} を複製して下書きを作成`); saveData(); select({ type: "task", id }); toast(msg(id));
   }),
   delTask: () => {
@@ -4243,7 +4285,7 @@ const ACT = {
   nRm: el => { S.a.draft.splice(+el.dataset.i, 1); $("#edIn").innerHTML = noticesHtml(); touched(); },
   nStatus: el => { S.a.draft[+el.dataset.i].status = el.dataset.v; $("#edIn").innerHTML = noticesHtml(); touched(); },
   uAdd: () => {
-    S.a.draft.push({ id: "u" + Date.now().toString(36), name: "", email: "", dept: "", role: "viewer", active: true, last: "" });
+    S.a.draft.push({ id: "u" + Date.now().toString(36), name: "", dept: "", role: "viewer", active: true, last: "" });
     $("#edIn").innerHTML = usersHtml(); touched();
     const n = document.querySelector(`[data-bind="${S.a.draft.length - 1}.name"]`); n?.focus(); n?.scrollIntoView({ block: "center" });
   },

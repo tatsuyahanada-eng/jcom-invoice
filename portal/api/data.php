@@ -9,6 +9,7 @@ const TAB_GROUPS = [
     '設定データ' => ['files', 'extractTo'],
     '作業手順' => ['steps'],
     'マニュアル' => ['manuals'],
+    '参考URL' => ['links'],
     '書類' => ['docs'],
 ];
 
@@ -61,6 +62,7 @@ function bootstrap_payload(array $u): array
         $t = task_out($r, $lv >= 1);
         $t['ext'] = $extMap[$r['id']] ?? [];   // FTP で置いたファイル（登録画面で、使う作業を指定したもの）
         $t['manuals'] = $t['manuals'] ?? [];
+        $t['links'] = $t['links'] ?? [];
         foreach ($t['manuals'] as &$mm) {
             if (!empty($mm['ext'])) { $xi = ext_info_all()[$mm['ext']] ?? null; $mm['fsize'] = $xi ? $xi['size'] : 0; $mm['missing'] = !$xi || $xi['missing']; }
             if ($lv < 1) unset($mm['path']);   // FTP の置き場所は、設定を触る人だけに見せる
@@ -87,6 +89,21 @@ function bootstrap_payload(array $u): array
 
 function nt_list($v, int $max): array { return is_array($v) ? array_slice(array_values($v), 0, $max) : []; }
 function nt_int($v, int $min, int $max): int { return max($min, min($max, (int)$v)); }
+/** 参考URL：名前と URL。http / https 以外（javascript: など）は保存しない */
+function nt_links($v): array
+{
+    $out = [];
+    foreach (nt_list($v, 50) as $l) {
+        if (!is_array($l)) continue;
+        $url = str($l['url'] ?? '', 1000);
+        $title = str($l['title'] ?? '', 200);
+        if ($url === '' && $title === '') continue;
+        if ($url !== '' && !preg_match('#^[a-z][a-z0-9+.-]*:#i', $url)) $url = 'https://' . $url;
+        if (!preg_match('#^https?://[^\s]+$#i', $url)) fail(422, '参考URLは http:// または https:// で始まるアドレスを入力してください：' . ($title ?: $url));
+        $out[] = ['title' => $title, 'url' => $url];
+    }
+    return $out;
+}
 function nt_date($v): string { $s = (string)$v; return preg_match('/^\d{4}-\d{2}-\d{2}$/', $s) ? $s : ''; }
 
 /** クライアントから届いた作業を、保存してよい形にそろえる（余計な項目は捨て、長さと型を制限する） */
@@ -191,6 +208,7 @@ function normalize_task(array $in, array $orig): array
         }
         $man[] = $e;
     }
+    $links = nt_links($in['links'] ?? []);
     return [
         'title' => str($in['title'] ?? '', 255),
         'summary' => str($in['summary'] ?? '', 2000),
@@ -208,6 +226,7 @@ function normalize_task(array $in, array $orig): array
         'steps' => $steps,
         'manuals' => $man,
         'docs' => $docs,
+        'links' => $links,
         'changelog' => str($in['changelog'] ?? '', 1000),
         'old' => $orig['old'] ?? [],   // 旧バージョンの記録は、サーバーだけが更新する
     ];
@@ -312,9 +331,9 @@ function op_task_duplicate(array $u, array $b): array
     $body['old'] = [];
     $body['extractTo'] = 'C:\\Setup\\' . $id;
     db()->prepare('INSERT INTO tasks (id, cat, ord, status, title, body, updated) VALUES (?,?,?,?,?,?,?)')
-        ->execute([$id, $src['cat'], next_order($src['cat']), 'draft', $body['title'], json_encode($body, JSON_UNESCAPED_UNICODE), today_d()]);
-    log_history($u['id'], 'create', 'task', $id, $body['title'], "{$src['id']} を複製して下書きを作成");
-    return ['id' => $id, 'message' => "{$src['id']} を複製して {$id} を作成しました（下書き）"];
+        ->execute([$id, $src['cat'], next_order($src['cat']), 'published', $body['title'], json_encode($body, JSON_UNESCAPED_UNICODE), today_d()]);
+    log_history($u['id'], 'create', 'task', $id, $body['title'], "{$src['id']} を複製して作成");
+    return ['id' => $id, 'message' => "{$src['id']} を複製して {$id} を作成しました。TOPページに表示されています"];
 }
 
 function op_task_move(array $u, array $b): array
