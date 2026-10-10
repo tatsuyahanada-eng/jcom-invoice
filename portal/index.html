@@ -1172,6 +1172,25 @@ table.perm .no { color: var(--line-strong); }
 .perm-fold > summary small { color: var(--muted); font-size: 11.5px; }
 .perm-fold[open] > summary { margin-bottom: 10px; }
 .perm-fold table, .perm-fold .role-list { font-size: 12px; }
+.utbl { display: grid; margin: 4px 0 6px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.urow { display: grid; grid-template-columns: 34px minmax(0, 1.25fr) minmax(0, .95fr) minmax(0, 1fr) 108px minmax(0, 1.15fr) 62px 92px; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.urow:last-child { border-bottom: 0; }
+.urow.uh { background: var(--surface-2); font-size: 11.5px; font-weight: 700; color: var(--muted); padding-top: 8px; padding-bottom: 8px; }
+.urow:not(.uh):hover { background: var(--accent-soft); }
+.urow.off { opacity: .6; }
+.urow .uc { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.urow .uc .inp, .urow .uc .sel { width: 100%; height: 36px; padding: 0 8px; font-size: 13.5px; background: transparent; border-color: transparent; }
+.urow .uc .inp:hover, .urow .uc .sel:hover { border-color: var(--line-strong); background: var(--surface); }
+.urow .uc .inp:focus, .urow .uc .sel:focus { background: var(--surface); }
+.urow .uid { font-size: 13px; }
+.urow .ulast { font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.urow .chip { font-size: 11px; }
+@media (max-width: 900px) {
+  .urow.uh { display: none; }
+  .urow { grid-template-columns: 34px minmax(0, 1fr); gap: 6px 12px; padding: 12px 14px; }
+  .urow > .uc { grid-column: 2; }
+  .urow > .uc[data-l]:not([data-l="氏名"])::before { content: attr(data-l); width: 86px; flex: none; font-size: 11.5px; color: var(--muted); }
+}
 .row-user { grid-template-columns: 34px minmax(0, 1.4fr) minmax(0, 1.2fr) 124px 74px; }
 .row-user.off { opacity: .62; }
 .row-user .ls { font-size: 11px; color: var(--muted); }
@@ -2970,14 +2989,6 @@ function contactsHtml() {
 }
 
 /* ユーザー・権限 */
-function userCell(u, i, self) {
-  const isNew = isSrv() && !DATA.users.some(x => x.id === u.id);
-  let extra;
-  if (!isSrv()) extra = `<span class="ls">${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン"}${self ? "・ログイン中" : ""}</span>`;
-  else if (isNew) extra = `<span class="uidrow">${inp(`${i}.username`, u.username || "", "ログインID（英数字）", "mono")}<input class="inp" type="password" id="${fid(`${i}.password`)}" data-bind="${i}.password" value="${esc(u.password || "")}" placeholder="初期パスワード（8文字以上）" autocomplete="new-password"></span>`;
-  else extra = `<span class="ls">ID <b class="mono">${esc(u.username)}</b>・${u.last ? "最終ログイン " + u.last.replaceAll("-", "/") : "未ログイン"}${self ? "・ログイン中" : ""}${u.mustChange ? "・初期パスワード" : ""}　<button class="link" type="button" style="font-size:11px" data-act="uPw" data-i="${i}">パスワード再設定</button></span>`;
-  return `<span style="display:grid;gap:2px;min-width:0">${inp(`${i}.name`, u.name, "氏名")}${extra}</span>`;
-}
 function usersHtml() {
   const d = S.a.draft, act = d.filter(u => u.active).length;
   const roleOpts = r => Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === r ? "selected" : ""}>${v.label}</option>`).join("");
@@ -2985,17 +2996,23 @@ function usersHtml() {
     <p class="sect-intro">ユーザーの登録と権限の変更ができるのは管理者だけです。使わなくなったユーザーは削除せず「無効」にします（ログインできなくなり、変更履歴の記録は残ります）。</p>
     <section class="card blk">
       <div class="blk-h"><h3>ユーザー</h3><span class="chip right num">${act}名が有効</span></div>
-      ${d.length ? `<div class="cols-h row-user"><span></span><span>氏名</span><span>部署</span><span>権限</span><span>状態</span></div>` : ""}
-      <div class="rows">${d.map((u, i) => {
-        const self = u.id === S.me;
-        return `<div class="row row-user ${u.active ? "" : "off"}">
+      <div class="utbl">
+        ${d.length ? `<div class="urow uh"><span></span><span>氏名</span><span>ログインID</span><span>部署</span><span>権限</span><span>最終ログイン</span><span>状態</span><span>パスワード</span></div>` : ""}
+        ${d.map((u, i) => {
+          const self = u.id === S.me, isNew = isSrv() && !DATA.users.some(x => x.id === u.id);
+          const last = u.last ? u.last.replaceAll("-", "/") : "未ログイン";
+          return `<div class="urow ${u.active ? "" : "off"}">
           <span class="h-av">${esc((u.name || "?").slice(0, 1))}</span>
-          ${userCell(u, i, self)}
-          ${inp(`${i}.dept`, u.dept, "部署")}
-          <select class="sel" id="${fid(`${i}.role`)}" data-bind="${i}.role" aria-label="権限" ${self ? "disabled" : ""}>${roleOpts(u.role)}</select>
-          <button class="req-tg ${u.active ? "" : "on"}" type="button" data-act="togActive" data-i="${i}" ${self ? "disabled" : ""} aria-label="${u.active ? "有効（押すと無効にします）" : "無効（押すと有効にします）"}">${u.active ? "有効" : "無効"}</button>
+          <span class="uc" data-l="氏名">${inp(`${i}.name`, u.name, "氏名")}</span>
+          <span class="uc" data-l="ログインID">${!isSrv() ? `<span class="muted">—</span>` : isNew ? inp(`${i}.username`, u.username || "", "英数字3文字以上", "mono") : `<b class="mono uid">${esc(u.username)}</b>`}</span>
+          <span class="uc" data-l="部署">${inp(`${i}.dept`, u.dept, "部署")}</span>
+          <span class="uc" data-l="権限"><select class="sel" id="${fid(`${i}.role`)}" data-bind="${i}.role" aria-label="権限" ${self ? "disabled" : ""}>${roleOpts(u.role)}</select></span>
+          <span class="uc ulast" data-l="最終ログイン">${esc(last)}${self ? `<small class="chip">ログイン中</small>` : ""}</span>
+          <span class="uc" data-l="状態"><button class="req-tg ${u.active ? "" : "on"}" type="button" data-act="togActive" data-i="${i}" ${self ? "disabled" : ""} aria-label="${u.active ? "有効（押すと無効にします）" : "無効（押すと有効にします）"}">${u.active ? "有効" : "無効"}</button></span>
+          <span class="uc" data-l="パスワード">${isNew ? `<input class="inp" type="password" id="${fid(`${i}.password`)}" data-bind="${i}.password" value="${esc(u.password || "")}" placeholder="初期パスワード（8文字以上）" autocomplete="new-password">` : isSrv() ? `<button class="btn sm ghost" type="button" data-act="uPw" data-i="${i}">再設定</button>` : `<span class="muted">—</span>`}</span>
         </div>`;
-      }).join("")}</div>
+        }).join("")}
+      </div>
       <p class="hint">${isSrv() ? "新しいユーザーは、ログインIDと初期パスワードを決めて登録し、本人に伝えてください（初期パスワードのまま使うと、本人に変更の案内が出ます）。自分自身の権限と状態は変更できません。" : "登録したユーザーには、初回ログイン用の案内メールが送られます（本番）。自分自身の権限と状態は変更できません。"}</p>
     </section>
     <details class="card blk perm-fold">
