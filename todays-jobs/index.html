@@ -539,7 +539,8 @@
       #printArea td, #printArea th { border-bottom: 1px solid #aaa; padding: 4px 6px; text-align: left; }
       #printArea td.r, #printArea th.r { text-align: right; }
     }
-    #impCalList { max-height: 46vh; overflow-y: auto; margin: 6px 0 4px; }
+    #impEvList { max-height: 44vh; overflow-y: auto; margin: 2px 0 4px; }
+    .evtm { font-family: var(--mono); color: var(--gold-text); letter-spacing: .02em; margin-right: 6px; }
     .sale-in { font-family: var(--mono); font-size: 20px; letter-spacing: .04em; }
     .purge { padding: 10px 0 4px; border-bottom: 1px dashed var(--line); margin-bottom: 4px; }
     .purge .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
@@ -772,8 +773,8 @@
       <p class="help" id="gCalHelp"></p>
       </div>
       <div class="switch-row" style="margin-top:12px;">
-        <div class="tx">取り込むたびにカレンダーを選ぶ<small>「読み込み」を押すと、全選択／個別選択の確認を出す</small></div>
-        <label class="switch"><input type="checkbox" id="sAskCal" checked><span></span></label>
+        <div class="tx">取り込む予定を一覧で選ぶ<small>「読み込み」のとき、その日の予定を件数つきで見せて選ばせる</small></div>
+        <label class="switch"><input type="checkbox" id="sAskEv" checked><span></span></label>
       </div>
       <div class="switch-row" style="margin-top:12px;">
         <div class="tx">終日の予定を除外<small>休み・メモ等の終日予定を読み込まない</small></div>
@@ -1085,7 +1086,7 @@
   }
 
   /* ================= State ================= */
-  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null, taxRate: 10, hideSales: false, askCalendars: true };
+  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null, taxRate: 10, hideSales: false, askEvents: true };
   let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
   if (!Array.isArray(settings.deviceCalendars)) settings.deviceCalendars = [];
   if (!Array.isArray(settings.googleCalendars)) settings.googleCalendars = [{ id: settings.calendarId || 'primary', name: settings.calendarName || 'メインカレンダー' }];
@@ -2027,10 +2028,10 @@
     };
   }
 
-  function mergeEvents(events) {
+  function mergeEvents(events, allIds) {
     const kw = settings.keyword.split(/[,、，]/).map(s => s.trim()).filter(Boolean);
     const byEvent = new Map(day.jobs.filter(j => j.eventId).map(j => [j.eventId, j]));
-    const seen = new Set();
+    const seen = new Set(allIds || []);
     let added = 0, updated = 0;
     const wasEmpty = day.jobs.length === 0;
     for (const ev of events) {
@@ -2062,37 +2063,46 @@
     return { added, updated };
   }
 
-  // 取り込み前に、どのカレンダーを読み込むか（全選択／個別選択）を確認する。null ならキャンセル
-  async function pickCalendarsForImport(useDevice) {
-    let list;
-    if (useDevice) {
-      list = JSON.parse(await nativeCall('listCalendars')).map(c => ({ id: c.id, name: c.name, account: c.account, color: intToHex(c.color), visible: c.visible }));
-    } else {
-      const data = await gapi('/users/me/calendarList', { minAccessRole: 'reader' });
-      list = (data.items || []).map(c => ({ id: c.primary ? 'primary' : c.id, plain: c.summaryOverride || c.summary, name: (c.summaryOverride || c.summary) + (c.primary ? '（メイン）' : ''), account: '', color: c.backgroundColor }));
+  // 取り込み前に、その日の予定を件数つきの一覧で見せて、取り込むものを選ぶ。null ならキャンセル
+  function eventCandidates(items, mode) {
+    const kw = settings.keyword.split(/[,、，]/).map(x => x.trim()).filter(Boolean);
+    const have = new Set(day.jobs.filter(j => j.eventId).map(j => j.eventId));
+    const out = [];
+    for (const ev of items) {
+      if (ev.status === 'cancelled') continue;
+      const base = eventToBase(ev);
+      if (settings.excludeAllDay && base.allDay) continue;
+      if (kw.length && !kw.some(k => base.title.includes(k))) continue;
+      if (mode !== 'overwrite' && day.deleted.includes(ev.id)) continue;
+      out.push({ ev, base, existing: mode !== 'overwrite' && have.has(ev.id) });
     }
-    if (!list.length) throw new Error('カレンダーが見つかりません');
-    const saved = useDevice
-      ? (settings.deviceCalendarsChosen ? settings.deviceCalendars.map(String) : list.filter(c => c.visible).map(c => String(c.id)))
-      : settings.googleCalendars.map(x => String(x.id));
+    out.sort((a, b) => (a.base.allDay ? -1 : 0) - (b.base.allDay ? -1 : 0) || String(a.base.start || '').localeCompare(String(b.base.start || '')));
+    return out;
+  }
+  async function pickEvents(cands, mode) {
+    const rows = cands.map((c, i) => {
+      const b = c.base, time = b.allDay ? '終日' : (b.start ? `${hm(b.start)}${b.end ? '–' + hm(b.end) : ''}` : '時間未定');
+      return `<label class="calrow"><input type="checkbox" value="${i}" checked><span class="tx"><b class="evtm">${esc(time)}</b> ${esc(b.title || '(件名なし)')}<small>${esc(b.calendar || '')}${c.existing ? (b.calendar ? ' ・ ' : '') + '取り込み済み' : ''}</small></span></label>`;
+    }).join('');
     const dlg = askDialog({
-      title: 'どのカレンダーを取り込みますか？',
-      body: '<p style="margin:0 0 6px;">全部取り込むか、取り込むカレンダーだけを選んでください。</p><div id="impCalList"></div>',
+      title: `${cands.length}件の予定が見つかりました`,
+      body: `<p style="margin:0 0 6px;">${esc(fmtDateLabel(current))}の予定です。取り込むものを選んでください。</p>${mode === 'overwrite' ? '<p class="dng" style="margin:0 0 6px;">上書き取り込みのため、選ばなかった取り込み済みの案件は消えます。</p>' : ''}<div class="calhead"><span class="cnt"></span><span><button type="button" data-all="1">全選択</button><button type="button" data-all="0">全解除</button></span></div><div id="impEvList">${rows}</div>`,
       buttons: [
-        { label: '全て取り込む', value: 'all', kind: 'primary' },
-        { label: '選んだものだけ取り込む', value: 'sel', kind: 'primary' },
+        { label: '選んだ予定を取り込む', value: 'ok', kind: 'primary' },
         { label: 'キャンセル', value: null, kind: 'ghost' },
       ],
     });
-    renderCalPicker($('#impCalList'), list, new Set(saved), () => {});
+    const box = $('#impEvList'), cnt = document.querySelector('#dlgBody .cnt');
+    const upd = () => { cnt.textContent = `${box.querySelectorAll('input:checked').length} / ${cands.length} 件を選択中`; };
+    upd();
+    box.onchange = upd;
+    $('#dlgBody').onclick = (e) => {
+      const b = e.target.closest('[data-all]'); if (!b) return;
+      box.querySelectorAll('input').forEach(i => { i.checked = b.dataset.all === '1'; }); upd();
+    };
     const choice = await dlg;
-    if (!choice) return null;
-    const ids = choice === 'all' ? list.map(c => String(c.id)) : [...document.querySelectorAll('#impCalList input:checked')].map(i => i.value);
-    if (!ids.length) throw new Error('取り込むカレンダーが選択されていません');
-    if (useDevice) { settings.deviceCalendars = ids.map(Number); settings.deviceCalendarsChosen = true; }
-    else settings.googleCalendars = ids.map(id => ({ id, name: (list.find(l => String(l.id) === id) || {}).plain || id }));
-    saveSettings();
-    return ids;
+    if (choice !== 'ok') return null;
+    return new Set([...box.querySelectorAll('input:checked')].map(i => Number(i.value)));
   }
 
   let syncing = false;
@@ -2103,17 +2113,6 @@
       openSettings();
       toast('まずGoogleカレンダーの接続設定をしてください');
       return;
-    }
-    // 取り込むカレンダーを確認（全選択／個別選択）
-    if (settings.askCalendars !== false) {
-      try {
-        syncing = true; setSyncBusy(true);
-        const picked = await pickCalendarsForImport(useDevice);
-        if (!picked) return;
-      } catch (err) {
-        if (err.message !== 'NO_CLIENT_ID') toast(err.message || 'カレンダーの一覧を取得できませんでした');
-        return;
-      } finally { syncing = false; setSyncBusy(false); }
     }
     // すでに取り込み済みの日は、上書きするか確認する
     let mode = 'merge';
@@ -2152,13 +2151,24 @@
           (data.items || []).forEach(ev => items.push(Object.assign({}, ev, { id: c.id === 'primary' ? ev.id : c.id + ':' + ev.id, calendar: c.name })));
         }
       }
+      let toImport = items;
+      if (settings.askEvents !== false) {
+        const cands = eventCandidates(items, mode);
+        if (cands.length) {
+          const chosen = await pickEvents(cands, mode);
+          if (!chosen) return;
+          if (!chosen.size) { toast('取り込む予定が選択されていません'); return; }
+          const ids = new Set(cands.filter((c, i) => chosen.has(i)).map(c => c.ev.id));
+          toImport = items.filter(ev => ids.has(ev.id));
+        }
+      }
       if (day.source === 'demo') { day = emptyDay(current); }
       let keepManual = [];
       if (mode === 'overwrite') { // 取り込んだ案件を破棄して入れ替え（手動追加分は残す）
         keepManual = day.jobs.filter(j => !j.eventId && j.manual);
         day.jobs = []; day.deleted = [];
       }
-      const { added, updated } = mergeEvents(items);
+      const { added, updated } = mergeEvents(toImport, items.map(ev => ev.id));
       if (keepManual.length) day.jobs.push(...keepManual);
       day.syncedAt = new Date().toISOString();
       day.source = useDevice ? 'device' : 'gcal';
@@ -2202,7 +2212,7 @@
     document.querySelectorAll('.web-only').forEach(el => el.classList.toggle('hidden', NATIVE));
     document.querySelectorAll('.native-only').forEach(el => el.classList.toggle('hidden', !NATIVE));
     $('#sExcludeAllDay').checked = settings.excludeAllDay;
-    $('#sAskCal').checked = settings.askCalendars !== false;
+    $('#sAskEv').checked = settings.askEvents !== false;
     $('#sKeyword').value = settings.keyword;
     $('#sOrigin').value = settings.origin;
     $('#sSkipDone').checked = settings.skipDone;
@@ -2317,7 +2327,7 @@
   $('#devLoad').addEventListener('click', () => loadDeviceCalendars(true));
 
   $('#sClientId').addEventListener('change', e => { settings.clientId = e.target.value.trim(); saveSettings(); updateConnUi(); });
-  $('#sAskCal').addEventListener('change', e => { settings.askCalendars = e.target.checked; saveSettings(); });
+  $('#sAskEv').addEventListener('change', e => { settings.askEvents = e.target.checked; saveSettings(); });
   $('#sExcludeAllDay').addEventListener('change', e => { settings.excludeAllDay = e.target.checked; saveSettings(); });
   $('#sKeyword').addEventListener('change', e => { settings.keyword = e.target.value.trim(); saveSettings(); });
   $('#sOrigin').addEventListener('change', e => { settings.origin = e.target.value.trim(); saveSettings(); });
