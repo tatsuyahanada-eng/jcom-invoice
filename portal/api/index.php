@@ -61,7 +61,7 @@ function main(): void
         if ($route === 'logs/save' && $method === 'POST') route_log_save();
         if ($route === 'logs/delete' && $method === 'POST') route_log_delete();
         if ($route === 'logs/export' && $method === 'GET') route_log_export();
-        if (preg_match('#^logs/(r[a-f0-9]{12})$#', $route, $m) && $method === 'GET') route_log_get($m[1]);
+        if (preg_match('#^logs/(r[a-z0-9]{6,20})$#', $route, $m) && $method === 'GET') route_log_get($m[1]);
 
         fail(404, '見つかりません');
     } catch (Throwable $e) {
