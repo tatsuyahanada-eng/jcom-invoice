@@ -33,6 +33,7 @@
       --warn: #ffcc33;
       --warn-weak: rgba(255, 204, 51, .11);
       --gold-line: #9a8030;
+      --move: #bf5cff;
       --ok: #2fe6d6;
       --ok-weak: rgba(47, 230, 214, .13);
       --blue: #4f97ec;
@@ -205,13 +206,13 @@
       box-shadow: 0 0 0 1px var(--cyan), 0 14px 30px rgba(0, 0, 0, .55), 0 0 24px rgba(208, 210, 212, .35);
     }
     .list.is-dragging .job:not(.dragging) { transition: transform .18s ease; }
-    .job[data-work="doing"] { border-left-color: var(--gold); box-shadow: inset 0 0 0 1px rgba(255, 204, 51, .25); }
+    .job[data-work="doing"] { border-left-color: var(--move); border-color: rgba(191, 92, 255, .5); box-shadow: 0 0 16px rgba(191, 92, 255, .28), inset 0 0 0 1px rgba(191, 92, 255, .25); }
     .job[data-work="done"] { border-left-color: #d0d2d4; }
     .job[data-work="done"] .job-main { opacity: .5; }
     .job-main { flex: 1; min-width: 0; padding: 13px 4px 12px 14px; }
     .job-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
     .job-num { font-family: var(--mono); font-size: 16px; letter-spacing: .12em; color: var(--dim); flex: none; }
-    .job[data-work="doing"] .job-num { color: var(--gold); }
+    .job[data-work="doing"] .job-num { color: var(--move); }
     .job[data-work="todo"] .job-num { color: var(--ok); }
     .job[data-work="done"] .job-num { color: #d0d2d4; }
     .job-title { flex: 1 1 55%; min-width: 0; font-size: 17px; font-weight: 800; line-height: 1.35; word-break: break-word; }
@@ -230,6 +231,7 @@
     .chip.ok { background: var(--ok-weak); color: var(--ok); border-color: rgba(47, 230, 214, .4); }
     .chip.warn { background: var(--warn-weak); color: var(--gold); border-color: var(--gold-line); }
     .chip.info { background: var(--accent-weak); color: var(--cyan); border-color: rgba(208, 210, 212, .4); }
+    .chip.move { background: rgba(191, 92, 255, .16); color: #dcaaff; border-color: rgba(191, 92, 255, .55); }
     .chip.purple { background: var(--purple-weak); color: var(--purple); border-color: rgba(177, 149, 255, .4); }
     .chip.danger { background: var(--danger-weak); color: var(--danger); border-color: rgba(255, 100, 121, .45); }
     .job-grip { flex: none; width: 34px; display: grid; place-items: center; color: var(--dim); }
@@ -405,6 +407,7 @@
     .seg button[data-tone="neutral"][aria-pressed="true"] { background: #8e9192; }
     .seg button[data-tone="ok"][aria-pressed="true"] { background: var(--ok); color: var(--ink); box-shadow: 0 0 14px rgba(47, 230, 214, .35); }
     .seg button[data-tone="info"][aria-pressed="true"] { background: var(--cyan); color: var(--ink); box-shadow: 0 0 14px rgba(208, 210, 212, .35); }
+    .seg button[data-tone="move"][aria-pressed="true"] { background: var(--move); color: var(--ink); box-shadow: 0 0 14px rgba(191, 92, 255, .5); }
     .seg button[data-tone="warn"][aria-pressed="true"] { background: var(--gold); color: var(--ink); box-shadow: 0 0 14px rgba(255, 204, 51, .3); }
     .seg button[data-tone="purple"][aria-pressed="true"] { background: #8d6cf0; }
     .seg button[data-tone="danger"][aria-pressed="true"] { background: #e2475f; }
@@ -987,7 +990,7 @@
   };
   const WORK = {
     todo:  { label: '未着手', tone: 'neutral' },
-    doing: { label: '作業中', tone: 'info' },
+    doing: { label: '移動中', tone: 'move' },
     done:  { label: '完了',   tone: 'ok' },
   };
   const WEEK = ['日', '月', '火', '水', '木', '金', '土'];
@@ -1258,7 +1261,7 @@
       : `<span class="chip ${c.chip}">${icon(c.icon)}${esc(c.short)}${lastLog ? ' ' + hm(lastLog.at) : ''}${j.contact.log.length > 1 ? ` ×${j.contact.log.length}` : ''}</span>`;
     const pk = PARKING[j.parking.status];
     const parkChip = `<span class="chip ${pk.chip}">${icon('car')}P ${esc(pk.label)}</span>`;
-    const workChip = j.work !== 'todo' ? `<span class="chip ${j.work === 'done' ? 'ok' : 'info'}">${icon(j.work === 'done' ? 'check' : 'work')}${WORK[j.work].label}</span>` : '';
+    const workChip = j.work !== 'todo' ? `<span class="chip ${j.work === 'done' ? 'ok' : 'move'}">${icon(j.work === 'done' ? 'check' : 'nav')}${WORK[j.work].label}</span>` : '';
     const missingChip = j.missing ? `<span class="chip danger">${icon('alert')}カレンダーから削除済</span>` : '';
     const multiCal = new Set(day.jobs.map(x => x.calendar).filter(Boolean)).size > 1;
     const calChip = (j.calendar && multiCal) ? `<span class="chip cal">${icon('calendar')}${esc(j.calendar)}</span>` : '';
