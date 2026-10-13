@@ -12,7 +12,7 @@
   <link rel="icon" href="icon.png" type="image/png">
   <link rel="apple-touch-icon" href="icon.png">
   <title>Today's Jobs</title>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
     @font-face { font-family: "Anton"; src: url("anton.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
     :root {
@@ -70,11 +70,19 @@
     .mono { font-family: var(--mono); }
     .app { max-width: 640px; margin: 0 auto; min-height: 100vh; padding: calc(12px + var(--safe-t)) 12px calc(28px + var(--safe-b)); }
 
+    /* ===== スプラッシュ（起動時にアイコンと名前を表示） ===== */
+    #splash { position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(circle at 50% 40%, #1b3354, #0e1a2b 70%); pointer-events: none; transition: opacity .45s ease; }
+    #splash.gone { opacity: 0; }
+    #splash img { width: 112px; height: 112px; filter: drop-shadow(0 0 18px rgba(47, 230, 214, .35)); animation: splashPop .6s ease both; }
+    #splash .st { font-family: var(--mono); font-size: 34px; letter-spacing: .12em; color: var(--text); animation: splashPop .6s .1s ease both; }
+    #splash .ss { font-family: var(--mono); font-size: 13px; letter-spacing: .4em; color: var(--ok); padding-top: 8px; border-top: 2px solid var(--ok); animation: splashPop .6s .2s ease both; }
+    @keyframes splashPop { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
+
     /* ===== Hero ===== */
     .hero {
       position: relative; text-align: center; padding: 14px 12px 12px 76px;
       background: linear-gradient(160deg, rgba(34, 60, 101, .40), rgba(23, 41, 68, .75));
-      border: 1px solid var(--line-soft); border-radius: 16px;
+      border: 1px solid var(--line-soft); border-bottom: 2px solid rgba(47, 230, 214, .6); border-radius: 16px;
     }
     .hero-logo { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 54px; height: 54px; display: block; filter: drop-shadow(0 0 8px rgba(208, 210, 212, .35)); }
     .hero-title { font-family: var(--mono); font-weight: 700; font-size: clamp(16px, 5vw, 22px); white-space: nowrap; letter-spacing: .1em; text-transform: uppercase; color: var(--cyan); text-shadow: 0 0 18px rgba(208, 210, 212, .35); }
@@ -102,7 +110,7 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 2px 6px rgba(0, 0, 0, .25);
       transition: background .15s, color .15s, border-color .15s, box-shadow .15s, transform .08s;
     }
-    .tabbtn svg { width: 16px; height: 16px; flex: none; color: var(--cyan); transition: color .15s; }
+    .tabbtn svg { width: 16px; height: 16px; flex: none; color: var(--ok); transition: color .15s; }
     .tabbtn:active {
       transform: scale(.95); background: var(--cyan); color: var(--ink); border-color: #fff;
       box-shadow: 0 0 16px rgba(208, 210, 212, .55);
@@ -122,7 +130,7 @@
       border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); background: rgba(0, 0, 0, .28);
       min-height: 52px;
     }
-    .pathbar .lb { font-family: var(--mono); font-size: 13px; color: var(--dim); letter-spacing: .2em; }
+    .pathbar .lb { font-family: var(--mono); font-size: 13px; color: var(--ok); letter-spacing: .2em; }
     .pathval { position: relative; flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 0; }
     .pathval .d { font-family: var(--mono); font-size: 19px; font-weight: 700; letter-spacing: .02em; }
     .pathval .tag { font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 999px; background: var(--cyan); color: var(--ink); }
@@ -141,22 +149,22 @@
       position: relative; margin: 18px 4px 0; padding: 18px 14px 20px;
       border: 1px solid rgba(208, 210, 212, .12); background: rgba(18, 33, 54, .45);
     }
-    .corner { position: absolute; width: 22px; height: 22px; border: 0 solid var(--cyan); pointer-events: none; }
+    .corner { position: absolute; width: 22px; height: 22px; border: 0 solid var(--ok); pointer-events: none; }
     .corner.tl { left: -1px; top: -1px; border-left-width: 3px; border-top-width: 3px; }
     .corner.tr { right: -1px; top: -1px; border-right-width: 3px; border-top-width: 3px; }
     .corner.bl { left: -1px; bottom: -1px; border-left-width: 3px; border-bottom-width: 3px; }
     .corner.br { right: -1px; bottom: -1px; border-right-width: 3px; border-bottom-width: 3px; }
-    .hud-head { display: flex; align-items: baseline; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line-soft); }
+    .hud-head { display: flex; align-items: baseline; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(47, 230, 214, .5); }
     .hud-head b { font-family: var(--mono); font-size: 21px; letter-spacing: .16em; color: var(--cyan); }
     .hud-head span { font-size: 13px; color: var(--muted); }
     .hud-title { text-align: center; padding: 18px 0 14px; }
-    .hud-title .k { font-family: var(--mono); font-size: 12px; letter-spacing: .32em; color: var(--dim); }
+    .hud-title .k { font-family: var(--mono); font-size: 12px; letter-spacing: .32em; color: var(--ok); }
     .hud-title h2 { margin: 4px 0 6px; font-size: 26px; color: var(--cyan); letter-spacing: .04em; text-shadow: 0 0 14px rgba(208, 210, 212, .25); }
     .hud-title p { margin: 0; font-size: 13.5px; color: var(--muted); }
 
     /* ===== Summary ===== */
     .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
-    .summary .cell { padding: 8px 2px 7px; text-align: center; border: 1px solid var(--line-soft); border-radius: 10px; background: rgba(23, 41, 68, .6); }
+    .summary .cell { padding: 8px 2px 7px; text-align: center; border: 1px solid var(--line-soft); border-top: 2px solid rgba(47, 230, 214, .75); border-radius: 10px; background: rgba(23, 41, 68, .6); }
     .summary .num { font-family: var(--mono); font-size: 21px; font-weight: 700; color: var(--cyan); line-height: 1.2; }
     .summary .num small { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 1px; }
     .summary .lbl { font-size: 10.5px; color: var(--muted); }
@@ -368,7 +376,7 @@
     .toplinks::-webkit-scrollbar { display: none; }
     .toplinks .lb { flex: none; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--dim); padding-right: 2px; }
     .toplinks .lk { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(18, 33, 54, .6); color: var(--text); font-size: 13px; font-weight: 700; white-space: nowrap; }
-    .toplinks .lk svg { width: 16px; height: 16px; color: var(--cyan); }
+    .toplinks .lk svg { width: 16px; height: 16px; color: var(--ok); }
     .toplinks .lk:disabled { opacity: .4; }
     .toplinks .lk.add { border-style: dashed; color: var(--muted); font-weight: 500; }
     .card.kv-addr { padding: 10px 12px; }
@@ -545,6 +553,15 @@
     #impEvList { max-height: 44vh; overflow-y: auto; margin: 2px 0 4px; }
     .evtm { font-family: var(--mono); color: var(--gold-text); letter-spacing: .02em; margin-right: 6px; }
     .sale-in { font-family: var(--mono); font-size: 20px; letter-spacing: .04em; }
+    .manual details { border-top: 1px dashed var(--line); padding: 2px 0; }
+    .manual details:first-of-type { border-top: 0; }
+    .manual summary { cursor: pointer; padding: 9px 4px 9px 10px; font-size: 14px; font-weight: 700; border-left: 3px solid var(--ok); list-style: none; }
+    .manual summary::-webkit-details-marker { display: none; }
+    .manual summary::after { content: "＋"; float: right; color: var(--ok); }
+    .manual details[open] summary::after { content: "－"; }
+    .manual ul, .manual ol { margin: 2px 0 10px; padding-left: 22px; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+    .manual li { margin-bottom: 4px; }
+    .manual b { color: var(--text); }
     .purge { padding: 10px 0 4px; border-bottom: 1px dashed var(--line); margin-bottom: 4px; }
     .purge .wl { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
     .purge .seg { grid-template-columns: repeat(3, 1fr); }
@@ -607,7 +624,7 @@
   </style>
 </head>
 <body>
-<div class="app" id="app">
+<div id="splash" aria-hidden="true"><img src="icon.png" alt="" width="112" height="112"><div class="st">TODAY'S JOBS</div><div class="ss">FIELD×VISIT</div></div><div class="app" id="app">
   <header class="hero">
     <img class="hero-logo" src="icon.png" alt="Today's Jobs" width="52" height="52">
     <div class="hero-title">TODAY'S JOBS<span class="tj" aria-hidden="true">TJ</span></div>
@@ -747,33 +764,81 @@
     </div>
   </div>
   <div class="sheet-body">
+    <div class="card manual">
+      <h3><span data-icon="info"></span>使い方・注意（簡易マニュアル）</h3>
+      <details open><summary>1日の流れ</summary>
+        <ol>
+          <li>設定の「カレンダー連携」で、取り込むカレンダーにチェックを付けます（最初の1回だけ）。</li>
+          <li>トップの「読み込み」を押し、その日の予定の一覧から、取り込むものを選びます。</li>
+          <li>案件をタップすると詳細が開きます。住所・事前連絡・駐車場・メモ・売上を入力します。</li>
+          <li>向かうときは「移動中」、終わったら「完了」にします。</li>
+        </ol>
+      </details>
+      <details><summary>読み込み（カレンダー）</summary>
+        <ul>
+          <li>スマホに同期されているカレンダー（Googleカレンダーなど）から読み込みます。Googleへのログインは要りません。初回に、カレンダーへのアクセス許可が出ます。</li>
+          <li>「読み込み」で、その日の予定が件数つきで出ます。1件だけ取り込みたいときは「全解除」→取り込む予定にチェックします。</li>
+          <li>取り込み済みの日は、「上書き取り込み」（入力内容は消えます）か「更新のみ」（入力内容は残して、追加・変更だけ反映）を選びます。</li>
+          <li>カレンダーの予定は<b>読み取るだけ</b>です。アプリで削除・編集しても、カレンダー側は変わりません。</li>
+          <li>予定が出ないときは、スマホのカレンダーアプリで、そのアカウントが同期されているか確認してください。他社のカレンダーも、スマホに同期できれば同じように選べます。</li>
+        </ul>
+      </details>
+      <details><summary>案件の操作</summary>
+        <ul>
+          <li>案件を長押ししてドラッグすると、順番を入れ替えられます。上の「編集」では、削除や↑↓での並べ替えができます。</li>
+          <li>カードの左の色：未着手＝蛍光青、移動中＝紫、完了＝銀。</li>
+          <li>「次の訪問」が一番上に出ます。下の「前の日／今日へ／次の日」で日付を移動します。</li>
+        </ul>
+      </details>
+      <details><summary>事前連絡・直前連絡</summary>
+        <ul>
+          <li>通話済・留守電・コールのみ・SMS・Mailの結果をタップで記録します（時刻つき）。通話できた方（本人・配偶者など）も選べます。</li>
+          <li>「直前電話」「直前Mail」をオンにすると、トップに赤い印が出ます。「通話済」「Mail送信」を記録すると完了、案件が「完了」になると印は消えます。</li>
+          <li>本文やメモの中の電話番号は、タップすると電話アプリが開きます。</li>
+        </ul>
+      </details>
+      <details><summary>住所と地図</summary>
+        <ul>
+          <li>詳細の「住所」の欄に、GoogleマップとYahoo!マップのボタンがあります。アプリがなければブラウザで開きます。</li>
+          <li>「＋ 住所を追加」で、1つの案件に複数の住所（場所名は任意）を登録できます。</li>
+          <li>「ナビ開始」「住所コピー」は、最初の住所が対象です。</li>
+        </ul>
+      </details>
+      <details><summary>売上</summary>
+        <ul>
+          <li>詳細の「売上（任意）」に、日当かスポットを選び、<b>税込み</b>の金額を入れます。入れなくても使えます。</li>
+          <li>トップに、その日の合計（日当＋スポット）が出ます。「隠す」で金額を伏せられます。</li>
+          <li>月ごとの合計とCSV・PDFの出力は、設定の「売上管理（管理者）」から。最初に管理パスワードを決めます（忘れると、売上の記録を消してリセットになります）。</li>
+        </ul>
+      </details>
+      <details><summary>メール定型文</summary>
+        <ul>
+          <li>上の「Mail」から、案件ごとのフォルダに定型文を登録できます。{日付}{時間1}{担当者}などの差し込みに対応しています。</li>
+          <li>「メール作成」で、スマホのメールアプリが開きます。</li>
+        </ul>
+      </details>
+      <details><summary>データの保存と削除</summary>
+        <ul>
+          <li>入力した内容は、<b>このスマホの中だけ</b>に保存されます。アプリを削除したり、機種変更をしたりすると消えます。</li>
+          <li>案件のデータは30日たつと自動で消えます。下の「データ」で、期間を選んでまとめて消すこともできます。売上の記録は、これらでは消えません。</li>
+        </ul>
+      </details>
+      <details><summary>注意</summary>
+        <ul>
+          <li>アプリを更新するときは、同じ名前のAPKを上から入れてください（データは残ります）。</li>
+          <li>管理パスワードは、画面を隠すためのものです。スマホを人に貸すときは、スマホ自体のロックも使ってください。</li>
+          <li>住所は、カレンダーの「場所」か、本文の住所らしい部分から自動で入れます。違うときは、案件を編集して直してください。</li>
+        </ul>
+      </details>
+    </div>
     <div class="card">
       <h3><span data-icon="calendar"></span>カレンダー連携</h3>
-      <div id="srcSwitch" class="hidden" style="margin-bottom:12px;">
-        <div class="seg c2" id="srcSeg">
-          <button type="button" data-src="device" data-tone="info" aria-pressed="false">この端末のカレンダー</button>
-          <button type="button" data-src="google" data-tone="info" aria-pressed="false">Googleでログイン</button>
-        </div>
-      </div>
-      <div id="devPanel" class="hidden">
-        <p class="help" style="margin:0 0 10px;">スマホに同期されているカレンダー（Googleカレンダーアプリなど）から、直接予定を読み込みます。Googleへのログインや設定は不要です。</p>
+      <p class="help" style="margin:0 0 10px;">スマホに同期されているGoogleカレンダー（Googleカレンダーアプリなど）から、その日の予定を読み込みます。Googleへのログインは要りません。</p>
+      <p class="help native-missing hidden" style="color:var(--gold-text);">この機能は、Androidアプリ版で使えます。ブラウザ版では「手動で追加」をお使いください。</p>
+      <div id="devPanel">
         <button class="btn sm" id="devLoad" type="button">カレンダーを選ぶ（権限を許可）</button>
         <div id="devCalList" style="margin-top:8px;"></div>
         <p class="help" id="devHelp">チェックを付けたカレンダーの予定だけを読み込みます（例：「その他業務」「くらしのマーケット」など）。</p>
-      </div>
-      <div id="googlePanel">
-      <div class="conn" id="connState"><span class="dot"></span><span class="grow" id="connText">未接続</span></div>
-      <label class="fl web-only" for="sClientId">OAuth クライアントID</label>
-      <input class="input web-only" id="sClientId" placeholder="xxxxxxxx.apps.googleusercontent.com" autocapitalize="off" spellcheck="false">
-      <p class="help web-only">Google Cloud Console で作成した「ウェブアプリケーション」のクライアントIDを入力してください（手順は README 参照）。</p>
-      <p class="help native-only hidden">Androidアプリでは、端末のGoogleアカウントでログインします（クライアントIDの入力は不要です）。</p>
-      <div style="display:flex; gap:8px; margin-top:10px;">
-        <button class="btn sm" id="sConnect" type="button">Googleに接続</button>
-        <button class="btn sm secondary hidden" id="sDisconnect" type="button">接続解除</button>
-      </div>
-      <label class="fl">読み込むカレンダー（複数選択できます）</label>
-      <div id="gCalList"></div>
-      <p class="help" id="gCalHelp"></p>
       </div>
       <div class="switch-row" style="margin-top:12px;">
         <div class="tx">取り込む予定を一覧で選ぶ<small>「読み込み」のとき、その日の予定を件数つきで見せて選ばせる</small></div>
@@ -997,7 +1062,6 @@
   const LS_PREFIX = 'tj:day:';
   const LS_SETTINGS = 'tj:settings';
   const KEEP_DAYS = 30;
-  const SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
 
   /* ================= Utils ================= */
   const $ = (s, r = document) => r.querySelector(s);
@@ -1089,10 +1153,10 @@
   }
 
   /* ================= State ================= */
-  const defaults = { clientId: '', calendarId: 'primary', calendarName: 'メインカレンダー', excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], source: '', deviceCalendars: [], deviceCalendarsChosen: false, googleCalendars: null, taxRate: 10, hideSales: false, askEvents: true };
+  const defaults = { excludeAllDay: true, keyword: '', origin: '', skipDone: true, lastViewed: '', links: [], deviceCalendars: [], deviceCalendarsChosen: false, taxRate: 10, hideSales: false, askEvents: true };
   let settings = Object.assign({}, defaults, store.get(LS_SETTINGS, {}));
   if (!Array.isArray(settings.deviceCalendars)) settings.deviceCalendars = [];
-  if (!Array.isArray(settings.googleCalendars)) settings.googleCalendars = [{ id: settings.calendarId || 'primary', name: settings.calendarName || 'メインカレンダー' }];
+
   settings.links = Array.isArray(settings.links) ? settings.links.filter(l => l && l.name && l.url) : [];
   let current = todayStr();
   let day = null;
@@ -1186,7 +1250,7 @@
     // Empty
     const empty = $('#emptyArea');
     if (!total) {
-      const connected = !!settings.clientId || NATIVE || HAS_DEVICE_CAL;
+      const connected = HAS_DEVICE_CAL;
       empty.innerHTML = `
         <div class="empty">
           <div class="ill">${icon('calendar')}</div>
@@ -1900,12 +1964,7 @@
   })();
 
   /* ================= Google Calendar ================= */
-  let token = null; // { access_token, exp }
-
-  // Androidアプリ（WebView）内では、端末標準のGoogleログインを橋渡しして使う
-  const NATIVE = !!(window.TJNative && window.TJNative.requestToken);
   const HAS_DEVICE_CAL = !!(window.TJNative && window.TJNative.queryEvents);
-  const calSource = () => settings.source || (HAS_DEVICE_CAL ? 'device' : 'google');
   const nativeWait = {};
   window.__tjNativeResult = (id, data, err) => {
     const w = nativeWait[id]; delete nativeWait[id];
@@ -1955,66 +2014,6 @@
       end: e.allDay ? { date: current } : { dateTime: new Date(e.end).toISOString() },
     }));
   }
-  window.__tjNativeToken = (id, tok, err) => {
-    const w = nativeWait[id]; delete nativeWait[id];
-    if (!w) return;
-    if (err || !tok) w.reject(new Error(err || 'Googleログインに失敗しました')); else w.resolve(tok);
-  };
-  function nativeToken() {
-    return new Promise((resolve, reject) => {
-      const id = uid();
-      nativeWait[id] = {
-        resolve: (tok) => {
-          token = { access_token: tok, exp: Date.now() + 3300 * 1000 };
-          try { sessionStorage.setItem('tj:token', JSON.stringify(token)); } catch {}
-          updateConnUi(); resolve(tok);
-        },
-        reject,
-      };
-      window.TJNative.requestToken(id);
-    });
-  }
-  try { const t = JSON.parse(sessionStorage.getItem('tj:token') || 'null'); if (t && t.exp > Date.now()) token = t; } catch {}
-  let tokenClient = null, tokenClientId = null;
-
-  function gisReady() { return !!(window.google && google.accounts && google.accounts.oauth2); }
-  function waitGis(ms = 6000) {
-    return new Promise((res, rej) => {
-      const t0 = Date.now();
-      (function poll() { if (gisReady()) res(); else if (Date.now() - t0 > ms) rej(new Error('Googleのログイン機能を読み込めませんでした（通信環境を確認してください）')); else setTimeout(poll, 150); })();
-    });
-  }
-  async function getToken() {
-    if (token && token.exp - 60000 > Date.now()) return token.access_token;
-    if (NATIVE) return nativeToken();
-    if (!settings.clientId) throw new Error('NO_CLIENT_ID');
-    await waitGis();
-    return new Promise((resolve, reject) => {
-      if (!tokenClient || tokenClientId !== settings.clientId) {
-        tokenClientId = settings.clientId;
-        tokenClient = google.accounts.oauth2.initTokenClient({ client_id: settings.clientId, scope: SCOPE, callback: () => {} });
-      }
-      tokenClient.callback = (resp) => {
-        if (resp.error) { reject(new Error('Google認証に失敗しました: ' + resp.error)); return; }
-        token = { access_token: resp.access_token, exp: Date.now() + (Number(resp.expires_in) || 3600) * 1000 };
-        try { sessionStorage.setItem('tj:token', JSON.stringify(token)); } catch {}
-        updateConnUi();
-        resolve(token.access_token);
-      };
-      tokenClient.error_callback = (err) => reject(new Error(err && err.type === 'popup_closed' ? 'ログインがキャンセルされました' : 'ログイン画面を開けませんでした（ポップアップ許可を確認）'));
-      tokenClient.requestAccessToken({ prompt: '' });
-    });
-  }
-  async function gapi(path, params = {}) {
-    const at = await getToken();
-    const url = new URL('https://www.googleapis.com/calendar/v3' + path);
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + at } });
-    if (res.status === 401) { token = null; try { sessionStorage.removeItem('tj:token'); } catch {} throw new Error('認証の有効期限が切れました。もう一度読み込んでください'); }
-    if (!res.ok) throw new Error(`カレンダーの取得に失敗しました (${res.status})`);
-    return res.json();
-  }
-
   function eventToBase(ev) {
     const description = htmlToText(ev.description || '');
     const location = (ev.location || '').trim() || extractAddress(description);
@@ -2111,10 +2110,8 @@
   let syncing = false;
   async function sync() {
     if (syncing) return;
-    const useDevice = calSource() === 'device' && HAS_DEVICE_CAL;
-    if (!useDevice && !NATIVE && !settings.clientId) {
-      openSettings();
-      toast('まずGoogleカレンダーの接続設定をしてください');
+    if (!HAS_DEVICE_CAL) {
+      toast('カレンダーの読み込みは、Androidアプリ版で使えます。「手動で追加」をお使いください');
       return;
     }
     // すでに取り込み済みの日は、上書きするか確認する
@@ -2138,22 +2135,7 @@
     }
     syncing = true; setSyncBusy(true);
     try {
-      let items;
-      if (useDevice) {
-        items = await fetchDeviceEvents();
-      } else {
-        const d0 = parseYmd(current), d1 = parseYmd(addDays(current, 1));
-        const cals = settings.googleCalendars.length ? settings.googleCalendars : [];
-        if (!cals.length) throw new Error('取り込むカレンダーが選択されていません。設定の「カレンダー連携」で選んでください');
-        items = [];
-        for (const c of cals) {
-          const data = await gapi(`/calendars/${encodeURIComponent(c.id)}/events`, {
-            timeMin: d0.toISOString(), timeMax: d1.toISOString(),
-            singleEvents: 'true', orderBy: 'startTime', maxResults: '100',
-          });
-          (data.items || []).forEach(ev => items.push(Object.assign({}, ev, { id: c.id === 'primary' ? ev.id : c.id + ':' + ev.id, calendar: c.name })));
-        }
-      }
+      const items = await fetchDeviceEvents();
       let toImport = items;
       if (settings.askEvents !== false) {
         const cands = eventCandidates(items, mode);
@@ -2174,46 +2156,20 @@
       const { added, updated } = mergeEvents(toImport, items.map(ev => ev.id));
       if (keepManual.length) day.jobs.push(...keepManual);
       day.syncedAt = new Date().toISOString();
-      day.source = useDevice ? 'device' : 'gcal';
+      day.source = 'device';
       saveDay(); render();
       toast(mode === 'overwrite' ? `上書き取り込みしました（${added}件）` : (added || updated ? `読み込み完了：新規 ${added}件 / 更新 ${updated}件` : '読み込み完了：変更はありません'));
     } catch (err) {
-      if (err.message !== 'NO_CLIENT_ID') toast(err.message || '読み込みに失敗しました');
+      toast(err.message || '読み込みに失敗しました');
     } finally {
       syncing = false; setSyncBusy(false);
     }
   }
   function setSyncBusy(b) { $('#btnSync').classList.toggle('spin', b); }
 
-  async function loadCalendars() {
-    try {
-      const data = await gapi('/users/me/calendarList', { minAccessRole: 'reader' });
-      const list = (data.items || []).map(c => ({
-        id: c.primary ? 'primary' : c.id, plain: c.summaryOverride || c.summary,
-        name: (c.summaryOverride || c.summary) + (c.primary ? '（メイン）' : ''), account: '', color: c.backgroundColor,
-      }));
-      renderCalPicker($('#gCalList'), list, new Set(settings.googleCalendars.map(x => x.id)), ids => {
-        settings.googleCalendars = ids.map(id => ({ id, name: (list.find(l => l.id === id) || {}).plain || id }));
-        saveSettings(); updateConnUi();
-      });
-      $('#gCalHelp').textContent = 'チェックを付けたカレンダーの予定だけを読み込みます。';
-    } catch (err) { toast(err.message); }
-  }
-
-  function updateConnUi() {
-    const on = !!(token && token.exp > Date.now());
-    $('#connState').classList.toggle('on', on);
-    $('#connText').textContent = on ? `接続中（${settings.googleCalendars.length}件のカレンダーを選択）` : ((settings.clientId || NATIVE) ? '未ログイン（読み込み時にログインします）' : '未設定');
-    $('#sDisconnect').classList.toggle('hidden', !on);
-  }
-
   /* ================= Settings ================= */
   function openSettings() {
-    $('#sClientId').value = settings.clientId;
-    $('#srcSwitch').classList.toggle('hidden', !HAS_DEVICE_CAL);
     applySourceUi();
-    document.querySelectorAll('.web-only').forEach(el => el.classList.toggle('hidden', NATIVE));
-    document.querySelectorAll('.native-only').forEach(el => el.classList.toggle('hidden', !NATIVE));
     $('#sExcludeAllDay').checked = settings.excludeAllDay;
     $('#sAskEv').checked = settings.askEvents !== false;
     $('#sKeyword').value = settings.keyword;
@@ -2221,10 +2177,6 @@
     $('#sSkipDone').checked = settings.skipDone;
     taxUi();
     resetLinkForm();
-    if (!$('#gCalList').children.length) {
-      $('#gCalHelp').textContent = '選択中: ' + (settings.googleCalendars.map(c => c.name).join('、') || 'なし') + '（「Googleに接続」を押すと、一覧から選べます）';
-    }
-    updateConnUi();
     openSheet('#settingsSheet');
   }
   const LINK_PRESETS = [
@@ -2299,16 +2251,10 @@
   });
 
   function applySourceUi() {
-    const src = HAS_DEVICE_CAL ? calSource() : 'google';
-    $('#devPanel').classList.toggle('hidden', src !== 'device');
-    $('#googlePanel').classList.toggle('hidden', src !== 'google');
-    document.querySelectorAll('#srcSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === src)));
-    if (src === 'device' && !$('#devCalList').children.length && window.TJNative.hasCalendarPermission && window.TJNative.hasCalendarPermission()) loadDeviceCalendars(false);
+    document.querySelector('.native-missing').classList.toggle('hidden', HAS_DEVICE_CAL);
+    $('#devPanel').classList.toggle('hidden', !HAS_DEVICE_CAL);
+    if (HAS_DEVICE_CAL && !$('#devCalList').children.length && window.TJNative.hasCalendarPermission && window.TJNative.hasCalendarPermission()) loadDeviceCalendars(false);
   }
-  $('#srcSeg').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    settings.source = b.dataset.src; saveSettings(); applySourceUi();
-  });
   async function loadDeviceCalendars(askPermission = true) {
     try {
       const list = JSON.parse(await nativeCall('listCalendars')).map(c => ({ id: c.id, name: c.name, account: c.account, color: intToHex(c.color), visible: c.visible }));
@@ -2329,7 +2275,6 @@
   }
   $('#devLoad').addEventListener('click', () => loadDeviceCalendars(true));
 
-  $('#sClientId').addEventListener('change', e => { settings.clientId = e.target.value.trim(); saveSettings(); updateConnUi(); });
   $('#sAskEv').addEventListener('change', e => { settings.askEvents = e.target.checked; saveSettings(); });
   $('#sExcludeAllDay').addEventListener('change', e => { settings.excludeAllDay = e.target.checked; saveSettings(); });
   $('#sKeyword').addEventListener('change', e => { settings.keyword = e.target.value.trim(); saveSettings(); });
@@ -2340,20 +2285,6 @@
     settings.taxRate = v >= 0 && v <= 100 ? v : 10; saveSettings(); taxUi(); render();
   });
   $('#sSkipDone').addEventListener('change', e => { settings.skipDone = e.target.checked; saveSettings(); });
-  $('#sConnect').addEventListener('click', async () => {
-    if (!NATIVE) {
-      settings.clientId = $('#sClientId').value.trim(); saveSettings();
-      if (!settings.clientId) { toast('クライアントIDを入力してください'); $('#sClientId').focus(); return; }
-    }
-    try { token = null; await getToken(); await loadCalendars(); toast('Googleカレンダーに接続しました'); }
-    catch (err) { toast(err.message); }
-    updateConnUi();
-  });
-  $('#sDisconnect').addEventListener('click', () => {
-    if (token && gisReady()) { try { google.accounts.oauth2.revoke(token.access_token, () => {}); } catch {} }
-    token = null; try { sessionStorage.removeItem('tj:token'); } catch {}
-    updateConnUi(); toast('接続を解除しました');
-  });
   $('#sDemo').addEventListener('click', async () => {
     if (day.jobs.length && !(await askConfirm('デモデータに置き換え', '表示中の日付のデータをデモデータで置き換えます。よろしいですか？', '置き換える', true))) return;
     loadDemo(); closeSheets();
@@ -2968,6 +2899,13 @@
   $('#btnAddInEdit').addEventListener('click', () => openForm());
 
   // Androidの戻るボタン用：開いているシート/編集モードを閉じたら true を返す
+  // 起動時のスプラッシュ（アイコン＋名前）を、少し見せてから消す
+  (function () {
+    const sp = $('#splash'); if (!sp) return;
+    if (navigator.webdriver) { sp.remove(); return; }
+    setTimeout(() => { sp.classList.add('gone'); setTimeout(() => sp.remove(), 520); }, 1500);
+  })();
+
   window.__tjBack = () => {
     if (dlgResolve) { closeDialog(null); return true; }
     if (mailBack()) return true;

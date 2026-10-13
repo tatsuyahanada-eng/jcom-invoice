@@ -2,12 +2,10 @@ package jp.todaysjobs.app;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ContentUris;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Paint;
@@ -27,11 +25,6 @@ import android.widget.Toast;
 import androidx.core.content.FileProvider;
 import androidx.webkit.WebViewAssetLoader;
 
-import com.google.android.gms.auth.api.identity.AuthorizationRequest;
-import com.google.android.gms.auth.api.identity.AuthorizationResult;
-import com.google.android.gms.auth.api.identity.Identity;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.Scope;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -40,7 +33,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.Callable;
@@ -53,12 +45,9 @@ import java.util.concurrent.Callable;
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private static final String START_URL = "https://" + HOST + "/assets/www/index.html";
-    private static final String CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
-    private static final int REQ_AUTH = 1001;
     private static final int REQ_CAL = 1002;
 
     private WebView web;
-    private String pendingCallbackId;
     private Runnable pendingAfterPermission;
     private String pendingPermissionCallbackId;
 
@@ -150,14 +139,9 @@ public class MainActivity extends Activity {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    /* ---------- Googleカレンダー認可（JSから呼ばれる） ---------- */
+    /* ---------- JSから呼ばれるブリッジ ---------- */
 
     private class Bridge {
-        @JavascriptInterface
-        public void requestToken(final String callbackId) {
-            runOnUiThread(() -> startAuth(callbackId));
-        }
-
         @JavascriptInterface
         public boolean hasCalendarPermission() {
             return checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED;
@@ -420,55 +404,6 @@ public class MainActivity extends Activity {
     private void deliverResult(String id, String data, String error) {
         final String js = "window.__tjNativeResult(" + JSONObject.quote(id) + ","
                 + (data == null ? "null" : JSONObject.quote(data)) + ","
-                + (error == null ? "null" : JSONObject.quote(error)) + ")";
-        runOnUiThread(() -> web.evaluateJavascript(js, null));
-    }
-
-    private void startAuth(String callbackId) {
-        pendingCallbackId = callbackId;
-        AuthorizationRequest request = AuthorizationRequest.builder()
-                .setRequestedScopes(Collections.singletonList(new Scope(CALENDAR_SCOPE)))
-                .build();
-        Identity.getAuthorizationClient(this)
-                .authorize(request)
-                .addOnSuccessListener(result -> {
-                    if (result.hasResolution()) {
-                        PendingIntent pi = result.getPendingIntent();
-                        try {
-                            startIntentSenderForResult(pi.getIntentSender(), REQ_AUTH, null, 0, 0, 0);
-                        } catch (IntentSender.SendIntentException e) {
-                            deliver(null, "ログイン画面を開けませんでした");
-                        }
-                    } else {
-                        deliver(result.getAccessToken(), null);
-                    }
-                })
-                .addOnFailureListener(e -> deliver(null, "Googleログインに失敗しました: " + e.getMessage()));
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQ_AUTH) return;
-        if (resultCode != RESULT_OK || data == null) {
-            deliver(null, "ログインがキャンセルされました");
-            return;
-        }
-        try {
-            AuthorizationResult result = Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(data);
-            deliver(result.getAccessToken(), null);
-        } catch (ApiException e) {
-            deliver(null, "Googleログインに失敗しました: " + e.getMessage());
-        }
-    }
-
-    private void deliver(String token, String error) {
-        final String id = pendingCallbackId;
-        pendingCallbackId = null;
-        if (id == null) return;
-        final String js = "window.__tjNativeToken(" + JSONObject.quote(id) + ","
-                + (token == null ? "null" : JSONObject.quote(token)) + ","
                 + (error == null ? "null" : JSONObject.quote(error)) + ")";
         runOnUiThread(() -> web.evaluateJavascript(js, null));
     }
