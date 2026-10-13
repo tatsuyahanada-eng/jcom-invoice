@@ -284,6 +284,10 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .xr.dir .xr-t b { font-weight: 700; }
 .xr-t small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .xr-t small.bad { color: var(--danger); }
+.xr-t small b { font-weight: 700; }
+.use-on { color: var(--accent); }
+.use-off { color: var(--muted); }
+.use-dup { color: var(--warn); }
 .xr-ic { width: 30px; height: 26px; display: grid; place-items: center; flex: none; }
 .xr-ic svg.i { width: 24px; height: 24px; color: #e0a800; fill: #ffd95a55; }
 .xr-c { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -3760,12 +3764,13 @@ function flRowsHtml(F, canDel) {
   const where = id => { const p = flPath(id).map(x => x.name); return "すべてのファイル" + (p.length ? " ＞ " + p.join(" ＞ ") : ""); };
   const chk = id => `<input type="checkbox" class="xr-ck" data-act="flCk" data-id="${id}" ${F.sel.has(id) ? "checked" : ""} aria-label="選択">`;
   const cnt = flCounts();
+  const dup = {}; F.items.forEach(f => { dup[f.name] = (dup[f.name] || 0) + 1; });   // 同じ名前のファイルが、ほかにもあるか
   const rows = dirs.map(f => `<div class="xr dir ${F.sel.has(f.id) ? "sel" : ""}" draggable="true" data-act="flRow" data-id="${f.id}" data-drop="${f.id}">
       ${chk(f.id)}<span class="xr-nm"><span class="xr-ic dirc">${ic("folder")}</span><span class="xr-t"><b>${esc(f.name)}</b>${q ? `<small>${esc(where(f.parent))}</small>` : `<small>フォルダ</small>`}</span></span>
       <span class="xr-c num">${cnt[f.id] ? cnt[f.id] + "件" : "空"}</span><span class="xr-c"></span>
       <span class="xr-o"><button class="icon-btn" type="button" data-act="flRen" data-id="${f.id}" aria-label="名前を変更" title="名前を変更">${ic("steps")}</button><button class="icon-btn del" type="button" data-act="flDelDir" data-id="${f.id}" aria-label="フォルダを削除" title="フォルダを削除">${ic("trash")}</button></span></div>`);
   files.forEach(f => rows.push(`<div class="xr ${F.sel.has(f.fid) ? "sel" : ""}" draggable="true" data-act="flRow" data-id="${f.fid}">
-      ${chk(f.fid)}<span class="xr-nm">${flFty(f.name)}<span class="xr-t"><b>${esc(f.name)}</b><small class="num">${q ? esc(where(f.folder)) + "・" : ""}${esc(f.at.slice(0, 10).replaceAll("-", "/"))}・${esc(f.by)}</small>${f.missing ? `<small class="bad">実ファイルがありません</small>` : ""}</span></span>
+      ${chk(f.fid)}<span class="xr-nm">${flFty(f.name)}<span class="xr-t"><b>${esc(f.name)}</b><small class="num">${q ? esc(where(f.folder)) + "・" : ""}${esc(f.at.slice(0, 10).replaceAll("-", "/"))}・${esc(f.by)}・<b class="${f.used.length ? "use-on" : "use-off"}">${f.used.length ? "使用中" : "未使用"}</b>${dup[f.name] > 1 ? `・<b class="use-dup" title="同じ名前のファイルが ${dup[f.name]}件あります。上げ直したときの古いファイルは、未使用のまま残ります">同名 ${dup[f.name]}件</b>` : ""}</small>${f.missing ? `<small class="bad">実ファイルがありません</small>` : ""}</span></span>
       <span class="xr-c num">${fmtBytes(f.size)}</span>
       <span class="xr-c">${f.used.length ? `<button class="chip accent" type="button" data-act="selTask" data-id="${esc(f.used[0].id)}" title="${esc(f.used.map(u => u.id + "・" + u.where).join("\n"))}">使用中 ${f.used.length}</button>` : `<span class="muted">未使用</span>`}</span>
       <span class="xr-o"><a class="icon-btn" data-act="noop" href="api/?r=files/${esc(f.fid)}" download aria-label="ダウンロード" title="ダウンロード">${ic("dl")}</a>
