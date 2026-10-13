@@ -144,6 +144,16 @@ CREATE TABLE IF NOT EXISTS files (
   uploaded_by VARCHAR(20)     NOT NULL,
   uploaded_at DATETIME        NOT NULL,
   source      VARCHAR(10)     NOT NULL DEFAULT 'browser' COMMENT 'browser / ftp',
+  folder_id   VARCHAR(16)     NOT NULL DEFAULT '' COMMENT 'ファイル管理のフォルダ（空＝いちばん上）',
   PRIMARY KEY (id),
   KEY idx_uploaded (uploaded_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS folders (
+  id         VARCHAR(16)  NOT NULL,
+  parent_id  VARCHAR(16)  NOT NULL DEFAULT '',
+  name       VARCHAR(100) NOT NULL,
+  created_at DATETIME     NOT NULL,
+  PRIMARY KEY (id),
+  KEY idx_parent (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

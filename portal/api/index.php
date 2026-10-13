@@ -19,7 +19,7 @@ require __DIR__ . '/logs.php';
  *   GET  ?r=bootstrap              画面に必要なデータ一式（権限に応じて内容が変わる）
  *   POST ?r=data/{op}              作業・大項目・お知らせ・ユーザーの変更（権限はサーバーで判定）
  *   POST ?r=upload/{init|chunk|finish|cancel}  GET ?r=upload/status   ファイルのアップロード（分割・再開）
- *   GET  ?r=files/limits | files/list | files/{id}   POST ?r=files/delete
+ *   GET  ?r=files/limits | files/list | files/{id}   POST ?r=files/delete | files/move | folders/save（フォルダの作成・名前変更・移動・削除）
  *   GET  ?r=ext/list | files/x{id}（FTP のファイル）   POST ?r=ext/save | ext/delete
  *   GET  ?r=logs                   作業記録の一覧・検索  q, from, to, task, user, result, limit, offset
  *   GET  ?r=logs/{id}              作業記録の詳細（添付つき）
@@ -52,6 +52,8 @@ function main(): void
         if ($route === 'files/limits' && $method === 'GET') { require_role('editor'); json_out(['ok' => true, 'limits' => upload_limits()]); }
         if ($route === 'files/list' && $method === 'GET') route_file_list();
         if ($route === 'files/delete' && $method === 'POST') route_file_delete();
+        if ($route === 'files/move' && $method === 'POST') route_file_move();
+        if ($route === 'folders/save' && $method === 'POST') route_folder_save();
         if ($route === 'ext/list' && $method === 'GET') route_ext_list();
         if ($route === 'ext/save' && $method === 'POST') route_ext_save();
         if ($route === 'ext/delete' && $method === 'POST') route_ext_delete();

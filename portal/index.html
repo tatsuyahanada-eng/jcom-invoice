@@ -242,6 +242,83 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
 .fchip.ver { background: #fff3d6; color: #8a5a00; }
 .file-fn { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); min-width: 0; }
 .file-fn .mono { color: var(--fg); overflow-wrap: anywhere; }
+/* ---- ファイル管理（エクスプローラー風） ---- */
+.xp { padding: 0; overflow: hidden; }
+.xp-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.xp-sep { width: 1px; height: 22px; background: var(--line-strong); margin: 0 4px; }
+.xp-sel { font-size: 12.5px; color: var(--accent); font-weight: 700; }
+.xp-q { margin-left: auto; display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 999px; padding: 0 12px; height: 34px; min-width: 190px; }
+.xp-q svg.i { width: 15px; height: 15px; color: var(--muted); }
+.xp-q input { border: 0; outline: 0; background: none; font-size: 13px; width: 100%; }
+.xp-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 8px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.xc { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; padding: 3px 8px; border-radius: 7px; color: var(--muted); font-weight: 700; }
+.xc svg.i { width: 15px; height: 15px; }
+.xc:hover { background: var(--accent-soft); color: var(--accent); }
+.xc.on { color: var(--fg); }
+.xc-s svg.i { width: 12px; height: 12px; color: var(--line-strong); }
+.xc-q { font-weight: 700; padding: 3px 8px; }
+.xp-flt { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.xp-body { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: 420px; }
+.xp-tree { border-right: 1px solid var(--line); padding: 8px 6px; overflow: auto; max-height: 640px; background: var(--surface); }
+.xt-r { display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 6px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--fg); user-select: none; }
+.xt-r:hover { background: var(--surface-2); }
+.xt-r.on { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.xt-r small { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 400; }
+.xt-ic { color: #e0a800; display: inline-flex; flex: none; }
+.xt-ic svg.i { width: 17px; height: 17px; fill: #ffd95a33; }
+.xt-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.xt-tg { width: 18px; height: 18px; border: 0; background: none; padding: 0; display: grid; place-items: center; color: var(--muted); flex: none; border-radius: 4px; }
+.xt-tg[hidden] { display: block; visibility: hidden; }
+.xt-tg svg.i { width: 12px; height: 12px; transition: transform .15s ease; }
+.xt-tg.open svg.i { transform: rotate(90deg); }
+.xt-tg:hover { background: var(--line); }
+.xp-main { min-width: 0; display: grid; align-content: start; position: relative; }
+.xr { display: grid; grid-template-columns: 26px minmax(0, 1fr) 70px 88px 70px; gap: 10px; align-items: center; padding: 7px 14px; border-bottom: 1px solid var(--line); font-size: 13px; cursor: default; user-select: none; }
+.xr-h { font-size: 11.5px; font-weight: 700; color: var(--muted); background: var(--surface); position: sticky; top: 0; }
+.xr:not(.xr-h):hover { background: var(--surface-2); }
+.xr.sel { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.xr.drag { opacity: .45; }
+.xr-nm { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.xr-t { display: grid; min-width: 0; }
+.xr-t b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xr.dir .xr-t b { font-weight: 700; }
+.xr-t small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xr-t small.bad { color: var(--danger); }
+.xr-ic { width: 30px; height: 26px; display: grid; place-items: center; flex: none; }
+.xr-ic svg.i { width: 24px; height: 24px; color: #e0a800; fill: #ffd95a55; }
+.xr-c { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xr-o { display: flex; justify-content: flex-end; gap: 2px; }
+.xr-ck { width: 16px; height: 16px; accent-color: var(--accent); }
+.fty { width: 30px; height: 26px; border-radius: 5px; display: grid; place-items: center; flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: .02em; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line-strong); }
+.fty.w { background: #e8eefc; color: #2b579a; border-color: #bccbf0; }
+.fty.x { background: #e5f4ea; color: #1d6f42; border-color: #b6dfc3; }
+.fty.p { background: #fdeae2; color: #c43e1c; border-color: #f4c3b1; }
+.fty.r { background: var(--danger-soft); color: var(--danger); border-color: #f2b9b9; }
+.fty.z { background: #f3ecd9; color: #8a6d1d; border-color: #e3d4a3; }
+.fty.v { background: var(--accent-soft); color: var(--accent); border-color: #b9d8f0; }
+.fty.i { background: #efe6f8; color: #7a3fb0; border-color: #d6c1ec; }
+.fty.e { background: #eceff1; color: #455a64; border-color: #cfd8dc; }
+.xr-empty { display: grid; justify-items: center; gap: 4px; padding: 56px 16px; color: var(--muted); text-align: center; }
+.xr-empty svg.i { width: 40px; height: 40px; color: var(--line-strong); }
+.xr-empty b { color: var(--fg); }
+.xp-hint { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 12.5px; color: var(--muted); border-top: 1px dashed var(--line-strong); margin: 8px 12px 12px; border-radius: 10px; }
+.xp-hint svg.i { width: 15px; height: 15px; }
+.xp-up { padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--accent-soft); display: grid; gap: 8px; }
+.xp-up-h { display: flex; gap: 10px; align-items: baseline; font-size: 13px; }
+.xdrop { outline: 2px dashed var(--accent); outline-offset: -2px; background: var(--accent-soft) !important; }
+.xp-main.xdrop { background: var(--accent-soft) !important; }
+.mv-list { display: grid; gap: 2px; max-height: 320px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 6px; margin: 8px 0; }
+.mv-r { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13.5px; }
+.mv-r:hover { background: var(--surface-2); }
+@media (max-width: 900px) {
+  .xp-body { grid-template-columns: minmax(0, 1fr); }
+  .xp-tree { border-right: 0; border-bottom: 1px solid var(--line); max-height: 190px; }
+  .xr { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 8px; }
+  .xr > .xr-c { display: none; }
+  .xr-h > :nth-child(n+3) { display: none; }
+  .xr-o { grid-column: 3; }
+  .xp-q { margin-left: 0; width: 100%; }
+}
 .copyfrom { padding: 0; }
 .copyfrom > summary { list-style: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; cursor: pointer; }
 .copyfrom > summary::-webkit-details-marker { display: none; }
@@ -550,6 +627,7 @@ details.more[open] summary { margin-bottom: 10px; }
 .man-ico.pdf { background: var(--danger-soft); color: var(--danger); }
 .man-ico.mov { background: var(--accent-soft); color: var(--accent); }
 .man-ico.web { background: var(--ok-soft); color: var(--ok); }
+.man-ico.doc { background: #e8eefc; color: #2b579a; }
 .man b { font-size: 14px; display: block; line-height: 1.5; }
 .man small { font-size: 12px; color: var(--muted); }
 details.old { border: 1px dashed var(--line-strong); border-radius: var(--r); }
@@ -1445,6 +1523,7 @@ button.who:hover { background: var(--surface-2); }
    アイコン
    ========================================================= */
 const ICONS = {
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   clip: '<path d="M20 11.5 12 19.5a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.5-7.5"/>',
   link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
   register: '<rect x="3" y="11" width="18" height="9" rx="1.5"/><path d="M7 11V5h10v6M9.5 8h5M7 15h2M11 15h2M15 15h2"/>',
@@ -1834,7 +1913,7 @@ const S = {
   me: store.get("portal3.me", "u1"), menuOpen: false,
   up: { limits: null, loading: false, items: [] },
   ex: { data: null, err: "" },
-  fl: { items: null, totals: null, err: "", filter: "" },
+  fl: { items: null, folders: [], totals: null, err: "", filter: "", cur: "", sel: new Set(), q: "", open: new Set(), anchor: "", batch: null },
   w: { view: "home", listMode: store.get("portal4.listMode", false), taskId: null, cat: null, ind: null, q: "", logId: null },
   lg: { f: lgDefaultF(), back: store.get("portal4.lgBack", false), list: [], total: 0, users: [], places: [], loading: false, err: "", detail: null, form: null },
   a: { list: { q: "", cat: "", st: "" }, sel: null, tab: "basic", draft: null, dirty: false, open: { pos: true }, treeQ: "", stepOpen: new Set(), pending: null, pvModal: false, reviewing: false, note: "", hist: { type: "", user: "", q: "" } },
@@ -2359,9 +2438,9 @@ function wkDetail(t, preview = false) {
         <section class="card wsec" data-sec="man">
           <div class="wsec-h"><h2>マニュアル</h2><span class="sub">印刷・持ち込みは不要です</span></div>
           <div class="mans">${t.manuals.length ? t.manuals.map((m, i) => `<div class="man">
-            <span class="man-ico ${m.kind === "動画" ? "mov" : m.kind === "Web" ? "web" : "pdf"}">${m.kind === "動画" ? ic("play") : m.kind === "Web" ? "WEB" : "PDF"}</span>
+            <span class="man-ico ${m.kind === "動画" ? "mov" : m.kind === "Web" ? "web" : m.kind === "資料" ? "doc" : "pdf"}">${m.kind === "動画" ? ic("play") : m.kind === "Web" ? "WEB" : m.kind === "資料" ? manDocLab(m) : "PDF"}</span>
             <span style="min-width:0"><b>${m.title ? esc(m.title) : "（タイトル未入力）"}</b><small class="num">${esc(m.meta || "—")}${(m.file && m.file.size) || m.fsize ? "・" + fmtBytes((m.file && m.file.size) || m.fsize) : ""}・更新 ${fmtDate(m.updated)}</small>${m.missing ? `<span class="chip danger">ファイルが見つかりません。サポートに連絡してください</span>` : ""}</span>
-            ${isSrv() && !manUrl(m) && !(m.kind === "Web" && m.url) ? `<span class="chip">ファイル未登録</span>` : `<button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-act="manual" data-i="${i}" ${dis || (m.missing ? "disabled" : "")}>${m.kind === "動画" ? "再生" : "開く"}</button>`}
+            ${isSrv() && !manUrl(m) && !(m.kind === "Web" && m.url) ? `<span class="chip">ファイル未登録</span>` : `<button class="btn sm ${i === 0 ? "primary" : ""}" type="button" data-act="manual" data-i="${i}" ${dis || (m.missing ? "disabled" : "")}>${m.kind === "動画" ? "再生" : m.kind === "資料" ? "ダウンロード" : "開く"}</button>`}
           </div>`).join("") : none("マニュアルは登録されていません")}</div>
         </section>
 
@@ -3294,10 +3373,10 @@ function sectionHtml(tab) {
     case "man":
       if (isSrv() && !S.up.limits && !S.up.loading) loadFilesInfo();
       return `<div class="sect">
-      <p class="sect-intro">PDF の手順書や作業動画を、ここに<b>ドラッグ＆ドロップするだけ</b>で登録できます（1ファイルが1件のマニュアルになり、タイトルはファイル名から自動で入ります）。${S.up.limits ? `ブラウザから送れるのは、1ファイル ${fmtBytes(S.up.limits.maxBytes)} までです。` : ""}大きなファイルは FTP で置いて、そのパスだけを書きます。社内Wikiなどは、種類を「Web」にして URL を入力します。</p>
+      <p class="sect-intro">手順書や作業動画、Word・Excel・PowerPoint などの資料を、ここに<b>ドラッグ＆ドロップするだけ</b>で登録できます（1ファイルが1件のマニュアルになり、タイトルはファイル名から自動で入ります）。${S.up.limits ? `ブラウザから送れるのは、1ファイル ${fmtBytes(S.up.limits.maxBytes)} までです。` : ""}大きなファイルは FTP で置いて、そのパスだけを書きます。社内Wikiなどは、種類を「Web」にして URL を入力します。</p>
       <section class="card blk">
-        <label class="drop" for="manIn" id="dropMan">${ic("upload")}<b>ここに PDF・動画をドラッグ＆ドロップ</b><span>またはクリックして選ぶ（複数まとめて選べます）</span></label>
-        <input type="file" id="manIn" accept=".pdf,.mp4,.m4v,.webm,.mov,application/pdf,video/*" multiple hidden>
+        <label class="drop" for="manIn" id="dropMan">${ic("upload")}<b>ここにファイルをドラッグ＆ドロップ</b><span>PDF・動画・Word・Excel・PowerPoint など、どんなファイルでも（日本語のファイル名のまま）</span><span>またはクリックして選ぶ（複数まとめて選べます）</span></label>
+        <input type="file" id="manIn" multiple hidden>
         ${d.manuals.length ? `<div class="cols-h row-man"><span>種類</span><span>タイトル</span><span>ページ数・時間</span><span>更新日</span><span></span></div>` : ""}
         <div class="rows">${d.manuals.map((m, i) => manualRow(m, i, d.manuals.length)).join("") || `<div class="empty-row">マニュアルはまだありません</div>`}</div>
         ${addBtn("manuals", "ファイルなしで追加（Web・パス指定など）")}
@@ -3626,42 +3705,190 @@ function extModalBody(v) {
 async function loadFileList() {
   const F = S.fl;
   F.err = "";
-  try { const r = await api("files/list"); F.items = r.files; F.totals = r.totals; } catch (e) { F.err = e.message; if (!F.items) F.items = []; }
+  try {
+    const r = await api("files/list"); F.items = r.files; F.totals = r.totals; F.folders = r.folders || [];
+    if (F.cur && !flById(F.cur)) F.cur = "";
+    const ids = new Set([...F.items.map(f => f.fid), ...F.folders.map(f => f.id)]); F.sel = new Set([...F.sel].filter(x => ids.has(x)));
+  } catch (e) { F.err = e.message; if (!F.items) F.items = []; }
   paintFiles();
 }
 function paintFiles() { if (S.mode === "admin" && S.a.sel?.type === "files" && $("#edIn")) $("#edIn").innerHTML = filesAdminHtml(); }
+function flSelPaint() {   // 選択の見た目だけを更新する（一覧は作り直さない。ダブルクリックを妨げないため）
+  const F = S.fl, n = F.sel.size;
+  document.querySelectorAll(".xr[data-id]:not(.xr-h)").forEach(r => { const on = F.sel.has(r.dataset.id); r.classList.toggle("sel", on); const c = r.querySelector(".xr-ck"); if (c) c.checked = on; });
+  const t = $(".xp-sel"); if (t) t.textContent = n ? `${n}件を選択中` : "";
+  const mv = document.querySelector('[data-act="flMoveOpen"]'); if (mv) mv.disabled = !n;
+  const dl = document.querySelector('[data-act="flDelSel"]'); if (dl) { dl.disabled = !n || !can.approve(); dl.classList.toggle("danger", !!n); }
+  const all = document.querySelector('[data-act="flAll"]'); if (all) all.checked = n > 0 && n >= flRowsOrder().length;
+}
+function flRepaintList() {   // 検索語の入力中は、入力欄を作り直さない
+  if (!(S.mode === "admin" && S.a.sel?.type === "files" && $("#xp"))) return;
+  const keep = document.activeElement && document.activeElement.id === "flQ" ? document.activeElement.selectionStart : null;
+  paintFiles();
+  if (keep != null) { const n = $("#flQ"); if (n) { n.focus(); n.setSelectionRange(keep, keep); } }
+}
+/* ---- ファイル管理：Windows のエクスプローラーのように、フォルダで整理する ---- */
+const flById = id => S.fl.folders.find(f => f.id === id);
+const flKids = pid => S.fl.folders.filter(f => f.parent === pid).sort((a, b) => a.name.localeCompare(b.name, "ja"));
+function flPath(id) { const p = []; for (let f = flById(id), n = 0; f && n < 30; f = flById(f.parent), n++) p.unshift(f); return p; }
+const flInside = (id, anc) => { for (let f = flById(id), n = 0; f && n < 30; f = flById(f.parent), n++) if (f.id === anc) return true; return false; };
+const flIsFolder = id => /^d[a-f0-9]{12}$/.test(id);
+function flFty(name) {   // ファイルの種類（拡張子）を、色つきの小さな札で見せる
+  const e = (String(name).match(/\.([^.]+)$/) || [, ""])[1].toLowerCase();
+  const m = { doc: ["DOC", "w"], docx: ["DOC", "w"], docm: ["DOC", "w"], xls: ["XLS", "x"], xlsx: ["XLS", "x"], xlsm: ["XLS", "x"], csv: ["CSV", "x"], ppt: ["PPT", "p"], pptx: ["PPT", "p"], pdf: ["PDF", "r"], zip: ["ZIP", "z"], "7z": ["7Z", "z"], lzh: ["LZH", "z"], mp4: ["MP4", "v"], mov: ["MOV", "v"], m4v: ["MP4", "v"], webm: ["WEB", "v"], png: ["PNG", "i"], jpg: ["JPG", "i"], jpeg: ["JPG", "i"], gif: ["GIF", "i"], webp: ["IMG", "i"], txt: ["TXT", "t"], exe: ["EXE", "e"], msi: ["MSI", "e"] }[e];
+  return m ? `<span class="fty ${m[1]}">${m[0]}</span>` : `<span class="fty">${esc((e || "FILE").slice(0, 4).toUpperCase())}</span>`;
+}
+function flCounts() {   // フォルダごとのファイル数（中のフォルダも含む）
+  const c = {}; S.fl.items.forEach(f => { for (let d = flById(f.folder), n = 0; d && n < 30; d = flById(d.parent), n++) c[d.id] = (c[d.id] || 0) + 1; });
+  return c;
+}
+function flTreeHtml(pid, depth, cnt) {
+  const F = S.fl;
+  return flKids(pid).map(f => {
+    const kids = flKids(f.id).length, open = F.open.has(f.id) || (F.cur && flInside(F.cur, f.id) && F.cur !== f.id);
+    return `<div class="xt-n"><div class="xt-r ${F.cur === f.id ? "on" : ""}" data-act="flGo" data-id="${f.id}" data-drop="${f.id}" style="padding-left:${6 + depth * 16}px">
+      <button class="xt-tg ${open ? "open" : ""}" type="button" data-act="flTog" data-id="${f.id}" aria-label="開閉" ${kids ? "" : "hidden"}>${ic("chev")}</button>
+      <span class="xt-ic">${ic("folder")}</span><span class="xt-nm">${esc(f.name)}</span><small class="num">${cnt[f.id] || ""}</small></div>
+      ${open && kids ? flTreeHtml(f.id, depth + 1, cnt) : ""}</div>`;
+  }).join("");
+}
+function flRowsHtml(F, canDel) {
+  const q = F.q.trim().toLowerCase();
+  let files = F.items.filter(f => (!F.filter || (F.filter === "unused" ? !f.used.length : f.used.length)) && (q ? f.name.toLowerCase().includes(q) : f.folder === F.cur));
+  files = files.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+  const dirs = q ? F.folders.filter(f => f.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name, "ja")) : flKids(F.cur);
+  const where = id => { const p = flPath(id).map(x => x.name); return "すべてのファイル" + (p.length ? " ＞ " + p.join(" ＞ ") : ""); };
+  const chk = id => `<input type="checkbox" class="xr-ck" data-act="flCk" data-id="${id}" ${F.sel.has(id) ? "checked" : ""} aria-label="選択">`;
+  const cnt = flCounts();
+  const rows = dirs.map(f => `<div class="xr dir ${F.sel.has(f.id) ? "sel" : ""}" draggable="true" data-act="flRow" data-id="${f.id}" data-drop="${f.id}">
+      ${chk(f.id)}<span class="xr-nm"><span class="xr-ic dirc">${ic("folder")}</span><span class="xr-t"><b>${esc(f.name)}</b>${q ? `<small>${esc(where(f.parent))}</small>` : `<small>フォルダ</small>`}</span></span>
+      <span class="xr-c num">${cnt[f.id] ? cnt[f.id] + "件" : "空"}</span><span class="xr-c"></span>
+      <span class="xr-o"><button class="icon-btn" type="button" data-act="flRen" data-id="${f.id}" aria-label="名前を変更" title="名前を変更">${ic("steps")}</button><button class="icon-btn del" type="button" data-act="flDelDir" data-id="${f.id}" aria-label="フォルダを削除" title="フォルダを削除">${ic("trash")}</button></span></div>`);
+  files.forEach(f => rows.push(`<div class="xr ${F.sel.has(f.fid) ? "sel" : ""}" draggable="true" data-act="flRow" data-id="${f.fid}">
+      ${chk(f.fid)}<span class="xr-nm">${flFty(f.name)}<span class="xr-t"><b>${esc(f.name)}</b><small class="num">${q ? esc(where(f.folder)) + "・" : ""}${esc(f.at.slice(0, 10).replaceAll("-", "/"))}・${esc(f.by)}</small>${f.missing ? `<small class="bad">実ファイルがありません</small>` : ""}</span></span>
+      <span class="xr-c num">${fmtBytes(f.size)}</span>
+      <span class="xr-c">${f.used.length ? `<button class="chip accent" type="button" data-act="selTask" data-id="${esc(f.used[0].id)}" title="${esc(f.used.map(u => u.id + "・" + u.where).join("\n"))}">使用中 ${f.used.length}</button>` : `<span class="muted">未使用</span>`}</span>
+      <span class="xr-o"><a class="icon-btn" data-act="noop" href="api/?r=files/${esc(f.fid)}" download aria-label="ダウンロード" title="ダウンロード">${ic("dl")}</a>
+        <button class="icon-btn del" type="button" data-act="flDel" data-id="${esc(f.fid)}" aria-label="削除" ${f.used.length || !canDel ? "disabled" : ""} title="${f.used.length ? "作業で使われているため、削除できません" : "削除"}">${ic("trash")}</button></span></div>`));
+  return rows.join("") || `<div class="xr-empty">${ic("folder")}<b>${q ? "見つかりません" : F.cur ? "このフォルダは空です" : "ファイルはまだありません"}</b><span>ここにファイルやフォルダを<b>ドラッグ＆ドロップ</b>すると、アップロードできます</span></div>`;
+}
+function libUpHtml() {
+  const L = S.up.items.filter(x => x.target && x.target.lib !== undefined && x.state !== "done");
+  if (!L.length) return "";
+  const b = S.fl.batch;
+  return `<div class="xp-up"><div class="xp-up-h"><b>アップロード中</b><span class="muted num">${b ? `${b.done} / ${b.total}件 完了` : ""}</span></div>${L.map(x => {
+    const pct = x.size ? Math.round(x.sent / x.size * 100) : 0;
+    const st = x.state === "wait" ? "順番待ち" : x.state === "up" ? `送信中 ${pct}%（${fmtBytes(x.sent)} / ${fmtBytes(x.size)}）` : x.state === "fin" ? "サーバーで確認中…" : x.state === "cancel" ? "中止しました" : `失敗：${x.err}`;
+    const act = x.state === "err" ? `<button class="btn sm" type="button" data-act="upRetry" data-k="${x.key}">続きから再開</button><button class="btn sm ghost" type="button" data-act="upDismiss" data-k="${x.key}">消す</button>` : x.state === "up" || x.state === "wait" ? `<button class="btn sm" type="button" data-act="upCancel" data-k="${x.key}">中止</button>` : x.state === "cancel" ? `<button class="btn sm ghost" type="button" data-act="upDismiss" data-k="${x.key}">消す</button>` : "";
+    return `<div class="up-row"><span style="display:grid;gap:2px;min-width:0"><span class="up-name">${esc(x.name)}</span><span class="up-st ${x.state === "err" ? "err" : ""} num">${esc(st)}</span></span>${act}<span class="m-bar acc" role="progressbar" aria-label="進み具合" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></div>`;
+  }).join("")}</div>`;
+}
 function filesAdminHtml() {
   const F = S.fl, canDel = can.approve();
   const head = edHead("ファイル管理", "アップロードしたファイル", `<button class="btn sm" type="button" data-act="flRefresh">${ic("clock")}更新</button>`);
   if (!F.items) return head + `<div class="sect"><div class="card empty">読み込み中…</div></div>`;
   const T = F.totals || { count: 0, size: 0, unusedCount: 0, unusedSize: 0, free: 0 };
-  const list = F.items.filter(f => !F.filter || (F.filter === "unused" ? !f.used.length : f.used.length));
   const flt = (v, n) => `<button type="button" data-act="flFilter" data-v="${v}" aria-pressed="${F.filter === v}">${n}</button>`;
+  const path = flPath(F.cur), nSel = F.sel.size, cnt = flCounts();
+  const crumbs = `<button type="button" class="xc ${F.cur ? "" : "on"}" data-act="flGo" data-id="" data-drop="">${ic("folder")}すべてのファイル</button>${path.map(f => `<span class="xc-s">${ic("chev")}</span><button type="button" class="xc ${f.id === F.cur ? "on" : ""}" data-act="flGo" data-id="${f.id}" data-drop="${f.id}">${esc(f.name)}</button>`).join("")}`;
   return head + `<div class="sect">
-    <p class="sect-intro">サーバーに保存されている、ダウンロード用のファイルの一覧です。作業で使われているファイルは削除できません（先に、その作業の「ファイル」タブから外して保存してください）。削除できるのは公開承認以上の権限で、元に戻せません。</p>
+    <p class="sect-intro">アップロードしたファイルを、フォルダに分けて整理できます。ファイルやフォルダを<b>ドラッグ＆ドロップ</b>で、左のフォルダや、一覧のフォルダに移せます。Word・Excel・PowerPoint・PDF・動画など、どんな種類のファイルでも、日本語のファイル名のまま上げられます（フォルダごとのアップロードも可能です）。作業で使われているファイルは削除できません。</p>
     ${F.err ? `<div class="note">${ic("alert")}<span>${esc(F.err)}</span></div>` : ""}
     <div class="rv-tiles">
       <div class="tile"><small>ファイル</small><b class="num">${T.count}<span>件・${fmtBytes(T.size)}</span></b></div>
       <div class="tile ${T.unusedCount ? "warn" : "ok"}"><small>どの作業にも使われていない</small><b class="num">${T.unusedCount}<span>件・${fmtBytes(T.unusedSize)}</span></b></div>
       <div class="tile"><small>サーバーの空き容量</small><b class="num">${T.free ? fmtBytes(T.free) : "—"}</b></div>
     </div>
-    <section class="card blk">
-      <div class="blk-h"><h3>ファイルの一覧</h3><span class="chip right num">${list.length}件</span></div>
-      <div class="hfilter"><div class="toggles" role="group" aria-label="使用状況で絞り込み">${flt("", "すべて")}${flt("used", "使用中")}${flt("unused", "未使用")}</div>
-        ${canDel && T.unusedCount ? `<button class="btn sm danger" type="button" data-act="flPurge" style="margin-left:auto">${ic("trash")}未使用の ${T.unusedCount}件をすべて削除</button>` : ""}</div>
-      <div class="rows">${list.map(f => `<div class="row" style="grid-template-columns:minmax(0,1fr) auto;gap:6px 12px">
-        <span style="display:grid;gap:3px;min-width:0">
-          <span class="up-name">${esc(f.name)}${f.missing ? ` <span class="chip danger">実ファイルがありません</span>` : ""}</span>
-          <span class="up-st num">${fmtBytes(f.size)}・${esc(f.at.replaceAll("-", "/"))}・${esc(f.by)}・${f.source === "ftp" ? "FTP" : "ブラウザ"}・SHA-256 <span class="mono">${esc(f.sha.slice(0, 10))}…</span></span>
-          <span style="display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center">${f.used.length ? f.used.map(u => `<button class="chip accent" type="button" data-act="selTask" data-id="${esc(u.id)}" title="この作業を開く">${esc(u.id)}・${esc(u.where)}</button>`).join("") : `<span class="chip warn">未使用</span>`}</span>
-        </span>
-        <span style="display:flex;gap:6px;align-items:center">
-          <a class="btn sm" href="api/?r=files/${esc(f.fid)}" download title="ダウンロードして確認">${ic("dl")}</a>
-          <button class="btn sm ${f.used.length || !canDel ? "" : "danger"}" type="button" data-act="flDel" data-id="${esc(f.fid)}" ${f.used.length || !canDel ? "disabled" : ""} title="${f.used.length ? "作業で使われているため、削除できません" : canDel ? "" : "削除には公開承認以上の権限が必要です"}">${ic("trash")}削除</button>
-        </span></div>`).join("") || `<div class="empty-row">${F.items.length ? "該当するファイルはありません" : "アップロードされたファイルはありません"}</div>`}</div>
+    <section class="card xp" id="xp">
+      <div class="xp-bar">
+        <label class="btn sm primary" for="flIn">${ic("upload")}ファイルをアップロード</label><input type="file" id="flIn" multiple hidden>
+        <label class="btn sm" for="flInDir">${ic("folder")}フォルダごとアップロード</label><input type="file" id="flInDir" webkitdirectory multiple hidden>
+        <button class="btn sm" type="button" data-act="flNew">${ic("plus")}新しいフォルダ</button>
+        <span class="xp-sep"></span>
+        <button class="btn sm" type="button" data-act="flMoveOpen" ${nSel ? "" : "disabled"}>${ic("chev")}移動…</button>
+        <button class="btn sm ${nSel ? "danger" : ""}" type="button" data-act="flDelSel" ${nSel && canDel ? "" : "disabled"}>${ic("trash")}削除</button>
+        <span class="xp-sel num">${nSel ? `${nSel}件を選択中` : ""}</span>
+        <label class="xp-q">${ic("search")}<input id="flQ" type="search" placeholder="ファイル名で探す" value="${esc(F.q)}" autocomplete="off"></label>
+      </div>
+      <div class="xp-crumbs">${F.q.trim() ? `<span class="xc-q">「${esc(F.q.trim())}」の検索結果（すべてのフォルダから）</span>` : crumbs}
+        <span class="xp-flt"><span class="toggles" role="group" aria-label="使用状況で絞り込み">${flt("", "すべて")}${flt("used", "使用中")}${flt("unused", "未使用")}</span>${canDel && T.unusedCount ? `<button class="btn sm ghost danger" type="button" data-act="flPurge">${ic("trash")}未使用の ${T.unusedCount}件を削除</button>` : ""}</span></div>
+      <div class="xp-body">
+        <nav class="xp-tree" aria-label="フォルダ"><div class="xt-r root ${F.cur === "" ? "on" : ""}" data-act="flGo" data-id="" data-drop=""><span class="xt-ic">${ic("folder")}</span><span class="xt-nm">すべてのファイル</span><small class="num">${F.items.length}</small></div>${flTreeHtml("", 0, cnt)}</nav>
+        <div class="xp-main" id="xpMain" data-dropmain>
+          <div id="libUp">${libUpHtml()}</div>
+          <div class="xr xr-h"><span><input type="checkbox" class="xr-ck" data-act="flAll" aria-label="すべて選択"></span><span>名前</span><span>サイズ</span><span>使用状況</span><span></span></div>
+          <div class="xr-list">${flRowsHtml(F, canDel)}</div>
+          <div class="xp-hint">${ic("upload")}ここにファイルやフォルダをドロップすると、<b>${esc(path.length ? path[path.length - 1].name : "すべてのファイル")}</b> にアップロードします</div>
+        </div>
+      </div>
     </section></div>`;
 }
-
+/* 選択・移動・アップロード */
+const flSelOf = id => S.fl.sel.has(id);
+function flRowsOrder() { return [...document.querySelectorAll(".xr[data-id]:not(.xr-h)")].map(r => r.dataset.id); }
+async function flMoveTo(ids, dest) {
+  const F = S.fl; const dirs = ids.filter(flIsFolder), files = ids.filter(x => !flIsFolder(x));
+  for (const d of dirs) if (d === dest || (dest && flInside(dest, d))) { toast("フォルダを、そのフォルダの中には移動できません"); return; }
+  const dirsToMove = dirs.filter(d => (flById(d) || {}).parent !== dest), filesToMove = files.filter(x => (F.items.find(f => f.fid === x) || {}).folder !== dest);
+  if (!dirsToMove.length && !filesToMove.length) return;
+  try {
+    for (const d of dirsToMove) await api("folders/save", {}, { method: "POST", body: { op: "move", id: d, parent: dest } });
+    if (filesToMove.length) await api("files/move", {}, { method: "POST", body: { ids: filesToMove, folder: dest } });
+    F.sel = new Set(); if (dest) F.open.add(dest);
+    await loadFileList();
+    toast(`${dirsToMove.length + filesToMove.length}件を「${dest ? flById(dest).name : "すべてのファイル"}」に移動しました`);
+  } catch (e) { failToast(e); await loadFileList(); }
+}
+/* ドロップされたファイル・フォルダを、フォルダ構成ごと読み取る */
+async function libCollect(dt) {
+  const files = [...(dt.files || [])], items = [...(dt.items || [])];
+  const entries = items.map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);   // 最初に同期で取り出す（あとでは消える）
+  if (!entries.length) return files.map(file => ({ file, dirs: [] }));
+  const out = [];
+  const readAll = rd => new Promise((res, rej) => { const acc = []; const next = () => rd.readEntries(b => { if (!b.length) res(acc); else { acc.push(...b); next(); } }, rej); next(); });
+  const walk = async (en, dirs) => {
+    if (en.isFile) out.push({ file: await new Promise((res, rej) => en.file(res, rej)), dirs });
+    else if (en.isDirectory) { const kids = await readAll(en.createReader()); if (!kids.length) out.push({ dirs: [...dirs, en.name] }); for (const k of kids) await walk(k, [...dirs, en.name]); }
+  };
+  for (const en of entries) await walk(en, []);
+  return out;
+}
+async function libUpload(list, base) {
+  const F = S.fl; if (!list.length) return;
+  if (AUTH.offline) { toast("オフラインのため、アップロードできません"); return; }
+  if (!S.up.limits) await loadFilesInfo();
+  const L = S.up.limits, cache = new Map();
+  const ensureDir = async dirs => {
+    let parent = base, key = "";
+    for (const name of dirs) {
+      key += "/" + name;
+      if (!cache.has(key)) {
+        const ex = flKids(parent).find(f => f.name === name);
+        if (ex) cache.set(key, ex.id);
+        else { const r = await api("folders/save", {}, { method: "POST", body: { op: "create", parent, name } }); F.folders.push({ id: r.id, parent, name }); cache.set(key, r.id); }
+      }
+      parent = cache.get(key);
+    }
+    if (parent) F.open.add(parent);
+    return parent;
+  };
+  let n = 0;
+  try {
+    for (const it of list) {
+      const folder = await ensureDir(it.dirs || []);
+      if (!it.file) continue;
+      const file = it.file;
+      if (file.size <= 0) { toast(`${file.name} は空のファイルです`); continue; }
+      if (L && file.size > L.maxBytes) { toast(`${file.name} は ${fmtBytes(L.maxBytes)} を超えているため、ブラウザからは送れません。FTP で転送してください`); continue; }
+      S.up.items.push({ key: "u" + Math.random().toString(36).slice(2, 8), name: file.name, size: file.size, sent: 0, state: "wait", file, taskId: "", chunk: 0, uploadId: "", cancel: false, err: "", target: { lib: folder } });
+      n++;
+    }
+  } catch (e) { failToast(e); }
+  if (n) { F.batch = { total: (F.batch && F.batch.done < F.batch.total ? F.batch.total : 0) + n, done: F.batch && F.batch.done < F.batch.total ? F.batch.done : 0 }; }
+  paintFiles(); runUploads();
+}
+let flReloadT;
+const libRefreshSoon = () => { clearTimeout(flReloadT); flReloadT = setTimeout(loadFileList, 500); };
 /* ---- ファイル（サーバー）：アップロード・FTP取り込み・ダウンロード ---- */
 async function startDownload(f) {
   try { const s = await api("session", {}, { timeout: 8000 }); if (!s.authenticated) { onSessionExpired(); return false; } }
@@ -3700,6 +3927,7 @@ function paintUp() {
         const dr = S.a.draft; if (it.target.man && it.target.created && dr && !it.target.man.file && !it.target.man.path) dr.manuals = dr.manuals.filter(x => x !== it.target.man);   // ドロップで作った行は、失敗したら消す
         rerenderSection(); toast(it.err ? `アップロードできませんでした：${it.err}` : "アップロードを中止しました"); } }
     else e.textContent = it.state === "fin" ? "仕上げ中…" : `アップロード中 ${it.size ? Math.floor(it.sent / it.size * 100) : 0}%`; });
+  const lu = $("#libUp"); if (lu) lu.innerHTML = libUpHtml();
   const a = $("#upList"); if (a) a.innerHTML = upListHtml();
   const c = $("#upLimits"); if (c) c.innerHTML = upLimitsHtml();
 }
@@ -3735,7 +3963,7 @@ async function uploadOne(it) {
     return { res, j: await res.json().catch(() => ({})) };
   };
   try {
-    if (!it.uploadId) { const r = await api("upload/init", {}, { method: "POST", body: { name: it.name, size: it.size } }); it.uploadId = r.uploadId; it.chunk = r.chunkBytes; it.sent = 0; }
+    if (!it.uploadId) { const r = await api("upload/init", {}, { method: "POST", body: { name: it.name, size: it.size, folder: it.target && it.target.lib ? it.target.lib : "" } }); it.uploadId = r.uploadId; it.chunk = r.chunkBytes; it.sent = 0; }
     else { const st = await api("upload/status", { id: it.uploadId }); it.sent = st.received; it.chunk = st.chunkBytes; }
     let tries = 0, conflicts = 0;
     while (it.sent < it.size) {
@@ -3759,7 +3987,11 @@ async function uploadOne(it) {
     const fin = await api("upload/finish", {}, { method: "POST", body: { id: it.uploadId }, timeout: 900000 });
     it.state = "done"; it.file = null;
     const d = S.a.draft;
-    if (it.target && it.target.man) {
+    if (it.target && it.target.lib !== undefined) {
+      S.up.items = S.up.items.filter(x => x !== it);
+      const b = S.fl.batch; if (b) { b.done++; if (b.done >= b.total) { toast(`${b.total}件のファイルをアップロードしました`); S.fl.batch = null; } }
+      libRefreshSoon();
+    } else if (it.target && it.target.man) {
       const m = it.target.man;
       if (d && d.id === it.taskId && S.a.sel?.type === "task" && d.manuals.includes(m)) {
         m.file = { fid: fin.file.fid, name: fin.file.name, size: fin.file.size }; delete m.path; delete m.ext; delete m.fsize; delete m.missing;
@@ -3786,7 +4018,10 @@ async function uploadOne(it) {
   paintUp();
 }
 /* マニュアル：ファイルをドラッグ＆ドロップで登録する／大きなファイルは FTP のパスだけを書く */
-const MAN_KIND = n => /\.pdf$/i.test(n || "") ? "PDF" : /\.(mp4|m4v|webm|mov)$/i.test(n || "") ? "動画" : "";
+const MAN_KIND = n => !n ? "" : /\.pdf$/i.test(n) ? "PDF" : /\.(mp4|m4v|webm|mov)$/i.test(n) ? "動画" : "資料";   // Word・Excel・PowerPoint など、ほかのファイルは「資料」
+const manExt = m => ((String((m.file && m.file.name) || m.path || "").match(/\.([^.\/]+)$/) || [, ""])[1] || "").toLowerCase();
+const manDocLab = m => ({ doc: "DOC", docx: "DOC", docm: "DOC", xls: "XLS", xlsx: "XLS", xlsm: "XLS", csv: "CSV", ppt: "PPT", pptx: "PPT", txt: "TXT", zip: "ZIP" })[manExt(m)] || (manExt(m) || "FILE").slice(0, 4).toUpperCase();
+const manDocName = m => ({ doc: "Word", docx: "Word", docm: "Word", xls: "Excel", xlsx: "Excel", xlsm: "Excel", csv: "CSV", ppt: "PowerPoint", pptx: "PowerPoint" })[manExt(m)] || "";
 const manUrl = m => m.file && m.file.fid ? fileUrl(m.file, true) : m.ext ? fileUrl({ fid: m.ext }, true) : "";
 const manBusy = m => S.up.items.find(u => u.target && u.target.man === m && ["wait", "up", "fin"].includes(u.state));
 function manualRow(m, i, n) {
@@ -3801,14 +4036,14 @@ function manualRow(m, i, n) {
       ${m.ext ? (m.missing ? `<span class="chip danger">見つかりません</span>` : `<span class="chip ok">登録済み・${fmtBytes(m.fsize)}</span>`) : ""}</div>`;
   return `<div class="row man-ed" data-i="${i}">
     <div class="man-top">
-      <select class="sel" id="${fid(`manuals.${i}.kind`)}" data-bind="manuals.${i}.kind" aria-label="種類">${["PDF", "動画", "Web"].map(k => `<option ${k === m.kind ? "selected" : ""}>${k}</option>`).join("")}</select>
+      <select class="sel" id="${fid(`manuals.${i}.kind`)}" data-bind="manuals.${i}.kind" aria-label="種類">${["PDF", "動画", "資料", "Web"].map(k => `<option ${k === m.kind ? "selected" : ""}>${k}</option>`).join("")}</select>
       ${inp(`manuals.${i}.title`, m.title, "タイトル")}
-      ${inp(`manuals.${i}.meta`, m.meta, m.kind === "動画" ? "例：8分" : "例：32ページ")}
+      ${inp(`manuals.${i}.meta`, m.meta, m.kind === "動画" ? "例：8分" : m.kind === "資料" ? "例：Excel・3シート" : "例：32ページ")}
       <input class="inp num" type="date" id="${fid(`manuals.${i}.updated`)}" data-bind="manuals.${i}.updated" value="${esc(m.updated)}" aria-label="更新日">
       ${tools("manuals", i, n)}
     </div>
     ${body}
-    <input type="file" id="manIn-${i}" data-man="${i}" accept="${m.kind === "動画" ? ".mp4,.m4v,.webm,.mov,video/*" : ".pdf,application/pdf"}" hidden>
+    <input type="file" id="manIn-${i}" data-man="${i}" hidden>
   </div>`;
 }
 /** ファイルから、ページ数（PDF）・再生時間（動画）を、わかる範囲で自動で入れる */
@@ -3818,6 +4053,8 @@ async function manAutoMeta(m, file) {
     if (m.kind === "PDF" && file.size <= 60 * MB) {
       const n = (new TextDecoder("latin1").decode(await file.arrayBuffer()).match(/\/Type\s*\/Page(?![a-zA-Z])/g) || []).length;
       if (n) meta = n + "ページ";
+    } else if (m.kind === "資料") {
+      const nm = manDocName({ file }); meta = nm || ((file.name.match(/\.([^.]+)$/) || [, ""])[1] || "").toUpperCase();
     } else if (m.kind === "動画") {
       meta = await new Promise(res => {
         const v = document.createElement("video"), u = URL.createObjectURL(file);
@@ -4096,6 +4333,7 @@ const ACT = {
   manual: el => {
     const t = taskById(S.w.taskId), i = +el.dataset.i, m = t?.manuals[i]; if (!m) return;
     if (m.kind === "Web" && m.url) { window.open(m.url, "_blank", "noopener"); return; }
+    if (isSrv() && m.kind === "資料" && (m.file?.fid || m.ext)) { startDownload({ fid: m.file?.fid || m.ext, name: m.file?.name || m.title }); return; }   // Word・Excel などは、ダウンロードして開く
     if (isSrv() && manUrl(m) && m.kind !== "動画") { window.open(manUrl(m), "_blank", "noopener"); return; }   // 本物の PDF は、新しいタブで開く
     S.layer = { type: "manual", id: t.id, i, page: 1 }; renderLayer();   // 動画は画面の中で再生。ファイルのないサンプルは、見本を表示
   },
@@ -4273,6 +4511,71 @@ const ACT = {
 
   /* ファイル管理 */
   flRefresh: () => loadFileList(),
+  noop: () => {},
+  flGo: el => { const F = S.fl; F.cur = el.dataset.id || ""; F.q = ""; F.sel = new Set(); F.anchor = ""; if (F.cur) F.open.add(F.cur); paintFiles(); },
+  flTog: (el, e) => { e.stopPropagation(); const F = S.fl, id = el.dataset.id; F.open.has(id) ? F.open.delete(id) : F.open.add(id); paintFiles(); },
+  flRow: (el, e) => {
+    if (e.target.closest("a, button, input, label")) return;
+    const F = S.fl, id = el.dataset.id;
+    if (e.ctrlKey || e.metaKey) { F.sel.has(id) ? F.sel.delete(id) : F.sel.add(id); F.anchor = id; }
+    else if (e.shiftKey && F.anchor) { const o = flRowsOrder(), a = o.indexOf(F.anchor), b = o.indexOf(id); if (a >= 0 && b >= 0) { F.sel = new Set(o.slice(Math.min(a, b), Math.max(a, b) + 1)); } }
+    else { F.sel = new Set([id]); F.anchor = id; }
+    flSelPaint();
+  },
+  flCk: (el, e) => { e.stopPropagation(); const F = S.fl, id = el.dataset.id; F.sel.has(id) ? F.sel.delete(id) : F.sel.add(id); F.anchor = id; flSelPaint(); },
+  flAll: () => { const F = S.fl, o = flRowsOrder(); F.sel = F.sel.size >= o.length ? new Set() : new Set(o); flSelPaint(); },
+  flNew: () => {
+    S.layer = { type: "modal", title: "新しいフォルダ", text: S.fl.cur ? `「${flById(S.fl.cur).name}」の中に作ります。` : "いちばん上の階層に作ります。",
+      body: `<div class="fld"><label for="flNm">フォルダ名</label><input class="inp" id="flNm" placeholder="例：POSレジ／手順書" autocomplete="off" maxlength="100"></div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "作成", act: "flNewDo", cls: "primary" }] };
+    renderLayer(); setTimeout(() => $("#flNm")?.focus(), 0);
+  },
+  flNewDo: async () => {
+    const name = ($("#flNm")?.value || "").trim(); if (!name) { toast("フォルダ名を入力してください"); return; }
+    try { const r = await api("folders/save", {}, { method: "POST", body: { op: "create", parent: S.fl.cur, name } }); if (S.fl.cur) S.fl.open.add(S.fl.cur); S.layer = null; renderLayer(); await loadFileList(); toast(r.message); } catch (e) { failToast(e); }
+  },
+  flRen: el => {
+    const f = flById(el.dataset.id); if (!f) return;
+    S.layer = { type: "modal", title: "フォルダ名の変更", text: "", fid: f.id,
+      body: `<div class="fld"><label for="flNm">フォルダ名</label><input class="inp" id="flNm" value="${esc(f.name)}" autocomplete="off" maxlength="100"></div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "変更", act: "flRenDo", cls: "primary" }] };
+    renderLayer(); setTimeout(() => { const n = $("#flNm"); n?.focus(); n?.select(); }, 0);
+  },
+  flRenDo: async () => {
+    const name = ($("#flNm")?.value || "").trim(); if (!name) { toast("フォルダ名を入力してください"); return; }
+    try { const r = await api("folders/save", {}, { method: "POST", body: { op: "rename", id: S.layer.fid, name } }); S.layer = null; renderLayer(); await loadFileList(); toast(r.message); } catch (e) { failToast(e); }
+  },
+  flDelDir: el => {
+    const f = flById(el.dataset.id); if (!f) return;
+    S.layer = { type: "modal", title: `フォルダ「${f.name}」を削除しますか？`, text: "フォルダの中のファイルやフォルダは、削除されません。1つ上の階層に移ります。", fid: f.id,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "フォルダを削除", act: "flDelDirDo", cls: "danger solid" }] };
+    renderLayer();
+  },
+  flDelDirDo: async () => {
+    const id = S.layer.fid;
+    try { const r = await api("folders/save", {}, { method: "POST", body: { op: "delete", id } }); S.layer = null; renderLayer(); if (S.fl.cur === id || flInside(S.fl.cur, id)) S.fl.cur = flById(id)?.parent || ""; await loadFileList(); toast(r.message); } catch (e) { failToast(e); }
+  },
+  flDelSel: () => {
+    const F = S.fl, ids = [...F.sel].filter(x => !flIsFolder(x)), dirs = [...F.sel].filter(flIsFolder);
+    if (!ids.length) { toast(dirs.length ? "フォルダは、行の右端のごみ箱から削除してください" : "削除するファイルを選んでください"); return; }
+    const items = ids.map(id => F.items.find(f => f.fid === id)).filter(Boolean), usable = items.filter(f => !f.used.length), used = items.length - usable.length;
+    if (!usable.length) { toast("選んだファイルは、すべて作業で使われているため削除できません"); return; }
+    S.layer = { type: "modal", title: `${usable.length}件のファイルを削除しますか？`, text: "サーバーから完全に削除され、元に戻せません。", ids: usable.map(f => f.fid), wide: usable.length > 3,
+      body: `<div class="note">${ic("alert")}<span>${usable.slice(0, 8).map(f => esc(f.name) + "（" + fmtBytes(f.size) + "）").join("<br>")}${usable.length > 8 ? `<br>ほか ${usable.length - 8}件` : ""}${used ? `<br><b>作業で使われている ${used}件は、削除されません</b>` : ""}</span></div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "削除する", act: "flDelDo", cls: "danger solid" }] };
+    renderLayer();
+  },
+  flMoveOpen: () => {
+    const F = S.fl, ids = [...F.sel]; if (!ids.length) return;
+    const dirs = ids.filter(flIsFolder);
+    const ok = id => !dirs.some(d => d === id || flInside(id, d));
+    const walk = (pid, depth) => flKids(pid).filter(f => ok(f.id)).map(f => `<label class="mv-r" style="padding-left:${10 + depth * 18}px"><input type="radio" name="flDest" value="${f.id}"><span class="xt-ic">${ic("folder")}</span>${esc(f.name)}</label>${walk(f.id, depth + 1)}`).join("");
+    S.layer = { type: "modal", title: `${ids.length}件の移動先を選んでください`, text: "", ids,
+      body: `<div class="mv-list"><label class="mv-r"><input type="radio" name="flDest" value="" checked><span class="xt-ic">${ic("folder")}</span>すべてのファイル（いちばん上）</label>${walk("", 1)}</div>`,
+      buttons: [{ label: "キャンセル", act: "mCancel" }, { label: "ここに移動", act: "flMoveDo", cls: "primary" }] };
+    renderLayer();
+  },
+  flMoveDo: async () => { const dest = document.querySelector('input[name="flDest"]:checked')?.value || "", ids = S.layer.ids; S.layer = null; renderLayer(); await flMoveTo(ids, dest); },
   flFilter: el => { S.fl.filter = el.dataset.v; paintFiles(); },
   flDel: el => {
     const f = S.fl.items.find(x => x.fid === el.dataset.id); if (!f) return;
@@ -4420,7 +4723,7 @@ document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]");
   if (!el || el.disabled) return;
   const fn = ACT[el.dataset.act];
-  if (fn) { e.preventDefault(); fn(el); }
+  if (fn) { e.preventDefault(); fn(el, e); }
 });
 
 /* 検索欄（日本語入力の変換中は更新しない） */
@@ -4437,6 +4740,7 @@ function onSearch(el) {
 document.addEventListener("input", e => {
   const el = e.target;
   if (el.id === "wq" || el.id === "treeQ" || el.id === "lgQ") { if (!e.isComposing) onSearch(el); return; }
+  if (el.id === "flQ") { S.fl.q = el.value; if (!e.isComposing) flRepaintList(); return; }
   if (el.id === "exTq") { const q = el.value.trim().toLowerCase(); document.querySelectorAll("#exTasks .ck").forEach(l => { l.hidden = !!q && !l.dataset.tx.includes(q); }); document.querySelectorAll("#exTasks .ex-g").forEach(g => { g.hidden = ![...g.querySelectorAll(".ck")].some(l => !l.hidden); }); return; }
   if (el.id === "admQ") { S.a.list.q = el.value; if (!e.isComposing) $("#admList").innerHTML = admListHtml(); return; }
   if (el.id === "histQ") { S.a.hist.q = el.value; if (!e.isComposing) $("#histList").innerHTML = histListHtml(); return; }
@@ -4461,6 +4765,8 @@ document.addEventListener("change", e => {
   const el = e.target;
   if (el.id === "fileIn") { addFiles(el.files); el.value = ""; return; }
   if (el.id === "manIn") { addManualFiles(el.files); el.value = ""; return; }
+  if (el.id === "flIn") { libUpload([...el.files].map(file => ({ file, dirs: [] })), S.fl.cur); el.value = ""; return; }
+  if (el.id === "flInDir") { libUpload([...el.files].map(file => ({ file, dirs: (file.webkitRelativePath || "").split("/").slice(0, -1) })), S.fl.cur); el.value = ""; return; }
   if (el.dataset.man != null && el.type === "file") { setManualFile(+el.dataset.man, el.files[0]); el.value = ""; return; }
   if (/^manuals\.\d+\.kind$/.test(el.dataset.bind || "") && S.a.draft) { rerenderSection(); return; }
   if (el.id === "admCat" || el.id === "admSt") { S.a.list[el.id === "admCat" ? "cat" : "st"] = el.value; $("#admList").innerHTML = admListHtml(); return; }
@@ -4519,6 +4825,39 @@ document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s" && S.mode === "admin" && S.a.dirty) { e.preventDefault(); save(); }
 });
 
+/* ファイル管理：ダブルクリックでフォルダを開く／ドラッグ＆ドロップで移動・アップロード */
+document.addEventListener("dblclick", e => {
+  const r = e.target.closest?.(".xr[data-id]"); if (!r || e.target.closest("a, button, input, label")) return;
+  if (r.classList.contains("dir")) ACT.flGo({ dataset: { id: r.dataset.id } });
+  else { const f = S.fl.items.find(x => x.fid === r.dataset.id); if (f) startDownload(f); }
+});
+let flDragIds = null;
+document.addEventListener("dragstart", e => {
+  const r = e.target.closest?.(".xr[data-id]"); if (!r) return;
+  const id = r.dataset.id, F = S.fl;
+  flDragIds = F.sel.has(id) ? [...F.sel] : [id];
+  if (!F.sel.has(id)) { F.sel = new Set([id]); document.querySelectorAll(".xr.sel").forEach(x => x.classList.remove("sel")); r.classList.add("sel"); }
+  e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", flDragIds.length + "件");
+  document.querySelectorAll(".xr").forEach(x => { if (flDragIds.includes(x.dataset.id)) x.classList.add("drag"); });
+});
+document.addEventListener("dragend", () => { flDragIds = null; document.querySelectorAll(".drag, .xdrop").forEach(x => x.classList.remove("drag", "xdrop")); });
+const flDropEl = e => e.target.closest?.("[data-drop], [data-dropmain]");
+const flHasFiles = e => [...(e.dataTransfer?.types || [])].includes("Files");
+["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => {
+  const d = flDropEl(e); if (!d || !(flDragIds || flHasFiles(e))) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = flDragIds ? "move" : "copy";
+  document.querySelectorAll(".xdrop").forEach(x => { if (x !== d) x.classList.remove("xdrop"); });
+  d.classList.add("xdrop");
+}));
+document.addEventListener("dragleave", e => { const d = flDropEl(e); if (d && !d.contains(e.relatedTarget)) d.classList.remove("xdrop"); });
+document.addEventListener("drop", async e => {
+  const d = flDropEl(e); if (!d || !(flDragIds || flHasFiles(e))) return;
+  e.preventDefault(); e.stopPropagation(); d.classList.remove("xdrop");
+  const dest = d.dataset.drop != null ? d.dataset.drop : S.fl.cur;
+  if (flDragIds) { const ids = flDragIds; flDragIds = null; await flMoveTo(ids, dest); return; }
+  const list = await libCollect(e.dataTransfer);
+  libUpload(list, dest);
+}, true);
 /* ドラッグ＆ドロップ：設定データ（#drop）、マニュアルの追加（#dropMan）、マニュアルの1行（.man-ed）に、ファイルを落とせる */
 const dropTarget = e => e.target.closest?.("#drop, #dropMan, .man-ed");
 ["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => {

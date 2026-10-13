@@ -178,7 +178,7 @@ function normalize_task(array $in, array $orig): array
     $man = [];
     foreach (nt_list($in['manuals'] ?? [], 50) as $m) {
         if (!is_array($m)) continue;
-        $kind = in_array($m['kind'] ?? '', ['PDF', '動画', 'Web'], true) ? $m['kind'] : 'PDF';
+        $kind = in_array($m['kind'] ?? '', ['PDF', '動画', '資料', 'Web'], true) ? $m['kind'] : 'PDF';
         $e = ['kind' => $kind, 'title' => str($m['title'] ?? '', 255), 'meta' => str($m['meta'] ?? '', 100), 'updated' => nt_date($m['updated'] ?? '')];
         if ($kind === 'Web') {
             $url = trim((string)($m['url'] ?? ''));

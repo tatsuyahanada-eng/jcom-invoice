@@ -52,8 +52,7 @@ function upload_limits(): array
 
 function clean_name(string $n): string
 {
-    $n = str_replace('\\', '/', $n);
-    $n = basename($n);
+    $n = preg_replace('#^.*[/\\\\]#su', '', $n) ?? '';   // basename() は文字コード設定に左右されるので使わない（日本語名をそのまま保つ）
     $n = preg_replace('/[\x00-\x1F\x7F<>:"|?*]/u', '_', $n) ?? '';
     $n = trim($n, " .\t");
     return mb_substr($n, 0, 200);
@@ -112,7 +111,9 @@ function route_upload(string $action): never
         $id = bin2hex(random_bytes(16));
         [$part, $meta] = tmp_paths($id);
         file_put_contents($part, '');
-        file_put_contents($meta, json_encode(['name' => $name, 'size' => $size, 'user' => $u['id'], 'created' => time(), 'purpose' => $purpose]));
+        $folder = '';
+        if ($purpose === '' && ($b['folder'] ?? '') !== '') { ensure_folders(); $folder = folder_exists((string)$b['folder']) ? (string)$b['folder'] : ''; }
+        file_put_contents($meta, json_encode(['name' => $name, 'size' => $size, 'user' => $u['id'], 'created' => time(), 'purpose' => $purpose, 'folder' => $folder], JSON_UNESCAPED_UNICODE));
         json_out(['ok' => true, 'uploadId' => $id, 'received' => 0, 'chunkBytes' => $L['chunkBytes'], 'name' => $name]);
     }
     if ($action === 'status') {
@@ -158,8 +159,9 @@ function route_upload(string $action): never
         $fid = bin2hex(random_bytes(16));
         if (!@rename($part, storage_sub('files') . '/' . $fid)) fail(500, 'ファイルを保存できません');
         @unlink($meta);
-        db()->prepare('INSERT INTO files (id, orig_name, size, sha256, uploaded_by, uploaded_at, source) VALUES (?,?,?,?,?,?,?)')
-            ->execute([$fid, $m['name'], $m['size'], $sha, $u['id'], date('Y-m-d H:i:s'), $isRec ? 'record' : 'browser']);
+        ensure_folders();
+        db()->prepare('INSERT INTO files (id, orig_name, size, sha256, uploaded_by, uploaded_at, source, folder_id) VALUES (?,?,?,?,?,?,?,?)')
+            ->execute([$fid, $m['name'], $m['size'], $sha, $u['id'], date('Y-m-d H:i:s'), $isRec ? 'record' : 'browser', $isRec ? '' : (string)($m['folder'] ?? '')]);
         json_out(['ok' => true, 'file' => file_out(file_row($fid))]);
     }
     if ($action === 'cancel') {
@@ -278,6 +280,7 @@ function file_usage(): array
 function route_file_list(): never
 {
     require_role('editor');
+    ensure_folders();
     $used = file_usage();
     $dir = storage_sub('files');
     $q = db()->query('SELECT f.*, u.display_name AS who FROM files f LEFT JOIN users u ON u.id = f.uploaded_by ORDER BY f.uploaded_at DESC LIMIT 2000');
@@ -287,12 +290,137 @@ function route_file_list(): never
         $u = $used[$r['id']] ?? [];
         $size = (int)$r['size'];
         $files[] = ['fid' => $r['id'], 'name' => $r['orig_name'], 'size' => $size, 'sha' => $r['sha256'], 'by' => $r['who'] ?? '（削除済み）',
-            'at' => substr($r['uploaded_at'], 0, 16), 'source' => $r['source'], 'used' => $u, 'missing' => !is_file($dir . '/' . $r['id'])];
+            'at' => substr($r['uploaded_at'], 0, 16), 'source' => $r['source'], 'folder' => (string)($r['folder_id'] ?? ''), 'used' => $u, 'missing' => !is_file($dir . '/' . $r['id'])];
         $tot['count']++; $tot['size'] += $size;
         if (!$u) { $tot['unusedCount']++; $tot['unusedSize'] += $size; }
     }
     $tot['free'] = (int)(@disk_free_space($dir) ?: 0);
-    json_out(['ok' => true, 'files' => $files, 'totals' => $tot]);
+    $folders = array_map(fn($f) => ['id' => $f['id'], 'parent' => $f['parent_id'], 'name' => $f['name']],
+        db()->query('SELECT id, parent_id, name FROM folders ORDER BY name')->fetchAll());
+    json_out(['ok' => true, 'files' => $files, 'totals' => $tot, 'folders' => $folders]);
+}
+
+/* ------------------------------------------------------------ フォルダ（ファイルの整理。Windows のエクスプローラーのような階層） */
+
+function ensure_folders(): void
+{
+    static $done = false;
+    if ($done) return;
+    db()->exec('CREATE TABLE IF NOT EXISTS folders (
+      id         VARCHAR(16)  NOT NULL,
+      parent_id  VARCHAR(16)  NOT NULL DEFAULT \'\',
+      name       VARCHAR(100) NOT NULL,
+      created_at DATETIME     NOT NULL,
+      PRIMARY KEY (id),
+      KEY idx_parent (parent_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    $have = array_column(db()->query('SHOW COLUMNS FROM files')->fetchAll(), 'Field');
+    if (!in_array('folder_id', $have, true)) db()->exec("ALTER TABLE files ADD COLUMN folder_id VARCHAR(16) NOT NULL DEFAULT ''");
+    $done = true;
+}
+
+function folder_exists(string $id): bool
+{
+    if (!preg_match('/^d[a-f0-9]{12}$/', $id)) return false;
+    $s = db()->prepare('SELECT 1 FROM folders WHERE id = ?');
+    $s->execute([$id]);
+    return (bool)$s->fetchColumn();
+}
+
+function folder_name_ok(string $n): string
+{
+    $n = preg_replace('/[\x00-\x1F\x7F\\\\\/:*?"<>|]/u', '_', $n) ?? '';
+    $n = preg_replace('/^[\s.　]+|[\s.　]+$/u', '', $n) ?? '';   // trim() は日本語の空白（全角スペース）を1バイトずつ扱って文字を壊すので使わない
+    if ($n === '') fail(422, 'フォルダ名を入力してください');
+    return mb_substr($n, 0, 100);
+}
+
+/** フォルダの作成・名前変更・移動・削除。op = create / rename / move / delete */
+function route_folder_save(): never
+{
+    require_same_site_write();
+    $u = require_role('editor');
+    ensure_folders();
+    $b = read_json(8192);
+    $op = (string)($b['op'] ?? '');
+    $pdo = db();
+    $get = function (string $id) use ($pdo) {
+        if (!preg_match('/^d[a-f0-9]{12}$/', $id)) fail(404, 'フォルダが見つかりません');
+        $s = $pdo->prepare('SELECT * FROM folders WHERE id = ?');
+        $s->execute([$id]);
+        return $s->fetch() ?: fail(404, 'フォルダが見つかりません');
+    };
+    $sameName = function (string $parent, string $name, string $except = '') use ($pdo) {
+        $s = $pdo->prepare('SELECT 1 FROM folders WHERE parent_id = ? AND name = ? AND id <> ? LIMIT 1');
+        $s->execute([$parent, $name, $except]);
+        if ($s->fetchColumn()) fail(409, "同じ場所に「{$name}」というフォルダがすでにあります");
+    };
+    $depth = function (string $id) use ($pdo): int {   // 親をたどって、階層の深さを数える
+        $d = 0;
+        while ($id !== '' && $d < 30) { $s = $pdo->prepare('SELECT parent_id FROM folders WHERE id = ?'); $s->execute([$id]); $id = (string)($s->fetchColumn() ?: ''); $d++; }
+        return $d;
+    };
+    $parent = (string)($b['parent'] ?? '');
+    if ($op === 'create') {
+        if ($parent !== '') $get($parent);
+        $name = folder_name_ok((string)($b['name'] ?? ''));
+        $sameName($parent, $name);
+        if ($depth($parent) >= 8) fail(422, 'フォルダの階層が深すぎます（8階層まで）');
+        if ((int)$pdo->query('SELECT COUNT(*) FROM folders')->fetchColumn() >= 1000) fail(422, 'フォルダは 1000 個までです');
+        $id = 'd' . bin2hex(random_bytes(6));
+        $pdo->prepare('INSERT INTO folders (id, parent_id, name, created_at) VALUES (?,?,?,?)')->execute([$id, $parent, $name, date('Y-m-d H:i:s')]);
+        json_out(['ok' => true, 'id' => $id, 'message' => "フォルダ「{$name}」を作成しました"]);
+    }
+    $f = $get((string)($b['id'] ?? ''));
+    if ($op === 'rename') {
+        $name = folder_name_ok((string)($b['name'] ?? ''));
+        $sameName($f['parent_id'], $name, $f['id']);
+        $pdo->prepare('UPDATE folders SET name = ? WHERE id = ?')->execute([$name, $f['id']]);
+        json_out(['ok' => true, 'message' => "フォルダ名を「{$name}」に変更しました"]);
+    }
+    if ($op === 'move') {
+        if ($parent !== '') $get($parent);
+        for ($p = $parent, $i = 0; $p !== '' && $i < 30; $i++) {   // 自分の中（子孫）には移せない
+            if ($p === $f['id']) fail(422, 'フォルダを、そのフォルダの中には移動できません');
+            $s = $pdo->prepare('SELECT parent_id FROM folders WHERE id = ?'); $s->execute([$p]); $p = (string)($s->fetchColumn() ?: '');
+        }
+        $sameName($parent, $f['name'], $f['id']);
+        $pdo->prepare('UPDATE folders SET parent_id = ? WHERE id = ?')->execute([$parent, $f['id']]);
+        json_out(['ok' => true, 'message' => "フォルダ「{$f['name']}」を移動しました"]);
+    }
+    if ($op === 'delete') {   // 中のファイル・フォルダは削除せず、1つ上の階層へ移す
+        $pdo->beginTransaction();
+        $pdo->prepare('UPDATE files SET folder_id = ? WHERE folder_id = ?')->execute([$f['parent_id'], $f['id']]);
+        foreach ($pdo->query('SELECT id, name FROM folders WHERE parent_id = ' . $pdo->quote($f['id']))->fetchAll() as $c) {
+            $name = $c['name'];
+            $s = $pdo->prepare('SELECT 1 FROM folders WHERE parent_id = ? AND name = ?'); $s->execute([$f['parent_id'], $name]);
+            if ($s->fetchColumn()) $name .= '（' . $f['name'] . '）';
+            $pdo->prepare('UPDATE folders SET parent_id = ?, name = ? WHERE id = ?')->execute([$f['parent_id'], mb_substr($name, 0, 100), $c['id']]);
+        }
+        $pdo->prepare('DELETE FROM folders WHERE id = ?')->execute([$f['id']]);
+        $pdo->commit();
+        json_out(['ok' => true, 'message' => "フォルダ「{$f['name']}」を削除しました（中身は1つ上の階層に移しました）"]);
+    }
+    fail(422, '操作が正しくありません');
+}
+
+/** ファイルをフォルダへ移す（ids をまとめて）。folder が空ならいちばん上の階層 */
+function route_file_move(): never
+{
+    require_same_site_write();
+    $u = require_role('editor');
+    ensure_folders();
+    $b = read_json(65536);
+    $folder = (string)($b['folder'] ?? '');
+    if ($folder !== '' && !folder_exists($folder)) fail(404, '移動先のフォルダが見つかりません');
+    $ids = [];
+    foreach ((array)($b['ids'] ?? []) as $x) if (is_string($x) && preg_match('/^[a-f0-9]{32}$/', $x)) $ids[$x] = true;
+    $ids = array_keys($ids);
+    if (!$ids || count($ids) > 1000) fail(422, '移動するファイルを選んでください');
+    $q = db()->prepare('UPDATE files SET folder_id = ? WHERE id = ? AND source <> \'record\'');
+    $n = 0;
+    foreach ($ids as $id) { $q->execute([$folder, $id]); $n += $q->rowCount(); }
+    json_out(['ok' => true, 'moved' => $n, 'message' => "{$n}件のファイルを移動しました"]);
 }
 
 /** ファイルの削除（編集以上）。作業で使われているファイルは削除できない */
