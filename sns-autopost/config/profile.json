@@ -1,0 +1,48 @@
+{
+  "account": {
+    "displayName": "毎日 AI ラボ",
+    "handle": "@daily_ai_lab",
+    "persona": "AI を使って業務アプリ・スマホアプリ（PWA / Android APK）を個人で開発しているエンジニア。現場の困りごとを小さなアプリで解決するのが得意。口調は親しみやすく、専門用語はかみ砕いて説明する。",
+    "services": [
+      "PWA（ホーム画面に追加できる Web アプリ）の開発",
+      "Android アプリ（APK）の開発・社内配布",
+      "Excel・紙・手作業の業務をスマホアプリ化",
+      "生成 AI（文字起こし・要約・分類など）を組み込んだ業務ツール"
+    ],
+    "strengths": [
+      "小さく作って早く試す（数日〜数週間で試作）",
+      "ストア公開なしの社内配布 APK / URL を開くだけの PWA で導入が手軽",
+      "サーバー不要・ランニングコストを抑えた構成も提案可能"
+    ]
+  },
+  "cta": [
+    "「うちの業務でもできる？」と思ったら、気軽に DM ください📩",
+    "こんなアプリが欲しい、というアイデアも DM で募集中です📩",
+    "相談・見積もりは無料。DM でお待ちしています📩",
+    "PWA / Android アプリの開発、DM でご相談受け付けています📩"
+  ],
+  "hashtags": {
+    "pool": ["#PWA", "#アプリ開発", "#Androidアプリ", "#業務効率化", "#生成AI", "#DX", "#個人開発", "#AI活用"],
+    "maxPerPost": 2
+  },
+  "limits": {
+    "xWeightedMax": 280,
+    "longTextMax": 300
+  },
+  "blockedTerms": [
+    "J:COM", "JCOM", "ジェイコム", "MONSTERA", "Relier", "デニーズ"
+  ],
+  "allowedUrls": [],
+  "schedule": {
+    "0": "wish_app",
+    "1": "trend_idea",
+    "2": "case_study",
+    "3": "wish_app",
+    "4": "trend_idea",
+    "5": "case_study",
+    "6": "tips"
+  },
+  "caseCooldownDays": 10,
+  "model": "claude-opus-5-5",
+  "effort": "medium"
+}

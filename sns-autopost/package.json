@@ -1,0 +1,19 @@
+{
+  "name": "sns-autopost",
+  "version": "1.0.0",
+  "private": true,
+  "description": "アプリ開発受注のための SNS 自動投稿ツール（毎日1投稿）",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "generate": "node src/index.js generate",
+    "publish-draft": "node src/index.js publish",
+    "daily": "node src/index.js daily",
+    "preview": "node src/index.js generate --dry-run",
+    "check": "node src/index.js check",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0"
+  }
+}

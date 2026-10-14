@@ -1,0 +1,78 @@
+name: SNS 毎日投稿
+
+on:
+  schedule:
+    # 毎日 20:07 JST（= 11:07 UTC）。夜の閲覧が多い時間帯。混雑する 0 分を避けている
+    - cron: '7 11 * * *'
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'daily=生成して投稿 / generate=下書きのみ / publish=今日の下書きを投稿 / check=手直しした下書きを再チェック'
+        type: choice
+        options: [daily, generate, publish, check]
+        default: daily
+      type:
+        description: '投稿タイプを指定（空なら曜日で自動）'
+        type: choice
+        options: ['', trend_idea, wish_app, case_study, tips]
+        default: ''
+      force:
+        description: '今日の下書きを作り直す'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sns-daily-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sns-autopost
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: sns-autopost/package-lock.json
+
+      - run: npm ci
+
+      - run: npm test
+
+      - name: 実行
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SNS_BLOCKED_TERMS: ${{ secrets.SNS_BLOCKED_TERMS }}
+          # 投稿先（例: x,threads,bluesky）。空なら下書きを作るだけ
+          PUBLISH_PLATFORMS: ${{ vars.PUBLISH_PLATFORMS }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          # スケジュール実行時: SNS_MODE=review なら下書きだけ作り、確認後に手動で publish する
+          CMD: ${{ inputs.command || (vars.SNS_MODE == 'review' && 'generate' || 'daily') }}
+          TYPE: ${{ inputs.type }}
+          FORCE: ${{ inputs.force && '--force' || '' }}
+        run: node src/index.js "$CMD" ${TYPE:+--type "$TYPE"} $FORCE
+
+      - name: 下書き・履歴をコミット
+        if: always()
+        working-directory: .
+        run: |
+          git add sns-autopost/posts sns-autopost/data/history.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "sns: $(TZ=Asia/Tokyo date +%F) の投稿記録"
+          git push
