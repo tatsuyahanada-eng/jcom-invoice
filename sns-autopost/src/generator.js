@@ -49,7 +49,8 @@ ${a.strengths.map((s) => `- ${s}`).join('\n')}
 - 開発事例は渡されたデータの事実だけを書く。顧客名・ブランド名・社名は書かない。数字・効果・お客様の声を作らない。
 - 「必ず儲かる」「絶対」「No.1」などの誇大・保証表現を使わない。投資・医療・法律の助言にあたる内容を書かない。
 - URL は入れない。
-- 実在の個人や企業を批判・揶揄しない。政治・宗教・災害や事件の当事者をネタにしない。`;
+- 実在の個人や企業を批判・揶揄しない。政治・宗教・災害や事件の当事者をネタにしない。
+- 本業（SE としての勤務先・顧客・案件）の情報は書かない。本業の守秘義務を最優先する。`;
 }
 
 export function buildUserPrompt(plan, profile, headlines) {
@@ -58,6 +59,9 @@ export function buildUserPrompt(plan, profile, headlines) {
   if (plan.caseStudy) {
     const { publishable, id, ...facts } = plan.caseStudy;
     parts.push(`\n# 紹介する開発事例（この内容だけを根拠にする）\n${JSON.stringify(facts, null, 2)}`);
+  }
+  if (plan.note) {
+    parts.push(`\n# ネタ帳のメモ（本人の実体験。これ以外の出来事は作らない）\n${plan.note.text}`);
   }
   if (plan.needsHeadlines && headlines.length > 0) {
     parts.push(

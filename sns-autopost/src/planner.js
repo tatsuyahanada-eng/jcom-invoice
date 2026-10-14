@@ -1,4 +1,6 @@
-// 「今日なにを投稿するか」を決める。曜日ごとの投稿タイプ・事例のローテーション・CTA の選択。
+// 「今日なにを投稿するか」を決める。曜日ごとの投稿タイプ・事例とネタ帳のローテーション・CTA の選択。
+
+import crypto from 'node:crypto';
 
 export const POST_TYPES = {
   trend_idea: {
@@ -24,6 +26,15 @@ export const POST_TYPES = {
       '指定された開発事例を紹介する。「課題 → 作ったもの → 何が楽になったか」の流れで書く。' +
       '事例データに書かれている事実だけを使い、数字や効果を作らない（results が空なら定量的な効果には触れない）。' +
       '顧客名・ブランド名・社名は絶対に書かない（データに書かれている匿名表現のみ使う）。',
+  },
+  se_diary: {
+    label: 'SEの日常 × AI開発',
+    needsHeadlines: false,
+    instruction:
+      'SE 歴20年の本人が書いたネタ帳のメモ（1件）をもとに、SE の仕事・生活の中で AI をどう使ったか、何を感じたかを一人称で書く。' +
+      'メモに書かれた出来事だけを使い、メモにない出来事・数字・会話を作らない。' +
+      '勤務先・顧客・案件・同僚を特定できる情報は書かない（メモに含まれていても一般化する）。' +
+      '最後は「こういう仕組みはアプリにもできる」など、アプリ制作の相談につながる一言で締める。',
   },
   tips: {
     label: 'アプリ開発の豆知識',
@@ -72,7 +83,22 @@ export function pickCase(cases, history, todayKey, cooldownDays) {
   return candidate;
 }
 
-export function planPost({ date, profile, cases, seasonal, history, forcedType }) {
+// ネタ帳（data/notes.md）の「- 」で始まる行を1件ずつのメモとして読む
+export function parseNotes(markdown) {
+  return markdown
+    .split('\n')
+    .map((line) => line.match(/^\s*[-*]\s+(.+?)\s*$/)?.[1])
+    .filter((text) => text && !text.startsWith('（例）'))
+    .map((text) => ({ id: crypto.createHash('sha1').update(text).digest('hex').slice(0, 10), text }));
+}
+
+// まだ使っていないメモのうち一番古い（上に書かれた）もの
+export function pickNote(notes, history) {
+  const used = new Set(history.map((h) => h.noteId).filter(Boolean));
+  return notes.find((n) => !used.has(n.id)) ?? null;
+}
+
+export function planPost({ date, profile, cases, seasonal, history, notes = [], forcedType }) {
   const { key, month, weekday } = jstParts(date);
   let type = forcedType ?? profile.schedule[String(weekday)] ?? 'wish_app';
   if (!POST_TYPES[type]) throw new Error(`未知の投稿タイプ: ${type}`);
@@ -84,6 +110,13 @@ export function planPost({ date, profile, cases, seasonal, history, forcedType }
     if (!caseStudy) type = 'tips';
   }
 
+  let note = null;
+  if (type === 'se_diary') {
+    note = pickNote(notes, history);
+    // 未使用のメモがなければ、体験談を作らないよう「あったらいいね」に差し替え
+    if (!note) type = 'wish_app';
+  }
+
   const ctaIndex = history.length % profile.cta.length;
   return {
     date: key,
@@ -92,6 +125,7 @@ export function planPost({ date, profile, cases, seasonal, history, forcedType }
     instruction: POST_TYPES[type].instruction,
     needsHeadlines: POST_TYPES[type].needsHeadlines,
     caseStudy,
+    note,
     seasonalTopics: seasonal[String(month)] ?? [],
     cta: profile.cta[ctaIndex],
     recentTopics: history.slice(-14).map((h) => `${h.date} [${h.type}] ${h.topic}`),

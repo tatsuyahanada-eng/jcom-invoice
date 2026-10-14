@@ -14,7 +14,7 @@ on:
       type:
         description: '投稿タイプを指定（空なら曜日で自動）'
         type: choice
-        options: ['', trend_idea, wish_app, case_study, tips]
+        options: ['', trend_idea, wish_app, case_study, se_diary, tips]
         default: ''
       force:
         description: '今日の下書きを作り直す'

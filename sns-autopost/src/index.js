@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 使い方:
-//   node src/index.js generate [--date YYYY-MM-DD] [--type trend_idea|wish_app|case_study|tips] [--dry-run] [--force]
+//   node src/index.js generate [--date YYYY-MM-DD] [--type trend_idea|wish_app|case_study|se_diary|tips] [--dry-run] [--force]
 //   node src/index.js publish  [--date YYYY-MM-DD]   … 下書きを PUBLISH_PLATFORMS に投稿
 //   node src/index.js daily    [--type ...]          … generate → publish を続けて実行
 //   node src/index.js check    [--date YYYY-MM-DD]   … 手で直した下書きを再チェック
@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { planPost, dateKey } from './planner.js';
+import { planPost, parseNotes, dateKey } from './planner.js';
 import { fetchHeadlines } from './sources.js';
 import { generatePost } from './generator.js';
 import { checkPost } from './compliance.js';
@@ -22,6 +22,7 @@ const P = {
   cases: path.join(ROOT, 'data/cases.json'),
   seasonal: path.join(ROOT, 'data/seasonal.json'),
   history: path.join(ROOT, 'data/history.json'),
+  notes: path.join(ROOT, 'data/notes.md'),
   draft: (date) => path.join(ROOT, 'posts', `${date}.json`),
 };
 
@@ -37,6 +38,7 @@ async function summary(markdown) {
 function renderDraft(d) {
   const lines = [
     `## ${d.date} ${d.plan.typeLabel}${d.plan.caseId ? `（事例: ${d.plan.caseId}）` : ''} — ${d.status}`,
+    ...(d.plan.note ? [`**元メモ:** ${d.plan.note}`] : []),
     `**テーマ:** ${d.post.topic}`,
     `### X 用（${d.check.xLength}/280 カウント）`,
     '```',
@@ -53,16 +55,17 @@ function renderDraft(d) {
 }
 
 async function loadContext() {
-  const [profile, casesFile, seasonal, history] = await Promise.all([
+  const [profile, casesFile, seasonal, history, notesMd] = await Promise.all([
     readJson(P.profile),
     readJson(P.cases),
     readJson(P.seasonal),
     readJson(P.history),
+    fs.readFile(P.notes, 'utf8').catch(() => ''),
   ]);
   // 公開リポジトリに書きたくない NG ワード（顧客名など）は Secret の SNS_BLOCKED_TERMS（カンマ区切り）で追加できる
   const extra = (process.env.SNS_BLOCKED_TERMS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
   profile.blockedTerms = [...(profile.blockedTerms ?? []), ...extra];
-  return { profile, cases: casesFile.cases, seasonal, history };
+  return { profile, cases: casesFile.cases, seasonal, history, notes: parseNotes(notesMd) };
 }
 
 async function generate({ date, type, dryRun, force }) {
@@ -84,7 +87,14 @@ async function generate({ date, type, dryRun, force }) {
   const draft = {
     date: key,
     status: check.ok ? 'draft' : 'blocked',
-    plan: { type: plan.type, typeLabel: plan.typeLabel, caseId: plan.caseStudy?.id ?? null, cta: plan.cta },
+    plan: {
+      type: plan.type,
+      typeLabel: plan.typeLabel,
+      caseId: plan.caseStudy?.id ?? null,
+      noteId: plan.note?.id ?? null,
+      note: plan.note?.text ?? null,
+      cta: plan.cta,
+    },
     post,
     check,
     attempts,
@@ -98,7 +108,14 @@ async function generate({ date, type, dryRun, force }) {
   if (dryRun) return draft;
 
   await writeJson(P.draft(key), draft);
-  history.push({ date: key, type: plan.type, caseId: draft.plan.caseId, topic: post.topic, status: draft.status });
+  history.push({
+    date: key,
+    type: plan.type,
+    caseId: draft.plan.caseId,
+    noteId: draft.plan.noteId,
+    topic: post.topic,
+    status: draft.status,
+  });
   history.sort((a, b) => a.date.localeCompare(b.date));
   await writeJson(P.history, history);
   return draft;

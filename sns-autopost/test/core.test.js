@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import { xWeightedLength, graphemeLength } from '../src/textlen.js';
 import { parseFeed, isUsableHeadline } from '../src/sources.js';
 import { checkPost, longestCommonRun } from '../src/compliance.js';
-import { planPost, pickCase, dateKey } from '../src/planner.js';
+import { planPost, pickCase, dateKey, parseNotes } from '../src/planner.js';
 import { hashtagFacets } from '../src/publishers/bluesky.js';
 import { oauthHeader } from '../src/publishers/x.js';
 import { buildUserPrompt, generatePost } from '../src/generator.js';
@@ -158,4 +158,24 @@ test('生成が拒否されたらエラーにする', async () => {
   const plan = planPost({ date: new Date('2026-10-14T12:00:00+09:00'), profile, cases, seasonal, history: [] });
   const client = { beta: { messages: { create: async () => ({ stop_reason: 'refusal', stop_details: { category: 'x' }, content: [] }) } } };
   await assert.rejects(generatePost({ plan, profile, headlines: [], client }), /拒否/);
+});
+
+test('ネタ帳: 例の行を除いて読み、未使用のメモを上から使う', () => {
+  const notes = parseNotes('# 見出し\n説明文\n- （例）サンプル\n- 議事録をAIで要約した\n* 日報をスマホで書きたい\n');
+  assert.deepEqual(notes.map((n) => n.text), ['議事録をAIで要約した', '日報をスマホで書きたい']);
+  const mon = new Date('2026-10-12T12:00:00+09:00'); // 月曜
+  const p1 = planPost({ date: mon, profile, cases, seasonal, history: [], notes });
+  assert.equal(p1.type, 'se_diary');
+  assert.equal(p1.note.text, '議事録をAIで要約した');
+  const p2 = planPost({ date: mon, profile, cases, seasonal, history: [{ date: '2026-10-08', noteId: notes[0].id }], notes });
+  assert.equal(p2.note.text, '日報をスマホで書きたい');
+  const prompt = buildUserPrompt(p2, profile, []);
+  assert.ok(prompt.includes('日報をスマホで書きたい'));
+});
+
+test('ネタ帳が空なら体験談を作らず「あったらいいね」に切り替える', () => {
+  const mon = new Date('2026-10-12T12:00:00+09:00');
+  const plan = planPost({ date: mon, profile, cases, seasonal, history: [], notes: [] });
+  assert.equal(plan.type, 'wish_app');
+  assert.equal(plan.note, null);
 });
