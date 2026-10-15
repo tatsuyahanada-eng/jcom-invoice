@@ -810,10 +810,10 @@
           <li>本文やメモの中の電話番号は、タップすると電話アプリが開きます。</li>
         </ul>
       </details>
-      <details><summary>ETC（交通費の精算チェック）</summary>
+      <details><summary>ETC・駐車場代（精算チェック）</summary>
         <ul>
-          <li>詳細の「ETC」で、行き・帰りそれぞれを「利用した／使わない／未確認」から選びます。区間や金額のメモも残せます。</li>
-          <li>「未確認」のまま「完了」にした案件には、カードに「ETC未確認」と出ます。トップにも、その件数が出ます。精算漏れの確認に使ってください。</li>
+          <li>ETCは、初期値が「使わない」です。使ったときだけ、詳細の「ETC」で行き・帰りを「利用した」にして、料金を入れます。区間などのメモも残せます。</li>
+          <li>駐車場代も、詳細の「駐車場」に入れられます。トップの売上パネルに、ETC合計・駐車場代合計が出ます。</li>
         </ul>
       </details>
       <details><summary>住所と地図</summary>
@@ -1084,10 +1084,9 @@
     doing: { label: '移動中', tone: 'move' },
     done:  { label: '完了',   tone: 'ok' },
   };
-  // ETC（行き・帰り）：未確認／利用した／使わない。交通費の精算漏れを防ぐための記録
-  const ETC_OPT = { unknown: { label: '未確認', tone: 'neutral' }, yes: { label: '利用した', tone: 'ok' }, no: { label: '使わない', tone: 'info' } };
-  const etcOf = (j) => Object.assign({ go: 'unknown', back: 'unknown', note: '' }, j.etc || {});
-  const etcMissing = (j) => { const e = etcOf(j); return j.work === 'done' && (e.go === 'unknown' || e.back === 'unknown'); };
+  // ETC（行き・帰り）：初期値は「使わない」。使ったときだけ「利用した」にして、料金を入れる
+  const ETC_OPT = { no: { label: '使わない', tone: 'neutral' }, yes: { label: '利用した', tone: 'ok' } };
+  const etcOf = (j) => { const e = Object.assign({ go: 'no', back: 'no', note: '' }, j.etc || {}); if (e.go !== 'yes') e.go = 'no'; if (e.back !== 'yes') e.back = 'no'; return e; };
   const WEEK = ['日', '月', '火', '水', '木', '金', '土'];
   const LS_PREFIX = 'tj:day:';
   const LS_SETTINGS = 'tj:settings';
@@ -1259,10 +1258,10 @@
     }
 
     // ETC（行き・帰り）の利用状況と、完了済みなのに未確認の案件
-    const eg = jobs.filter(j => etcOf(j).go === 'yes').length, eb = jobs.filter(j => etcOf(j).back === 'yes').length, em = jobs.filter(etcMissing).length;
+    const eg = jobs.filter(j => etcOf(j).go === 'yes').length, eb = jobs.filter(j => etcOf(j).back === 'yes').length;
     const el = $('#etcLine');
-    el.classList.toggle('hidden', !(eg || eb || em));
-    el.innerHTML = `ETC　行き <b>${eg}</b>回・帰り <b>${eb}</b>回` + (em ? `　<span class="w">完了済みでETC未確認：${em}件</span>` : '');
+    el.classList.toggle('hidden', !(eg || eb));
+    el.innerHTML = `ETC　行き <b>${eg}</b>回・帰り <b>${eb}</b>回`;
 
     // Meta
     $('#hintText').innerHTML = total
@@ -1371,7 +1370,6 @@
     const e = etcOf(j);
     const etcUse = [e.go === 'yes' ? '行' : '', e.back === 'yes' ? '帰' : ''].filter(Boolean).join('・');
     const etcChip = etcUse ? `<span class="chip ok">ETC ${etcUse}</span>` : '';
-    const etcWarn = etcMissing(j) ? `<span class="chip warn">${icon('alert')}ETC未確認</span>` : '';
     const manualChip = j.manual ? `<span class="chip">手動追加</span>` : '';
     const memoText = [j.memo, j.parking.note ? `P: ${j.parking.note}` : ''].filter(Boolean).join(' / ');
     return `
@@ -1387,7 +1385,7 @@
           <div class="job-sub">
             ${j.location ? `<div class="job-addr">${icon('pin')}<span>${esc(j.location)}</span></div>` : ''}
             ${memoText ? `<div class="job-memo">${esc(memoText)}</div>` : ''}
-            <div class="chips">${workChip}${contactChip}${parkChip}${saleChip}${etcChip}${etcWarn}${extraChip}${calChip}${missingChip}${manualChip}</div>
+            <div class="chips">${workChip}${contactChip}${parkChip}${saleChip}${etcChip}${extraChip}${calChip}${missingChip}${manualChip}</div>
           </div>
         </div>
         <div class="job-grip" aria-hidden="true">${icon('grip')}</div>
@@ -1516,12 +1514,12 @@
 
       <div class="card">
         <h3>${icon('car')}ETC（交通費の精算チェック）<span class="saved" data-saved="etc">保存しました</span></h3>
-        ${[['go', '行き'], ['back', '帰り']].map(([k, l]) => `<div class="etc-row"><div class="etc-lb">${l}</div><div class="seg c3" data-group="etc-${k}">
+        ${[['go', '行き'], ['back', '帰り']].map(([k, l]) => `<div class="etc-row"><div class="etc-lb">${l}</div><div class="seg c2" data-group="etc-${k}">
           ${Object.entries(ETC_OPT).map(([v, o]) => `<button type="button" data-val="${v}" data-tone="${o.tone}" aria-pressed="${etcOf(j)[k] === v}">${o.label}</button>`).join('')}
         </div></div>${etcOf(j)[k] === 'yes' ? `<div class="etc-fee"><label class="fl" for="dEtcFee-${k}">${l}のETC料金（円）</label><input class="input fee-in" id="dEtcFee-${k}" data-etcfee="${k}" type="text" inputmode="numeric" placeholder="例: 800" value="${feeNum(etcOf(j)[k + 'Fee']) || ''}"></div>` : ''}`).join('')}
         <label class="fl" for="dEtcNote" style="margin-top:12px;">メモ（区間・IC名など・任意）</label>
         <input class="input" id="dEtcNote" type="text" placeholder="例: 首都高 川口線 〜 外環 600円" value="${esc(etcOf(j).note)}">
-        <p class="help">「未確認」のまま完了にすると、案件カードに「ETC未確認」と出ます。</p>
+        <p class="help">初期値は「使わない」です。ETCを使ったときだけ「利用した」にして、料金を入れてください（精算の確認用）。</p>
       </div>
 
       <div class="card">
