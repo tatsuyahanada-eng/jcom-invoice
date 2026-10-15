@@ -518,6 +518,9 @@
     .sales .eye { min-height: 30px; padding: 2px 12px; border: 1px solid var(--line-2); border-radius: 999px; background: rgba(18, 33, 54, .6); color: var(--text); font-size: 12px; font-weight: 700; }
     .sales .eye[aria-pressed="true"] { background: var(--cyan); color: var(--ink); border-color: #fff; box-shadow: 0 0 12px rgba(208, 210, 212, .4); }
     .sales .eye:active { transform: scale(.95); }
+    .sales .sx { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+    .sales .sx div { font-size: 11px; color: var(--muted); }
+    .sales .sx b { display: block; font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--text); letter-spacing: .02em; }
     .sales .sr { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 6px; font-size: 14px; color: var(--muted); }
     .sales .sr b { font-family: var(--mono); font-weight: 700; font-size: 17px; color: var(--text); letter-spacing: .02em; }
     .sales .st { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
@@ -552,6 +555,9 @@
     }
     #impEvList { max-height: 44vh; overflow-y: auto; margin: 2px 0 4px; }
     .evtm { font-family: var(--mono); color: var(--gold-text); letter-spacing: .02em; margin-right: 6px; }
+    .fee-in { font-family: var(--mono); font-size: 18px; letter-spacing: .04em; }
+    .etc-fee { margin: 0 0 6px 56px; }
+    .etc-fee label.fl { margin-top: 8px; }
     .etc-row { display: grid; grid-template-columns: 48px 1fr; align-items: center; gap: 8px; margin-top: 6px; }
     .etc-lb { font-weight: 800; font-size: 14px; padding-left: 8px; border-left: 3px solid var(--ok); }
     .etc-row .seg button { min-height: 40px; flex-direction: row; font-size: 13px; }
@@ -821,7 +827,8 @@
         <ul>
           <li>詳細の「売上（任意）」に、日当かスポットを選び、<b>税込み</b>の金額を入れます。入れなくても使えます。</li>
           <li>トップに、その日の合計（日当＋スポット）が出ます。「隠す」で金額を伏せられます。</li>
-          <li>月ごとの合計とCSV・PDFの出力は、設定の「売上管理（管理者）」から。最初に管理パスワードを決めます（忘れると、売上の記録を消してリセットになります）。</li>
+          <li>ETC料金（行き・帰り）と駐車場代も、詳細の「ETC」「駐車場」の欄に入れられます。売上のパネルに、その日の<b>ETC合計・駐車場代合計・立替合計</b>が出ます。</li>
+          <li>月ごとの合計とCSV・PDFの出力は、設定の「売上管理（管理者）」から（ETCと駐車場代の月合計も出ます）。最初に管理パスワードを決めます（忘れると、売上の記録を消してリセットになります）。</li>
         </ul>
       </details>
       <details><summary>メール定型文</summary>
@@ -1053,6 +1060,12 @@
     jobs.forEach(j => { if (saleKind(j) === 'daily') daily += saleOf(j); else spot += saleOf(j); });
     return { daily, spot, sum: daily + spot };
   };
+  // 立替（精算）：ETC料金（行き・帰り）と駐車場代
+  const feeNum = (v) => { const n = Number(v); return n > 0 ? Math.round(n) : 0; };
+  const etcFeeOf = (j) => { const e = j.etc || {}; return (e.go === 'yes' ? feeNum(e.goFee) : 0) + (e.back === 'yes' ? feeNum(e.backFee) : 0); };
+  const parkFeeOf = (j) => feeNum(j.parking && j.parking.fee);
+  const parseYenInput = (str) => { const n = parseInt(String(str).normalize('NFKC').replace(/[^0-9]/g, ''), 10); return n > 0 ? n : null; };
+  const expensesOfDay = (jobs) => jobs.reduce((a, j) => { a.etc += etcFeeOf(j); a.park += parkFeeOf(j); return a; }, { etc: 0, park: 0 });
   const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms', 'mail'];
   const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent', mail: 'accent' };
   // 直前連絡の完了判定：電話は「通話済」、メールは「Mail送信」が履歴にあれば完了
@@ -1187,7 +1200,7 @@
   const LS_SALES = 'tj:sales', LS_ADMIN = 'tj:admin';
   let ledger = store.get(LS_SALES, {}) || {};
   const saveLedger = () => store.set(LS_SALES, ledger);
-  const ledgerEntries = (d) => (d.jobs || []).filter(j => saleOf(j) > 0).map(j => ({ id: j.id, title: j.title || '(件名なし)', kind: saleKind(j), amount: saleOf(j) }));
+  const ledgerEntries = (d) => (d.jobs || []).filter(j => saleOf(j) > 0 || etcFeeOf(j) > 0 || parkFeeOf(j) > 0).map(j => ({ id: j.id, title: j.title || '(件名なし)', kind: saleKind(j), amount: saleOf(j), etc: etcFeeOf(j), park: parkFeeOf(j) }));
   const syncLedger = (d, date) => { const a = ledgerEntries(d); if (a.length) ledger[date] = a; else delete ledger[date]; saveLedger(); };
   store.keys().filter(k => k.startsWith(LS_PREFIX)).forEach(k => {
     const d = store.get(k, null); if (!d) return;
@@ -1235,13 +1248,14 @@
     $('#sumParking').innerHTML = `${parking}<small>/${total}</small>`;
     $('#sumDone').innerHTML = `${done}<small>/${total}</small>`;
     $('#progressBar').style.width = total ? (done / total * 100) + '%' : '0';
-    const sl = salesOfDay(jobs), sb = $('#salesBox');
-    sb.classList.toggle('hidden', !sl.sum);
-    if (sl.sum) {
+    const sl = salesOfDay(jobs), xp = expensesOfDay(jobs), sb = $('#salesBox');
+    sb.classList.toggle('hidden', !(sl.sum || xp.etc || xp.park));
+    if (sl.sum || xp.etc || xp.park) {
       const t = taxSplit(sl.sum), hide = !!settings.hideSales, m = (v) => hide ? '¥＊＊＊＊' : yen(v);
-      sb.innerHTML = `<div class="sh"><span>本日の売上（税込み）</span><button type="button" class="eye" data-act="toggleSales" aria-pressed="${hide}">${hide ? '表示する' : '隠す'}</button></div>
-        <div class="sr"><span>日当</span><b>${m(sl.daily)}</b><span>＋ スポット</span><b>${m(sl.spot)}</b></div>
-        <div class="st"><div class="big">合計（税込み）<b>${m(t.inc)}</b></div><div>税抜き<b>${m(t.ex)}</b></div><div>消費税<b>${m(t.tax)}</b></div></div>`;
+      sb.innerHTML = `<div class="sh"><span>本日の売上（税込み）</span><button type="button" class="eye" data-act="toggleSales" aria-pressed="${hide}">${hide ? '表示する' : '隠す'}</button></div>`
+        + (sl.sum ? `<div class="sr"><span>日当</span><b>${m(sl.daily)}</b><span>＋ スポット</span><b>${m(sl.spot)}</b></div>
+        <div class="st"><div class="big">合計（税込み）<b>${m(t.inc)}</b></div><div>税抜き<b>${m(t.ex)}</b></div><div>消費税<b>${m(t.tax)}</b></div></div>` : '')
+        + (xp.etc || xp.park ? `<div class="sx"><div>ETC合計<b>${m(xp.etc)}</b></div><div>駐車場代合計<b>${m(xp.park)}</b></div><div>立替合計<b>${m(xp.etc + xp.park)}</b></div></div>` : '');
     }
 
     // ETC（行き・帰り）の利用状況と、完了済みなのに未確認の案件
@@ -1496,14 +1510,16 @@
         </div>
         <label class="fl" for="dParkNote" style="margin-top:12px;">駐車場の備考</label>
         <textarea class="input" id="dParkNote" rows="2" placeholder="例: 建物裏の来客用No.3 / 近隣コインP 30分300円">${esc(j.parking.note)}</textarea>
+        <label class="fl" for="dParkFee" style="margin-top:12px;">駐車場代（円・任意）</label>
+        <input class="input fee-in" id="dParkFee" type="text" inputmode="numeric" placeholder="例: 600" value="${parkFeeOf(j) || ''}">
       </div>
 
       <div class="card">
         <h3>${icon('car')}ETC（交通費の精算チェック）<span class="saved" data-saved="etc">保存しました</span></h3>
         ${[['go', '行き'], ['back', '帰り']].map(([k, l]) => `<div class="etc-row"><div class="etc-lb">${l}</div><div class="seg c3" data-group="etc-${k}">
           ${Object.entries(ETC_OPT).map(([v, o]) => `<button type="button" data-val="${v}" data-tone="${o.tone}" aria-pressed="${etcOf(j)[k] === v}">${o.label}</button>`).join('')}
-        </div></div>`).join('')}
-        <label class="fl" for="dEtcNote" style="margin-top:12px;">メモ（区間・金額など・任意）</label>
+        </div></div>${etcOf(j)[k] === 'yes' ? `<div class="etc-fee"><label class="fl" for="dEtcFee-${k}">${l}のETC料金（円）</label><input class="input fee-in" id="dEtcFee-${k}" data-etcfee="${k}" type="text" inputmode="numeric" placeholder="例: 800" value="${feeNum(etcOf(j)[k + 'Fee']) || ''}"></div>` : ''}`).join('')}
+        <label class="fl" for="dEtcNote" style="margin-top:12px;">メモ（区間・IC名など・任意）</label>
         <input class="input" id="dEtcNote" type="text" placeholder="例: 首都高 川口線 〜 外環 600円" value="${esc(etcOf(j).note)}">
         <p class="help">「未確認」のまま完了にすると、案件カードに「ETC未確認」と出ます。</p>
       </div>
@@ -1533,6 +1549,12 @@
       </div>
     `;
 
+    // 入力欄は、打っている途中（少し待って）と、欄を離れたとき（すぐ）の両方で保存する
+    const bindSave = (el, fn) => { el.addEventListener('input', debounce(fn, 350)); el.addEventListener('change', fn); };
+    document.querySelectorAll('[data-etcfee]').forEach(inp => bindSave(inp, () => {
+      j.etc = etcOf(j); j.etc[inp.dataset.etcfee + 'Fee'] = parseYenInput(inp.value); saveDay(); render(); flash('etc');
+    }));
+    bindSave($('#dParkFee'), () => { j.parking.fee = parseYenInput($('#dParkFee').value); saveDay(); render(); flash('parking'); });
     const etcNote = $('#dEtcNote');
     const saveEtcNote = debounce(() => { j.etc = etcOf(j); j.etc.note = etcNote.value; saveDay(); flash('etc'); }, 400);
     etcNote.addEventListener('input', saveEtcNote);
@@ -1543,6 +1565,7 @@
       saveDay(); render(); flash('sales'); $('#dSaleCalc').textContent = saleCalcText(j);
     }, 350);
     saleIn.addEventListener('input', saveSale);
+    saleIn.addEventListener('change', () => { const n = parseInt(String(saleIn.value).normalize('NFKC').replace(/[^0-9]/g, ''), 10); j.sales = Object.assign({ kind: 'spot' }, j.sales, { amount: n > 0 ? n : null }); saveDay(); render(); });
     const parkNote = $('#dParkNote'), memo = $('#dMemo');
     const flash = (k) => { const el = $(`[data-saved="${k}"]`); if (!el) return; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1200); };
     const saveParkNote = debounce(() => { j.parking.note = parkNote.value; saveDay(); render(); flash('parking'); $('#phoneChips').innerHTML = phoneChipsHtml(j); }, 400);
@@ -2438,7 +2461,8 @@
     const rows = monthRows(m);
     const daily = rows.filter(r => r.kind === 'daily').reduce((a, r) => a + r.amount, 0);
     const spot = rows.filter(r => r.kind !== 'daily').reduce((a, r) => a + r.amount, 0);
-    return { rows, daily, spot, sum: daily + spot, days: new Set(rows.map(r => r.date)).size, tax: taxSplit(daily + spot) };
+    const etc = rows.reduce((a, r) => a + (r.etc || 0), 0), park = rows.reduce((a, r) => a + (r.park || 0), 0);
+    return { rows, daily, spot, sum: daily + spot, etc, park, days: new Set(rows.filter(r => r.amount > 0).map(r => r.date)).size, tax: taxSplit(daily + spot) };
   }
   function renderSales() {
     const m = salesMonth, st = monthStats(m);
@@ -2449,13 +2473,14 @@
       <div class="sm-grid">
         <div>日当<b>${yen(st.daily)}</b></div><div>スポット<b>${yen(st.spot)}</b></div>
         <div>税抜き<b>${yen(st.tax.ex)}</b></div><div>消費税<b>${yen(st.tax.tax)}</b></div>
-        <div>件数<b>${st.rows.length}件</b></div><div>売上のあった日<b>${st.days}日</b></div>
+        <div>ETC合計<b>${yen(st.etc)}</b></div><div>駐車場代合計<b>${yen(st.park)}</b></div>
+        <div>件数<b>${st.rows.filter(r => r.amount > 0).length}件</b></div><div>売上のあった日<b>${st.days}日</b></div>
       </div>
       <div class="sm-actions">
         <button class="btn" type="button" data-sa="csv" ${st.rows.length ? '' : 'disabled'}>CSVで出力</button>
         <button class="btn" type="button" data-sa="pdf" ${st.rows.length ? '' : 'disabled'}>PDFで出力</button>
       </div>
-      ${Object.keys(byDate).sort().map(d => { const tot = byDate[d].reduce((a, r) => a + r.amount, 0); return `<div class="sm-day"><div class="dh"><span>${fmtDateLabel(d)}</span><b>${yen(tot)}</b></div>${byDate[d].map(r => `<div class="it"><span class="t">${esc(r.title)}</span><span class="k">${SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot']}</span><span class="a">${yen(r.amount)}</span></div>`).join('')}</div>`; }).join('') || '<p class="help" style="text-align:center;margin-top:16px;">この月の売上の記録はありません。</p>'}
+      ${Object.keys(byDate).sort().map(d => { const tot = byDate[d].reduce((a, r) => a + r.amount, 0); return `<div class="sm-day"><div class="dh"><span>${fmtDateLabel(d)}</span><b>${yen(tot)}</b></div>${byDate[d].map(r => `<div class="it"><span class="t">${esc(r.title)}</span><span class="k">${SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot']}</span><span class="a">${r.amount > 0 ? yen(r.amount) : '—'}</span></div>${(r.etc || r.park) ? `<div class="it" style="font-size:11.5px;color:var(--muted);"><span class="t">立替</span><span class="a">${r.etc ? 'ETC ' + yen(r.etc) : ''}${r.etc && r.park ? ' ／ ' : ''}${r.park ? '駐車場 ' + yen(r.park) : ''}</span></div>` : ''}`).join('')}</div>`; }).join('') || '<p class="help" style="text-align:center;margin-top:16px;">この月の売上の記録はありません。</p>'}
       <div class="sm-actions">
         <button class="btn secondary sm" type="button" data-sa="pw">パスワードを変更</button>
         <button class="btn danger sm" type="button" data-sa="del" ${st.rows.length ? '' : 'disabled'}>この月の記録を削除</button>
@@ -2464,9 +2489,9 @@
   const csvCell = (v) => `"${String(v).replace(/"/g, '""')}"`;
   function csvOf(m) {
     const st = monthStats(m);
-    const lines = [['日付', '案件名', '種別', '金額（税込み）', '税抜き', '消費税'].map(csvCell).join(',')];
-    st.rows.forEach(r => { const t = taxSplit(r.amount); lines.push([r.date, r.title, SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot'], t.inc, t.ex, t.tax].map(csvCell).join(',')); });
-    lines.push(['合計', '', `日当 ${st.daily} / スポット ${st.spot}`, st.tax.inc, st.tax.ex, st.tax.tax].map(csvCell).join(','));
+    const lines = [['日付', '案件名', '種別', '金額（税込み）', '税抜き', '消費税', 'ETC', '駐車場代'].map(csvCell).join(',')];
+    st.rows.forEach(r => { const t = taxSplit(r.amount); lines.push([r.date, r.title, SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot'], t.inc, t.ex, t.tax, r.etc || 0, r.park || 0].map(csvCell).join(',')); });
+    lines.push(['合計', '', `日当 ${st.daily} / スポット ${st.spot}`, st.tax.inc, st.tax.ex, st.tax.tax, st.etc, st.park].map(csvCell).join(','));
     return '\ufeff' + lines.join('\r\n') + '\r\n';
   }
   const toB64 = (str) => { let bin = ''; new TextEncoder().encode(str).forEach(b => { bin += String.fromCharCode(b); }); return btoa(bin); };
@@ -2474,8 +2499,8 @@
     const st = monthStats(m);
     return {
       title: `${monthLabel(m)} 売上（税込み）`,
-      lines: [`合計（税込み） ${yen(st.sum)}`, `税抜き ${yen(st.tax.ex)} ／ 消費税 ${yen(st.tax.tax)}`, `日当 ${yen(st.daily)} ／ スポット ${yen(st.spot)}`, `${st.rows.length}件 ／ 売上のあった日 ${st.days}日`],
-      rows: st.rows.map(r => [r.date.slice(5).replace('-', '/'), r.title, SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot'], yen(r.amount)]),
+      lines: [`合計（税込み） ${yen(st.sum)}`, `税抜き ${yen(st.tax.ex)} ／ 消費税 ${yen(st.tax.tax)}`, `日当 ${yen(st.daily)} ／ スポット ${yen(st.spot)}`, `ETC合計 ${yen(st.etc)} ／ 駐車場代合計 ${yen(st.park)}`, `${st.rows.filter(r => r.amount > 0).length}件 ／ 売上のあった日 ${st.days}日`],
+      rows: st.rows.map(r => [r.date.slice(5).replace('-', '/'), r.title + ((r.etc || r.park) ? `（ETC ${yen(r.etc || 0)}／駐車場 ${yen(r.park || 0)}）` : ''), SALE_KIND[r.kind === 'daily' ? 'daily' : 'spot'], r.amount > 0 ? yen(r.amount) : '—']),
     };
   }
   function exportCsv() {
