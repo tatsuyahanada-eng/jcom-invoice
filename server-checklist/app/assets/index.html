@@ -55,6 +55,10 @@ td.c .ck{display:flex;flex-direction:column;align-items:center;justify-content:c
 td.c.on{background:var(--ok-weak)!important}
 td.c.on .ck b{color:var(--ok);font-size:19px}
 td.c.on .ck small{color:#3d7a52;font-size:9.5px}
+td.c{position:relative}
+td.c .nt{position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 12px 12px 0;border-color:transparent #7c5cff transparent transparent}
+.dl li .ntx{font-size:12px;color:#5b47c9;background:#f3f0ff;border-radius:6px;padding:4px 7px;margin-top:4px;white-space:pre-wrap;word-break:break-all}
+.dl li .ib{width:auto;padding:0 9px;height:30px;font-size:12px;color:#5b47c9}
 td.c.next{background:var(--next-weak)!important;box-shadow:inset 0 0 0 2px var(--next)}
 td.c.next .ck b{color:var(--next);font-size:11px;font-weight:700}
 td.c.lock .ck b{color:#c9cfd8}
@@ -139,6 +143,7 @@ textarea.tin{width:100%;min-height:110px;resize:vertical}
 .legend .l1::before{background:var(--ok-weak);border:1px solid var(--ok)}
 .legend .l2::before{background:var(--next-weak);border:2px solid var(--next)}
 .legend .l3::before{background:#fff;border:1px solid var(--line)}
+.legend .l4::before{background:linear-gradient(225deg,#7c5cff 50%,#fff 50%);border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -161,7 +166,7 @@ textarea.tin{width:100%;min-height:110px;resize:vertical}
     <button class="chip" data-f="todo">未完了</button>
     <button class="chip" data-f="done">完了</button>
   </div>
-  <div class="legend"><span class="l1">完了</span><span class="l2">次の作業</span><span class="l3">未着手</span><span style="margin-left:auto">サーバー名タップで詳細</span></div>
+  <div class="legend"><span class="l1">完了</span><span class="l2">次の作業</span><span class="l3">未着手</span><span class="l4">備考あり</span><span style="margin-left:auto">長押しで備考／サーバー名で詳細</span></div>
   <div id="gridWrap"></div>
 </div>
 
@@ -261,10 +266,10 @@ textarea.tin{width:100%;min-height:110px;resize:vertical}
       <h4><span>リセット</span></h4>
       <div class="in">
         <div class="row"><button class="btn dan" id="resetChecks">全チェックをクリア</button><button class="btn dan" id="resetAll">初期サンプルに戻す</button></div>
-        <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック状態だけを消します。</p>
+        <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェックと備考を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">サーバー作業チェックアプリ v1.1</p>
+    <p class="help" style="text-align:center">サーバー作業チェックアプリ v1.2</p>
   </div>
 </div>
 
@@ -304,7 +309,7 @@ function sampleState(){
   return {
     title:'サーバー作業チェック',
     items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on})),
-    servers, checks:{},
+    servers, checks:{}, notes:{},
     opts:{seq:true,time:true,confirm:true}, sampleVer:2
   };
 }
@@ -319,12 +324,12 @@ function load(){
   return sampleState();
 }
 function normalize(d){
-  d.checks=d.checks||{}; d.opts=Object.assign({seq:true,time:true,confirm:true},d.opts||{});
+  d.checks=d.checks||{}; d.notes=d.notes||{}; d.opts=Object.assign({seq:true,time:true,confirm:true},d.opts||{});
   d.title=d.title||'サーバー作業チェック';
   // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
   if(!d.sampleVer){
     if(d.servers.length&&d.servers.every(s=>/^SRV-\d{3}$/.test(s.name))){
-      d.servers=SAMPLE_SERVERS().map(n=>({id:uid(),name:n,memo:''})); d.checks={};
+      d.servers=SAMPLE_SERVERS().map(n=>({id:uid(),name:n,memo:''})); d.checks={}; d.notes={};
     }
     d.sampleVer=2;
   }
@@ -409,13 +414,13 @@ function renderGrid(){
     if(filter==='todo'&&p.done) return;
     if(q&&!sv.name.toLowerCase().includes(q)&&!(sv.memo||'').toLowerCase().includes(q)) return;
     shown++;
-    const c=S.checks[sv.id]||{};
+    const c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{};
     h+=`<tr data-s="${sv.id}" class="${p.done?'done':''}"><td class="sv" data-sv="1"><div class="n">${esc(sv.name)}</div><div class="m">${esc(sv.memo||'')}</div></td>`;
     items.forEach((it,i)=>{
-      const ts=c[it.id];
-      if(ts) h+=`<td class="c on" data-i="${it.id}"><div class="ck"><b>✓</b>${S.opts.time?`<small>${fmtTime(ts)}</small>`:''}</div></td>`;
-      else if(i===p.next) h+=`<td class="c next" data-i="${it.id}"><div class="ck"><b>次</b></div></td>`;
-      else h+=`<td class="c ${S.opts.seq?'lock':''}" data-i="${it.id}"><div class="ck"><b>${S.opts.seq?'・':''}</b></div></td>`;
+      const ts=c[it.id], nt=nts[it.id]?'<i class="nt"></i>':'';
+      if(ts) h+=`<td class="c on" data-i="${it.id}">${nt}<div class="ck"><b>✓</b>${S.opts.time?`<small>${fmtTime(ts)}</small>`:''}</div></td>`;
+      else if(i===p.next) h+=`<td class="c next" data-i="${it.id}">${nt}<div class="ck"><b>次</b></div></td>`;
+      else h+=`<td class="c ${S.opts.seq?'lock':''}" data-i="${it.id}">${nt}<div class="ck"><b>${S.opts.seq?'・':''}</b></div></td>`;
     });
     h+=`<td class="pcol"><b>${p.n}/${p.total}</b>${Math.round(p.n/p.total*100)}%</td></tr>`;
   });
@@ -430,8 +435,34 @@ $('#gridWrap').addEventListener('click',async e=>{
   const sid=tr.dataset.s;
   if(e.target.closest('td[data-sv]')){ openDetail(sid); return; }
   const td=e.target.closest('td.c'); if(!td) return;
+  if(lpFired){ lpFired=false; return; }
   await toggle(sid,td.dataset.i);
 });
+
+/* long press a cell -> edit its note */
+let lpT=null, lpFired=false, lpXY=null;
+const gw=$('#gridWrap');
+gw.addEventListener('pointerdown',e=>{
+  const td=e.target.closest('td.c'); if(!td) return;
+  const sid=td.parentNode.dataset.s, iid=td.dataset.i; lpFired=false; lpXY=[e.clientX,e.clientY];
+  clearTimeout(lpT); lpT=setTimeout(()=>{ lpFired=true; if(navigator.vibrate) navigator.vibrate(20); editNote(sid,iid); },500);
+});
+gw.addEventListener('pointermove',e=>{ if(lpT&&lpXY&&Math.hypot(e.clientX-lpXY[0],e.clientY-lpXY[1])>10){clearTimeout(lpT);lpT=null;} });
+['pointerup','pointercancel','scroll'].forEach(ev=>gw.addEventListener(ev,()=>{clearTimeout(lpT);lpT=null;},true));
+gw.addEventListener('contextmenu',e=>{ if(e.target.closest('td.c')) e.preventDefault(); });
+
+async function editNote(sid,iid,after){
+  const sv=S.servers.find(s=>s.id===sid), it=S.items.find(i=>i.id===iid); if(!sv||!it) return;
+  const cur=(S.notes[sid]||{})[iid]||'';
+  const v=await promptBox(`備考：${sv.name} ／ ${it.name}`,cur,true);
+  if(v!==null){
+    const t=v.trim(), n=S.notes[sid]||(S.notes[sid]={});
+    if(t) n[iid]=t; else delete n[iid];
+    if(!Object.keys(n).length) delete S.notes[sid];
+    save(); renderGrid(); const msg=t?'備考を保存しました':(cur?'備考を削除しました':''); if(msg) toast(msg);
+  }
+  if(after) after();
+}
 
 async function toggle(sid,iid,fromDetail){
   const items=active(), c=ck(sid), idx=items.findIndex(i=>i.id===iid);
@@ -459,11 +490,11 @@ async function toggle(sid,iid,fromDetail){
 /* detail sheet */
 function openDetail(sid){
   const sv=S.servers.find(s=>s.id===sid); if(!sv) return;
-  const items=active(), c=S.checks[sid]||{}, p=progressOf(sv,items);
+  const items=active(), c=S.checks[sid]||{}, nts=S.notes[sid]||{}, p=progressOf(sv,items);
   let h=`<div class="sh-h"><h3>${esc(sv.name)}</h3><span style="color:var(--sub);font-size:12px">${p.n}/${p.total}</span><button class="x" data-a="close">×</button></div><div class="sh-b"><ul class="dl">`;
   items.forEach((it,i)=>{
     const ts=c[it.id];
-    h+=`<li class="${ts?'on':(i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}</span></li>`;
+    h+=`<li class="${ts?'on':(i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">${nts[it.id]?'備考✎':'＋備考'}</button></li>`;
   });
   h+=`</ul><p class="help" style="margin:14px 0 6px">メモ</p><textarea class="tin" id="memo" style="min-height:70px" placeholder="作業メモ（例：IP、担当者、注意点）">${esc(sv.memo||'')}</textarea></div>
   <div class="sh-f"><button class="btn dan" data-a="reset">このサーバーをクリア</button><span style="flex:1"></span>${p.next>=0?'<button class="btn pri" data-a="next">次の作業を完了</button>':''}</div>`;
@@ -471,12 +502,13 @@ function openDetail(sid){
   function saveMemo(){ const m=$('#memo'); if(m&&m.value!==sv.memo){ sv.memo=m.value; save(); renderGrid(); } }
   $('#ovSheet').onclick=async e=>{
     const a=e.target.closest('[data-a]'), li=e.target.closest('li[data-i]');
+    if(a&&a.dataset.a==='note'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show'); await editNote(sid,a.dataset.n,()=>openDetail(sid)); return; }
     if(li){ saveMemo(); modalClose=null; $('#ov').classList.remove('show'); await toggle(sid,li.dataset.i,true); return; }
     if(!a) return;
     if(a.dataset.a==='close') closeModal();
     if(a.dataset.a==='next'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show'); await toggle(sid,items[p.next].id,true); }
     if(a.dataset.a==='reset'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show');
-      if(await confirmBox(`${esc(sv.name)} のチェックをすべて外しますか？`,'クリア',true)){ delete S.checks[sid]; save(); renderGrid(); }
+      if(await confirmBox(`${esc(sv.name)} のチェックと備考をすべて消しますか？`,'クリア',true)){ delete S.checks[sid]; delete S.notes[sid]; save(); renderGrid(); }
       openDetail(sid);
     }
   };
@@ -544,7 +576,7 @@ function listHandler(arr,render,kind){
         const msg=kind==='item'?`項目「${esc(obj.name)}」を削除しますか？<br><small>使わないだけなら、スイッチをオフにすると記録が残ります。</small>`:`サーバー「${esc(obj.name)}」を削除しますか？<br><small>このサーバーのチェック記録も消えます。</small>`;
         if(!(await confirmBox(msg,'削除',true))) return;
         arr().splice(i,1);
-        if(kind==='item') Object.values(S.checks).forEach(c=>delete c[obj.id]); else delete S.checks[obj.id];
+        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; }
         break;
       }
       default: return;
@@ -599,7 +631,7 @@ $('#newItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addItem').cl
 $('#addBulkItems').onclick=()=>{addItems($('#bulkItems').value.split(/\r?\n/));$('#bulkItems').value='';};
 
 function addServers(names,replace){
-  if(replace){ S.servers=[]; S.checks={}; }
+  if(replace){ S.servers=[]; S.checks={}; S.notes={}; }
   const ex=new Set(S.servers.map(s=>s.name)); let n=0;
   names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.servers.push({id:uid(),name:nm,memo:''});ex.add(nm);n++;} });
   save(); renderServers();
@@ -635,8 +667,9 @@ const csvCell=v=>/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
 $('#expCsv').onclick=()=>{
   const items=active();
   const rows=[['サーバー',...items.map(i=>i.name),'進捗','メモ']];
-  S.servers.forEach(sv=>{ const c=S.checks[sv.id]||{}, p=progressOf(sv,items);
-    rows.push([sv.name,...items.map(i=>c[i.id]?fmtTime(c[i.id],true):''),`${p.n}/${p.total}`,sv.memo||'']); });
+  S.servers.forEach(sv=>{ const c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{}, p=progressOf(sv,items);
+    const cell=i=>[c[i.id]?fmtTime(c[i.id],true):'', nts[i.id]?'備考:'+nts[i.id]:''].filter(Boolean).join('\n');
+    rows.push([sv.name,...items.map(cell),`${p.n}/${p.total}`,sv.memo||'']); });
   const d=new Date(), stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
   share(`${S.title}_${stamp}.csv`,'﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'),`${S.title}_${stamp}.csv`,'text/csv');
 };
@@ -646,7 +679,7 @@ $('#impJson').onclick=async()=>{
   try{ const d=JSON.parse(v); if(!d.items||!d.servers) throw 0; S=normalize(d); save(); renderItems(); renderServers(); renderOpts(); toast('復元しました'); }
   catch(e){ toast('読み込めませんでした。形式を確認してください'); }
 };
-$('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェックをクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; save(); toast('クリアしました'); } };
+$('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェックと備考をクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; S.notes={}; save(); toast('クリアしました'); } };
 $('#resetAll').onclick=async()=>{ if(await confirmBox('項目・サーバー・チェックをすべて初期サンプルに戻しますか？<br><small>元に戻せません。</small>','初期化',true)){ S=sampleState(); save(); renderItems(); renderServers(); renderOpts(); toast('初期サンプルに戻しました'); } };
 
 /* Android back button */
