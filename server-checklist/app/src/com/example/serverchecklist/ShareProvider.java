@@ -50,7 +50,12 @@ public class ShareProvider extends ContentProvider {
         return c;
     }
 
-    @Override public String getType(Uri uri) { return "application/json"; }
+    @Override
+    public String getType(Uri uri) {
+        String n = uri.getLastPathSegment();
+        if (n != null && n.toLowerCase().endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        return "application/json";
+    }
     @Override public Uri insert(Uri uri, ContentValues v) { return null; }
     @Override public int delete(Uri uri, String s, String[] a) { return 0; }
     @Override public int update(Uri uri, ContentValues v, String s, String[] a) { return 0; }

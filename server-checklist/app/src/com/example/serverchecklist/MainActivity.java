@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -28,8 +29,8 @@ public class MainActivity extends Activity {
     static final int REQ_SAVE = 1, REQ_OPEN = 2;
     WebView web;
     boolean pageReady = false;
-    String pendingSaveText;
-    String pendingIncoming;
+    byte[] pendingSave;
+    byte[] pendingIncoming;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +58,7 @@ public class MainActivity extends Activity {
         @Override
         public void onPageFinished(WebView view, String url) {
             a.pageReady = true;
-            if (a.pendingIncoming != null) { a.deliverText(a.pendingIncoming); a.pendingIncoming = null; }
+            if (a.pendingIncoming != null) { a.deliver(a.pendingIncoming); a.pendingIncoming = null; }
         }
     }
 
@@ -67,36 +68,47 @@ public class MainActivity extends Activity {
         handleIncoming(intent);
     }
 
-    /** A data file shared from LINE / mail / file manager. */
+    /** A data file (.json / .xlsx) shared from LINE / mail / file manager. */
     private void handleIncoming(Intent intent) {
         if (intent == null) return;
-        String text = null;
+        byte[] data = null;
         try {
             if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
-                text = readUri(intent.getData());
+                data = readUri(intent.getData());
             } else if (Intent.ACTION_SEND.equals(intent.getAction())) {
                 Uri u = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                text = u != null ? readUri(u) : intent.getStringExtra(Intent.EXTRA_TEXT);
+                if (u != null) data = readUri(u);
+                else {
+                    String t = intent.getStringExtra(Intent.EXTRA_TEXT);
+                    if (t != null) data = t.getBytes(StandardCharsets.UTF_8);
+                }
             }
         } catch (Exception e) {
             Toast.makeText(this, "ファイルを読み込めませんでした", Toast.LENGTH_LONG).show();
         }
-        if (text == null) return;
+        if (data == null) return;
         intent.setAction(Intent.ACTION_MAIN); // don't re-import on rotation
-        if (pageReady) deliverText(text); else pendingIncoming = text;
+        if (pageReady) deliver(data); else pendingIncoming = data;
     }
 
-    void deliverText(String text) {
-        web.evaluateJavascript("window.onImportText && onImportText(" + JSONObject.quote(text) + ")", null);
+    /** Excel files are zip archives ("PK"); everything else is treated as text. */
+    void deliver(byte[] data) {
+        String js;
+        if (data.length > 1 && data[0] == 'P' && data[1] == 'K') {
+            js = "window.onImportXlsx && onImportXlsx(\"" + Base64.encodeToString(data, Base64.NO_WRAP) + "\")";
+        } else {
+            js = "window.onImportText && onImportText(" + JSONObject.quote(new String(data, StandardCharsets.UTF_8)) + ")";
+        }
+        web.evaluateJavascript(js, null);
     }
 
-    private String readUri(Uri uri) throws Exception {
+    private byte[] readUri(Uri uri) throws Exception {
         try (InputStream in = getContentResolver().openInputStream(uri)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[8192];
             int n;
             while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
-            return new String(out.toByteArray(), StandardCharsets.UTF_8);
+            return out.toByteArray();
         }
     }
 
@@ -105,14 +117,14 @@ public class MainActivity extends Activity {
         super.onActivityResult(req, res, data);
         if (res != RESULT_OK || data == null || data.getData() == null) return;
         try {
-            if (req == REQ_SAVE && pendingSaveText != null) {
+            if (req == REQ_SAVE && pendingSave != null) {
                 try (OutputStream o = getContentResolver().openOutputStream(data.getData(), "wt")) {
-                    o.write(pendingSaveText.getBytes(StandardCharsets.UTF_8));
+                    o.write(pendingSave);
                 }
-                pendingSaveText = null;
+                pendingSave = null;
                 Toast.makeText(this, "保存しました", Toast.LENGTH_SHORT).show();
             } else if (req == REQ_OPEN) {
-                deliverText(readUri(data.getData()));
+                deliver(readUri(data.getData()));
             }
         } catch (Exception e) {
             Toast.makeText(this, "ファイルの読み書きに失敗しました", Toast.LENGTH_LONG).show();
@@ -125,6 +137,37 @@ public class MainActivity extends Activity {
         web.evaluateJavascript("window.onAndroidBack ? onAndroidBack() : false", value -> {
             if (!"true".equals(value)) MainActivity.super.onBackPressed();
         });
+    }
+
+    void shareBytes(String name, byte[] bytes, String mime) {
+        try {
+            File d = ShareProvider.dir(this);
+            File[] old = d.listFiles();
+            if (old != null) for (File f : old) f.delete();
+            String safe = name.replaceAll("[\\\\/:*?\"<>|]", "_");
+            try (FileOutputStream o = new FileOutputStream(new File(d, safe))) {
+                o.write(bytes);
+            }
+            Uri uri = ShareProvider.uriFor(safe);
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType(mime);
+            i.putExtra(Intent.EXTRA_STREAM, uri);
+            i.putExtra(Intent.EXTRA_SUBJECT, safe);
+            i.setClipData(ClipData.newRawUri(safe, uri));
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(i, "共有先を選択"));
+        } catch (Exception e) {
+            Toast.makeText(this, "共有に失敗しました", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    void saveBytes(String name, byte[] bytes, String mime) {
+        pendingSave = bytes;
+        Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType(mime);
+        i.putExtra(Intent.EXTRA_TITLE, name);
+        startActivityForResult(i, REQ_SAVE);
     }
 
     /** Storage, sharing and file access for the page. */
@@ -143,7 +186,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void save(String key, String value) { prefs.edit().putString(key, value).apply(); }
 
-        /** Share plain text (CSV etc.). */
+        /** Share plain text. */
         @JavascriptInterface
         public void share(String title, String text) {
             a.runOnUiThread(() -> {
@@ -155,46 +198,31 @@ public class MainActivity extends Activity {
             });
         }
 
-        /** Share a file to LINE / mail / Drive etc. */
         @JavascriptInterface
         public void shareFile(String name, String text, String mime) {
-            a.runOnUiThread(() -> {
-                try {
-                    File d = ShareProvider.dir(a);
-                    File[] old = d.listFiles();
-                    if (old != null) for (File f : old) f.delete();
-                    String safe = name.replaceAll("[\\\\/:*?\"<>|]", "_");
-                    try (FileOutputStream o = new FileOutputStream(new File(d, safe))) {
-                        o.write(text.getBytes(StandardCharsets.UTF_8));
-                    }
-                    Uri uri = ShareProvider.uriFor(safe);
-                    Intent i = new Intent(Intent.ACTION_SEND);
-                    i.setType(mime);
-                    i.putExtra(Intent.EXTRA_STREAM, uri);
-                    i.putExtra(Intent.EXTRA_SUBJECT, safe);
-                    i.setClipData(ClipData.newRawUri(safe, uri));
-                    i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    a.startActivity(Intent.createChooser(i, "共有先を選択"));
-                } catch (Exception e) {
-                    Toast.makeText(a, "共有に失敗しました", Toast.LENGTH_LONG).show();
-                }
-            });
+            byte[] b = text.getBytes(StandardCharsets.UTF_8);
+            a.runOnUiThread(() -> a.shareBytes(name, b, mime));
         }
 
-        /** Save a file to a location the user picks (Downloads, Drive...). */
+        @JavascriptInterface
+        public void shareFileB64(String name, String b64, String mime) {
+            byte[] b = Base64.decode(b64, Base64.DEFAULT);
+            a.runOnUiThread(() -> a.shareBytes(name, b, mime));
+        }
+
         @JavascriptInterface
         public void saveFile(String name, String text, String mime) {
-            a.runOnUiThread(() -> {
-                a.pendingSaveText = text;
-                Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-                i.addCategory(Intent.CATEGORY_OPENABLE);
-                i.setType(mime);
-                i.putExtra(Intent.EXTRA_TITLE, name);
-                a.startActivityForResult(i, REQ_SAVE);
-            });
+            byte[] b = text.getBytes(StandardCharsets.UTF_8);
+            a.runOnUiThread(() -> a.saveBytes(name, b, mime));
         }
 
-        /** Pick a file; its text comes back through window.onImportText. */
+        @JavascriptInterface
+        public void saveFileB64(String name, String b64, String mime) {
+            byte[] b = Base64.decode(b64, Base64.DEFAULT);
+            a.runOnUiThread(() -> a.saveBytes(name, b, mime));
+        }
+
+        /** Pick a file; it comes back through onImportText / onImportXlsx. */
         @JavascriptInterface
         public void openFile() {
             a.runOnUiThread(() -> {

@@ -65,7 +65,9 @@ table.grid{border-collapse:separate;border-spacing:0;table-layout:fixed;backgrou
 .grid td.sv{position:sticky;left:0;z-index:1;width:var(--namew);min-width:var(--namew);max-width:var(--namew);
   padding:4px 10px;height:var(--rowh);border-right:2px solid #a1a1aa}
 .sv .n{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:17px;color:var(--text);letter-spacing:.3px}
-.sv .m{font-size:10.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sv .m{font-size:11.5px;color:#3f3f46;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.sv .m.none{color:#a1a1aa;font-weight:400}
+.grid thead th.corner b{display:block;font-size:15px}
 .grid tbody tr.done td.sv{box-shadow:inset 5px 0 0 #22a35a}
 tr.done td.sv .n::after{content:" ✔";color:#22a35a;font-size:14px}
 td.c{height:var(--rowh);text-align:center;vertical-align:middle;user-select:none;-webkit-user-select:none;position:relative}
@@ -198,7 +200,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
   </header>
   <div class="rooms" id="rooms"></div>
   <div class="tools">
-    <input id="q" type="search" placeholder="サーバー名で検索">
+    <input id="q" type="search" placeholder="ラック番号・リアドアで検索">
     <button class="chip on" data-f="all">全て</button>
     <button class="chip" data-f="todo">未完了</button>
     <button class="chip" data-f="done">完了</button>
@@ -293,7 +295,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
     <div class="card">
       <h4><span>受け取ったデータを取り込む</span></h4>
       <div class="in">
-        <p class="help">取り込む内容（サーバー名／作業項目／進捗）は、ファイルを選んだあとに選べます。</p>
+        <p class="help">共有データ（.json）と Excel（.xlsx）のどちらも取り込めます。取り込む内容は、ファイルを選んだあとに選べます。</p>
         <div class="row"><button class="btn pri wide" id="impFile">ファイルを選んで取り込む</button></div>
         <div class="row"><button class="btn wide" id="impPaste">テキストを貼り付けて取り込む</button></div>
       </div>
@@ -309,8 +311,19 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
       </div>
     </div>
     <div class="card">
-      <h4><span>表として出力</span></h4>
-      <div class="in"><div class="row"><button class="btn wide" id="expCsv">結果をCSV（Excel）で共有</button></div></div>
+      <h4><span>Excel で書き出す・直す</span></h4>
+      <div class="in">
+        <p class="help">画面と同じ見た目の Excel（.xlsx）を作ります。パソコンで直した Excel は、上の「ファイルを選んで取り込む」でそのまま戻せます。</p>
+        <div class="row"><button class="btn pri wide" id="xlsShare">Excel で共有（メール・LINE等）</button></div>
+        <div class="row"><button class="btn wide" id="xlsSave">Excel を端末・ドライブに保存</button></div>
+        <ul class="help" style="margin:10px 0 0;padding-left:18px">
+          <li>済にする：セルに「済」（日時も書く場合は「済 10/21 11:39」）</li>
+          <li>未に戻す：セルを空にする</li>
+          <li>リアドア番号・メモ：B列・右端の列を直接修正</li>
+          <li>備考：「備考」シートで追加・修正</li>
+          <li>行・列の追加や並べ替えもそのまま取り込めます</li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -339,7 +352,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェックと備考を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v1.6</p>
+    <p class="help" style="text-align:center">CDU Check Tool v1.7</p>
   </div>
 </div>
 
@@ -375,7 +388,7 @@ function SAMPLE_SERVERS(){
 }
 function sampleState(){
   const servers=[];
-  SAMPLE_SERVERS().forEach(n=>servers.push({id:uid(),name:n,memo:''}));
+  SAMPLE_SERVERS().forEach(n=>servers.push({id:uid(),name:n,memo:'',door:''}));
   return {
     title:'CDU Check Tool', room:'all',
     items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on})),
@@ -406,7 +419,7 @@ function normalize(d){
   }
   // v1.3: 順番どおりモードは初期OFF（終わった作業から自由に「済」を付ける）
   if(d.sampleVer<3){ d.opts.seq=false; d.sampleVer=3; }
-  d.servers.forEach(s=>{if(!s.id)s.id=uid(); if(s.memo==null)s.memo='';});
+  d.servers.forEach(s=>{if(!s.id)s.id=uid(); if(s.memo==null)s.memo=''; if(s.door==null)s.door='';});
   d.items.forEach(i=>{if(!i.id)i.id=uid(); i.on=!!i.on;});
   return d;
 }
@@ -503,7 +516,7 @@ function renderGrid(){
   if(!S.servers.length){wrap.innerHTML='<div class="empty">サーバーが登録されていません。<br>⚙ 設定 → サーバー で追加してください。</div>';return;}
 
   const q=query.trim().toLowerCase();
-  let h='<table class="grid"><thead><tr><th class="corner">サーバー<br><small style="color:var(--sub);font-weight:400">'+roomSv.length+'台</small></th>';
+  let h='<table class="grid"><thead><tr><th class="corner"><small>'+roomSv.length+'台</small><b>ラック番号</b><small>リアドア番号</small></th>';
   items.forEach((it,i)=>{ h+=`<th><span class="no">${i+1}</span><span class="nm">${esc(it.name)}</span></th>`; });
   h+='<th class="pcol">進捗</th></tr></thead><tbody>';
   let shown=0;
@@ -512,10 +525,10 @@ function renderGrid(){
     const p=progressOf(sv,items);
     if(filter==='done'&&!p.done) return;
     if(filter==='todo'&&p.done) return;
-    if(q&&!sv.name.toLowerCase().includes(q)&&!(sv.memo||'').toLowerCase().includes(q)) return;
+    if(q&&![sv.name,sv.door||'',sv.memo||''].some(t=>t.toLowerCase().includes(q))) return;
     shown++;
     const c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{};
-    h+=`<tr data-s="${sv.id}" class="${p.done?'done':''}"><td class="sv" data-sv="1"><div class="n">${esc(sv.name)}</div><div class="m">${esc(sv.memo||'')}</div></td>`;
+    h+=`<tr data-s="${sv.id}" class="${p.done?'done':''}"><td class="sv" data-sv="1"><div class="n">${esc(sv.name)}</div>${sv.door?`<div class="m">リアドア ${esc(sv.door)}</div>`:'<div class="m none">リアドア －</div>'}</td>`;
     items.forEach((it,i)=>{
       const ts=c[it.id], nt=nts[it.id]?'<i class="nt"></i>':'';
       if(ts) h+=`<td class="c on" data-i="${it.id}">${nt}<div class="ck"><b>済</b>${S.opts.time?`<small>${fmtCell(ts)}</small>`:''}</div></td>`;
@@ -617,7 +630,8 @@ async function toggle(sid,iid,fromDetail){
 function openDetail(sid){
   const sv=S.servers.find(s=>s.id===sid); if(!sv) return;
   const items=active(), c=S.checks[sid]||{}, nts=S.notes[sid]||{}, p=progressOf(sv,items);
-  let h=`<div class="sh-h"><h3>${esc(sv.name)}</h3><span style="color:var(--sub);font-size:12px">${p.n}/${p.total}</span><button class="x" data-a="close">×</button></div><div class="sh-b"><ul class="dl">`;
+  let h=`<div class="sh-h"><h3>${esc(sv.name)}<small>ラック番号</small></h3><span style="color:var(--sub);font-size:12px">${p.n}/${p.total}</span><button class="x" data-a="close">×</button></div><div class="sh-b">
+    <div class="fld"><label>リアドア番号</label><input class="tin" id="door" style="width:100%" value="${esc(sv.door||'')}" placeholder="例：RD-12"></div><ul class="dl">`;
   items.forEach((it,i)=>{
     const ts=c[it.id];
     h+=`<li class="${ts?'on':(S.opts.seq&&i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">日時・備考</button></li>`;
@@ -625,7 +639,10 @@ function openDetail(sid){
   h+=`</ul><p class="help" style="margin:14px 0 6px">メモ</p><textarea class="tin" id="memo" style="min-height:70px" placeholder="作業メモ（例：IP、担当者、注意点）">${esc(sv.memo||'')}</textarea></div>
   <div class="sh-f"><button class="btn dan" data-a="reset">このサーバーをクリア</button><span style="flex:1"></span>${S.opts.seq&&p.next>=0?'<button class="btn pri" data-a="next">次の作業を完了</button>':''}</div>`;
   openModal(h,{onClose:saveMemo});
-  function saveMemo(){ const m=$('#memo'); if(m&&m.value!==sv.memo){ sv.memo=m.value; save(); renderGrid(); } }
+  function saveMemo(){ const m=$('#memo'), dr=$('#door'); let ch=false;
+    if(m&&m.value!==sv.memo){ sv.memo=m.value; ch=true; }
+    if(dr&&dr.value.trim()!==(sv.door||'')){ sv.door=dr.value.trim(); ch=true; }
+    if(ch){ save(); renderGrid(); } }
   $('#ovSheet').onclick=async e=>{
     const a=e.target.closest('[data-a]'), li=e.target.closest('li[data-i]');
     if(a&&a.dataset.a==='note'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show'); editCell(sid,a.dataset.n,()=>openDetail(sid)); return; }
@@ -789,16 +806,6 @@ function share(title,text,filename,mime){
   const blob=new Blob([text],{type:mime}); const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
-const csvCell=v=>/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
-$('#expCsv').onclick=()=>{
-  const items=active();
-  const rows=[['サーバー',...items.map(i=>i.name),'進捗','メモ']];
-  S.servers.forEach(sv=>{ const c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{}, p=progressOf(sv,items);
-    const cell=i=>[c[i.id]?fmtTime(c[i.id],true):'', nts[i.id]?'備考:'+nts[i.id]:''].filter(Boolean).join('\n');
-    rows.push([sv.name,...items.map(cell),`${p.n}/${p.total}`,sv.memo||'']); });
-  const d=new Date(), stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
-  share(`${S.title}_${stamp}.csv`,'﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'),`${S.title}_${stamp}.csv`,'text/csv');
-};
 
 /* ---------- data sharing (export / import by name) ---------- */
 function exportData(){
@@ -807,7 +814,7 @@ function exportData(){
   const byName=src=>{ const o={}; Object.entries(src).forEach(([sid,m])=>{ if(!sname[sid]) return; const r={};
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); if(Object.keys(r).length) o[sname[sid]]=r; }); return o; };
   return {format:'cdu-check-tool',version:2,exportedAt:Date.now(),title:S.title,
-    items:S.items.map(i=>({name:i.name,on:i.on})), servers:S.servers.map(s=>({name:s.name,memo:s.memo||''})),
+    items:S.items.map(i=>({name:i.name,on:i.on})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||''})),
     checks:byName(S.checks), notes:byName(S.notes)};
 }
 function exportName(){ const d=new Date(); return `CDU_${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}.json`; }
@@ -821,8 +828,10 @@ $('#expSave').onclick=()=>{ const t=JSON.stringify(exportData()), n=exportName()
   if(bridge&&bridge.saveFile) bridge.saveFile(n,t,'application/json'); else download(n,t,'application/json'); };
 $('#impFile').onclick=()=>{
   if(bridge&&bridge.openFile){ bridge.openFile(); return; }
-  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json,text/plain';
-  inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>window.onImportText(r.result); r.readAsText(f); };
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,.xlsx,application/json,text/plain';
+  inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; const r=new FileReader();
+    if(/\.xlsx$/i.test(f.name)){ r.onload=()=>importXlsx(r.result); r.readAsArrayBuffer(f); }
+    else { r.onload=()=>window.onImportText(r.result); r.readAsText(f); } };
   inp.click();
 };
 $('#impPaste').onclick=async()=>{ const v=await promptBox('データ（テキスト）を貼り付け','',true); if(v&&v.trim()) window.onImportText(v); };
@@ -836,19 +845,22 @@ function parseImport(text){
   const conv=src=>{ const o={}; Object.entries(src||{}).forEach(([sid,m])=>{ if(!sname[sid]) return; const r={};
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); o[sname[sid]]=r; }); return o; };
   return {format:'cdu-check-tool',exportedAt:null,title:d.title,items:d.items.map(i=>({name:i.name,on:!!i.on})),
-    servers:d.servers.map(s=>({name:s.name,memo:s.memo||''})),checks:conv(d.checks),notes:conv(d.notes)};
+    servers:d.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||''})),checks:conv(d.checks),notes:conv(d.notes)};
 }
 window.onImportText=function(text){
   const d=parseImport(text);
   if(!d){ toast('CDU Check Tool のデータとして読み込めませんでした'); return; }
+  showImport(d);
+};
+function showImport(d){
   let nChk=0; Object.values(d.checks||{}).forEach(m=>nChk+=Object.keys(m).length);
   let nNote=0; Object.values(d.notes||{}).forEach(m=>nNote+=Object.keys(m).length);
   const when=d.exportedAt?fmtTime(d.exportedAt,true):'不明';
   openModal(`<div class="sh-h"><h3>データの取り込み</h3><button class="x" data-a="no">×</button></div>
     <div class="sh-b">
-      <div class="sumbox">書き出し日時：<b>${when}</b><br>サーバー：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件</div>
+      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件</div>
       <p class="help" style="margin:4px 0">取り込む内容</p>
-      <label class="chk"><input type="checkbox" id="imSrv" checked><span>サーバー名<small>名前・並び順・メモをファイルに合わせます</small></span></label>
+      <label class="chk"><input type="checkbox" id="imSrv" checked><span>ラック番号<small>ラック番号・リアドア番号・並び順・メモをファイルに合わせます</small></span></label>
       <label class="chk"><input type="checkbox" id="imItem" checked><span>作業項目<small>項目名・使用/不使用・並び順をファイルに合わせます</small></span></label>
       <label class="chk"><input type="checkbox" id="imProg" checked><span>進捗<small>済・作業日時・備考</small></span></label>
       <p class="help" style="margin:12px 0 4px">進捗の取り込み方</p>
@@ -869,7 +881,7 @@ window.onImportText=function(text){
       toast(`取り込みました（${r.join('・')}）`);
     }
   };
-};
+}
 function applyImport(d,opt){
   const msg=[];
   if(opt.item){
@@ -880,24 +892,28 @@ function applyImport(d,opt){
   }
   if(opt.srv){
     const cur=new Map(S.servers.map(s=>[s.name,s])), seen=new Set();
-    const list=d.servers.filter(x=>x&&x.name&&!seen.has(x.name)&&seen.add(x.name)).map(x=>{ const e=cur.get(x.name); return {id:e?e.id:uid(),name:x.name,memo:x.memo!=null?x.memo:(e?e.memo:'')}; });
+    const list=d.servers.filter(x=>x&&x.name&&!seen.has(x.name)&&seen.add(x.name)).map(x=>{ const e=cur.get(x.name); return {id:e?e.id:uid(),name:x.name,memo:x.memo!=null?x.memo:(e?e.memo:''),door:x.door!=null?String(x.door):(e?e.door||'':'')}; });
     const keep=new Set(list.map(s=>s.id));
     Object.keys(S.checks).forEach(k=>{ if(!keep.has(k)) delete S.checks[k]; });
     Object.keys(S.notes).forEach(k=>{ if(!keep.has(k)) delete S.notes[k]; });
     S.servers=list; msg.push(`サーバー${list.length}台`);
   }
   if(opt.prog){
-    const sid=new Map(S.servers.map(s=>[s.name,s.id])), iid=new Map(S.items.map(i=>[i.name,i.id]));
+    const iid=new Map(S.items.map(i=>[i.name,i.id]));
+    const fileItems=d.items.map(x=>iid.get(x.name)).filter(Boolean);
     let n=0;
     S.servers.forEach(sv=>{
       const fc=(d.checks||{})[sv.name], fn=(d.notes||{})[sv.name];
       const inFile=d.servers.some(x=>x.name===sv.name);
+      let before=Object.assign({},S.checks[sv.id]||{});
       if(opt.mode==='replace'){
         if(!inFile) return;
-        delete S.checks[sv.id]; delete S.notes[sv.id];
-        if(!opt.srv){ const fs=d.servers.find(x=>x.name===sv.name); if(fs&&fs.memo!=null) sv.memo=fs.memo; }
+        fileItems.forEach(i=>{ if(S.checks[sv.id]) delete S.checks[sv.id][i]; if(S.notes[sv.id]) delete S.notes[sv.id][i]; });
+        if(!opt.srv){ const fs=d.servers.find(x=>x.name===sv.name);
+          if(fs&&fs.memo!=null) sv.memo=fs.memo; if(fs&&fs.door!=null) sv.door=String(fs.door); }
       }
       Object.entries(fc||{}).forEach(([nm,ts])=>{ const i=iid.get(nm); if(!i||!ts) return; const c=ck(sv.id);
+        if(ts==='keep') ts=before[i]||c[i]||Date.now(); // Excel cell marked 済 without a date
         if(opt.mode==='replace'||!c[i]||ts>c[i]){ c[i]=ts; } n++; });
       Object.entries(fn||{}).forEach(([nm,t])=>{ const i=iid.get(nm); if(!i||!t) return; const m=S.notes[sv.id]||(S.notes[sv.id]={});
         if(opt.mode==='replace'||!m[i]) m[i]=t; });
@@ -907,6 +923,158 @@ function applyImport(d,opt){
   if(d.title&&opt.item&&opt.srv) S.title=d.title;
   return msg;
 }
+
+/* ---------- Excel (.xlsx) export / import ---------- */
+function loadExcel(){
+  if(window.ExcelJS) return Promise.resolve(window.ExcelJS);
+  return new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='exceljs.min.js';
+    sc.onload=()=>res(window.ExcelJS); sc.onerror=()=>rej(new Error('load')); document.head.appendChild(sc); });
+}
+const XL={head:'FF4A4F57',th:'FF5D626B',row1:'FFFFFFFF',row2:'FFE6E6EA',okBg:'FFD9F5E1',okFg:'FF166534',line:'FFC9C9CF',note:'FF7C3AED'};
+const fill=c=>({type:'pattern',pattern:'solid',fgColor:{argb:c}});
+const border={top:{style:'thin',color:{argb:XL.line}},left:{style:'thin',color:{argb:XL.line}},bottom:{style:'thin',color:{argb:XL.line}},right:{style:'thin',color:{argb:XL.line}}};
+function xlsCellText(ts){ const d=new Date(ts); return `済\n${d.getMonth()+1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+async function buildXlsx(){
+  const ExcelJS=await loadExcel();
+  const items=active(), now=new Date();
+  const wb=new ExcelJS.Workbook(); wb.creator='CDU Check Tool'; wb.created=now;
+  const ws=wb.addWorksheet('チェック表',{views:[{state:'frozen',xSplit:2,ySplit:4}]});
+  const nCol=2+items.length+2; // rack, door, items, 進捗, メモ
+  ws.getColumn(1).width=14; ws.getColumn(2).width=13;
+  items.forEach((_,k)=>ws.getColumn(3+k).width=11.5);
+  ws.getColumn(3+items.length).width=8; ws.getColumn(4+items.length).width=26;
+  // title rows
+  ws.getCell(1,1).value=S.title; ws.getCell(1,1).font={bold:true,size:16};
+  ws.getCell(1,3).value=`書き出し：${fmtTime(now,true)}`; ws.getCell(1,3).font={color:{argb:'FF52525B'}};
+  ws.getCell(2,1).value='済＝セルに「済」（例：済 10/21 11:39）／未＝空欄。備考は「備考」シートで編集。';
+  ws.getCell(2,1).font={size:9,color:{argb:'FF52525B'}};
+  // header (row 3: number, row 4: name)
+  const h3=ws.getRow(3), h4=ws.getRow(4); h4.height=48;
+  const hd=(cell,v,bg,size)=>{ cell.value=v; cell.fill=fill(bg); cell.font={bold:true,color:{argb:'FFFFFFFF'},size:size||10};
+    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cell.border=border; };
+  hd(h3.getCell(1),'',XL.head); hd(h3.getCell(2),'',XL.head);
+  hd(h4.getCell(1),'ラック番号',XL.head,11); hd(h4.getCell(2),'リアドア番号',XL.head,10);
+  items.forEach((it,k)=>{ hd(h3.getCell(3+k),k+1,XL.th,9); hd(h4.getCell(3+k),it.name,XL.th,9); });
+  hd(h3.getCell(3+items.length),'',XL.th); hd(h4.getCell(3+items.length),'進捗',XL.th);
+  hd(h3.getCell(4+items.length),'',XL.th); hd(h4.getCell(4+items.length),'メモ',XL.th);
+  // body
+  S.servers.forEach((sv,r)=>{
+    const row=ws.getRow(5+r); row.height=32;
+    const bg=r%2?XL.row2:XL.row1, c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{}, p=progressOf(sv,items);
+    const put=(col,v,extra)=>{ const cell=row.getCell(col); cell.value=v; cell.fill=fill(bg); cell.border=border;
+      cell.alignment={vertical:'middle',wrapText:true}; if(extra) extra(cell); return cell; };
+    put(1,sv.name,cl=>cl.font={bold:true,size:12});
+    put(2,sv.door||'',cl=>cl.alignment={horizontal:'center',vertical:'middle'});
+    items.forEach((it,k)=>{
+      const ts=c[it.id];
+      const cell=put(3+k,ts?xlsCellText(ts):'',cl=>cl.alignment={horizontal:'center',vertical:'middle',wrapText:true});
+      if(ts){ cell.fill=fill(XL.okBg); cell.font={bold:true,color:{argb:XL.okFg},size:10}; }
+      if(nts[it.id]) cell.note={texts:[{text:nts[it.id]}]};
+    });
+    put(3+items.length,`${p.n}/${p.total}`,cl=>{cl.alignment={horizontal:'center',vertical:'middle'}; cl.font={color:{argb:'FF52525B'}};});
+    put(4+items.length,sv.memo||'');
+  });
+  ws.autoFilter={from:{row:4,column:1},to:{row:4+S.servers.length,column:nCol}};
+  ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,printTitlesRow:'3:4'};
+  // notes sheet
+  const ns=wb.addWorksheet('備考');
+  ns.columns=[{header:'ラック番号',width:14},{header:'作業項目',width:26},{header:'備考',width:50}];
+  ns.getRow(1).eachCell(cl=>{ cl.fill=fill(XL.head); cl.font={bold:true,color:{argb:'FFFFFFFF'}}; cl.border=border; });
+  ns.views=[{state:'frozen',ySplit:1}];
+  S.servers.forEach(sv=>{ const nts=S.notes[sv.id]||{};
+    S.items.forEach(it=>{ if(nts[it.id]){ const row=ns.addRow([sv.name,it.name,nts[it.id]]); row.alignment={vertical:'top',wrapText:true}; } }); });
+  return await wb.xlsx.writeBuffer();
+}
+function b64FromBuf(buf){ const u=new Uint8Array(buf); let s=''; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
+function bufFromB64(b64){ const s=atob(b64), u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u.buffer; }
+const XLSX_MIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+async function exportXlsx(mode){
+  toast('Excel を作成中…');
+  try{
+    const buf=await buildXlsx(), n=exportName().replace(/\.json$/,'.xlsx');
+    if(bridge&&bridge.shareFileB64){ const b=b64FromBuf(buf); mode==='share'?bridge.shareFileB64(n,b,XLSX_MIME):bridge.saveFileB64(n,b,XLSX_MIME); }
+    else { const blob=new Blob([buf],{type:XLSX_MIME}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=n; document.body.appendChild(a); a.click(); a.remove(); }
+  }catch(e){ toast('Excel の作成に失敗しました'); }
+}
+$('#xlsShare').onclick=()=>exportXlsx('share');
+$('#xlsSave').onclick=()=>exportXlsx('save');
+
+// Excel cell -> timestamp | 'keep' | null
+function cellText(v){
+  if(v==null) return '';
+  if(v instanceof Date) return v;
+  if(typeof v==='object'){ if(v.richText) return v.richText.map(t=>t.text).join(''); if(v.text!=null) return String(v.text); if(v.result!=null) return cellText(v.result); }
+  return String(v);
+}
+function parseMark(v,baseYear){
+  const now=Date.now();
+  const fix=(y,m,d,hh,mm)=>{ let t=new Date(y,m-1,d,hh,mm).getTime(); if(!baseYear&&t>now+2*864e5) t=new Date(y-1,m-1,d,hh,mm).getTime(); return t; };
+  if(v instanceof Date) return new Date(v.getUTCFullYear(),v.getUTCMonth(),v.getUTCDate(),v.getUTCHours(),v.getUTCMinutes()).getTime();
+  if(typeof v==='number'&&v>20000&&v<80000){ const d=new Date(Math.round((v-25569)*864e5)); return parseMark(d); }
+  const s=String(v).normalize('NFKC').trim(); if(!s) return null;
+  let m=s.match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})日?\s*(?:(\d{1,2}):(\d{2}))?/);
+  if(m) return fix(+m[1],+m[2],+m[3],+(m[4]||0),+(m[5]||0));
+  m=s.match(/(\d{1,2})[\/月](\d{1,2})日?\s*(?:(\d{1,2}):(\d{2}))?/);
+  if(m) return fix(baseYear||new Date().getFullYear(),+m[1],+m[2],+(m[3]||0),+(m[4]||0));
+  if(/済|完了|○|◯|〇|✓|✔|レ|^ok$|^v$|^1$/i.test(s)) return 'keep';
+  return null;
+}
+function loadScript(src,name){
+  if(window[name]) return Promise.resolve(window[name]);
+  return new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src=src;
+    sc.onload=()=>res(window[name]); sc.onerror=()=>rej(new Error('load')); document.head.appendChild(sc); });
+}
+// ExcelJS can fail on some files with cell comments; retry with the comment parts removed
+async function stripComments(buf){
+  const JSZip=await loadScript('jszip.min.js','JSZip');
+  const z=await JSZip.loadAsync(buf);
+  Object.keys(z.files).forEach(f=>{ if(/^xl\/(comments[^/]*\.xml|threadedComments\/.*|persons\/.*|drawings\/vmlDrawing[^/]*\.vml)$/i.test(f)) z.remove(f); });
+  for(const f of Object.keys(z.files)){
+    if(/^xl\/worksheets\/_rels\/.*\.rels$/.test(f)){
+      let x=await z.file(f).async('string');
+      x=x.replace(/<Relationship [^>]*Type="[^"]*\/(comments|vmlDrawing|threadedComment)"[^>]*\/>/g,''); z.file(f,x);
+    } else if(/^xl\/worksheets\/[^/]*\.xml$/.test(f)){
+      let x=await z.file(f).async('string'); x=x.replace(/<legacyDrawing [^>]*\/>/g,''); z.file(f,x);
+    } else if(f==='[Content_Types].xml'){
+      let x=await z.file(f).async('string');
+      x=x.replace(/<Override [^>]*PartName="\/xl\/(comments|threadedComments|persons)[^"]*"[^>]*\/>/g,''); z.file(f,x);
+    }
+  }
+  return await z.generateAsync({type:'arraybuffer'});
+}
+async function importXlsx(buf){
+  try{
+    const ExcelJS=await loadExcel();
+    let wb=new ExcelJS.Workbook();
+    try{ await wb.xlsx.load(buf); }
+    catch(e){ wb=new ExcelJS.Workbook(); await wb.xlsx.load(await stripComments(buf)); }
+    const ws=wb.getWorksheet('チェック表')||wb.worksheets[0];
+    let hr=0; ws.eachRow((row,r)=>{ if(!hr&&cellText(row.getCell(1).value).trim()==='ラック番号') hr=r; });
+    if(!hr){ toast('「ラック番号」の見出しが見つかりません'); return; }
+    const head=ws.getRow(hr), cols=[]; let doorCol=0, memoCol=0;
+    for(let c=2;c<=head.cellCount;c++){
+      const t=cellText(head.getCell(c).value).trim(); if(!t) continue;
+      if(t==='リアドア番号') doorCol=c; else if(t==='メモ') memoCol=c; else if(t==='進捗') continue; else cols.push({c,name:t});
+    }
+    const yr=(cellText(ws.getCell(1,3).value).match(/(\d{4})\//)||[])[1];
+    const d={format:'cdu-check-tool',source:'excel',exportedAt:null,items:cols.map(x=>({name:x.name,on:true})),servers:[],checks:{},notes:{}};
+    const seen=new Set();
+    for(let r=hr+1;r<=ws.rowCount;r++){
+      const row=ws.getRow(r), name=cellText(row.getCell(1).value).trim(); if(!name||seen.has(name)) continue; seen.add(name);
+      d.servers.push({name,door:doorCol?cellText(row.getCell(doorCol).value).trim():undefined,memo:memoCol?cellText(row.getCell(memoCol).value):undefined});
+      const ch={};
+      cols.forEach(x=>{ const t=parseMark(cellText(row.getCell(x.c).value),yr?+yr:0); if(t) ch[x.name]=t; });
+      if(Object.keys(ch).length) d.checks[name]=ch;
+    }
+    const ns=wb.getWorksheet('備考');
+    if(ns) ns.eachRow((row,r)=>{ if(r===1) return; const sv=cellText(row.getCell(1).value).trim(), it=cellText(row.getCell(2).value).trim(), t=cellText(row.getCell(3).value).trim();
+      if(sv&&it&&t){ (d.notes[sv]||(d.notes[sv]={}))[it]=t; } });
+    if(yr){ const m=cellText(ws.getCell(1,3).value).match(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/); if(m) d.exportedAt=new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5]).getTime(); }
+    if(!d.servers.length){ toast('ラック番号の行が見つかりません'); return; }
+    showImport(d);
+  }catch(e){ toast('Excel を読み込めませんでした'); }
+}
+window.onImportXlsx=b64=>importXlsx(bufFromB64(b64));
 $('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェックと備考をクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; S.notes={}; save(); toast('クリアしました'); } };
 $('#resetAll').onclick=async()=>{ if(await confirmBox('項目・サーバー・チェックをすべて初期サンプルに戻しますか？<br><small>元に戻せません。</small>','初期化',true)){ S=sampleState(); save(); renderItems(); renderServers(); renderOpts(); toast('初期サンプルに戻しました'); } };
 
