@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>サーバー作業チェックアプリ</title>
+<style>
+:root{
+  --pri:#1e5aa8; --pri-weak:#e7effa; --ok:#2ead5b; --ok-weak:#e3f6ea; --next:#f2a516; --next-weak:#fff5df;
+  --bg:#f4f6f9; --card:#fff; --line:#d9dee6; --text:#1c2430; --sub:#6b7686; --danger:#d23b3b;
+  --cellw:66px; --namew:118px; --rowh:46px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font:inherit}
+#app{display:flex;flex-direction:column;height:100%}
+
+/* header */
+header{background:var(--pri);color:#fff;padding:10px 12px 8px;flex:none}
+.hrow{display:flex;align-items:center;gap:8px}
+.htitle{font-weight:700;font-size:16px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtn{background:rgba(255,255,255,.16);border:0;border-radius:8px;color:#fff;padding:7px 11px;font-size:13px}
+.hbtn:active{background:rgba(255,255,255,.3)}
+.prog{margin-top:8px;display:flex;align-items:center;gap:10px;font-size:12px}
+.bar{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.25);overflow:hidden}
+.bar>i{display:block;height:100%;background:#7ee2a1;width:0;transition:width .25s}
+
+/* toolbar */
+.tools{display:flex;gap:6px;padding:8px 10px;background:var(--card);border-bottom:1px solid var(--line);flex:none;align-items:center}
+.tools input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#fafbfc}
+.chip{border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 10px;font-size:12px;white-space:nowrap}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+
+/* grid */
+#gridWrap{flex:1;overflow:auto;position:relative;background:var(--card);-webkit-overflow-scrolling:touch}
+table.grid{border-collapse:separate;border-spacing:0;table-layout:fixed}
+.grid th,.grid td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0}
+.grid thead th{position:sticky;top:0;z-index:2;background:#eef2f7;font-weight:600;font-size:11px;
+  width:var(--cellw);min-width:var(--cellw);max-width:var(--cellw);height:78px;vertical-align:bottom;padding:4px 3px;line-height:1.25}
+.grid thead th .no{display:block;color:var(--pri);font-size:10px;margin-bottom:2px}
+.grid thead th .nm{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all}
+.grid thead th.corner{left:0;z-index:3;width:var(--namew);min-width:var(--namew);max-width:var(--namew);text-align:left;padding:6px 8px;vertical-align:bottom;font-size:12px}
+.grid thead th.pcol,.grid td.pcol{width:52px;min-width:52px;max-width:52px}
+.grid td.sv{position:sticky;left:0;z-index:1;background:#fff;width:var(--namew);min-width:var(--namew);max-width:var(--namew);
+  padding:4px 8px;height:var(--rowh)}
+.sv .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.sv .m{font-size:10px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+tr.done td.sv{background:var(--ok-weak)}
+tr.done td.sv .n::after{content:" ✔";color:var(--ok)}
+.grid tbody tr:nth-child(even) td.c{background:#fbfcfd}
+td.c{height:var(--rowh);text-align:center;vertical-align:middle;user-select:none}
+td.c .ck{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;line-height:1.1}
+td.c.on{background:var(--ok-weak)!important}
+td.c.on .ck b{color:var(--ok);font-size:19px}
+td.c.on .ck small{color:#3d7a52;font-size:9.5px}
+td.c.next{background:var(--next-weak)!important;box-shadow:inset 0 0 0 2px var(--next)}
+td.c.next .ck b{color:var(--next);font-size:11px;font-weight:700}
+td.c.lock .ck b{color:#c9cfd8}
+td.c:active{filter:brightness(.92)}
+td.pcol{text-align:center;font-size:11px;color:var(--sub)}
+td.pcol b{display:block;color:var(--text);font-size:12px}
+tr.hl td{animation:hl 1s}
+@keyframes hl{from{background:#fff3b0}}
+.empty{padding:40px 20px;text-align:center;color:var(--sub)}
+
+/* sheets / modals */
+.overlay{position:fixed;inset:0;background:rgba(10,20,35,.45);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:640px;max-height:88%;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.overlay.center{align-items:center;padding:20px}
+.overlay.center .sheet{border-radius:14px;max-width:420px}
+.sh-h{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.sh-h h3{margin:0;font-size:16px;flex:1}
+.sh-b{padding:12px 16px;overflow:auto;flex:1}
+.sh-f{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 14px}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.dan{color:var(--danger);border-color:#f0c4c4}
+.btn.sm{padding:6px 10px;font-size:12px}
+.btn:active{filter:brightness(.92)}
+.x{border:0;background:none;font-size:22px;line-height:1;color:var(--sub);padding:2px 6px}
+
+/* settings */
+#settings{position:fixed;inset:0;background:var(--bg);z-index:10;display:none;flex-direction:column}
+#settings.show{display:flex}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--line);flex:none}
+.tabs button{flex:1;border:0;background:none;padding:12px 4px;border-bottom:3px solid transparent;color:var(--sub);font-weight:600}
+.tabs button.on{color:var(--pri);border-bottom-color:var(--pri)}
+.pane{flex:1;overflow:auto;padding:12px;display:none}
+.pane.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.card h4{margin:0;padding:10px 12px;font-size:13px;border-bottom:1px solid var(--line);background:#fafbfc;display:flex;align-items:center;gap:6px}
+.card h4 span{flex:1}
+.card .in{padding:10px 12px}
+.help{font-size:12px;color:var(--sub);margin:0 0 10px;line-height:1.5}
+ul.list{list-style:none;margin:0;padding:0}
+ul.list li{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid #eef1f5;background:#fff;min-height:46px}
+ul.list li:last-child{border-bottom:0}
+ul.list li.off .lname{color:#a0a8b4;text-decoration:line-through}
+ul.list li.drag{opacity:.9;background:var(--pri-weak);box-shadow:0 4px 14px rgba(0,0,0,.18);position:relative;z-index:5}
+.handle{touch-action:none;padding:8px 6px;color:#9aa4b2;font-size:18px;line-height:1;cursor:grab}
+.idx{width:24px;text-align:right;color:var(--sub);font-size:11px;flex:none}
+.lname{flex:1;min-width:0;word-break:break-all;padding:4px 0}
+.ib{border:1px solid var(--line);background:#fff;border-radius:7px;width:32px;height:32px;padding:0;flex:none;font-size:13px}
+.ib:active{background:#eef}
+.ib.del{color:var(--danger)}
+.sw{position:relative;width:44px;height:26px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:#c9d0da;border-radius:13px;transition:.2s}
+.sw i::after{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.sw input:checked+i{background:var(--ok)}
+.sw input:checked+i::after{left:21px}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.row+.row{margin-top:8px}
+.tin{border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0;flex:1;background:#fff}
+.tin.n{flex:none;width:70px}
+textarea.tin{width:100%;min-height:110px;resize:vertical}
+.opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eef1f5}
+.opt:last-child{border-bottom:0}
+.opt .t{flex:1}
+.opt .t small{display:block;color:var(--sub);font-size:11px;margin-top:2px;line-height:1.4}
+
+/* detail */
+.dl{list-style:none;margin:0;padding:0}
+.dl li{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #eef1f5}
+.dl li .s{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;border:2px solid var(--line);color:var(--sub)}
+.dl li.on .s{background:var(--ok);border-color:var(--ok);color:#fff}
+.dl li.next .s{border-color:var(--next);color:var(--next)}
+.dl li .t{flex:1}
+.dl li .tm{font-size:11px;color:var(--sub)}
+
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#222c3a;color:#fff;padding:10px 16px;border-radius:20px;
+  font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:90%;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.legend{display:flex;gap:12px;padding:6px 10px;font-size:11px;color:var(--sub);background:var(--card);border-bottom:1px solid var(--line);flex:none;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.legend .l1::before{background:var(--ok-weak);border:1px solid var(--ok)}
+.legend .l2::before{background:var(--next-weak);border:2px solid var(--next)}
+.legend .l3::before{background:#fff;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="hrow">
+      <div class="htitle" id="hTitle">サーバー作業チェック</div>
+      <button class="hbtn" id="btnJump" title="次の作業へ">▶ 次へ</button>
+      <button class="hbtn" id="btnSettings">⚙ 設定</button>
+    </div>
+    <div class="prog">
+      <span id="pText">0 / 0 台完了</span>
+      <div class="bar"><i id="pBar"></i></div>
+      <span id="pPct">0%</span>
+    </div>
+  </header>
+  <div class="tools">
+    <input id="q" type="search" placeholder="サーバー名で検索">
+    <button class="chip on" data-f="all">全て</button>
+    <button class="chip" data-f="todo">未完了</button>
+    <button class="chip" data-f="done">完了</button>
+  </div>
+  <div class="legend"><span class="l1">完了</span><span class="l2">次の作業</span><span class="l3">未着手</span><span style="margin-left:auto">サーバー名タップで詳細</span></div>
+  <div id="gridWrap"></div>
+</div>
+
+<!-- settings -->
+<div id="settings">
+  <header>
+    <div class="hrow">
+      <button class="hbtn" id="btnBack">← 戻る</button>
+      <div class="htitle">設定</div>
+    </div>
+  </header>
+  <div class="tabs">
+    <button data-t="items" class="on">チェック項目</button>
+    <button data-t="servers">サーバー</button>
+    <button data-t="other">その他</button>
+  </div>
+
+  <div class="pane on" id="pane-items">
+    <div class="card">
+      <h4><span>使用する項目と順序</span><small id="itemCount"></small></h4>
+      <div class="in">
+        <p class="help">スイッチで表示する項目を選び、≡ をドラッグ（または ▲▼）で並び替えます。上から順に左→右の列になります。</p>
+        <div class="row">
+          <button class="btn sm" id="itAllOn">すべて使用</button>
+          <button class="btn sm" id="itAllOff">すべて解除</button>
+          <button class="btn sm" id="itOnTop">使用中を上へ集める</button>
+        </div>
+      </div>
+      <ul class="list" id="itemList"></ul>
+    </div>
+    <div class="card">
+      <h4><span>項目を追加</span></h4>
+      <div class="in">
+        <div class="row"><input class="tin" id="newItem" placeholder="例：ログローテーション確認"><button class="btn pri" id="addItem">追加</button></div>
+        <p class="help" style="margin-top:8px">複数行まとめて追加：</p>
+        <textarea class="tin" id="bulkItems" placeholder="1行に1項目"></textarea>
+        <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="btn" id="addBulkItems">まとめて追加</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-servers">
+    <div class="card">
+      <h4><span>サーバー一覧</span><small id="srvCount"></small></h4>
+      <div class="in"><p class="help">名前をタップで変更。≡ をドラッグ（または ▲▼）で並び替え。上から順に表の行になります。</p></div>
+      <ul class="list" id="srvList"></ul>
+    </div>
+    <div class="card">
+      <h4><span>連番で追加</span></h4>
+      <div class="in">
+        <div class="row">
+          <input class="tin" id="snPrefix" value="SRV-" placeholder="接頭辞">
+          <input class="tin n" id="snFrom" type="number" value="43" min="0">
+          <span>〜</span>
+          <input class="tin n" id="snTo" type="number" value="50" min="0">
+        </div>
+        <div class="row">
+          <label style="font-size:12px;color:var(--sub)">桁数 <input class="tin n" id="snPad" type="number" value="3" min="1" max="6" style="width:56px"></label>
+          <span style="flex:1"></span>
+          <button class="btn pri" id="addSeq">追加</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h4><span>名前を貼り付けて追加</span></h4>
+      <div class="in">
+        <textarea class="tin" id="bulkSrv" placeholder="1行に1台（例：web-01）"></textarea>
+        <div class="row" style="margin-top:8px">
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px"><input type="checkbox" id="bulkReplace"> 既存を置き換える</label>
+          <span style="flex:1"></span>
+          <button class="btn pri" id="addBulkSrv">追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-other">
+    <div class="card">
+      <h4><span>動作</span></h4>
+      <div class="opt"><div class="t">順番どおりに進める<small>左の作業が終わるまで次の列にチェックできません。外すときは最後のチェックから。</small></div>
+        <label class="sw"><input type="checkbox" id="optSeq"><i></i></label></div>
+      <div class="opt"><div class="t">チェック時刻を表示<small>セルにチェックした時刻（時:分）を表示します。</small></div>
+        <label class="sw"><input type="checkbox" id="optTime"><i></i></label></div>
+      <div class="opt"><div class="t">チェックを外す前に確認<small>誤タップ防止のため、外すときに確認します。</small></div>
+        <label class="sw"><input type="checkbox" id="optConfirm"><i></i></label></div>
+      <div class="opt"><div class="t">シート名</div>
+        <input class="tin" id="optTitle" style="max-width:55%"></div>
+    </div>
+    <div class="card">
+      <h4><span>データ</span></h4>
+      <div class="in">
+        <div class="row"><button class="btn" id="expCsv">結果をCSVで共有</button><button class="btn" id="expJson">設定・結果をバックアップ</button></div>
+        <div class="row"><button class="btn" id="impJson">バックアップから復元</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h4><span>リセット</span></h4>
+      <div class="in">
+        <div class="row"><button class="btn dan" id="resetChecks">全チェックをクリア</button><button class="btn dan" id="resetAll">初期サンプルに戻す</button></div>
+        <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック状態だけを消します。</p>
+      </div>
+    </div>
+    <p class="help" style="text-align:center">サーバー作業チェックアプリ v1.0</p>
+  </div>
+</div>
+
+<!-- generic modal -->
+<div class="overlay" id="ov"><div class="sheet" id="ovSheet"></div></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+const KEY='srvchk.v1';
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const bridge=window.AndroidBridge;
+
+/* ---------- default sample ---------- */
+const SAMPLE_ITEMS=[
+  ['作業前 状態確認(ping)',1],['ログイン確認',1],['サービス停止',1],['バックアップ取得',1],
+  ['スナップショット取得',1],['OSパッチ適用',1],['再起動',1],['起動確認',1],
+  ['サービス起動確認',1],['ディスク容量確認',1],['時刻同期(NTP)確認',1],['エラーログ確認',1],
+  ['監視アラート解除確認',1],['作業完了報告',1],
+  ['OSバージョン確認',0],['CPU/メモリ使用率確認',0],['ネットワーク疎通確認',0],['RAID状態確認',0],
+  ['ファームウェア更新',0],['ウイルス定義更新',0],['証明書期限確認',0],['ユーザーアカウント棚卸',0],
+  ['FW設定確認',0],['設定ファイル退避',0],['冗長化切替試験',0],['ハードウェアランプ確認',0]
+];
+function sampleState(){
+  const servers=[];
+  for(let i=1;i<=42;i++) servers.push({id:uid(),name:'SRV-'+String(i).padStart(3,'0'),memo:''});
+  return {
+    title:'サーバー作業チェック',
+    items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on})),
+    servers, checks:{},
+    opts:{seq:true,time:true,confirm:true}
+  };
+}
+
+/* ---------- storage ---------- */
+let S;
+function load(){
+  try{
+    const raw=bridge?bridge.load(KEY):localStorage.getItem(KEY);
+    if(raw){const d=JSON.parse(raw); if(d&&d.items&&d.servers) return normalize(d);}
+  }catch(e){}
+  return sampleState();
+}
+function normalize(d){
+  d.checks=d.checks||{}; d.opts=Object.assign({seq:true,time:true,confirm:true},d.opts||{});
+  d.title=d.title||'サーバー作業チェック';
+  d.servers.forEach(s=>{if(!s.id)s.id=uid(); if(s.memo==null)s.memo='';});
+  d.items.forEach(i=>{if(!i.id)i.id=uid(); i.on=!!i.on;});
+  return d;
+}
+let saveT;
+function save(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{
+    const raw=JSON.stringify(S);
+    try{ bridge?bridge.save(KEY,raw):localStorage.setItem(KEY,raw);}catch(e){toast('保存に失敗しました');}
+  },150);
+}
+
+/* ---------- helpers ---------- */
+const active=()=>S.items.filter(i=>i.on);
+const ck=(sid)=>S.checks[sid]||(S.checks[sid]={});
+function progressOf(sv,items){
+  const c=S.checks[sv.id]||{}; let n=0, next=-1;
+  items.forEach((it,i)=>{ if(c[it.id]) n++; else if(next<0) next=i; });
+  return {n,next,total:items.length,done:items.length>0&&n===items.length};
+}
+function fmtTime(ts,full){
+  const d=new Date(ts), p=n=>String(n).padStart(2,'0');
+  return full? `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+             : `${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1900);}
+
+/* ---------- modal ---------- */
+let modalClose=null;
+function openModal(html,{center=false,onClose}={}){
+  $('#ovSheet').innerHTML=html; const ov=$('#ov');
+  ov.classList.toggle('center',center); ov.classList.add('show'); modalClose=onClose||null;
+}
+function closeModal(){ $('#ov').classList.remove('show'); const f=modalClose; modalClose=null; if(f)f(); }
+$('#ov').addEventListener('click',e=>{ if(e.target.id==='ov') closeModal(); });
+function confirmBox(msg,okLabel='OK',danger=false){
+  return new Promise(res=>{
+    openModal(`<div class="sh-b" style="padding:20px 18px;font-size:15px;line-height:1.6">${msg}</div>
+      <div class="sh-f"><button class="btn" data-a="no">キャンセル</button><button class="btn ${danger?'dan':'pri'}" data-a="yes">${esc(okLabel)}</button></div>`,{center:true,onClose:()=>res(false)});
+    $('#ovSheet').onclick=e=>{const a=e.target.dataset.a; if(!a)return; modalClose=null; $('#ov').classList.remove('show'); res(a==='yes');};
+  });
+}
+function promptBox(title,val,multi){
+  return new Promise(res=>{
+    openModal(`<div class="sh-h"><h3>${esc(title)}</h3></div><div class="sh-b">
+      ${multi?`<textarea class="tin" id="pv">${esc(val)}</textarea>`:`<input class="tin" id="pv" style="width:100%" value="${esc(val)}">`}</div>
+      <div class="sh-f"><button class="btn" data-a="no">キャンセル</button><button class="btn pri" data-a="yes">OK</button></div>`,{center:true,onClose:()=>res(null)});
+    const inp=$('#pv'); setTimeout(()=>{inp.focus(); if(!multi) inp.select();},50);
+    $('#ovSheet').onclick=e=>{const a=e.target.dataset.a; if(!a)return; const v=inp.value; modalClose=null; $('#ov').classList.remove('show'); res(a==='yes'?v:null);};
+  });
+}
+
+/* ---------- main grid ---------- */
+let filter='all', query='';
+function renderGrid(){
+  const items=active(), wrap=$('#gridWrap');
+  $('#hTitle').textContent=S.title;
+  // overall progress
+  let doneSv=0, doneCells=0;
+  S.servers.forEach(s=>{const p=progressOf(s,items); if(p.done)doneSv++; doneCells+=p.n;});
+  const totalCells=S.servers.length*items.length;
+  $('#pText').textContent=`${doneSv} / ${S.servers.length} 台完了`;
+  const pct=totalCells?Math.round(doneCells/totalCells*100):0;
+  $('#pPct').textContent=pct+'%'; $('#pBar').style.width=pct+'%';
+
+  if(!items.length){wrap.innerHTML='<div class="empty">使用するチェック項目がありません。<br>⚙ 設定 → チェック項目 で選んでください。</div>';return;}
+  if(!S.servers.length){wrap.innerHTML='<div class="empty">サーバーが登録されていません。<br>⚙ 設定 → サーバー で追加してください。</div>';return;}
+
+  const q=query.trim().toLowerCase();
+  let h='<table class="grid"><thead><tr><th class="corner">サーバー<br><small style="color:var(--sub);font-weight:400">'+S.servers.length+'台</small></th>';
+  items.forEach((it,i)=>{ h+=`<th><span class="no">${i+1}</span><span class="nm">${esc(it.name)}</span></th>`; });
+  h+='<th class="pcol">進捗</th></tr></thead><tbody>';
+  let shown=0;
+  S.servers.forEach(sv=>{
+    const p=progressOf(sv,items);
+    if(filter==='done'&&!p.done) return;
+    if(filter==='todo'&&p.done) return;
+    if(q&&!sv.name.toLowerCase().includes(q)&&!(sv.memo||'').toLowerCase().includes(q)) return;
+    shown++;
+    const c=S.checks[sv.id]||{};
+    h+=`<tr data-s="${sv.id}" class="${p.done?'done':''}"><td class="sv" data-sv="1"><div class="n">${esc(sv.name)}</div><div class="m">${esc(sv.memo||'')}</div></td>`;
+    items.forEach((it,i)=>{
+      const ts=c[it.id];
+      if(ts) h+=`<td class="c on" data-i="${it.id}"><div class="ck"><b>✓</b>${S.opts.time?`<small>${fmtTime(ts)}</small>`:''}</div></td>`;
+      else if(i===p.next) h+=`<td class="c next" data-i="${it.id}"><div class="ck"><b>次</b></div></td>`;
+      else h+=`<td class="c ${S.opts.seq?'lock':''}" data-i="${it.id}"><div class="ck"><b>${S.opts.seq?'・':''}</b></div></td>`;
+    });
+    h+=`<td class="pcol"><b>${p.n}/${p.total}</b>${Math.round(p.n/p.total*100)}%</td></tr>`;
+  });
+  h+='</tbody></table>';
+  if(!shown) h='<div class="empty">該当するサーバーはありません。</div>';
+  const st=wrap.scrollTop, sl=wrap.scrollLeft;
+  wrap.innerHTML=h; wrap.scrollTop=st; wrap.scrollLeft=sl;
+}
+
+$('#gridWrap').addEventListener('click',async e=>{
+  const tr=e.target.closest('tr[data-s]'); if(!tr) return;
+  const sid=tr.dataset.s;
+  if(e.target.closest('td[data-sv]')){ openDetail(sid); return; }
+  const td=e.target.closest('td.c'); if(!td) return;
+  await toggle(sid,td.dataset.i);
+});
+
+async function toggle(sid,iid,fromDetail){
+  const items=active(), c=ck(sid), idx=items.findIndex(i=>i.id===iid);
+  if(idx<0) return;
+  if(c[iid]){
+    if(S.opts.seq){
+      const later=items.slice(idx+1).some(i=>c[i.id]);
+      if(later){toast('順番モード：最後にチェックした作業から外してください');return;}
+    }
+    if(S.opts.confirm && !(await confirmBox(`「${esc(items[idx].name)}」のチェックを外しますか？`,'外す',true))){ if(fromDetail)openDetail(sid); return;}
+    delete c[iid];
+  }else{
+    if(S.opts.seq){
+      const prev=items.slice(0,idx).find(i=>!c[i.id]);
+      if(prev){toast(`先に「${prev.name}」を完了してください`);return;}
+    }
+    c[iid]=Date.now();
+    const sv=S.servers.find(s=>s.id===sid), p=progressOf(sv,items);
+    if(p.done) toast(`${sv.name} の全作業が完了しました 🎉`);
+  }
+  save(); renderGrid();
+  if(fromDetail) openDetail(sid);
+}
+
+/* detail sheet */
+function openDetail(sid){
+  const sv=S.servers.find(s=>s.id===sid); if(!sv) return;
+  const items=active(), c=S.checks[sid]||{}, p=progressOf(sv,items);
+  let h=`<div class="sh-h"><h3>${esc(sv.name)}</h3><span style="color:var(--sub);font-size:12px">${p.n}/${p.total}</span><button class="x" data-a="close">×</button></div><div class="sh-b"><ul class="dl">`;
+  items.forEach((it,i)=>{
+    const ts=c[it.id];
+    h+=`<li class="${ts?'on':(i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}</span></li>`;
+  });
+  h+=`</ul><p class="help" style="margin:14px 0 6px">メモ</p><textarea class="tin" id="memo" style="min-height:70px" placeholder="作業メモ（例：IP、担当者、注意点）">${esc(sv.memo||'')}</textarea></div>
+  <div class="sh-f"><button class="btn dan" data-a="reset">このサーバーをクリア</button><span style="flex:1"></span>${p.next>=0?'<button class="btn pri" data-a="next">次の作業を完了</button>':''}</div>`;
+  openModal(h,{onClose:saveMemo});
+  function saveMemo(){ const m=$('#memo'); if(m&&m.value!==sv.memo){ sv.memo=m.value; save(); renderGrid(); } }
+  $('#ovSheet').onclick=async e=>{
+    const a=e.target.closest('[data-a]'), li=e.target.closest('li[data-i]');
+    if(li){ saveMemo(); modalClose=null; $('#ov').classList.remove('show'); await toggle(sid,li.dataset.i,true); return; }
+    if(!a) return;
+    if(a.dataset.a==='close') closeModal();
+    if(a.dataset.a==='next'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show'); await toggle(sid,items[p.next].id,true); }
+    if(a.dataset.a==='reset'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show');
+      if(await confirmBox(`${esc(sv.name)} のチェックをすべて外しますか？`,'クリア',true)){ delete S.checks[sid]; save(); renderGrid(); }
+      openDetail(sid);
+    }
+  };
+}
+
+/* jump to first unfinished server */
+$('#btnJump').onclick=()=>{
+  const items=active();
+  const sv=S.servers.find(s=>!progressOf(s,items).done);
+  if(!sv){toast('すべてのサーバーが完了しています');return;}
+  if(filter==='done'){filter='all';$$('.chip').forEach(c=>c.classList.toggle('on',c.dataset.f==='all'));}
+  query='';$('#q').value=''; renderGrid();
+  const tr=$(`tr[data-s="${sv.id}"]`), wrap=$('#gridWrap'); if(!tr) return;
+  const p=progressOf(sv,items);
+  wrap.scrollTop=tr.offsetTop-90;
+  const td=tr.querySelectorAll('td.c')[p.next]; if(td) wrap.scrollLeft=Math.max(0,td.offsetLeft-140);
+  tr.classList.add('hl'); setTimeout(()=>tr.classList.remove('hl'),1000);
+};
+$('#q').addEventListener('input',e=>{query=e.target.value;renderGrid();});
+$$('.chip').forEach(c=>c.onclick=()=>{filter=c.dataset.f;$$('.chip').forEach(x=>x.classList.toggle('on',x===c));renderGrid();});
+
+/* ---------- settings ---------- */
+function openSettings(){ $('#settings').classList.add('show'); renderItems(); renderServers(); renderOpts(); }
+function closeSettings(){ $('#settings').classList.remove('show'); renderGrid(); }
+$('#btnSettings').onclick=openSettings; $('#btnBack').onclick=closeSettings;
+$$('.tabs button').forEach(b=>b.onclick=()=>{
+  $$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $$('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+b.dataset.t));
+});
+
+function renderItems(){
+  const n=active().length;
+  $('#itemCount').textContent=`使用 ${n} / 全 ${S.items.length}`;
+  let k=0;
+  $('#itemList').innerHTML=S.items.map((it,i)=>`<li data-id="${it.id}" class="${it.on?'':'off'}">
+    <span class="handle">≡</span><span class="idx">${it.on?(++k):'-'}</span>
+    <span class="lname" data-a="ren">${esc(it.name)}</span>
+    <button class="ib" data-a="up">▲</button><button class="ib" data-a="dn">▼</button>
+    <label class="sw"><input type="checkbox" data-a="on" ${it.on?'checked':''}><i></i></label>
+    <button class="ib del" data-a="del">✕</button></li>`).join('');
+}
+function renderServers(){
+  $('#srvCount').textContent=`${S.servers.length} 台`;
+  $('#srvList').innerHTML=S.servers.map((s,i)=>`<li data-id="${s.id}">
+    <span class="handle">≡</span><span class="idx">${i+1}</span>
+    <span class="lname" data-a="ren">${esc(s.name)}</span>
+    <button class="ib" data-a="up">▲</button><button class="ib" data-a="dn">▼</button>
+    <button class="ib del" data-a="del">✕</button></li>`).join('') || '<li style="color:var(--sub);justify-content:center">サーバーがありません</li>';
+}
+function renderOpts(){
+  $('#optSeq').checked=S.opts.seq; $('#optTime').checked=S.opts.time; $('#optConfirm').checked=S.opts.confirm; $('#optTitle').value=S.title;
+}
+function move(arr,from,to){ if(to<0||to>=arr.length) return false; const [x]=arr.splice(from,1); arr.splice(to,0,x); return true; }
+
+function listHandler(arr,render,kind){
+  return async e=>{
+    const li=e.target.closest('li[data-id]'), a=e.target.closest('[data-a]'); if(!li||!a) return;
+    const i=arr().findIndex(x=>x.id===li.dataset.id), obj=arr()[i];
+    switch(a.dataset.a){
+      case 'up': move(arr(),i,i-1); break;
+      case 'dn': move(arr(),i,i+1); break;
+      case 'on': return; // handled by change event
+      case 'ren': { const v=await promptBox(kind==='item'?'項目名を変更':'サーバー名を変更',obj.name); if(v&&v.trim()) obj.name=v.trim(); break; }
+      case 'del': {
+        const msg=kind==='item'?`項目「${esc(obj.name)}」を削除しますか？<br><small>使わないだけなら、スイッチをオフにすると記録が残ります。</small>`:`サーバー「${esc(obj.name)}」を削除しますか？<br><small>このサーバーのチェック記録も消えます。</small>`;
+        if(!(await confirmBox(msg,'削除',true))) return;
+        arr().splice(i,1);
+        if(kind==='item') Object.values(S.checks).forEach(c=>delete c[obj.id]); else delete S.checks[obj.id];
+        break;
+      }
+      default: return;
+    }
+    save(); render();
+  };
+}
+$('#itemList').addEventListener('click',listHandler(()=>S.items,renderItems,'item'));
+$('#itemList').addEventListener('change',e=>{ if(e.target.dataset.a==='on'){ const li=e.target.closest('li'); const it=S.items.find(x=>x.id===li.dataset.id); it.on=e.target.checked; save(); renderItems(); }});
+$('#srvList').addEventListener('click',listHandler(()=>S.servers,renderServers,'srv'));
+
+/* drag reorder via handle */
+function enableDrag(ul,arr,render){
+  let drag=null;
+  ul.addEventListener('pointerdown',e=>{
+    const h=e.target.closest('.handle'); if(!h) return;
+    const li=h.closest('li'); e.preventDefault();
+    drag={li,id:li.dataset.id,startY:e.clientY,pid:e.pointerId};
+    li.classList.add('drag'); ul.setPointerCapture(e.pointerId);
+  });
+  ul.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.pid) return;
+    const lis=Array.from(ul.children).filter(x=>x!==drag.li);
+    let before=null;
+    for(const x of lis){ const r=x.getBoundingClientRect(); if(e.clientY<r.top+r.height/2){before=x;break;} }
+    if(before!==drag.li.nextSibling) ul.insertBefore(drag.li,before);
+    // auto scroll the pane while dragging near edges
+    const pane=ul.closest('.pane'), pr=pane.getBoundingClientRect();
+    if(e.clientY<pr.top+40) pane.scrollTop-=12; else if(e.clientY>pr.bottom-40) pane.scrollTop+=12;
+  });
+  const end=e=>{
+    if(!drag) return;
+    const order=Array.from(ul.children).map(x=>x.dataset.id);
+    const a=arr(); a.sort((x,y)=>order.indexOf(x.id)-order.indexOf(y.id));
+    drag.li.classList.remove('drag'); drag=null; save(); render();
+  };
+  ul.addEventListener('pointerup',end); ul.addEventListener('pointercancel',end);
+}
+enableDrag($('#itemList'),()=>S.items,renderItems);
+enableDrag($('#srvList'),()=>S.servers,renderServers);
+
+$('#itAllOn').onclick=()=>{S.items.forEach(i=>i.on=true);save();renderItems();};
+$('#itAllOff').onclick=()=>{S.items.forEach(i=>i.on=false);save();renderItems();};
+$('#itOnTop').onclick=()=>{S.items=S.items.filter(i=>i.on).concat(S.items.filter(i=>!i.on));save();renderItems();};
+function addItems(names){
+  const ex=new Set(S.items.map(i=>i.name)); let n=0;
+  names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.items.push({id:uid(),name:nm,on:true});ex.add(nm);n++;} });
+  save(); renderItems(); toast(n?`${n} 件の項目を追加しました`:'追加する項目がありません（重複は除外）');
+}
+$('#addItem').onclick=()=>{addItems([$('#newItem').value]);$('#newItem').value='';};
+$('#newItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addItem').click();});
+$('#addBulkItems').onclick=()=>{addItems($('#bulkItems').value.split(/\r?\n/));$('#bulkItems').value='';};
+
+function addServers(names,replace){
+  if(replace){ S.servers=[]; S.checks={}; }
+  const ex=new Set(S.servers.map(s=>s.name)); let n=0;
+  names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.servers.push({id:uid(),name:nm,memo:''});ex.add(nm);n++;} });
+  save(); renderServers();
+  toast(n?`${n} 台追加しました（合計 ${S.servers.length} 台）`:'追加するサーバーがありません（重複は除外）');
+  if(S.servers.length>200) toast(`合計 ${S.servers.length} 台です。動作が重くなる場合があります`);
+}
+$('#addSeq').onclick=()=>{
+  const pre=$('#snPrefix').value, a=parseInt($('#snFrom').value,10), b=parseInt($('#snTo').value,10), pad=Math.min(6,Math.max(1,parseInt($('#snPad').value,10)||1));
+  if(isNaN(a)||isNaN(b)||b<a){toast('番号の範囲を確認してください');return;}
+  if(b-a>499){toast('一度に追加できるのは500台までです');return;}
+  const names=[]; for(let i=a;i<=b;i++) names.push(pre+String(i).padStart(pad,'0'));
+  addServers(names,false);
+};
+$('#addBulkSrv').onclick=async()=>{
+  const names=$('#bulkSrv').value.split(/\r?\n/).filter(s=>s.trim()); if(!names.length){toast('サーバー名を入力してください');return;}
+  const rep=$('#bulkReplace').checked;
+  if(rep && !(await confirmBox('既存のサーバーとチェック記録をすべて置き換えますか？','置き換える',true))) return;
+  addServers(names,rep); $('#bulkSrv').value='';
+};
+
+$('#optSeq').onchange=e=>{S.opts.seq=e.target.checked;save();};
+$('#optTime').onchange=e=>{S.opts.time=e.target.checked;save();};
+$('#optConfirm').onchange=e=>{S.opts.confirm=e.target.checked;save();};
+$('#optTitle').oninput=e=>{S.title=e.target.value||'サーバー作業チェック';save();};
+
+/* export / import */
+function share(title,text,filename,mime){
+  if(bridge&&bridge.share){ bridge.share(title,text); return; }
+  const blob=new Blob([text],{type:mime}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+const csvCell=v=>/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
+$('#expCsv').onclick=()=>{
+  const items=active();
+  const rows=[['サーバー',...items.map(i=>i.name),'進捗','メモ']];
+  S.servers.forEach(sv=>{ const c=S.checks[sv.id]||{}, p=progressOf(sv,items);
+    rows.push([sv.name,...items.map(i=>c[i.id]?fmtTime(c[i.id],true):''),`${p.n}/${p.total}`,sv.memo||'']); });
+  const d=new Date(), stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  share(`${S.title}_${stamp}.csv`,'﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'),`${S.title}_${stamp}.csv`,'text/csv');
+};
+$('#expJson').onclick=()=>share('サーバー作業チェック バックアップ',JSON.stringify(S),'server-check-backup.json','application/json');
+$('#impJson').onclick=async()=>{
+  const v=await promptBox('バックアップ（JSON）を貼り付け','',true); if(!v) return;
+  try{ const d=JSON.parse(v); if(!d.items||!d.servers) throw 0; S=normalize(d); save(); renderItems(); renderServers(); renderOpts(); toast('復元しました'); }
+  catch(e){ toast('読み込めませんでした。形式を確認してください'); }
+};
+$('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェックをクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; save(); toast('クリアしました'); } };
+$('#resetAll').onclick=async()=>{ if(await confirmBox('項目・サーバー・チェックをすべて初期サンプルに戻しますか？<br><small>元に戻せません。</small>','初期化',true)){ S=sampleState(); save(); renderItems(); renderServers(); renderOpts(); toast('初期サンプルに戻しました'); } };
+
+/* Android back button */
+window.onAndroidBack=function(){
+  if($('#ov').classList.contains('show')){ closeModal(); return true; }
+  if($('#settings').classList.contains('show')){ closeSettings(); return true; }
+  return false;
+};
+
+S=load(); save(); renderGrid();
+})();
+</script>
+</body>
+</html>
