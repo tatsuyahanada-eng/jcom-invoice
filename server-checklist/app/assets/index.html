@@ -213,13 +213,13 @@ textarea.tin{width:100%;min-height:110px;resize:vertical}
       <h4><span>連番で追加</span></h4>
       <div class="in">
         <div class="row">
-          <input class="tin" id="snPrefix" value="SRV-" placeholder="接頭辞">
-          <input class="tin n" id="snFrom" type="number" value="43" min="0">
+          <input class="tin" id="snPrefix" value="308-2-" placeholder="接頭辞">
+          <input class="tin n" id="snFrom" type="number" value="1" min="0">
           <span>〜</span>
-          <input class="tin n" id="snTo" type="number" value="50" min="0">
+          <input class="tin n" id="snTo" type="number" value="16" min="0">
         </div>
         <div class="row">
-          <label style="font-size:12px;color:var(--sub)">桁数 <input class="tin n" id="snPad" type="number" value="3" min="1" max="6" style="width:56px"></label>
+          <label style="font-size:12px;color:var(--sub)">桁数 <input class="tin n" id="snPad" type="number" value="2" min="1" max="6" style="width:56px"></label>
           <span style="flex:1"></span>
           <button class="btn pri" id="addSeq">追加</button>
         </div>
@@ -264,7 +264,7 @@ textarea.tin{width:100%;min-height:110px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック状態だけを消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">サーバー作業チェックアプリ v1.0</p>
+    <p class="help" style="text-align:center">サーバー作業チェックアプリ v1.1</p>
   </div>
 </div>
 
@@ -291,14 +291,21 @@ const SAMPLE_ITEMS=[
   ['ファームウェア更新',0],['ウイルス定義更新',0],['証明書期限確認',0],['ユーザーアカウント棚卸',0],
   ['FW設定確認',0],['設定ファイル退避',0],['冗長化切替試験',0],['ハードウェアランプ確認',0]
 ];
+// 部屋番号-列-番号（例 304-2-01）。部屋ごとに 2列・3列 × 01〜16
+const ROOMS=['304','306','302'], RACKS=['2','3'], PER_RACK=16;
+function SAMPLE_SERVERS(){
+  const a=[];
+  ROOMS.forEach(r=>RACKS.forEach(k=>{ for(let i=1;i<=PER_RACK;i++) a.push(`${r}-${k}-${String(i).padStart(2,'0')}`); }));
+  return a;
+}
 function sampleState(){
   const servers=[];
-  for(let i=1;i<=42;i++) servers.push({id:uid(),name:'SRV-'+String(i).padStart(3,'0'),memo:''});
+  SAMPLE_SERVERS().forEach(n=>servers.push({id:uid(),name:n,memo:''}));
   return {
     title:'サーバー作業チェック',
     items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on})),
     servers, checks:{},
-    opts:{seq:true,time:true,confirm:true}
+    opts:{seq:true,time:true,confirm:true}, sampleVer:2
   };
 }
 
@@ -314,6 +321,13 @@ function load(){
 function normalize(d){
   d.checks=d.checks||{}; d.opts=Object.assign({seq:true,time:true,confirm:true},d.opts||{});
   d.title=d.title||'サーバー作業チェック';
+  // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
+  if(!d.sampleVer){
+    if(d.servers.length&&d.servers.every(s=>/^SRV-\d{3}$/.test(s.name))){
+      d.servers=SAMPLE_SERVERS().map(n=>({id:uid(),name:n,memo:''})); d.checks={};
+    }
+    d.sampleVer=2;
+  }
   d.servers.forEach(s=>{if(!s.id)s.id=uid(); if(s.memo==null)s.memo='';});
   d.items.forEach(i=>{if(!i.id)i.id=uid(); i.on=!!i.on;});
   return d;
