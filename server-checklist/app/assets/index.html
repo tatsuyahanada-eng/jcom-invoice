@@ -53,7 +53,7 @@ tr.done td.sv .n::after{content:" ✔";color:var(--ok)}
 td.c{height:var(--rowh);text-align:center;vertical-align:middle;user-select:none}
 td.c .ck{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;line-height:1.1}
 td.c.on{background:var(--ok-weak)!important}
-td.c.on .ck b{color:var(--ok);font-size:19px}
+td.c.on .ck b{color:var(--ok);font-size:15px}
 td.c.on .ck small{color:#3d7a52;font-size:9.5px}
 td.c{position:relative}
 td.c .nt{position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 12px 12px 0;border-color:transparent #7c5cff transparent transparent}
@@ -166,7 +166,7 @@ textarea.tin{width:100%;min-height:110px;resize:vertical}
     <button class="chip" data-f="todo">未完了</button>
     <button class="chip" data-f="done">完了</button>
   </div>
-  <div class="legend"><span class="l1">完了</span><span class="l2">次の作業</span><span class="l3">未着手</span><span class="l4">備考あり</span><span style="margin-left:auto">長押しで備考／サーバー名で詳細</span></div>
+  <div class="legend"><span class="l1">済</span><span class="l2" id="lgNext">次の作業</span><span class="l3">未</span><span class="l4">備考あり</span><span style="margin-left:auto">長押しで備考／サーバー名で詳細</span></div>
   <div id="gridWrap"></div>
 </div>
 
@@ -246,7 +246,7 @@ textarea.tin{width:100%;min-height:110px;resize:vertical}
   <div class="pane" id="pane-other">
     <div class="card">
       <h4><span>動作</span></h4>
-      <div class="opt"><div class="t">順番どおりに進める<small>左の作業が終わるまで次の列にチェックできません。外すときは最後のチェックから。</small></div>
+      <div class="opt"><div class="t">順番どおりに進める<small>OFF（初期設定）：終わった作業から自由に「済」を付けられます。ON：左の作業が終わるまで次の列にチェックできません。</small></div>
         <label class="sw"><input type="checkbox" id="optSeq"><i></i></label></div>
       <div class="opt"><div class="t">チェック時刻を表示<small>セルにチェックした時刻（時:分）を表示します。</small></div>
         <label class="sw"><input type="checkbox" id="optTime"><i></i></label></div>
@@ -269,7 +269,7 @@ textarea.tin{width:100%;min-height:110px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェックと備考を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">サーバー作業チェックアプリ v1.2</p>
+    <p class="help" style="text-align:center">サーバー作業チェックアプリ v1.3</p>
   </div>
 </div>
 
@@ -310,7 +310,7 @@ function sampleState(){
     title:'サーバー作業チェック',
     items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on})),
     servers, checks:{}, notes:{},
-    opts:{seq:true,time:true,confirm:true}, sampleVer:2
+    opts:{seq:false,time:true,confirm:true}, sampleVer:3
   };
 }
 
@@ -324,7 +324,7 @@ function load(){
   return sampleState();
 }
 function normalize(d){
-  d.checks=d.checks||{}; d.notes=d.notes||{}; d.opts=Object.assign({seq:true,time:true,confirm:true},d.opts||{});
+  d.checks=d.checks||{}; d.notes=d.notes||{}; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
   d.title=d.title||'サーバー作業チェック';
   // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
   if(!d.sampleVer){
@@ -333,6 +333,8 @@ function normalize(d){
     }
     d.sampleVer=2;
   }
+  // v1.3: 順番どおりモードは初期OFF（終わった作業から自由に「済」を付ける）
+  if(d.sampleVer<3){ d.opts.seq=false; d.sampleVer=3; }
   d.servers.forEach(s=>{if(!s.id)s.id=uid(); if(s.memo==null)s.memo='';});
   d.items.forEach(i=>{if(!i.id)i.id=uid(); i.on=!!i.on;});
   return d;
@@ -392,6 +394,7 @@ let filter='all', query='';
 function renderGrid(){
   const items=active(), wrap=$('#gridWrap');
   $('#hTitle').textContent=S.title;
+  $('#lgNext').style.display=S.opts.seq?'':'none';
   // overall progress
   let doneSv=0, doneCells=0;
   S.servers.forEach(s=>{const p=progressOf(s,items); if(p.done)doneSv++; doneCells+=p.n;});
@@ -418,8 +421,8 @@ function renderGrid(){
     h+=`<tr data-s="${sv.id}" class="${p.done?'done':''}"><td class="sv" data-sv="1"><div class="n">${esc(sv.name)}</div><div class="m">${esc(sv.memo||'')}</div></td>`;
     items.forEach((it,i)=>{
       const ts=c[it.id], nt=nts[it.id]?'<i class="nt"></i>':'';
-      if(ts) h+=`<td class="c on" data-i="${it.id}">${nt}<div class="ck"><b>✓</b>${S.opts.time?`<small>${fmtTime(ts)}</small>`:''}</div></td>`;
-      else if(i===p.next) h+=`<td class="c next" data-i="${it.id}">${nt}<div class="ck"><b>次</b></div></td>`;
+      if(ts) h+=`<td class="c on" data-i="${it.id}">${nt}<div class="ck"><b>済</b>${S.opts.time?`<small>${fmtTime(ts)}</small>`:''}</div></td>`;
+      else if(S.opts.seq&&i===p.next) h+=`<td class="c next" data-i="${it.id}">${nt}<div class="ck"><b>次</b></div></td>`;
       else h+=`<td class="c ${S.opts.seq?'lock':''}" data-i="${it.id}">${nt}<div class="ck"><b>${S.opts.seq?'・':''}</b></div></td>`;
     });
     h+=`<td class="pcol"><b>${p.n}/${p.total}</b>${Math.round(p.n/p.total*100)}%</td></tr>`;
@@ -494,10 +497,10 @@ function openDetail(sid){
   let h=`<div class="sh-h"><h3>${esc(sv.name)}</h3><span style="color:var(--sub);font-size:12px">${p.n}/${p.total}</span><button class="x" data-a="close">×</button></div><div class="sh-b"><ul class="dl">`;
   items.forEach((it,i)=>{
     const ts=c[it.id];
-    h+=`<li class="${ts?'on':(i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">${nts[it.id]?'備考✎':'＋備考'}</button></li>`;
+    h+=`<li class="${ts?'on':(S.opts.seq&&i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">${nts[it.id]?'備考✎':'＋備考'}</button></li>`;
   });
   h+=`</ul><p class="help" style="margin:14px 0 6px">メモ</p><textarea class="tin" id="memo" style="min-height:70px" placeholder="作業メモ（例：IP、担当者、注意点）">${esc(sv.memo||'')}</textarea></div>
-  <div class="sh-f"><button class="btn dan" data-a="reset">このサーバーをクリア</button><span style="flex:1"></span>${p.next>=0?'<button class="btn pri" data-a="next">次の作業を完了</button>':''}</div>`;
+  <div class="sh-f"><button class="btn dan" data-a="reset">このサーバーをクリア</button><span style="flex:1"></span>${S.opts.seq&&p.next>=0?'<button class="btn pri" data-a="next">次の作業を完了</button>':''}</div>`;
   openModal(h,{onClose:saveMemo});
   function saveMemo(){ const m=$('#memo'); if(m&&m.value!==sv.memo){ sv.memo=m.value; save(); renderGrid(); } }
   $('#ovSheet').onclick=async e=>{
