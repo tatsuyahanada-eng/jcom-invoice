@@ -276,6 +276,13 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
       <ul class="list" id="srvList"></ul>
     </div>
     <div class="card">
+      <h4><span>番号順に並び替え</span></h4>
+      <div class="in">
+        <p class="help">ラック番号（例：302-2-01）を、部屋→列→番号の順に並べ直します。数字の大きさで比べます（2 → 10）。</p>
+        <div class="row"><button class="btn pri wide" id="sortAsc">昇順（小さい順）</button><button class="btn wide" id="sortDesc">降順（大きい順）</button></div>
+      </div>
+    </div>
+    <div class="card">
       <h4><span>作業対象をまとめて設定</span></h4>
       <div class="in">
         <div class="row"><button class="btn sm" id="tgAllOn">すべて対象</button><button class="btn sm" id="tgAllOff">すべて対象外</button></div>
@@ -381,7 +388,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v1.9</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.0</p>
   </div>
 </div>
 
@@ -778,6 +785,13 @@ $('#itemList').addEventListener('click',listHandler(()=>S.items,renderItems,'ite
 $('#itemList').addEventListener('change',e=>{ if(e.target.dataset.a==='on'){ const li=e.target.closest('li'); const it=S.items.find(x=>x.id===li.dataset.id); it.on=e.target.checked; save(); renderItems(); }});
 $('#srvList').addEventListener('click',listHandler(()=>S.servers,renderServers,'srv'));
 $('#srvList').addEventListener('change',e=>{ if(e.target.dataset.a==='tg'){ const sv=S.servers.find(x=>x.id===e.target.closest('li').dataset.id); sv.target=e.target.checked; save(); renderServers(); }});
+const collator=new Intl.Collator('ja',{numeric:true,sensitivity:'base'});
+function sortServers(dir){
+  S.servers.sort((a,b)=>dir*collator.compare(a.name,b.name)); save(); renderServers();
+  toast(dir>0?'番号の小さい順に並び替えました':'番号の大きい順に並び替えました');
+}
+$('#sortAsc').onclick=()=>sortServers(1);
+$('#sortDesc').onclick=()=>sortServers(-1);
 $('#tgAllOn').onclick=()=>{ S.servers.forEach(s=>s.target=true); save(); renderServers(); };
 $('#tgAllOff').onclick=()=>{ S.servers.forEach(s=>s.target=false); save(); renderServers(); };
 $('#tgRooms').addEventListener('click',e=>{ const b=e.target.closest('[data-room]'); if(!b) return;
