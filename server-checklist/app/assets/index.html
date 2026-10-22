@@ -81,6 +81,10 @@ tr.off .sv .m,tr.off td.c .ck b,tr.off td.c .ck small{color:#6b6b73 !important}
 tr.off .tg{background:#d4d4d8;border-color:#8a8a92}
 td.pcol .ng{font-size:10.5px;color:#52525b;font-weight:700}
 .legend .l5::before{background:#bdbdc3;border:1px solid #8a8a92}
+.tools2{display:flex;gap:6px;padding:6px 10px;background:var(--card);border-bottom:1px solid var(--line);flex:none}
+.tbtn{flex:1;border:1px solid #a1a1aa;background:#fff;border-radius:9px;padding:8px 6px;font-size:13px;font-weight:700;white-space:nowrap}
+.tbtn.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.tbtn:active{filter:brightness(.92)}
 .legend .l6::before{background:linear-gradient(135deg,#f59e0b 50%,#fff 50%);border:1px solid #a1a1aa}
 td.c .is{position:absolute;top:0;left:0;width:0;height:0;border-style:solid;border-width:13px 13px 0 0;border-color:#f59e0b transparent transparent transparent}
 tr.tgt.iss .tg{background:#facc15;border-color:#d99e00;color:#1c1917}
@@ -225,6 +229,10 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
     <button class="chip" data-f="todo">未完了</button>
     <button class="chip" data-f="done">完了</button>
     <button class="chip" data-f="issue">問題</button>
+  </div>
+  <div class="tools2">
+    <button class="tbtn" id="btnSortList">↕ 番号順に並び替え</button>
+    <button class="tbtn" id="btnHideOff">対象のみ表示</button>
   </div>
   <div class="legend"><span class="l1">済</span><span class="l2" id="lgNext">次の作業</span><span class="l3">未</span><span class="l4">備考あり</span><span class="l5">対象外</span><span class="l6">問題あり</span><span style="margin-left:auto">長押しで編集</span></div>
   <div id="gridWrap"></div>
@@ -388,7 +396,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.0</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.1</p>
   </div>
 </div>
 
@@ -443,7 +451,7 @@ function load(){
   return sampleState();
 }
 function normalize(d){
-  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
+  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.hideOff=!!d.hideOff; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
   if(!d.title||d.title==='サーバー作業チェック') d.title='CDU Check Tool';
   d.room=d.room||'all';
   // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
@@ -540,6 +548,7 @@ function renderGrid(){
   $('#hTitle').textContent=S.title;
   $('#lgNext').style.display=S.opts.seq?'':'none';
   renderRooms(items);
+  renderListBtns();
   const roomSv=S.servers.filter(inRoom);
   // progress of the selected room
   let doneSv=0, doneCells=0;
@@ -561,6 +570,7 @@ function renderGrid(){
   S.servers.forEach(sv=>{
     if(!inRoom(sv)) return;
     const p=progressOf(sv,items);
+    if(S.hideOff&&!sv.target) return;
     if(filter!=='all'&&!sv.target) return;
     if(filter==='issue'&&!hasIssue(sv)) return;
     if(filter==='done'&&!p.done) return;
@@ -786,10 +796,27 @@ $('#itemList').addEventListener('change',e=>{ if(e.target.dataset.a==='on'){ con
 $('#srvList').addEventListener('click',listHandler(()=>S.servers,renderServers,'srv'));
 $('#srvList').addEventListener('change',e=>{ if(e.target.dataset.a==='tg'){ const sv=S.servers.find(x=>x.id===e.target.closest('li').dataset.id); sv.target=e.target.checked; save(); renderServers(); }});
 const collator=new Intl.Collator('ja',{numeric:true,sensitivity:'base'});
+function sortDir(){
+  const n=S.servers.length; if(n<2) return 0;
+  let asc=true, desc=true;
+  for(let i=1;i<n;i++){ const c=collator.compare(S.servers[i-1].name,S.servers[i].name); if(c>0) asc=false; if(c<0) desc=false; }
+  return asc?1:(desc?-1:0);
+}
 function sortServers(dir){
-  S.servers.sort((a,b)=>dir*collator.compare(a.name,b.name)); save(); renderServers();
+  S.servers.sort((a,b)=>dir*collator.compare(a.name,b.name)); save(); renderServers(); renderGrid();
   toast(dir>0?'番号の小さい順に並び替えました':'番号の大きい順に並び替えました');
 }
+function renderListBtns(){
+  const d=sortDir(), b=$('#btnSortList');
+  b.textContent=d>0?'番号順 ▲ 小さい順':(d<0?'番号順 ▼ 大きい順':'↕ 番号順に並び替え');
+  b.classList.toggle('on',d!==0);
+  const h=$('#btnHideOff'); h.textContent=S.hideOff?'対象外を表示する':'対象のみ表示'; h.classList.toggle('on',!!S.hideOff);
+}
+$('#btnSortList').onclick=()=>sortServers(sortDir()===1?-1:1);
+$('#btnHideOff').onclick=()=>{
+  S.hideOff=!S.hideOff; save(); renderGrid();
+  toast(S.hideOff?'対象外のラックを隠しました':'対象外のラックも表示します');
+};
 $('#sortAsc').onclick=()=>sortServers(1);
 $('#sortDesc').onclick=()=>sortServers(-1);
 $('#tgAllOn').onclick=()=>{ S.servers.forEach(s=>s.target=true); save(); renderServers(); };
