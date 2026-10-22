@@ -58,6 +58,8 @@ table.grid{border-collapse:separate;border-spacing:0;table-layout:fixed;backgrou
 .grid thead th .rem{display:block;margin:0 auto 3px;width:fit-content;min-width:40px;padding:1px 6px;border-radius:9px;background:#fde68a;color:#78350f;font-size:12px;font-weight:800;line-height:1.35}
 .grid thead th .rem.z{background:#bbf7d0;color:#14532d}
 .grid thead th{height:98px !important}
+.grid thead th:not(.corner){vertical-align:top !important;padding-top:5px !important}
+.grid thead th .nm{min-height:3.75em}
 .grid thead th .no{display:block;color:#d4d4d8;font-size:10px;margin-bottom:2px}
 .grid thead th .nm{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all}
 .grid thead th.corner{left:0;z-index:3;width:var(--namew);min-width:var(--namew);max-width:var(--namew);text-align:left;padding:6px 10px;vertical-align:bottom;font-size:13px;background:var(--head)}
