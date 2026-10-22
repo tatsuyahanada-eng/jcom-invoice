@@ -81,6 +81,14 @@ tr.off .sv .m,tr.off td.c .ck b,tr.off td.c .ck small{color:#6b6b73 !important}
 tr.off .tg{background:#d4d4d8;border-color:#8a8a92}
 td.pcol .ng{font-size:10.5px;color:#52525b;font-weight:700}
 .legend .l5::before{background:#bdbdc3;border:1px solid #8a8a92}
+.legend .l6::before{background:linear-gradient(135deg,#f59e0b 50%,#fff 50%);border:1px solid #a1a1aa}
+td.c .is{position:absolute;top:0;left:0;width:0;height:0;border-style:solid;border-width:13px 13px 0 0;border-color:#f59e0b transparent transparent transparent}
+tr.tgt.iss .tg{background:#facc15;border-color:#d99e00;color:#1c1917}
+tr.tgt.iss .tg::after{color:#1c1917}
+.dl li .itx{font-size:12.5px;color:#7c2d12;background:#ffedd5;border:1px solid #fdba74;border-radius:6px;padding:4px 7px;margin-top:4px;white-space:pre-wrap;word-break:break-all}
+.fld.issue>label{color:#b45309}
+.fld.issue textarea{border-color:#f59e0b;background:#fffbeb}
+.fld textarea.tin{min-height:64px}
 tr.done td.sv .n::after{content:" ✔";color:#22a35a;font-size:14px}
 td.c{height:var(--rowh);text-align:center;vertical-align:middle;user-select:none;-webkit-user-select:none;position:relative}
 td.c .ck{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;line-height:1.1}
@@ -212,12 +220,13 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
   </header>
   <div class="rooms" id="rooms"></div>
   <div class="tools">
-    <input id="q" type="search" placeholder="ラック番号・リアドアで検索">
+    <input id="q" type="search" placeholder="検索">
     <button class="chip on" data-f="all">全て</button>
     <button class="chip" data-f="todo">未完了</button>
     <button class="chip" data-f="done">完了</button>
+    <button class="chip" data-f="issue">問題</button>
   </div>
-  <div class="legend"><span class="l1">済</span><span class="l2" id="lgNext">次の作業</span><span class="l3">未</span><span class="l4">備考あり</span><span class="l5">対象外</span><span style="margin-left:auto">長押しで日時・備考を編集</span></div>
+  <div class="legend"><span class="l1">済</span><span class="l2" id="lgNext">次の作業</span><span class="l3">未</span><span class="l4">備考あり</span><span class="l5">対象外</span><span class="l6">問題あり</span><span style="margin-left:auto">長押しで編集</span></div>
   <div id="gridWrap"></div>
 </div>
 
@@ -369,10 +378,10 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
       <h4><span>リセット</span></h4>
       <div class="in">
         <div class="row"><button class="btn dan" id="resetChecks">全チェックをクリア</button><button class="btn dan" id="resetAll">初期サンプルに戻す</button></div>
-        <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェックと備考を消します。</p>
+        <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v1.8</p>
+    <p class="help" style="text-align:center">CDU Check Tool v1.9</p>
   </div>
 </div>
 
@@ -412,7 +421,7 @@ function sampleState(){
   return {
     title:'CDU Check Tool', room:'all',
     items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on})),
-    servers, checks:{}, notes:{},
+    servers, checks:{}, notes:{}, issues:{},
     opts:{seq:false,time:true,confirm:true}, sampleVer:3
   };
 }
@@ -427,13 +436,13 @@ function load(){
   return sampleState();
 }
 function normalize(d){
-  d.checks=d.checks||{}; d.notes=d.notes||{}; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
+  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
   if(!d.title||d.title==='サーバー作業チェック') d.title='CDU Check Tool';
   d.room=d.room||'all';
   // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
   if(!d.sampleVer){
     if(d.servers.length&&d.servers.every(s=>/^SRV-\d{3}$/.test(s.name))){
-      d.servers=SAMPLE_SERVERS().map(n=>({id:uid(),name:n,memo:''})); d.checks={}; d.notes={};
+      d.servers=SAMPLE_SERVERS().map(n=>({id:uid(),name:n,memo:''})); d.checks={}; d.notes={}; d.issues={};
     }
     d.sampleVer=2;
   }
@@ -503,6 +512,7 @@ let filter='all', query='';
 const roomOf=sv=>{const i=sv.name.indexOf('-'); return i>0?sv.name.slice(0,i):'その他';};
 function roomList(){ const a=[]; S.servers.forEach(s=>{const r=roomOf(s); if(!a.includes(r)) a.push(r);}); return a; }
 const inRoom=sv=>S.room==='all'||roomOf(sv)===S.room;
+const hasIssue=sv=>Object.keys(S.issues[sv.id]||{}).length>0;
 function renderRooms(items){
   const rooms=roomList();
   if(S.room!=='all'&&!rooms.includes(S.room)) S.room='all';
@@ -545,14 +555,15 @@ function renderGrid(){
     if(!inRoom(sv)) return;
     const p=progressOf(sv,items);
     if(filter!=='all'&&!sv.target) return;
+    if(filter==='issue'&&!hasIssue(sv)) return;
     if(filter==='done'&&!p.done) return;
     if(filter==='todo'&&p.done) return;
     if(q&&![sv.name,sv.door||'',sv.memo||''].some(t=>t.toLowerCase().includes(q))) return;
     shown++;
-    const c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{};
-    h+=`<tr data-s="${sv.id}" class="${sv.target?'tgt':'off'} ${sv.target&&p.done?'done':''}"><td class="sv" data-sv="1"><div class="svw"><span class="tg" data-tg="1"></span><div><div class="n">${esc(sv.name)}</div>${sv.door?`<div class="m">リアドア ${esc(sv.door)}</div>`:'<div class="m none">リアドア －</div>'}</div></div></td>`;
+    const c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{}, iss=S.issues[sv.id]||{};
+    h+=`<tr data-s="${sv.id}" class="${sv.target?'tgt':'off'} ${sv.target&&p.done?'done':''} ${hasIssue(sv)?'iss':''}"><td class="sv" data-sv="1"><div class="svw"><span class="tg" data-tg="1"></span><div><div class="n">${esc(sv.name)}</div>${sv.door?`<div class="m">リアドア ${esc(sv.door)}</div>`:'<div class="m none">リアドア －</div>'}</div></div></td>`;
     items.forEach((it,i)=>{
-      const ts=c[it.id], nt=nts[it.id]?'<i class="nt"></i>':'';
+      const ts=c[it.id], nt=(nts[it.id]?'<i class="nt"></i>':'')+(iss[it.id]?'<i class="is"></i>':'');
       if(ts) h+=`<td class="c on" data-i="${it.id}">${nt}<div class="ck"><b>済</b>${S.opts.time?`<small>${fmtCell(ts)}</small>`:''}</div></td>`;
       else if(S.opts.seq&&i===p.next) h+=`<td class="c next" data-i="${it.id}">${nt}<div class="ck"><b>次</b></div></td>`;
       else h+=`<td class="c ${S.opts.seq?'lock':''}" data-i="${it.id}">${nt}<div class="ck"><b>${S.opts.seq?'・':''}</b></div></td>`;
@@ -596,7 +607,7 @@ const toTimeVal=d=>`${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 /* edit one cell: done/not done, date, time, note */
 function editCell(sid,iid,after){
   const sv=S.servers.find(s=>s.id===sid), it=S.items.find(i=>i.id===iid); if(!sv||!it) return;
-  const ts=(S.checks[sid]||{})[iid], note=(S.notes[sid]||{})[iid]||'';
+  const ts=(S.checks[sid]||{})[iid], note=(S.notes[sid]||{})[iid]||'', issue=(S.issues[sid]||{})[iid]||'';
   const d=new Date(ts||Date.now());
   openModal(`<div class="sh-h"><h3>${esc(it.name)}<small>${esc(sv.name)}</small></h3><button class="x" data-a="no">×</button></div>
     <div class="sh-b">
@@ -605,6 +616,7 @@ function editCell(sid,iid,after){
         <div class="row"><input class="tin" type="date" id="edDate" value="${toDateVal(d)}"><input class="tin" type="time" id="edTime" value="${toTimeVal(d)}"></div>
         <div class="row"><button class="btn sm" data-a="now">今の日時にする</button></div>
       </div>
+      <div class="fld issue"><label>⚠ 問題事項（入力するとラック番号のチェックが黄色になります）</label><textarea class="tin" id="edIssue" placeholder="例：ファン異音、ディスク1 警告、再起動で復旧せず">${esc(issue)}</textarea></div>
       <div class="fld"><label>備考</label><textarea class="tin" id="edNote" placeholder="例：ログに警告あり、再確認済み">${esc(note)}</textarea></div>
     </div>
     <div class="sh-f"><button class="btn" data-a="no">キャンセル</button><button class="btn pri" data-a="ok">保存</button></div>`,{center:true,onClose:()=>{if(after)after();}});
@@ -624,7 +636,10 @@ function editCell(sid,iid,after){
       const v=$('#edNote').value.trim(), n=S.notes[sid]||(S.notes[sid]={});
       if(v) n[iid]=v; else delete n[iid];
       if(!Object.keys(n).length) delete S.notes[sid];
-      save(); renderGrid(); toast('保存しました'); closeModal();
+      const iv=$('#edIssue').value.trim(), im=S.issues[sid]||(S.issues[sid]={});
+      if(iv) im[iid]=iv; else delete im[iid];
+      if(!Object.keys(im).length) delete S.issues[sid];
+      save(); renderGrid(); toast(iv?'保存しました（問題事項あり）':'保存しました'); closeModal();
     }
   };
 }
@@ -655,13 +670,13 @@ async function toggle(sid,iid,fromDetail){
 /* detail sheet */
 function openDetail(sid){
   const sv=S.servers.find(s=>s.id===sid); if(!sv) return;
-  const items=active(), c=S.checks[sid]||{}, nts=S.notes[sid]||{}, p=progressOf(sv,items);
+  const items=active(), c=S.checks[sid]||{}, nts=S.notes[sid]||{}, iss=S.issues[sid]||{}, p=progressOf(sv,items);
   let h=`<div class="sh-h"><h3>${esc(sv.name)}<small>ラック番号</small></h3><span style="color:var(--sub);font-size:12px">${p.n}/${p.total}</span><button class="x" data-a="close">×</button></div><div class="sh-b">
     <div class="fld"><div class="donebox"><span>作業対象</span><label class="sw"><input type="checkbox" id="svTarget" ${sv.target?'checked':''}><i></i></label></div></div>
     <div class="fld"><label>リアドア番号</label><input class="tin" id="door" style="width:100%" value="${esc(sv.door||'')}" placeholder="例：RD-12"></div><ul class="dl">`;
   items.forEach((it,i)=>{
     const ts=c[it.id];
-    h+=`<li class="${ts?'on':(S.opts.seq&&i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">日時・備考</button></li>`;
+    h+=`<li class="${ts?'on':(S.opts.seq&&i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${iss[it.id]?`<div class="itx">⚠ ${esc(iss[it.id])}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">日時・備考・問題</button></li>`;
   });
   h+=`</ul><p class="help" style="margin:14px 0 6px">メモ</p><textarea class="tin" id="memo" style="min-height:70px" placeholder="作業メモ（例：IP、担当者、注意点）">${esc(sv.memo||'')}</textarea></div>
   <div class="sh-f"><button class="btn dan" data-a="reset">このサーバーをクリア</button><span style="flex:1"></span>${S.opts.seq&&p.next>=0?'<button class="btn pri" data-a="next">次の作業を完了</button>':''}</div>`;
@@ -679,7 +694,7 @@ function openDetail(sid){
     if(a.dataset.a==='close') closeModal();
     if(a.dataset.a==='next'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show'); await toggle(sid,items[p.next].id,true); }
     if(a.dataset.a==='reset'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show');
-      if(await confirmBox(`${esc(sv.name)} のチェックと備考をすべて消しますか？`,'クリア',true)){ delete S.checks[sid]; delete S.notes[sid]; save(); renderGrid(); }
+      if(await confirmBox(`${esc(sv.name)} のチェック・備考・問題事項をすべて消しますか？`,'クリア',true)){ delete S.checks[sid]; delete S.notes[sid]; delete S.issues[sid]; save(); renderGrid(); }
       openDetail(sid);
     }
   };
@@ -751,7 +766,7 @@ function listHandler(arr,render,kind){
         const msg=kind==='item'?`項目「${esc(obj.name)}」を削除しますか？<br><small>使わないだけなら、スイッチをオフにすると記録が残ります。</small>`:`サーバー「${esc(obj.name)}」を削除しますか？<br><small>このサーバーのチェック記録も消えます。</small>`;
         if(!(await confirmBox(msg,'削除',true))) return;
         arr().splice(i,1);
-        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; }
+        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; }
         break;
       }
       default: return;
@@ -811,7 +826,7 @@ $('#newItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addItem').cl
 $('#addBulkItems').onclick=()=>{addItems($('#bulkItems').value.split(/\r?\n/));$('#bulkItems').value='';};
 
 function addServers(names,replace){
-  if(replace){ S.servers=[]; S.checks={}; S.notes={}; }
+  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; }
   const ex=new Set(S.servers.map(s=>s.name)); let n=0;
   names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.servers.push({id:uid(),name:nm,memo:''});ex.add(nm);n++;} });
   save(); renderServers();
@@ -852,7 +867,7 @@ function exportData(){
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); if(Object.keys(r).length) o[sname[sid]]=r; }); return o; };
   return {format:'cdu-check-tool',version:2,exportedAt:Date.now(),title:S.title,
     items:S.items.map(i=>({name:i.name,on:i.on})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),
-    checks:byName(S.checks), notes:byName(S.notes)};
+    checks:byName(S.checks), notes:byName(S.notes), issues:byName(S.issues)};
 }
 function exportName(){ const d=new Date(); return `CDU_${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}.json`; }
 function download(name,text,mime){
@@ -882,7 +897,7 @@ function parseImport(text){
   const conv=src=>{ const o={}; Object.entries(src||{}).forEach(([sid,m])=>{ if(!sname[sid]) return; const r={};
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); o[sname[sid]]=r; }); return o; };
   return {format:'cdu-check-tool',exportedAt:null,title:d.title,items:d.items.map(i=>({name:i.name,on:!!i.on})),
-    servers:d.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes)};
+    servers:d.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes),issues:conv(d.issues)};
 }
 window.onImportText=function(text){
   const d=parseImport(text);
@@ -892,14 +907,15 @@ window.onImportText=function(text){
 function showImport(d){
   let nChk=0; Object.values(d.checks||{}).forEach(m=>nChk+=Object.keys(m).length);
   let nNote=0; Object.values(d.notes||{}).forEach(m=>nNote+=Object.keys(m).length);
+  let nIss=0; Object.values(d.issues||{}).forEach(m=>nIss+=Object.keys(m).length);
   const when=d.exportedAt?fmtTime(d.exportedAt,true):'不明';
   openModal(`<div class="sh-h"><h3>データの取り込み</h3><button class="x" data-a="no">×</button></div>
     <div class="sh-b">
-      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件</div>
+      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件 ／ 問題事項：${nIss}件</div>
       <p class="help" style="margin:4px 0">取り込む内容</p>
       <label class="chk"><input type="checkbox" id="imSrv" checked><span>ラック番号<small>ラック番号・リアドア番号・作業対象・並び順・メモをファイルに合わせます</small></span></label>
       <label class="chk"><input type="checkbox" id="imItem" checked><span>作業項目<small>項目名・使用/不使用・並び順をファイルに合わせます</small></span></label>
-      <label class="chk"><input type="checkbox" id="imProg" checked><span>進捗<small>済・作業日時・備考</small></span></label>
+      <label class="chk"><input type="checkbox" id="imProg" checked><span>進捗<small>済・作業日時・備考・問題事項</small></span></label>
       <p class="help" style="margin:12px 0 4px">進捗の取り込み方</p>
       <label class="chk"><input type="radio" name="imMode" value="replace" checked><span>ファイルの内容で置き換える<small>最新データを受け取るとき（おすすめ）</small></span></label>
       <label class="chk"><input type="radio" name="imMode" value="merge"><span>今のデータと合わせる<small>両方の「済」を残します。同じマスは新しい日時を優先</small></span></label>
@@ -933,6 +949,7 @@ function applyImport(d,opt){
     const keep=new Set(list.map(s=>s.id));
     Object.keys(S.checks).forEach(k=>{ if(!keep.has(k)) delete S.checks[k]; });
     Object.keys(S.notes).forEach(k=>{ if(!keep.has(k)) delete S.notes[k]; });
+    Object.keys(S.issues).forEach(k=>{ if(!keep.has(k)) delete S.issues[k]; });
     S.servers=list; msg.push(`サーバー${list.length}台`);
   }
   if(opt.prog){
@@ -940,12 +957,12 @@ function applyImport(d,opt){
     const fileItems=d.items.map(x=>iid.get(x.name)).filter(Boolean);
     let n=0;
     S.servers.forEach(sv=>{
-      const fc=(d.checks||{})[sv.name], fn=(d.notes||{})[sv.name];
+      const fc=(d.checks||{})[sv.name], fn=(d.notes||{})[sv.name], fi=(d.issues||{})[sv.name];
       const inFile=d.servers.some(x=>x.name===sv.name);
       let before=Object.assign({},S.checks[sv.id]||{});
       if(opt.mode==='replace'){
         if(!inFile) return;
-        fileItems.forEach(i=>{ if(S.checks[sv.id]) delete S.checks[sv.id][i]; if(S.notes[sv.id]) delete S.notes[sv.id][i]; });
+        fileItems.forEach(i=>{ if(S.checks[sv.id]) delete S.checks[sv.id][i]; if(S.notes[sv.id]) delete S.notes[sv.id][i]; if(S.issues[sv.id]) delete S.issues[sv.id][i]; });
         if(!opt.srv){ const fs=d.servers.find(x=>x.name===sv.name);
           if(fs&&fs.memo!=null) sv.memo=fs.memo; if(fs&&fs.door!=null) sv.door=String(fs.door); if(fs&&fs.target!=null) sv.target=!!fs.target; }
       }
@@ -953,6 +970,8 @@ function applyImport(d,opt){
         if(ts==='keep') ts=before[i]||c[i]||Date.now(); // Excel cell marked 済 without a date
         if(opt.mode==='replace'||!c[i]||ts>c[i]){ c[i]=ts; } n++; });
       Object.entries(fn||{}).forEach(([nm,t])=>{ const i=iid.get(nm); if(!i||!t) return; const m=S.notes[sv.id]||(S.notes[sv.id]={});
+        if(opt.mode==='replace'||!m[i]) m[i]=t; });
+      Object.entries(fi||{}).forEach(([nm,t])=>{ const i=iid.get(nm); if(!i||!t) return; const m=S.issues[sv.id]||(S.issues[sv.id]={});
         if(opt.mode==='replace'||!m[i]) m[i]=t; });
     });
     msg.push(`済${n}件`);
@@ -983,7 +1002,7 @@ async function buildXlsx(){
   // title rows
   ws.getCell(1,1).value=S.title; ws.getCell(1,1).font={bold:true,size:16};
   ws.getCell(1,4).value=`書き出し：${fmtTime(now,true)}`; ws.getCell(1,4).font={color:{argb:'FF52525B'}};
-  ws.getCell(2,1).value='済＝セルに「済」（例：済 10/21 11:39）／未＝空欄。対象＝○、対象外＝空欄。備考は「備考」シートで編集。';
+  ws.getCell(2,1).value='済＝セルに「済」（例：済 10/21 11:39）／未＝空欄。対象＝○、対象外＝空欄。備考は「備考」、問題事項は「問題事項」シートで編集。';
   ws.getCell(2,1).font={size:9,color:{argb:'FF52525B'}};
   // header (row 3: number, row 4: name)
   const h3=ws.getRow(3), h4=ws.getRow(4); h4.height=48;
@@ -997,17 +1016,18 @@ async function buildXlsx(){
   // body
   S.servers.forEach((sv,r)=>{
     const row=ws.getRow(5+r); row.height=32;
-    const bg=!sv.target?'FFBDBDC3':(r%2?XL.row2:XL.row1), c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{}, p=progressOf(sv,items);
+    const bg=!sv.target?'FFBDBDC3':(r%2?XL.row2:XL.row1), c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{}, iss=S.issues[sv.id]||{}, p=progressOf(sv,items);
     const put=(col,v,extra)=>{ const cell=row.getCell(col); cell.value=v; cell.fill=fill(bg); cell.border=border;
       cell.alignment={vertical:'middle',wrapText:true}; if(extra) extra(cell); return cell; };
-    put(1,sv.name,cl=>cl.font={bold:true,size:12,color:{argb:sv.target?'FF18181B':'FF6B6B73'}});
+    put(1,sv.name,cl=>{ cl.font={bold:true,size:12,color:{argb:sv.target?'FF18181B':'FF6B6B73'}}; if(sv.target&&hasIssue(sv)) cl.fill=fill('FFFACC15'); });
     put(2,sv.door||'',cl=>cl.alignment={horizontal:'center',vertical:'middle'});
     put(3,sv.target?'○':'',cl=>{cl.alignment={horizontal:'center',vertical:'middle'}; cl.font={bold:true,color:{argb:'FF166534'},size:12};});
     items.forEach((it,k)=>{
       const ts=c[it.id];
       const cell=put(F+k,ts?xlsCellText(ts):'',cl=>cl.alignment={horizontal:'center',vertical:'middle',wrapText:true});
       if(ts&&sv.target){ cell.fill=fill(XL.okBg); cell.font={bold:true,color:{argb:XL.okFg},size:10}; }
-      if(nts[it.id]) cell.note={texts:[{text:nts[it.id]}]};
+      if(iss[it.id]){ cell.fill=fill('FFFDE68A'); cell.border=Object.assign({},border,{left:{style:'medium',color:{argb:'FFF59E0B'}}}); cell.note={texts:[{text:'問題: '+iss[it.id]+(nts[it.id]?'\n備考: '+nts[it.id]:'')}]}; }
+      else if(nts[it.id]) cell.note={texts:[{text:nts[it.id]}]};
     });
     put(F+items.length,sv.target?`${p.n}/${p.total}`:'対象外',cl=>{cl.alignment={horizontal:'center',vertical:'middle'}; cl.font={color:{argb:'FF52525B'}};});
     put(F+1+items.length,sv.memo||'');
@@ -1021,6 +1041,13 @@ async function buildXlsx(){
   ns.views=[{state:'frozen',ySplit:1}];
   S.servers.forEach(sv=>{ const nts=S.notes[sv.id]||{};
     S.items.forEach(it=>{ if(nts[it.id]){ const row=ns.addRow([sv.name,it.name,nts[it.id]]); row.alignment={vertical:'top',wrapText:true}; } }); });
+  // issues sheet
+  const is=wb.addWorksheet('問題事項');
+  is.columns=[{header:'ラック番号',width:14},{header:'作業項目',width:26},{header:'問題事項',width:50}];
+  is.getRow(1).eachCell(cl=>{ cl.fill=fill('FFB45309'); cl.font={bold:true,color:{argb:'FFFFFFFF'}}; cl.border=border; });
+  is.views=[{state:'frozen',ySplit:1}];
+  S.servers.forEach(sv=>{ const im=S.issues[sv.id]||{};
+    S.items.forEach(it=>{ if(im[it.id]){ const row=is.addRow([sv.name,it.name,im[it.id]]); row.alignment={vertical:'top',wrapText:true}; } }); });
   return await wb.xlsx.writeBuffer();
 }
 function b64FromBuf(buf){ const u=new Uint8Array(buf); let s=''; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
@@ -1096,7 +1123,7 @@ async function importXlsx(buf){
     }
     const stampCell=[3,4].map(c=>cellText(ws.getCell(1,c).value)).find(t=>/書き出し/.test(t))||'';
     const yr=(stampCell.match(/(\d{4})\//)||[])[1];
-    const d={format:'cdu-check-tool',source:'excel',exportedAt:null,items:cols.map(x=>({name:x.name,on:true})),servers:[],checks:{},notes:{}};
+    const d={format:'cdu-check-tool',source:'excel',exportedAt:null,items:cols.map(x=>({name:x.name,on:true})),servers:[],checks:{},notes:{},issues:{}};
     const seen=new Set();
     for(let r=hr+1;r<=ws.rowCount;r++){
       const row=ws.getRow(r), name=cellText(row.getCell(1).value).trim(); if(!name||seen.has(name)) continue; seen.add(name);
@@ -1109,13 +1136,16 @@ async function importXlsx(buf){
     const ns=wb.getWorksheet('備考');
     if(ns) ns.eachRow((row,r)=>{ if(r===1) return; const sv=cellText(row.getCell(1).value).trim(), it=cellText(row.getCell(2).value).trim(), t=cellText(row.getCell(3).value).trim();
       if(sv&&it&&t){ (d.notes[sv]||(d.notes[sv]={}))[it]=t; } });
+    const is=wb.getWorksheet('問題事項');
+    if(is) is.eachRow((row,r)=>{ if(r===1) return; const sv=cellText(row.getCell(1).value).trim(), it=cellText(row.getCell(2).value).trim(), t=cellText(row.getCell(3).value).trim();
+      if(sv&&it&&t){ (d.issues[sv]||(d.issues[sv]={}))[it]=t; } });
     if(yr){ const m=stampCell.match(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/); if(m) d.exportedAt=new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5]).getTime(); }
     if(!d.servers.length){ toast('ラック番号の行が見つかりません'); return; }
     showImport(d);
   }catch(e){ toast('Excel を読み込めませんでした'); }
 }
 window.onImportXlsx=b64=>importXlsx(bufFromB64(b64));
-$('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェックと備考をクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; S.notes={}; save(); toast('クリアしました'); } };
+$('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェック・備考・問題事項をクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; S.notes={}; S.issues={}; save(); toast('クリアしました'); } };
 $('#resetAll').onclick=async()=>{ if(await confirmBox('項目・サーバー・チェックをすべて初期サンプルに戻しますか？<br><small>元に戻せません。</small>','初期化',true)){ S=sampleState(); save(); renderItems(); renderServers(); renderOpts(); toast('初期サンプルに戻しました'); } };
 
 /* Android back button */
