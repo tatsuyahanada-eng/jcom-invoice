@@ -1,0 +1,20 @@
+{
+  "name": "appup-ftp-manager-relay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FTP relay server for APP UP FTP Manager (PWA)",
+  "scripts": {
+    "postinstall": "node scripts/copy-vendor.js",
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "basic-ftp": "^6.2.3",
+    "libarchive.js": "^2.0.2"
+  },
+  "devDependencies": {
+    "ftp-srv": "^4.6.3"
+  }
+}

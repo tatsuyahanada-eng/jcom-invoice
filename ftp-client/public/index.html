@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f6feb">
+  <title>APP UP FTP Manager</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="icons/icon.svg" alt="" width="24" height="24"><span>APP UP <b>FTP Manager</b></span></div>
+    <div class="server-box">
+      <select id="serverSel" aria-label="接続先サーバ"></select>
+      <button id="connectBtn" class="primary">接続</button>
+      <span id="connState" class="chip off">未接続</span>
+    </div>
+    <div class="top-actions">
+      <button id="serversBtn" title="サーバ管理">サーバ管理</button>
+      <button id="settingsBtn" title="設定">設定</button>
+      <button id="lockBtn" title="ロック">ロック</button>
+    </div>
+  </header>
+
+  <main id="panes" data-active="local">
+    <section class="pane" id="localPane" aria-label="ローカル">
+      <div class="pane-head">
+        <h2>ローカル</h2>
+        <select id="rootSel" aria-label="ローカルの場所"></select>
+        <span id="usage" class="muted small"></span>
+      </div>
+      <nav class="crumbs" id="localCrumbs"></nav>
+      <div class="toolbar">
+        <button data-act="up" title="上へ">↑</button>
+        <button data-act="refresh" title="更新">⟳</button>
+        <button data-act="mkdir">＋フォルダ</button>
+        <button data-act="import">取り込み</button>
+        <button data-act="importDir" class="desk">フォルダ取込</button>
+        <button data-act="extract" class="accent">解凍</button>
+        <button data-act="copy">コピー</button>
+        <button data-act="cut">切り取り</button>
+        <button data-act="paste">貼り付け</button>
+        <button data-act="rename">名前変更</button>
+        <button data-act="delete" class="danger">削除</button>
+        <button data-act="save">端末に保存</button>
+        <button data-act="upload" class="primary">アップロード →</button>
+      </div>
+      <div class="select-all"><label><input type="checkbox" data-role="all"> すべて選択</label><span class="muted small" data-role="count"></span></div>
+      <ul class="list" id="localList"></ul>
+      <div class="drop-hint muted small">ここにファイルをドロップして取り込み</div>
+      <input type="file" id="fileInput" multiple hidden>
+      <input type="file" id="dirInput" webkitdirectory multiple hidden>
+    </section>
+
+    <section class="pane" id="remotePane" aria-label="サーバ">
+      <div class="pane-head">
+        <h2>サーバ</h2>
+        <span id="remoteTitle" class="muted small"></span>
+      </div>
+      <nav class="crumbs" id="remoteCrumbs"></nav>
+      <div class="toolbar">
+        <button data-act="up" title="上へ">↑</button>
+        <button data-act="refresh" title="更新">⟳</button>
+        <button data-act="mkdir">＋フォルダ</button>
+        <button data-act="copy">コピー</button>
+        <button data-act="cut">切り取り</button>
+        <button data-act="paste">貼り付け</button>
+        <button data-act="rename">名前変更</button>
+        <button data-act="delete" class="danger">削除</button>
+        <button data-act="extractRemote" class="accent">DLして解凍</button>
+        <button data-act="download" class="primary">← ダウンロード</button>
+      </div>
+      <div class="select-all"><label><input type="checkbox" data-role="all"> すべて選択</label><span class="muted small" data-role="count"></span></div>
+      <ul class="list" id="remoteList"><li class="empty">サーバに接続してください</li></ul>
+    </section>
+  </main>
+
+  <div id="clipbar" class="clipbar" hidden>
+    <span id="clipText"></span>
+    <button id="clipClear">クリア</button>
+  </div>
+
+  <nav class="tabs" aria-label="表示切替">
+    <button data-tab="local" class="on">ローカル</button>
+    <button data-tab="remote">サーバ</button>
+  </nav>
+
+  <aside id="jobs" class="jobs" hidden>
+    <div class="jobs-head"><b>処理状況</b><button id="jobsClose">閉じる</button></div>
+    <ul id="jobList"></ul>
+  </aside>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <!-- unlock / first setup -->
+  <dialog id="lockDlg" class="lock">
+    <form method="dialog" id="lockForm">
+      <img src="icons/icon.svg" alt="" width="56" height="56">
+      <h1>APP UP FTP Manager</h1>
+      <p id="lockMsg" class="muted"></p>
+      <input type="password" id="lockPw" autocomplete="current-password" placeholder="マスターパスワード" required minlength="8">
+      <input type="password" id="lockPw2" autocomplete="new-password" placeholder="もう一度入力" hidden minlength="8">
+      <p id="lockErr" class="err"></p>
+      <button type="submit" class="primary wide" id="lockSubmit">ロック解除</button>
+      <div class="lock-links">
+        <button type="button" id="importBackupBtn" class="link">バックアップから復元</button>
+        <button type="button" id="resetBtn" class="link danger">初期化</button>
+      </div>
+      <input type="file" id="backupInput" accept="application/json,.json" hidden>
+    </form>
+  </dialog>
+
+  <!-- servers -->
+  <dialog id="serversDlg">
+    <div class="dlg-head"><h2>サーバ管理</h2><button type="button" data-close>×</button></div>
+    <ul id="serverList" class="server-list"></ul>
+    <button type="button" id="addServerBtn" class="primary">＋ サーバを追加</button>
+    <form id="serverForm" hidden>
+      <input type="hidden" name="id">
+      <label>表示名<input name="name" required maxlength="60" placeholder="例: 本番サーバ"></label>
+      <label>ホスト<input name="host" required placeholder="ftp.example.com" autocapitalize="off" spellcheck="false"></label>
+      <div class="row2">
+        <label>暗号化
+          <select name="secure">
+            <option value="explicit">FTPS 明示的TLS（推奨）</option>
+            <option value="implicit">FTPS 暗黙的TLS</option>
+            <option value="none">FTP 暗号化なし（非推奨）</option>
+          </select>
+        </label>
+        <label>ポート<input name="port" type="number" min="1" max="65535" placeholder="21"></label>
+      </div>
+      <label>ユーザー名<input name="user" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <label>パスワード<input name="password" type="password" autocomplete="new-password" placeholder="空欄なら接続時に入力"></label>
+      <label>初期フォルダ<input name="remoteDir" placeholder="/public_html" autocapitalize="off" spellcheck="false"></label>
+      <label class="check"><input type="checkbox" name="insecureTls"> 自己署名証明書を許可する（非推奨）</label>
+      <p class="warn small" data-role="plainWarn" hidden>暗号化なし FTP はパスワードと中身が平文で流れます。サーバが FTPS 非対応の場合のみ使ってください。</p>
+      <div class="btns">
+        <button type="button" data-role="cancel">キャンセル</button>
+        <button type="submit" class="primary">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- settings -->
+  <dialog id="settingsDlg">
+    <div class="dlg-head"><h2>設定</h2><button type="button" data-close>×</button></div>
+    <form id="settingsForm">
+      <label>中継サーバのアクセストークン
+        <input name="relayToken" type="password" autocomplete="off" required minlength="16" placeholder="起動時にコンソールに表示されます">
+      </label>
+      <p class="small muted" id="relayStatus"></p>
+      <label>自動ロック（分）<input name="autoLockMin" type="number" min="1" max="240"></label>
+      <label class="check"><input type="checkbox" name="savePasswords"> FTP パスワードを保存する（暗号化して保存）</label>
+      <div class="btns"><button type="submit" class="primary">保存</button></div>
+    </form>
+    <hr>
+    <div class="btns wrap">
+      <button type="button" id="exportBackupBtn">暗号化バックアップを保存</button>
+      <button type="button" id="changePwBtn">マスターパスワード変更</button>
+      <button type="button" id="clearWorkBtn" class="danger">作業領域を空にする</button>
+    </div>
+    <p class="small muted" id="secureInfo"></p>
+  </dialog>
+
+  <!-- generic prompt / confirm -->
+  <dialog id="askDlg">
+    <form method="dialog" id="askForm">
+      <h2 id="askTitle"></h2>
+      <p id="askMsg" class="pre"></p>
+      <input id="askInput" autocomplete="off">
+      <div class="btns">
+        <button value="cancel" formnovalidate>キャンセル</button>
+        <button value="ok" class="primary" id="askOk">OK</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>
