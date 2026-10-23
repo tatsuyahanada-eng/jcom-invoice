@@ -1,12 +1,11 @@
-// APP UP FTP Manager - main UI.
+// APP UP FTP Manager - main UI (shared by the browser PWA and the Android app).
 import { vault } from './vault.js';
-import { Relay } from './relay.js';
-import * as lfs from './localfs.js';
-import { extractArchive, isArchive } from './archive/index.js';
+import { isArchive } from './archive/index.js';
 import { safeSegments } from './archive/util.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const IS_NATIVE = !!window.Capacitor?.isNativePlatform?.();
 
 // Build DOM safely (file names are untrusted: always textContent, never innerHTML).
 function h(tag, props = {}, ...kids) {
@@ -77,12 +76,12 @@ function job(label) {
 }
 
 // ---------- state ----------
-const relay = new Relay(() => vault.data?.relayToken || '');
+let platform, local, remote;
 const state = {
-  roots: [], // { key, label, handle, isOpfs }
+  roots: [],
   local: { root: null, segs: [], items: [], sel: new Set() },
   remote: { path: '/', items: [], sel: new Set(), profile: null },
-  clip: null, // { op, side, items:[{name,type}], local:{root,segs}, remotePath }
+  clip: null, // { op, side, items:[{name,type}], local:{root,segs}, remotePath, sid }
   active: 'local',
 };
 
@@ -96,7 +95,8 @@ setInterval(() => {
 }, 15000);
 
 async function lockApp(msg) {
-  await relay.disconnect();
+  await remote.disconnect();
+  state.remote.profile = null;
   vault.lock();
   setConnState();
   renderRemote();
@@ -138,7 +138,7 @@ $('#lockForm').addEventListener('submit', async (e) => {
     $('#lockDlg').close();
     lastActivity = Date.now();
     renderServerSelect();
-    if (!vault.data.relayToken) openSettings('最初に中継サーバのアクセストークンを入力してください');
+    if (remote.needsRelay && !vault.data.relayToken) openSettings('最初に中継サーバのアクセストークンを入力してください');
   } catch (err) {
     $('#lockErr').textContent = err.message;
   } finally {
@@ -167,12 +167,14 @@ $('#backupInput').onchange = async (e) => {
 function openSettings(msg) {
   const f = $('#settingsForm');
   f.relayToken.value = vault.data.relayToken || '';
+  f.relayToken.required = remote.needsRelay;
+  $('#relayTokenRow').hidden = !remote.needsRelay;
   f.autoLockMin.value = vault.data.settings.autoLockMin || 10;
   f.savePasswords.checked = vault.data.settings.savePasswords !== false;
   $('#relayStatus').textContent = msg || '';
-  $('#secureInfo').textContent = window.isSecureContext
-    ? `この画面は安全な接続 (${location.protocol}) で開かれています。`
-    : '警告: 安全でない接続で開かれています。HTTPS か localhost で開いてください。';
+  $('#secureInfo').textContent = IS_NATIVE
+    ? 'Android アプリ版: FTP 通信・解凍はすべてこの端末内で行います（中継サーバ不要）。'
+    : window.isSecureContext ? `この画面は安全な接続 (${location.protocol}) で開かれています。` : '警告: 安全でない接続で開かれています。HTTPS か localhost で開いてください。';
   $('#settingsDlg').showModal();
 }
 $('#settingsBtn').onclick = () => vault.isUnlocked() && openSettings();
@@ -184,12 +186,26 @@ $('#settingsForm').addEventListener('submit', async (e) => {
   vault.data.settings.savePasswords = f.savePasswords.checked;
   if (!f.savePasswords.checked) vault.data.servers.forEach((s) => (s.password = ''));
   await vault.save();
-  const ok = await relay.ping().catch(() => false);
+  if (!remote.needsRelay) { toast('設定を保存しました'); $('#settingsDlg').close(); return; }
+  const ok = await remote.ping().catch(() => false);
   $('#relayStatus').textContent = ok ? '中継サーバに接続できました ✓' : '中継サーバに接続できません。トークンと起動状態を確認してください';
   if (ok) { toast('設定を保存しました'); $('#settingsDlg').close(); }
 });
-$('#exportBackupBtn').onclick = () => {
-  saveBlob(vault.exportBlob(), `appup-ftp-backup-${new Date().toISOString().slice(0, 10)}.json`);
+$('#exportBackupBtn').onclick = async () => {
+  const name = `appup-ftp-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  if (IS_NATIVE) {
+    // write into the workspace, then let the user pick where to save it
+    const app = state.roots.find((r) => r.kind === 'app');
+    await local.write(app, [name], vault.exportBlob());
+    try { await local.save(app, [name]); toast('暗号化バックアップを保存しました'); } catch (err) { if (err.code !== 'CANCELLED') toast(err.message, true); }
+    await local.remove(app, [name]).catch(() => {});
+    if (state.local.root.kind === 'app') refreshLocal();
+    return;
+  }
+  const a = h('a', { href: URL.createObjectURL(vault.exportBlob()), download: name });
+  document.body.append(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   toast('暗号化バックアップを保存しました');
 };
 $('#changePwBtn').onclick = async () => {
@@ -203,10 +219,9 @@ $('#changePwBtn').onclick = async () => {
 };
 $('#clearWorkBtn').onclick = async () => {
   if (!(await confirmAsk('作業領域を空にする', 'アプリ内作業領域のファイルをすべて削除します。', '削除する', true))) return;
-  const root = await navigator.storage.getDirectory();
-  await root.removeEntry('workspace', { recursive: true }).catch(() => {});
-  state.roots[0].handle = await lfs.opfsRoot();
-  if (state.local.root.isOpfs) { state.local.root = state.roots[0]; state.local.segs = []; }
+  const app = state.roots.find((r) => r.kind === 'app');
+  for (const it of await local.list(app, [])) await local.remove(app, [it.name]);
+  if (state.local.root.kind === 'app') state.local.segs = [];
   await refreshLocal();
   toast('作業領域を空にしました');
 };
@@ -295,7 +310,7 @@ $('#serverForm').addEventListener('submit', async (e) => {
 function setConnState() {
   const c = $('#connState');
   const p = state.remote.profile;
-  if (relay.sid && p) {
+  if (remote.connected && p) {
     c.textContent = p.secure === 'none' ? '接続中 (暗号化なし)' : '接続中 (FTPS)';
     c.className = `chip ${p.secure === 'none' ? 'plain' : 'on'}`;
     $('#connectBtn').textContent = '切断';
@@ -308,26 +323,25 @@ function setConnState() {
   }
 }
 
+async function disconnect() {
+  await remote.disconnect();
+  state.remote.profile = null;
+  state.remote.items = [];
+  setConnState();
+  renderRemote();
+}
+
 $('#connectBtn').onclick = async () => {
   if (!vault.isUnlocked()) return;
-  if (relay.sid) {
-    await relay.disconnect();
-    state.remote.profile = null;
-    state.remote.items = [];
-    setConnState();
-    renderRemote();
-    return;
-  }
+  if (remote.connected) return disconnect();
   const p = vault.data.servers.find((s) => s.id === $('#serverSel').value);
   if (!p) return toast('接続するサーバを選んでください', true);
   await connectTo(p);
 };
-$('#serverSel').onchange = async () => {
-  if (relay.sid) { await relay.disconnect(); state.remote.profile = null; setConnState(); renderRemote(); }
-};
+$('#serverSel').onchange = async () => { if (remote.connected) await disconnect(); };
 
 async function connectTo(p) {
-  if (!vault.data.relayToken) return openSettings('アクセストークンを入力してください');
+  if (remote.needsRelay && !vault.data.relayToken) return openSettings('アクセストークンを入力してください');
   let pw = p.password;
   if (!pw) {
     pw = await ask({ title: `${p.name} のパスワード`, input: '', type: 'password' });
@@ -338,7 +352,7 @@ async function connectTo(p) {
   btn.disabled = true;
   btn.textContent = '接続中…';
   try {
-    const r = await relay.connect(p, pw);
+    const r = await remote.connect(p, pw);
     state.remote.profile = p;
     state.remote.path = p.remoteDir || r.pwd || '/';
     vault.data.lastServer = p.id;
@@ -352,15 +366,14 @@ async function connectTo(p) {
     setConnState();
   } finally {
     btn.disabled = false;
-    if (!relay.sid) btn.textContent = '接続';
+    if (!remote.connected) btn.textContent = '接続';
   }
 }
 
 // ---------- local pane ----------
-async function initRoots() {
-  state.roots = [{ key: 'opfs', label: 'アプリ内作業領域', handle: await lfs.opfsRoot(), isOpfs: true }];
-  for (const hd of await loadSavedHandles()) state.roots.push({ key: `dir:${hd.name}:${state.roots.length}`, label: `📁 ${hd.name}`, handle: hd, isOpfs: false });
-  state.local.root = state.roots[0];
+async function loadRoots(selectKey) {
+  state.roots = await local.roots();
+  state.local.root = state.roots.find((r) => r.key === (selectKey || state.local.root?.key)) || state.roots[0];
   renderRootSelect();
 }
 
@@ -368,7 +381,7 @@ function renderRootSelect() {
   const sel = $('#rootSel');
   sel.replaceChildren(
     ...state.roots.map((r) => h('option', { value: r.key }, r.label)),
-    ...(lfs.canPickFolder() ? [h('option', { value: '__pick' }, '＋ PC のフォルダを開く…')] : []),
+    ...(local.canPickFolder ? [h('option', { value: '__pick' }, IS_NATIVE ? '＋ スマホのフォルダを開く…' : '＋ PC のフォルダを開く…')] : []),
     ...(state.roots.length > 1 ? [h('option', { value: '__forget' }, '開いたフォルダの一覧を消去')] : []),
   );
   sel.value = state.local.root.key;
@@ -378,58 +391,31 @@ $('#rootSel').onchange = async (e) => {
   const v = e.target.value;
   try {
     if (v === '__pick') {
-      const hd = await lfs.pickFolder();
-      const r = { key: `dir:${hd.name}:${state.roots.length}`, label: `📁 ${hd.name}`, handle: hd, isOpfs: false };
-      state.roots.push(r);
-      await saveHandles();
-      state.local.root = r;
+      const r = await local.pickFolder();
+      await loadRoots(r.key);
     } else if (v === '__forget') {
-      state.roots = state.roots.slice(0, 1);
-      await saveHandles();
-      state.local.root = state.roots[0];
+      if (await confirmAsk('一覧を消去', '開いたフォルダへのアクセス許可を取り消します（フォルダ内のファイルは消えません）。', '消去する')) {
+        await local.forgetFolders();
+        await loadRoots('app');
+      }
     } else {
       const r = state.roots.find((x) => x.key === v);
-      if (!r.isOpfs && (await r.handle.queryPermission({ mode: 'readwrite' })) !== 'granted') {
-        if ((await r.handle.requestPermission({ mode: 'readwrite' })) !== 'granted') throw new Error('フォルダへのアクセスが許可されませんでした');
-      }
+      await local.ensureAccess(r);
       state.local.root = r;
     }
     state.local.segs = [];
+    state.local.sel.clear();
     await refreshLocal();
   } catch (err) {
-    if (err.name !== 'AbortError') toast(err.message, true);
+    if (err.name !== 'AbortError' && err.code !== 'CANCELLED') toast(err.message, true);
   }
   renderRootSelect();
 };
 
-// Persist picked folder handles in IndexedDB (desktop only).
-function idb() {
-  return new Promise((res, rej) => {
-    const r = indexedDB.open('appup-ftp', 1);
-    r.onupgradeneeded = () => r.result.createObjectStore('kv');
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-}
-async function loadSavedHandles() {
-  try {
-    const db = await idb();
-    return await new Promise((res) => {
-      const q = db.transaction('kv').objectStore('kv').get('dirs');
-      q.onsuccess = () => res(q.result || []);
-      q.onerror = () => res([]);
-    });
-  } catch { return []; }
-}
-async function saveHandles() {
-  const db = await idb();
-  db.transaction('kv', 'readwrite').objectStore('kv').put(state.roots.filter((r) => !r.isOpfs).map((r) => r.handle), 'dirs');
-}
-
 async function refreshLocal() {
   const L = state.local;
   try {
-    L.items = sortItems(await lfs.list(L.root.handle, L.segs));
+    L.items = sortItems((await local.list(L.root, L.segs)).filter((i) => !(L.root.kind === 'app' && !L.segs.length && i.name === '.tmp')));
   } catch (err) {
     L.items = [];
     if (L.segs.length) { L.segs = []; return refreshLocal(); }
@@ -437,8 +423,8 @@ async function refreshLocal() {
   }
   L.sel = new Set([...L.sel].filter((n) => L.items.some((i) => i.name === n)));
   renderLocal();
-  const u = await lfs.usage();
-  $('#usage').textContent = u && L.root.isOpfs ? `使用 ${fmtSize(u.usage)} / ${fmtSize(u.quota)}` : '';
+  const u = await local.usage(L.root);
+  $('#usage').textContent = u ? `使用 ${fmtSize(u.usage)} / ${fmtSize(u.quota)}` : '';
 }
 
 function sortItems(items) {
@@ -449,7 +435,7 @@ function renderList(side) {
   const S = state[side];
   const ul = side === 'local' ? $('#localList') : $('#remoteList');
   const pane = side === 'local' ? $('#localPane') : $('#remotePane');
-  if (side === 'remote' && !relay.sid) {
+  if (side === 'remote' && !remote.connected) {
     ul.replaceChildren(h('li', { class: 'empty' }, 'サーバに接続してください'));
   } else if (!S.items.length) {
     ul.replaceChildren(h('li', { class: 'empty' }, side === 'local' ? '空のフォルダです。「取り込み」でファイルを追加できます' : '空のフォルダです'));
@@ -468,7 +454,7 @@ function renderList(side) {
       };
       cb.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
       li.addEventListener('click', () => {
-        if (it.type === 'dir' || it.type === 'link') openDir(side, it.name);
+        if (it.type === 'dir' || it.type === 'link') run(() => openDir(side, it.name));
         else toggle();
       });
       return li;
@@ -487,11 +473,11 @@ function renderCrumbs(side) {
   const nav = side === 'local' ? $('#localCrumbs') : $('#remoteCrumbs');
   const segs = side === 'local' ? state.local.segs : state.remote.path.split('/').filter(Boolean);
   const rootLabel = side === 'local' ? state.local.root?.label || '' : '/';
-  const go = (n) => async () => {
+  const go = (n) => () => run(async () => {
     if (side === 'local') { state.local.segs = segs.slice(0, n); state.local.sel.clear(); await refreshLocal(); }
     else { state.remote.path = rjoin(...segs.slice(0, n)); state.remote.sel.clear(); await refreshRemote(); }
-  };
-  if (side === 'remote' && !relay.sid) return nav.replaceChildren();
+  });
+  if (side === 'remote' && !remote.connected) return nav.replaceChildren();
   nav.replaceChildren(h('button', { onclick: go(0) }, rootLabel), ...segs.flatMap((s, i) => [h('span', {}, '›'), h('button', { onclick: go(i + 1) }, s)]));
 }
 
@@ -502,13 +488,12 @@ async function openDir(side, name) {
 
 async function refreshRemote() {
   const R = state.remote;
-  if (!relay.sid) { R.items = []; renderRemote(); return; }
+  if (!remote.connected) { R.items = []; renderRemote(); return; }
   try {
-    const r = await relay.list(R.path);
-    R.items = sortItems(r.items);
+    R.items = sortItems(await remote.list(R.path));
   } catch (err) {
     toast(err.message, true);
-    if (!relay.sid) { state.remote.profile = null; setConnState(); }
+    if (!remote.connected) { state.remote.profile = null; setConnState(); }
     R.items = [];
   }
   R.sel = new Set([...R.sel].filter((n) => R.items.some((i) => i.name === n)));
@@ -519,17 +504,16 @@ function selected(side) { const S = state[side]; return S.items.filter((i) => S.
 
 function updateButtons() {
   const ls = selected('local'), rs = selected('remote');
-  const conn = !!relay.sid;
+  const conn = remote.connected;
   const set = (pane, act, on) => { const b = $(`[data-act=${act}]`, pane); if (b) b.disabled = !on; };
   const lp = $('#localPane'), rp = $('#remotePane');
   set(lp, 'up', state.local.segs.length > 0);
   set(lp, 'extract', ls.length === 1 && ls[0].type === 'file' && isArchive(ls[0].name));
   set(lp, 'copy', ls.length > 0); set(lp, 'cut', ls.length > 0); set(lp, 'delete', ls.length > 0);
   set(lp, 'rename', ls.length === 1);
-  set(lp, 'save', ls.length > 0 && ls.every((i) => i.type === 'file'));
+  set(lp, 'save', IS_NATIVE ? ls.length === 1 && ls[0].type === 'file' : ls.length > 0 && ls.every((i) => i.type === 'file'));
   set(lp, 'upload', conn && ls.length > 0);
   set(lp, 'paste', !!state.clip && (state.clip.side === 'local' || conn));
-  set(lp, 'importDir', true);
   for (const a of ['refresh', 'mkdir']) set(rp, a, conn);
   set(rp, 'up', conn && state.remote.path !== '/');
   set(rp, 'copy', conn && rs.length > 0); set(rp, 'cut', conn && rs.length > 0); set(rp, 'delete', conn && rs.length > 0);
@@ -552,20 +536,38 @@ $('#remotePane .toolbar').addEventListener('click', (e) => { const a = e.target.
 
 async function run(fn) {
   if (!fn) return;
-  try { await fn(); } catch (err) { if (err.name !== 'AbortError') { console.error(err); toast(err.message || String(err), true); } }
+  try { await fn(); } catch (err) {
+    if (err.name === 'AbortError' || err.code === 'CANCELLED') return;
+    console.error(err);
+    toast(err.message || String(err), true);
+    if (err.code === 'DISCONNECTED') { state.remote.profile = null; setConnState(); renderRemote(); }
+  }
 }
 
+const L = () => state.local;
 const localActions = {
-  async up() { state.local.segs = state.local.segs.slice(0, -1); state.local.sel.clear(); await refreshLocal(); },
+  async up() { L().segs = L().segs.slice(0, -1); L().sel.clear(); await refreshLocal(); },
   refresh: () => refreshLocal(),
   async mkdir() {
     const n = await ask({ title: '新しいフォルダ', input: '' });
     if (n === null) return;
     if (!validName(n)) throw new Error('使えない名前です');
-    await lfs.mkdir(state.local.root.handle, [...state.local.segs, n]);
+    await local.mkdir(L().root, [...L().segs, n]);
     await refreshLocal();
   },
-  import: () => $('#fileInput').click(),
+  async import() {
+    if (!local.importPicker) return $('#fileInput').click();
+    const j = job('スマホから取り込み');
+    try {
+      const r = await local.importPicker(L().root, L().segs, (d, t, f) => j.progress(d, t, f));
+      j.done(`${r.names.length} 件を取り込みました`);
+      L().sel = new Set(r.names);
+    } catch (err) {
+      if (err.code === 'CANCELLED') { j.done('取り込みをキャンセルしました'); return; }
+      j.fail(err);
+      throw err;
+    } finally { await refreshLocal(); }
+  },
   importDir: () => $('#dirInput').click(),
   async extract() { await extractLocal(selected('local')[0]); },
   copy: () => setClip('copy', 'local'),
@@ -576,22 +578,22 @@ const localActions = {
     const n = await ask({ title: '名前変更', input: it.name });
     if (n === null || n === it.name) return;
     if (!validName(n)) throw new Error('使えない名前です');
-    const L = state.local;
-    if (await lfs.exists(L.root.handle, [...L.segs, n])) throw new Error('同じ名前が既にあります');
-    await copyLocalTree(L.root, [...L.segs, it.name], L.root, [...L.segs, n]);
-    await lfs.remove(L.root.handle, [...L.segs, it.name]);
+    await local.rename(L().root, [...L().segs, it.name], n);
+    L().sel = new Set([n]);
     await refreshLocal();
   },
   async delete() {
     const items = selected('local');
-    if (!(await confirmAsk('削除', `${items.length} 件を削除します:\n${items.map((i) => i.name).join('\n')}`, '削除', true))) return;
-    for (const it of items) await lfs.remove(state.local.root.handle, [...state.local.segs, it.name]);
-    state.local.sel.clear();
+    const where = L().root.kind === 'folder' ? `\n\n※「${L().root.label}」はスマホ/PC の実フォルダです。` : '';
+    if (!(await confirmAsk('削除', `${items.length} 件を削除します:\n${items.map((i) => i.name).join('\n')}${where}`, '削除', true))) return;
+    for (const it of items) await local.remove(L().root, [...L().segs, it.name]);
+    L().sel.clear();
     await refreshLocal();
     toast('削除しました');
   },
   async save() {
-    for (const it of selected('local')) saveBlob(await lfs.readFile(state.local.root.handle, [...state.local.segs, it.name]), it.name);
+    for (const it of selected('local')) await local.save(L().root, [...L().segs, it.name]);
+    if (IS_NATIVE) toast('保存しました');
   },
   upload: () => paste('remote', makeClip('copy', 'local')),
 };
@@ -603,7 +605,7 @@ const remoteActions = {
     const n = await ask({ title: 'サーバに新しいフォルダ', input: '' });
     if (n === null) return;
     if (!validName(n)) throw new Error('使えない名前です');
-    await relay.mkdir(rjoin(state.remote.path, n));
+    await remote.mkdir(rjoin(state.remote.path, n));
     await refreshRemote();
   },
   copy: () => setClip('copy', 'remote'),
@@ -614,7 +616,7 @@ const remoteActions = {
     const n = await ask({ title: '名前変更（サーバ）', input: it.name });
     if (n === null || n === it.name) return;
     if (!validName(n)) throw new Error('使えない名前です');
-    await relay.rename(rjoin(state.remote.path, it.name), rjoin(state.remote.path, n));
+    await remote.rename(rjoin(state.remote.path, it.name), rjoin(state.remote.path, n));
     await refreshRemote();
   },
   async delete() {
@@ -625,7 +627,7 @@ const remoteActions = {
     try {
       for (const it of items) {
         j.progress(n++, items.length, it.name);
-        await relay.remove(rjoin(state.remote.path, it.name), it.type === 'dir');
+        await remote.remove(rjoin(state.remote.path, it.name), it.type === 'dir');
       }
       j.done(`${items.length} 件削除しました`);
     } catch (err) { j.fail(err); throw err; } finally { state.remote.sel.clear(); await refreshRemote(); }
@@ -634,22 +636,27 @@ const remoteActions = {
   async extractRemote() {
     const it = selected('remote')[0];
     const j = job(`${it.name} をダウンロード`);
-    const blob = await relay.download(rjoin(state.remote.path, it.name)).catch((err) => { j.fail(err); throw err; });
-    j.done();
-    await extractLocal({ name: it.name }, new File([blob], it.name));
+    let name = it.name, k = 2;
+    while (await local.exists(L().root, [...L().segs, name])) name = it.name.replace(/(\.[^.]+)$/, ` (${k++})$1`);
+    try {
+      await remote.downloadLocal(rjoin(state.remote.path, it.name), L().root, [...L().segs, name], it.size, (d, t) => j.progress(d, t));
+      j.done();
+    } catch (err) { j.fail(err); throw err; }
+    await refreshLocal();
     switchTab('local');
+    await extractLocal({ name });
   },
 };
 
-// ---------- import (files / drag & drop) ----------
-$('#fileInput').onchange = (e) => importFiles([...e.target.files].map((f) => ({ rel: [f.name], file: f }))).finally(() => (e.target.value = ''));
-$('#dirInput').onchange = (e) => importFiles([...e.target.files].map((f) => ({ rel: (f.webkitRelativePath || f.name).split('/'), file: f }))).finally(() => (e.target.value = ''));
-const lp = $('#localPane');
-lp.addEventListener('dragover', (e) => { e.preventDefault(); lp.classList.add('dragover'); });
-lp.addEventListener('dragleave', () => lp.classList.remove('dragover'));
-lp.addEventListener('drop', async (e) => {
+// ---------- import (browser: files / drag & drop) ----------
+$('#fileInput').onchange = (e) => run(() => importFiles([...e.target.files].map((f) => ({ rel: [f.name], file: f })))).finally(() => (e.target.value = ''));
+$('#dirInput').onchange = (e) => run(() => importFiles([...e.target.files].map((f) => ({ rel: (f.webkitRelativePath || f.name).split('/'), file: f })))).finally(() => (e.target.value = ''));
+const lpane = $('#localPane');
+lpane.addEventListener('dragover', (e) => { e.preventDefault(); lpane.classList.add('dragover'); });
+lpane.addEventListener('dragleave', () => lpane.classList.remove('dragover'));
+lpane.addEventListener('drop', async (e) => {
   e.preventDefault();
-  lp.classList.remove('dragover');
+  lpane.classList.remove('dragover');
   const list = [];
   const walkEntry = async (entry, rel) => {
     if (entry.isFile) list.push({ rel: [...rel, entry.name], file: await new Promise((r, j) => entry.file(r, j)) });
@@ -670,13 +677,12 @@ lp.addEventListener('drop', async (e) => {
 
 async function importFiles(list) {
   if (!list.length) return;
-  const L = state.local;
   const j = job(`${list.length} 件を取り込み`);
   try {
     let i = 0;
     for (const { rel, file } of list) {
       j.progress(i++, list.length, rel.join('/'));
-      await lfs.writeFile(L.root.handle, [...L.segs, ...safeSegments(rel.join('/'))], file, L.root.isOpfs);
+      await local.write(L().root, [...L().segs, ...safeSegments(rel.join('/'))], file);
     }
     j.done(`${list.length} 件を取り込みました`);
   } catch (err) { j.fail(err); throw err; } finally { await refreshLocal(); }
@@ -685,46 +691,35 @@ async function importFiles(list) {
 // ---------- extract ----------
 function stripArchiveExt(name) { return name.replace(/\.(tar\.(gz|bz2|xz)|tgz|tbz2?|txz|zip|lzh|lha|tar|rar|7z|gz)$/i, '') || 'extracted'; }
 
-async function extractLocal(it, fileObj) {
-  const L = state.local;
-  const file = fileObj || await lfs.readFile(L.root.handle, [...L.segs, it.name]);
+async function extractLocal(it) {
   const base = stripArchiveExt(it.name);
   let folder = base, k = 2;
-  while (await lfs.exists(L.root.handle, [...L.segs, folder])) folder = `${base} (${k++})`;
-  const choice = await ask({ title: `「${it.name}」を解凍`, message: `解凍先のフォルダ名（現在の場所に作成します）。空欄にすると現在の場所へ直接展開します。`, input: folder });
+  while (await local.exists(L().root, [...L().segs, folder])) folder = `${base} (${k++})`;
+  const choice = await ask({ title: `「${it.name}」を解凍`, message: '解凍先のフォルダ名（今いる場所に作成します）。空欄にすると今いる場所へ直接展開します。', input: folder });
   if (choice === null) return;
   if (choice && !validName(choice)) throw new Error('使えないフォルダ名です');
-  const destSegs = choice ? [...L.segs, choice] : [...L.segs];
+  const destSegs = choice ? [...L().segs, choice] : [...L().segs];
+  const src = [...L().segs, it.name];
   const j = job(`${it.name} を解凍`);
+  const onFile = (n, p) => j.progress(n, n + 1, p);
   try {
     j.progress(0, 1, '読み込み中…');
-    let entries;
+    let n;
     try {
-      entries = await extractArchive(file);
+      n = await local.extract(L().root, src, destSegs, { onFile });
     } catch (err) {
       if (!err.needPassword) throw err;
       const pw = await ask({ title: 'パスワード付きアーカイブ', message: it.name, input: '', type: 'password' });
       if (pw === null) throw new Error('キャンセルしました');
-      entries = await extractArchive(file, { password: pw });
+      n = await local.extract(L().root, src, destSegs, { password: pw, onFile });
     }
-    // Validate every path before writing anything (zip-slip protection).
-    const plan = entries.map((e) => ({ ...e, segs: safeSegments(e.path) })).filter((e) => e.segs.length);
-    let n = 0;
-    const files = plan.filter((e) => !e.dir);
-    for (const e of plan) {
-      if (e.dir) { await lfs.mkdir(L.root.handle, [...destSegs, ...e.segs]); continue; }
-      j.progress(n++, files.length, e.segs.join('/'));
-      await lfs.writeFile(L.root.handle, [...destSegs, ...e.segs], e.data, L.root.isOpfs);
-    }
-    j.done(`${it.name}: ${files.length} ファイルを解凍しました`);
+    j.done(`${it.name}: ${n} ファイルを解凍しました`);
     await refreshLocal();
-    if (choice) {
-      state.local.sel = new Set([choice]);
-      renderLocal();
-    }
+    if (choice) { L().sel = new Set([choice]); renderLocal(); }
     toast('解凍しました。選択したまま「アップロード」でサーバへ送れます');
   } catch (err) {
     j.fail(err);
+    await refreshLocal();
     throw err;
   }
 }
@@ -733,63 +728,48 @@ async function extractLocal(it, fileObj) {
 function makeClip(op, side) {
   return {
     op, side,
-    items: selected(side).map(({ name, type }) => ({ name, type })),
-    local: { root: state.local.root, segs: [...state.local.segs] },
+    items: selected(side).map(({ name, type, size }) => ({ name, type, size })),
+    local: { root: L().root, segs: [...L().segs] },
     remotePath: state.remote.path,
-    sid: relay.sid,
+    sid: remote.sessionId,
   };
 }
 function setClip(op, side) {
   const c = makeClip(op, side);
   if (!c.items.length) return;
   state.clip = c;
-  $('#clipText').textContent = `${c.items.length} 件を${op === 'cut' ? '切り取り' : 'コピー'}（${side === 'local' ? 'ローカル' : 'サーバ'}）→ 貼り付け先で「貼り付け」`;
+  $('#clipText').textContent = `📋 ${c.items.length} 件${op === 'cut' ? '切り取り' : 'コピー'}中 → 貼り付け先で「貼り付け」`;
   $('#clipbar').hidden = false;
   updateButtons();
 }
 function clearClip() { state.clip = null; $('#clipbar').hidden = true; updateButtons(); }
 $('#clipClear').onclick = clearClip;
 
-async function copyLocalTree(srcRoot, srcSegs, dstRoot, dstSegs, onFile) {
-  const kind = await lfs.exists(srcRoot.handle, srcSegs);
-  if (kind === 'file') {
-    await lfs.writeFile(dstRoot.handle, dstSegs, await lfs.readFile(srcRoot.handle, srcSegs), dstRoot.isOpfs);
-    onFile?.(dstSegs.join('/'));
-    return;
-  }
-  await lfs.mkdir(dstRoot.handle, dstSegs);
-  for await (const e of lfs.walk(srcRoot.handle, srcSegs)) {
-    if (e.dir) await lfs.mkdir(dstRoot.handle, [...dstSegs, ...e.rel]);
-    else { await lfs.writeFile(dstRoot.handle, [...dstSegs, ...e.rel], e.file, dstRoot.isOpfs); onFile?.(e.rel.join('/')); }
-  }
-}
-
 async function remoteTree(path, rel = []) {
   const out = [];
-  const r = await relay.list(path);
-  for (const it of r.items) {
+  for (const it of await remote.list(path)) {
     if (it.type === 'dir') { out.push({ rel: [...rel, it.name], dir: true }); out.push(...await remoteTree(rjoin(path, it.name), [...rel, it.name])); }
     else out.push({ rel: [...rel, it.name], size: it.size, path: rjoin(path, it.name) });
   }
   return out;
 }
 
+const sameRoot = (a, b) => a.key === b.key;
+
 async function paste(dest, c = state.clip) {
   if (!c || !c.items.length) return;
-  if ((c.side === 'remote' || dest === 'remote') && !relay.sid) throw new Error('サーバに接続してください');
-  if (c.side === 'remote' && c.sid !== relay.sid) throw new Error('コピー元のサーバ接続が切れています。もう一度コピーしてください');
-  const L = state.local, R = state.remote;
-  const destItems = dest === 'local' ? L.items : R.items;
-  // pasting into the same folder it came from
-  const sameDir = c.side === dest && (dest === 'local' ? c.local.root === L.root && c.local.segs.join('/') === L.segs.join('/') : c.remotePath === R.path);
+  if ((c.side === 'remote' || dest === 'remote') && !remote.connected) throw new Error('サーバに接続してください');
+  if (c.side === 'remote' && c.sid !== remote.sessionId) throw new Error('コピー元のサーバ接続が切れています。もう一度コピーしてください');
+  const Lc = L(), R = state.remote;
+  const destItems = dest === 'local' ? Lc.items : R.items;
+  const sameDir = c.side === dest && (dest === 'local' ? sameRoot(c.local.root, Lc.root) && c.local.segs.join('/') === Lc.segs.join('/') : c.remotePath === R.path);
   if (sameDir) throw new Error('同じフォルダには貼り付けできません');
-  // pasting a folder into itself
   for (const it of c.items) {
-    if (c.side === 'local' && dest === 'local' && c.local.root === L.root && [...L.segs, ''].join('/').startsWith([...c.local.segs, it.name, ''].join('/'))) throw new Error('フォルダをその中に貼り付けることはできません');
+    if (c.side === 'local' && dest === 'local' && sameRoot(c.local.root, Lc.root) && [...Lc.segs, ''].join('/').startsWith([...c.local.segs, it.name, ''].join('/'))) throw new Error('フォルダをその中に貼り付けることはできません');
     if (c.side === 'remote' && dest === 'remote' && (R.path + '/').startsWith(rjoin(c.remotePath, it.name) + '/')) throw new Error('フォルダをその中に貼り付けることはできません');
   }
   const clash = c.items.filter((it) => destItems.some((d) => d.name === it.name));
-  const destLabel = dest === 'local' ? `ローカル: ${[L.root.label, ...L.segs].join('/')}` : `サーバ ${R.profile.name}: ${R.path}`;
+  const destLabel = dest === 'local' ? `ローカル: ${[Lc.root.label, ...Lc.segs].join('/')}` : `サーバ ${R.profile.name}: ${R.path}`;
   const verb = { 'local>remote': 'アップロード', 'remote>local': 'ダウンロード' }[`${c.side}>${dest}`] || (c.op === 'cut' ? '移動' : 'コピー');
   let msg = `${c.items.length} 件を ${verb} します。\n先: ${destLabel}`;
   if (clash.length) msg += `\n\n同じ名前があるため上書きされます:\n${clash.map((i) => i.name).join('\n')}`;
@@ -801,59 +781,58 @@ async function paste(dest, c = state.clip) {
     if (c.side === 'local' && dest === 'local') {
       let n = 0;
       for (const it of c.items) {
-        await copyLocalTree(c.local.root, [...c.local.segs, it.name], L.root, [...L.segs, it.name], (p) => j.progress(++n, n + 1, p));
-        if (c.op === 'cut') await lfs.remove(c.local.root.handle, [...c.local.segs, it.name]);
+        await local.copy(c.local.root, [...c.local.segs, it.name], Lc.root, [...Lc.segs, it.name], () => j.progress(++n, n + 1, it.name));
+        if (c.op === 'cut') await local.remove(c.local.root, [...c.local.segs, it.name]);
       }
       j.done(`${verb}しました`);
     } else if (c.side === 'local' && dest === 'remote') {
       const tasks = [];
       for (const it of c.items) {
         const segs = [...c.local.segs, it.name];
-        if (it.type === 'file') tasks.push({ rel: [it.name], file: await lfs.readFile(c.local.root.handle, segs) });
+        if (it.type === 'file') tasks.push({ rel: [it.name], size: it.size || 0 });
         else {
           tasks.push({ rel: [it.name], dir: true });
-          for await (const e of lfs.walk(c.local.root.handle, segs)) tasks.push({ ...e, rel: [it.name, ...e.rel] });
+          for (const e of await local.walk(c.local.root, segs)) tasks.push({ ...e, rel: [it.name, ...e.rel] });
         }
       }
-      const total = tasks.reduce((s, t) => s + (t.file?.size || 0), 0);
-      let doneBytes = 0, files = 0;
-      const base = R.path;
+      const files = tasks.filter((t) => !t.dir);
+      const total = files.reduce((s, t) => s + (t.size || 0), 0);
+      let doneBytes = 0, count = 0;
       for (const t of tasks) {
-        const target = rjoin(base, ...t.rel);
-        if (t.dir) { await relay.mkdir(target); continue; }
-        await relay.upload(target, t.file, (loaded) => j.progress(doneBytes + loaded, total, `${t.rel.join('/')} (${files + 1}/${tasks.filter((x) => !x.dir).length})`));
-        doneBytes += t.file.size;
-        files++;
+        const target = rjoin(R.path, ...t.rel);
+        if (t.dir) { await remote.mkdir(target); continue; }
+        await remote.uploadLocal(c.local.root, [...c.local.segs, ...t.rel], target,
+          (loaded) => j.progress(doneBytes + loaded, total, `${t.rel.join('/')} (${count + 1}/${files.length})`));
+        doneBytes += t.size || 0;
+        count++;
       }
-      if (c.op === 'cut') for (const it of c.items) await lfs.remove(c.local.root.handle, [...c.local.segs, it.name]);
-      j.done(`${files} ファイルをアップロードしました（${fmtSize(total)}）`);
+      if (c.op === 'cut') for (const it of c.items) await local.remove(c.local.root, [...c.local.segs, it.name]);
+      j.done(`${count} ファイルをアップロードしました（${fmtSize(total)}）`);
     } else if (c.side === 'remote' && dest === 'local') {
       let files = 0;
       for (const it of c.items) {
         const src = rjoin(c.remotePath, it.name);
-        const list = it.type === 'dir' ? [{ rel: [it.name], dir: true }, ...(await remoteTree(src, [it.name]))] : [{ rel: [it.name], path: src }];
+        const list = it.type === 'dir' ? [{ rel: [it.name], dir: true }, ...(await remoteTree(src, [it.name]))] : [{ rel: [it.name], path: src, size: it.size }];
         for (const e of list) {
-          if (e.dir) { await lfs.mkdir(L.root.handle, [...L.segs, ...e.rel]); continue; }
-          j.progress(files, files + 1, e.rel.join('/'));
-          await lfs.writeFile(L.root.handle, [...L.segs, ...e.rel], await relay.download(e.path), L.root.isOpfs);
+          if (e.dir) { await local.mkdir(Lc.root, [...Lc.segs, ...e.rel]); continue; }
+          await remote.downloadLocal(e.path, Lc.root, [...Lc.segs, ...e.rel], e.size, (d, t) => j.progress(d, t, `${e.rel.join('/')} (${files + 1})`));
           files++;
         }
-        if (c.op === 'cut') await relay.remove(src, it.type === 'dir');
+        if (c.op === 'cut') await remote.remove(src, it.type === 'dir');
       }
       j.done(`${files} ファイルをダウンロードしました`);
     } else {
-      // remote -> remote (same connection)
       let files = 0;
       for (const it of c.items) {
         const src = rjoin(c.remotePath, it.name);
         const dst = rjoin(R.path, it.name);
-        if (c.op === 'cut') { await relay.rename(src, dst); files++; continue; }
+        if (c.op === 'cut') { await remote.rename(src, dst); files++; continue; }
         const list = it.type === 'dir' ? [{ rel: [], dir: true }, ...(await remoteTree(src))] : [{ rel: [], path: src }];
         for (const e of list) {
           const target = rjoin(dst, ...e.rel);
-          if (e.dir) { await relay.mkdir(target); continue; }
+          if (e.dir) { await remote.mkdir(target); continue; }
           j.progress(files, files + 1, e.rel.join('/') || it.name);
-          await relay.upload(target, await relay.download(e.path));
+          await remote.copyRemote(e.path, target);
           files++;
         }
       }
@@ -865,18 +844,11 @@ async function paste(dest, c = state.clip) {
     throw err;
   } finally {
     await refreshLocal();
-    if (relay.sid) await refreshRemote();
+    if (remote.connected) await refreshRemote();
   }
 }
 
 // ---------- misc ----------
-function saveBlob(blob, name) {
-  const a = h('a', { href: URL.createObjectURL(blob), download: name });
-  document.body.append(a);
-  a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-}
-
 function switchTab(t) {
   state.active = t;
   $('#panes').dataset.active = t;
@@ -885,19 +857,46 @@ function switchTab(t) {
 $$('.tabs button').forEach((b) => (b.onclick = () => switchTab(b.dataset.tab)));
 $('#jobsClose').onclick = () => { $('#jobs').hidden = true; $('#jobList').replaceChildren(); };
 
+// Android back button: close dialog -> go up a folder -> leave the app
+addEventListener('appback', () => {
+  const open = $$('dialog[open]').filter((d) => d.id !== 'lockDlg');
+  if (open.length) { open[open.length - 1].close(); return; }
+  if (!$('#jobs').hidden) { $('#jobs').hidden = true; return; }
+  if (vault.isUnlocked()) {
+    if (state.active === 'remote' && remote.connected && state.remote.path !== '/') return run(remoteActions.up);
+    if (state.active === 'local' && L().segs.length) return run(localActions.up);
+    if (state.active === 'remote') return switchTab('local');
+  }
+  platform.exitApp?.();
+});
+
 // ---------- boot ----------
 (async function boot() {
-  if (!window.isSecureContext || !crypto.subtle || !navigator.storage?.getDirectory) {
-    document.body.replaceChildren(h('div', { class: 'lock' },
-      h('h1', {}, 'このブラウザ / 接続では使えません'),
-      h('p', {}, 'HTTPS（または同じ PC の http://localhost）で開いてください。暗号化と端末内ストレージに安全な接続が必要です。')));
-    return;
+  try {
+    if (IS_NATIVE) {
+      const { createNativePlatform } = await import('./platform/native.js');
+      platform = await createNativePlatform();
+    } else {
+      if (!window.isSecureContext || !crypto.subtle || !navigator.storage?.getDirectory) {
+        document.body.replaceChildren(h('div', { class: 'lock' },
+          h('h1', {}, 'このブラウザ / 接続では使えません'),
+          h('p', {}, 'HTTPS（または同じ PC の http://localhost）で開いてください。暗号化と端末内ストレージに安全な接続が必要です。')));
+        return;
+      }
+      const { createWebPlatform } = await import('./platform/web.js');
+      platform = createWebPlatform({ getToken: () => vault.data?.relayToken || '' });
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.storage.persist?.().catch(() => {});
+    }
+    ({ local, remote } = platform);
+    document.body.classList.toggle('native', IS_NATIVE);
+    await loadRoots('app');
+    await refreshLocal();
+    setConnState();
+    renderRemote();
+    showLock();
+  } catch (err) {
+    console.error(err);
+    document.body.replaceChildren(h('div', { class: 'lock' }, h('h1', {}, '起動できませんでした'), h('p', {}, String(err.message || err))));
   }
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-  navigator.storage.persist?.().catch(() => {});
-  await initRoots();
-  await refreshLocal();
-  setConnState();
-  renderRemote();
-  showLock();
 })();

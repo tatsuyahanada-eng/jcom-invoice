@@ -149,8 +149,8 @@
   <dialog id="settingsDlg">
     <div class="dlg-head"><h2>設定</h2><button type="button" data-close>×</button></div>
     <form id="settingsForm">
-      <label>中継サーバのアクセストークン
-        <input name="relayToken" type="password" autocomplete="off" required minlength="16" placeholder="起動時にコンソールに表示されます">
+      <label id="relayTokenRow">中継サーバのアクセストークン
+        <input name="relayToken" type="password" autocomplete="off" minlength="16" placeholder="起動時にコンソールに表示されます">
       </label>
       <p class="small muted" id="relayStatus"></p>
       <label>自動ロック（分）<input name="autoLockMin" type="number" min="1" max="240"></label>

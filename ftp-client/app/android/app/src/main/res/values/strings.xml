@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">APP UP FTP</string>
+    <string name="title_activity_main">APP UP FTP</string>
+    <string name="package_name">jp.appup.ftpmanager</string>
+    <string name="custom_url_scheme">jp.appup.ftpmanager</string>
+</resources>

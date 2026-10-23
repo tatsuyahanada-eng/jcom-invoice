@@ -1,17 +1,71 @@
 # APP UP FTP Manager
 
 作成した PWA などの成果物を **解凍 → 整理（コピー・貼り付け）→ FTP サーバへアップロード** するためのツール。
-スマホと PC の両方で使える PWA と、自分の PC で動かす小さな「中継サーバ」の2つで動きます。
 
+- **Android アプリ（APK）: スマホ単体で完結**（推奨・メイン）
+- PC ブラウザ版（PWA ＋ 自分の PC の中継サーバ）も同じ画面で使えます
+
+主な機能:
 - 解凍に対応: ZIP / LZH(LHA) / TAR / tar.gz / tar.bz2 / tar.xz / RAR(v4・v5) / 7z
-  - ZIP・LZH は Windows で作った **日本語ファイル名（Shift_JIS）も文字化けしない** 独自デコーダ
+  - ZIP・LZH は Windows で作った **日本語ファイル名（Shift_JIS）も文字化けしない**
 - FTP サーバを複数登録して切り替え（FTPS 推奨・FTP も可）
 - 2画面のファイルマネージャ（ローカル ⇔ サーバ）: フォルダ作成・名前変更・削除・コピー／切り取り／貼り付け・フォルダごとアップロード／ダウンロード
-- PC では実際のフォルダ（例: `C:\work\site`）を開いて直接読み書き（Chrome / Edge）
+- スマホの実フォルダ（例: Documents/site）を開いて直接読み書き
 
 ---
 
-## 1. 提案: なぜこの構成か
+## 0. Android アプリ（APK）
+
+### インストール
+1. `APP-UP-FTP-x.y.z.apk` をスマホにダウンロードしてタップ
+2. 「提供元不明のアプリ」の許可を求められたら、そのブラウザ／ファイルアプリに許可
+3. 初回起動でマスターパスワードを設定 →「サーバ管理」で FTP サーバを登録
+
+対応: Android 8.0 以上。必要な権限は **インターネットのみ**（ストレージ全体へのアクセス権は不要）。
+
+### 使い方（スマホ内の ZIP をサーバへ）
+1. ローカル側「**取り込み**」→ Download などにある ZIP を選ぶ（アプリ内作業領域にコピーされます）
+2. ZIP を選んで「**解凍**」→ 同名フォルダに展開
+3. 必要ならファイルを「コピー」→ 別フォルダで「貼り付け」して整理
+   - 「ローカルの場所」→「**スマホのフォルダを開く**」で実フォルダ（例: Documents/site）を開けば、そこへ直接コピーできます
+   - ※ Android の制限で「Download」直下そのものは選べません。中にフォルダを作って選んでください
+4. 上で **接続** → サーバ側で目的のフォルダを開く
+5. ローカルでフォルダ／ファイルを選んで「**アップロード →**」
+- 1ファイルを端末の好きな場所（Download 直下など）へ書き出すには「端末に保存」
+- 戻るボタン: ダイアログを閉じる → 上のフォルダへ → アプリを閉じる
+
+### APK のセキュリティ
+| 項目 | 内容 |
+|---|---|
+| 通信 | FTP/FTPS はアプリ内で直接実行（中継サーバなし・第三者を経由しない）。FTPS 既定、証明書とホスト名を検証 |
+| 保存データ | サーバ情報は AES-256-GCM で暗号化（マスターパスワード）。自動ロックあり |
+| 権限 | インターネットのみ。フォルダはユーザーが選んだものだけ（Android の Storage Access Framework） |
+| バックアップ | Android の自動クラウドバックアップは無効（`allowBackup=false`） |
+| 書庫 | `../` を含む危険な書庫は展開前に中止、展開サイズ上限 8GB |
+| FTPS 互換 | ProFTPD / vsftpd などの「TLS セッション再利用必須」設定にも対応 |
+
+### APK のビルド（開発者向け）
+必要: Node.js 20+, JDK 21, Android SDK (platform 36)
+```
+cd app
+npm install
+npm run sync                      # ../public を www/ にコピーして Android に同期
+cd android && ./gradlew assembleRelease
+```
+署名鍵は `app/android/keystore.properties`（git 管理外）に記載:
+```
+storeFile=/path/to/appup-ftp-release.jks
+storePassword=...
+keyAlias=appup
+keyPassword=...
+```
+**同じ署名鍵でビルドしないとアップデートできません**（アンインストールが必要になり、登録したサーバ情報も消えます）。鍵は安全な場所に保管してください。
+
+ネイティブ部分のテスト: `app/test-core/run.sh`（ローカルに FTP / FTPS / セッション再利用必須サーバを立てて検証）
+
+---
+
+## 1. （参考）PC ブラウザ版の構成と提案
 
 ### ブラウザ（PWA）は FTP と直接通信できない
 ブラウザには FTP 用の通信手段（TCP ソケット）がありません。どの PWA でも FTP を使うには、
@@ -24,9 +78,9 @@
 | C. Android APK（Capacitor 等） | アプリ自身が FTP 通信 | 中継不要。スマホ単体で完結 | Android のみ。ネイティブ部分（FTP プラグイン）の開発・署名・配布管理が必要 |
 | D. PC アプリ（Electron） | PC アプリ自身が FTP 通信 | 中継不要 | PC のみ。スマホでは使えない |
 
-**推奨: まず A で運用し、スマホ単体で使いたい場面が多ければ C（APK）を追加。**
-画面のコード（`public/`）は Capacitor でそのまま APK に包めるように作ってあり、
-FTP 部分だけネイティブに差し替えれば APK 化できます（下の「APK 化」参照）。
+**スマホ単体で完結させたい → C（APK）を採用済み（上の「0. Android アプリ」）。**
+PC でも使いたい場合は A を併用できます。画面のコード（`public/`）は共通で、
+APK では FTP・解凍・ファイル操作がネイティブ（Java）に切り替わります。
 
 ### 「PWA はセキュリティが心配」への答え
 心配されがちな点と、このツールでの対策:
@@ -47,7 +101,7 @@ APK にしても「端末内に暗号化保存」「FTPS」が大事なのは同
 
 ---
 
-## 2. セットアップ
+## 2. PC ブラウザ版のセットアップ
 
 必要なもの: Node.js 20 以上（https://nodejs.org/ja）
 
@@ -116,8 +170,15 @@ ftp-client/
 │  ├─ js/relay.js        中継サーバ API クライアント
 │  ├─ js/localfs.js      端末内ファイル操作（OPFS / PC フォルダ）
 │  └─ js/archive/        解凍（ZIP・LZH 独自実装、その他は libarchive WASM）
+├─ public/js/platform/  web.js（ブラウザ＋中継）/ native.js（Android アプリ）
+├─ app/                  Android アプリ（Capacitor）
+│  ├─ android/…/jp/appup/ftpmanager/
+│  │   ├─ AppUpPlugin.java   ネイティブ機能（FTP・解凍・フォルダ）の窓口
+│  │   ├─ LocalStore.java    アプリ内作業領域・スマホのフォルダ
+│  │   └─ core/              FtpSession / ReuseFtpsClient / ZipExtract（JVM でテスト可能）
+│  └─ test-core/          ネイティブ部分のテスト
 ├─ server/
-│  ├─ server.js          中継サーバ（basic-ftp）
+│  ├─ server.js          中継サーバ（basic-ftp）※ブラウザ版のみ使用
 │  └─ test/              テスト（npm test）
 ├─ start-relay.bat / start-relay.sh
 ```
@@ -128,13 +189,11 @@ ftp-client/
 
 ## 5. 今後の拡張案
 
-- **APK 化（スマホ単体で完結）**: Capacitor で `public/` を包み、`relay.js` と同じ形の
-  ネイティブ FTP プラグイン（Android: Apache Commons Net）を用意すれば中継なしで動きます。
-  社内配布なら Play ストアを使わず APK 直接配布も可能（署名鍵の管理が必要）。
 - **SFTP 対応**: サーバが SSH に対応していれば FTPS よりも設定が簡単で安全。中継サーバに追加可能。
 - 差分アップロード（更新されたファイルだけ送る）、アップロード前のバックアップ取得。
 
 ## 制約
-- 解凍・転送はブラウザのメモリ上で行うため、数 GB 級の書庫は PC での利用を推奨
+- ブラウザ版は解凍・転送をメモリ上で行うため、数 GB 級の書庫は苦手（APK の ZIP 解凍・転送はストリーム処理）
+- APK でも ZIP 以外（LZH / RAR / 7z / TAR）と暗号化 ZIP はアプリ内の JS で解凍するため、数百 MB 以上は時間がかかります
 - RAR / 7z / TAR の日本語ファイル名は UTF-8 で作られたものに対応（Shift_JIS 名は ZIP・LZH のみ対応）
 - iPhone（Safari）は PC フォルダを開く機能なし（アプリ内作業領域を使用）

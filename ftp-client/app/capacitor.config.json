@@ -1,0 +1,10 @@
+{
+  "appId": "jp.appup.ftpmanager",
+  "appName": "APP UP FTP",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false
+  }
+}

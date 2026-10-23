@@ -1,0 +1,20 @@
+{
+  "name": "appup-ftp-manager-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "APP UP FTP Manager - Android app (Capacitor)",
+  "scripts": {
+    "web": "node scripts/build-web.js",
+    "sync": "npm run web && npx cap sync android",
+    "apk": "npm run sync && cd android && ./gradlew assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "libarchive.js": "^2.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}
