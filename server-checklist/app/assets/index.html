@@ -9,7 +9,7 @@
   --pri:#4a4f57; --pri-ink:#fff; --ok:#15803d; --ok-weak:#d9f5e1; --next:#c27c0e; --next-weak:#fff3d6;
   --bg:#e4e4e7; --card:#fff; --head:#4a4f57; --line:#c9c9cf; --text:#18181b; --sub:#52525b; --danger:#c62828;
   --row1:#ffffff; --row2:#e6e6ea; --note:#7c3aed; --th:#5d626b;
-  --cellw:70px; --namew:156px; --rowh:54px;
+  --cellw:70px; --namew:156px; --rowh:76px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
@@ -70,8 +70,14 @@ table.grid{border-collapse:separate;border-spacing:0;table-layout:fixed;backgrou
 .grid td.sv{position:sticky;left:0;z-index:1;width:var(--namew);min-width:var(--namew);max-width:var(--namew);
   padding:4px 10px;height:var(--rowh);border-right:2px solid #a1a1aa}
 .sv .n{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:17px;color:var(--text);letter-spacing:.3px}
-.sv .m{font-size:11.5px;color:#3f3f46;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.sv .m.none{color:#a1a1aa;font-weight:400}
+.sv .m{display:flex;align-items:center;gap:5px;font-size:11.5px;color:#27272a;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;padding:1px 6px;border:1.5px solid #71717a;border-radius:5px;background:#fff;line-height:1.35}
+.sv .m i{font-style:normal;font-size:10px;font-weight:600;color:#52525b;flex:none}
+.sv .m.rd{border-color:#6b7280}
+.sv .m.cdu{border-color:#0e7490;background:#ecfeff}
+.sv .m.cdu i{color:#0e7490}
+.sv .m.none{color:#a1a1aa;font-weight:400;border-style:dashed;border-color:#b4b4bc;background:transparent}
+.sv .m.none i{color:#a1a1aa}
+tr.off .sv .m{border-color:#8a8a92;background:transparent}
 .grid thead th.corner b{display:block;font-size:15px}
 .grid tbody tr.done td.sv{box-shadow:inset 5px 0 0 #22a35a}
 .svw{display:flex;align-items:center;gap:8px}
@@ -411,7 +417,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.4</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.5</p>
   </div>
 </div>
 
@@ -478,7 +484,7 @@ function normalize(d){
   }
   // v1.3: 順番どおりモードは初期OFF（終わった作業から自由に「済」を付ける）
   if(d.sampleVer<3){ d.opts.seq=false; d.sampleVer=3; }
-  d.servers.forEach(s=>{if(!s.id)s.id=uid(); if(s.memo==null)s.memo=''; if(s.door==null)s.door=''; if(s.target==null)s.target=true;});
+  d.servers.forEach(s=>{if(!s.id)s.id=uid(); if(s.memo==null)s.memo=''; if(s.door==null)s.door=''; if(s.cdu==null)s.cdu=''; if(s.target==null)s.target=true;});
   d.items.forEach(i=>{if(!i.id)i.id=uid(); i.on=!!i.on; if(i.water==null) i.water=/充水|注水/.test(i.name); i.water=!!i.water;});
   // v2.3: 充水作業の項目を追加（重量入力つき）。すでに「充水」「注水」を含む項目があればそれを重量入力ありにする
   if((d.sampleVer||0)<4){
@@ -594,7 +600,7 @@ function renderGrid(){
   if(!S.servers.length){wrap.innerHTML='<div class="empty">サーバーが登録されていません。<br>⚙ 設定 → サーバー で追加してください。</div>';return;}
 
   const q=query.trim().toLowerCase();
-  let h='<table class="grid"><thead><tr><th class="corner"><small>対象 '+roomSv.filter(s=>s.target).length+' / '+roomSv.length+'台</small><b>ラック番号</b><small>リアドア番号</small><small style="color:#fde68a">残＝未済の数</small></th>';
+  let h='<table class="grid"><thead><tr><th class="corner"><small>対象 '+roomSv.filter(s=>s.target).length+' / '+roomSv.length+'台</small><b>ラック番号</b><small>リアドア番号 ／ CDU番号</small><small style="color:#fde68a">残＝未済の数</small></th>';
   const tgt=roomSv.filter(x=>x.target);
   items.forEach((it,i)=>{ const rem=tgt.filter(x=>!(S.checks[x.id]||{})[it.id]).length;
     h+=`<th><span class="no">${i+1}</span><span class="rem ${rem?'':'z'}">${rem?'残 '+rem:'完了'}</span><span class="nm">${esc(it.name)}</span></th>`; });
@@ -608,10 +614,10 @@ function renderGrid(){
     if(filter==='issue'&&!hasIssue(sv)) return;
     if(filter==='done'&&!p.done) return;
     if(filter==='todo'&&p.done) return;
-    if(q&&![sv.name,sv.door||'',sv.memo||''].some(t=>t.toLowerCase().includes(q))) return;
+    if(q&&![sv.name,sv.door||'',sv.cdu||'',sv.memo||''].some(t=>t.toLowerCase().includes(q))) return;
     shown++;
     const c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{}, iss=S.issues[sv.id]||{};
-    h+=`<tr data-s="${sv.id}" class="${sv.target?'tgt':'off'} ${sv.target&&p.done?'done':''} ${hasIssue(sv)?'iss':''}"><td class="sv" data-sv="1"><div class="svw"><span class="tg" data-tg="1"></span><div><div class="n">${esc(sv.name)}</div>${sv.door?`<div class="m">リアドア ${esc(sv.door)}</div>`:'<div class="m none">リアドア －</div>'}</div></div></td>`;
+    h+=`<tr data-s="${sv.id}" class="${sv.target?'tgt':'off'} ${sv.target&&p.done?'done':''} ${hasIssue(sv)?'iss':''}"><td class="sv" data-sv="1"><div class="svw"><span class="tg" data-tg="1"></span><div><div class="n">${esc(sv.name)}</div>${sv.door?`<div class="m rd"><i>リアドア</i>${esc(sv.door)}</div>`:'<div class="m rd none"><i>リアドア</i>－</div>'}${sv.cdu?`<div class="m cdu"><i>CDU</i>${esc(sv.cdu)}</div>`:'<div class="m cdu none"><i>CDU</i>－</div>'}</div></div></td>`;
     items.forEach((it,i)=>{
       const ts=c[it.id], nt=(nts[it.id]?'<i class="nt"></i>':'')+(iss[it.id]?'<i class="is"></i>':''), wv=it.water?waterCell(sv.id,it.id):'';
       if(ts) h+=`<td class="c on" data-i="${it.id}">${nt}<div class="ck"><b>済</b>${S.opts.time?`<small>${wv?fmtCell(ts).replace('<br>',' '):fmtCell(ts)}</small>`:''}${wv}</div></td>`;
@@ -735,7 +741,8 @@ function openDetail(sid){
   const items=active(), c=S.checks[sid]||{}, nts=S.notes[sid]||{}, iss=S.issues[sid]||{}, p=progressOf(sv,items);
   let h=`<div class="sh-h"><h3>${esc(sv.name)}<small>ラック番号</small></h3><span style="color:var(--sub);font-size:12px">${p.n}/${p.total}</span><button class="x" data-a="close">×</button></div><div class="sh-b">
     <div class="fld"><div class="donebox"><span>作業対象</span><label class="sw"><input type="checkbox" id="svTarget" ${sv.target?'checked':''}><i></i></label></div></div>
-    <div class="fld"><label>リアドア番号</label><input class="tin" id="door" style="width:100%" value="${esc(sv.door||'')}" placeholder="例：RD-12"></div><ul class="dl">`;
+    <div class="fld"><label>リアドア番号</label><input class="tin" id="door" style="width:100%" value="${esc(sv.door||'')}" placeholder="例：RD-12"></div>
+    <div class="fld"><label>CDU番号</label><input class="tin" id="cdu" style="width:100%" value="${esc(sv.cdu||'')}" placeholder="例：CDU-03"></div><ul class="dl">`;
   items.forEach((it,i)=>{
     const ts=c[it.id];
     h+=`<li class="${ts?'on':(S.opts.seq&&i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${(()=>{ const w=it.water&&getW(sid,it.id); if(!w) return ''; const d=wDiff(w); return `<div class="wtx">💧 充水前 ${w.before??'－'}kg → 充水後 ${w.after??'－'}kg${d!=null?`　差額 ${fmtKg(d)}kg`:''}</div>`; })()}${iss[it.id]?`<div class="itx">⚠ ${esc(iss[it.id])}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">日時・備考・問題</button></li>`;
@@ -743,9 +750,10 @@ function openDetail(sid){
   h+=`</ul><p class="help" style="margin:14px 0 6px">メモ</p><textarea class="tin" id="memo" style="min-height:70px" placeholder="作業メモ（例：IP、担当者、注意点）">${esc(sv.memo||'')}</textarea></div>
   <div class="sh-f"><button class="btn dan" data-a="reset">このサーバーをクリア</button><span style="flex:1"></span>${S.opts.seq&&p.next>=0?'<button class="btn pri" data-a="next">次の作業を完了</button>':''}</div>`;
   openModal(h,{onClose:saveMemo});
-  function saveMemo(){ const m=$('#memo'), dr=$('#door'); let ch=false;
+  function saveMemo(){ const m=$('#memo'), dr=$('#door'), cd=$('#cdu'); let ch=false;
     if(m&&m.value!==sv.memo){ sv.memo=m.value; ch=true; }
     if(dr&&dr.value.trim()!==(sv.door||'')){ sv.door=dr.value.trim(); ch=true; }
+    if(cd&&cd.value.trim()!==(sv.cdu||'')){ sv.cdu=cd.value.trim(); ch=true; }
     const tg=$('#svTarget'); if(tg&&tg.checked!==sv.target){ sv.target=tg.checked; ch=true; }
     if(ch){ save(); renderGrid(); } }
   $('#ovSheet').onclick=async e=>{
@@ -954,7 +962,7 @@ function exportData(){
   const byName=src=>{ const o={}; Object.entries(src).forEach(([sid,m])=>{ if(!sname[sid]) return; const r={};
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); if(Object.keys(r).length) o[sname[sid]]=r; }); return o; };
   return {format:'cdu-check-tool',version:2,exportedAt:Date.now(),title:S.title,
-    items:S.items.map(i=>({name:i.name,on:i.on,water:!!i.water})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),
+    items:S.items.map(i=>({name:i.name,on:i.on,water:!!i.water})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',cdu:s.cdu||'',memo:s.memo||'',target:s.target!==false})),
     checks:byName(S.checks), notes:byName(S.notes), issues:byName(S.issues), water:byName(S.water)};
 }
 function exportName(){ const d=new Date(); return `CDU_${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}.json`; }
@@ -985,7 +993,7 @@ function parseImport(text){
   const conv=src=>{ const o={}; Object.entries(src||{}).forEach(([sid,m])=>{ if(!sname[sid]) return; const r={};
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); o[sname[sid]]=r; }); return o; };
   return {format:'cdu-check-tool',exportedAt:null,title:d.title,items:d.items.map(i=>({name:i.name,on:!!i.on,water:i.water})),
-    servers:d.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes),issues:conv(d.issues),water:conv(d.water)};
+    servers:d.servers.map(s=>({name:s.name,door:s.door||'',cdu:s.cdu||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes),issues:conv(d.issues),water:conv(d.water)};
 }
 window.onImportText=function(text){
   const d=parseImport(text);
@@ -1011,7 +1019,7 @@ function showImport(d){
     <div class="sh-b">
       <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件 ／ 問題事項：${nIss}件 ／ 充水量：${nWat}件</div>
       <p class="help" style="margin:4px 0">取り込む内容</p>
-      <label class="chk"><input type="checkbox" id="imSrv" checked><span>ラック番号<small>ラック番号・リアドア番号・作業対象・並び順・メモをファイルに合わせます</small></span></label>
+      <label class="chk"><input type="checkbox" id="imSrv" checked><span>ラック番号<small>ラック番号・リアドア番号・CDU番号・作業対象・並び順・メモをファイルに合わせます</small></span></label>
       <label class="chk"><input type="checkbox" id="imItem" checked><span>作業項目<small>項目名・使用/不使用・並び順をファイルに合わせます</small></span></label>
       <label class="chk"><input type="checkbox" id="imProg" checked><span>進捗<small>済・作業日時・備考・問題事項・充水量</small></span></label>
       <p class="help" style="margin:12px 0 4px">進捗の取り込み方</p>
@@ -1043,7 +1051,7 @@ function applyImport(d,opt){
   }
   if(opt.srv){
     const cur=new Map(S.servers.map(s=>[s.name,s])), seen=new Set();
-    const list=d.servers.filter(x=>x&&x.name&&!seen.has(x.name)&&seen.add(x.name)).map(x=>{ const e=cur.get(x.name); return {id:e?e.id:uid(),name:x.name,memo:x.memo!=null?x.memo:(e?e.memo:''),door:x.door!=null?String(x.door):(e?e.door||'':''),target:x.target!=null?!!x.target:(e?e.target!==false:true)}; });
+    const list=d.servers.filter(x=>x&&x.name&&!seen.has(x.name)&&seen.add(x.name)).map(x=>{ const e=cur.get(x.name); return {id:e?e.id:uid(),name:x.name,memo:x.memo!=null?x.memo:(e?e.memo:''),door:x.door!=null?String(x.door):(e?e.door||'':''),cdu:x.cdu!=null?String(x.cdu):(e?e.cdu||'':''),target:x.target!=null?!!x.target:(e?e.target!==false:true)}; });
     const keep=new Set(list.map(s=>s.id));
     Object.keys(S.checks).forEach(k=>{ if(!keep.has(k)) delete S.checks[k]; });
     Object.keys(S.notes).forEach(k=>{ if(!keep.has(k)) delete S.notes[k]; });
@@ -1063,7 +1071,7 @@ function applyImport(d,opt){
         if(!inFile) return;
         fileItems.forEach(i=>{ if(S.checks[sv.id]) delete S.checks[sv.id][i]; if(S.notes[sv.id]) delete S.notes[sv.id][i]; if(S.issues[sv.id]) delete S.issues[sv.id][i]; if(S.water[sv.id]) delete S.water[sv.id][i]; });
         if(!opt.srv){ const fs=d.servers.find(x=>x.name===sv.name);
-          if(fs&&fs.memo!=null) sv.memo=fs.memo; if(fs&&fs.door!=null) sv.door=String(fs.door); if(fs&&fs.target!=null) sv.target=!!fs.target; }
+          if(fs&&fs.memo!=null) sv.memo=fs.memo; if(fs&&fs.door!=null) sv.door=String(fs.door); if(fs&&fs.cdu!=null) sv.cdu=String(fs.cdu); if(fs&&fs.target!=null) sv.target=!!fs.target; }
       }
       Object.entries(fc||{}).forEach(([nm,ts])=>{ const i=iid.get(nm); if(!i||!ts) return; const c=ck(sv.id);
         if(ts==='keep') ts=before[i]||c[i]||Date.now(); // Excel cell marked 済 without a date
@@ -1095,22 +1103,22 @@ async function buildXlsx(){
   const ExcelJS=await loadExcel();
   const items=active(), now=new Date();
   const wb=new ExcelJS.Workbook(); wb.creator='CDU Check Tool'; wb.created=now;
-  const ws=wb.addWorksheet('チェック表',{views:[{state:'frozen',xSplit:3,ySplit:4}]});
-  const F=4, nCol=F+items.length+2; // rack, door, 対象, items, 進捗, メモ
-  ws.getColumn(1).width=14; ws.getColumn(2).width=13; ws.getColumn(3).width=7;
+  const ws=wb.addWorksheet('チェック表',{views:[{state:'frozen',xSplit:4,ySplit:4}]});
+  const F=5, nCol=F+items.length+2; // rack, door, CDU, 対象, items, 進捗, メモ
+  ws.getColumn(1).width=14; ws.getColumn(2).width=13; ws.getColumn(3).width=12; ws.getColumn(4).width=7;
   items.forEach((_,k)=>ws.getColumn(F+k).width=11.5);
   ws.getColumn(F+items.length).width=8; ws.getColumn(F+1+items.length).width=26;
   // title rows
   ws.getCell(1,1).value=S.title; ws.getCell(1,1).font={bold:true,size:16};
-  ws.getCell(1,4).value=`書き出し：${fmtTime(now,true)}`; ws.getCell(1,4).font={color:{argb:'FF52525B'}};
+  ws.getCell(1,5).value=`書き出し：${fmtTime(now,true)}`; ws.getCell(1,5).font={color:{argb:'FF52525B'}};
   ws.getCell(2,1).value='済＝セルに「済」（例：済 10/21 11:39）／未＝空欄。対象＝○、対象外＝空欄。備考は「備考」、問題事項は「問題事項」シートで編集。';
   ws.getCell(2,1).font={size:9,color:{argb:'FF52525B'}};
   // header (row 3: number, row 4: name)
   const h3=ws.getRow(3), h4=ws.getRow(4); h4.height=48;
   const hd=(cell,v,bg,size)=>{ cell.value=v; cell.fill=fill(bg); cell.font={bold:true,color:{argb:'FFFFFFFF'},size:size||10};
     cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cell.border=border; };
-  hd(h3.getCell(1),'',XL.head); hd(h3.getCell(2),'',XL.head); hd(h3.getCell(3),'',XL.head);
-  hd(h4.getCell(1),'ラック番号',XL.head,11); hd(h4.getCell(2),'リアドア番号',XL.head,10); hd(h4.getCell(3),'対象',XL.head,10);
+  hd(h3.getCell(1),'',XL.head); hd(h3.getCell(2),'',XL.head); hd(h3.getCell(3),'',XL.head); hd(h3.getCell(4),'',XL.head);
+  hd(h4.getCell(1),'ラック番号',XL.head,11); hd(h4.getCell(2),'リアドア番号',XL.head,10); hd(h4.getCell(3),'CDU番号',XL.head,10); hd(h4.getCell(4),'対象',XL.head,10);
   items.forEach((it,k)=>{ hd(h3.getCell(F+k),k+1,XL.th,9); hd(h4.getCell(F+k),it.name,XL.th,9); });
   hd(h3.getCell(F+items.length),'',XL.th); hd(h4.getCell(F+items.length),'進捗',XL.th);
   hd(h3.getCell(F+1+items.length),'',XL.th); hd(h4.getCell(F+1+items.length),'メモ',XL.th);
@@ -1122,7 +1130,8 @@ async function buildXlsx(){
       cell.alignment={vertical:'middle',wrapText:true}; if(extra) extra(cell); return cell; };
     put(1,sv.name,cl=>{ cl.font={bold:true,size:12,color:{argb:sv.target?'FF18181B':'FF6B6B73'}}; if(sv.target&&hasIssue(sv)) cl.fill=fill('FFFACC15'); });
     put(2,sv.door||'',cl=>cl.alignment={horizontal:'center',vertical:'middle'});
-    put(3,sv.target?'○':'',cl=>{cl.alignment={horizontal:'center',vertical:'middle'}; cl.font={bold:true,color:{argb:'FF166534'},size:12};});
+    put(3,sv.cdu||'',cl=>cl.alignment={horizontal:'center',vertical:'middle'});
+    put(4,sv.target?'○':'',cl=>{cl.alignment={horizontal:'center',vertical:'middle'}; cl.font={bold:true,color:{argb:'FF166534'},size:12};});
     items.forEach((it,k)=>{
       const ts=c[it.id];
       const cell=put(F+k,ts?xlsCellText(ts):'',cl=>cl.alignment={horizontal:'center',vertical:'middle',wrapText:true});
@@ -1227,18 +1236,18 @@ async function importXlsx(buf){
     const ws=wb.getWorksheet('チェック表')||wb.worksheets[0];
     let hr=0; ws.eachRow((row,r)=>{ if(!hr&&cellText(row.getCell(1).value).trim()==='ラック番号') hr=r; });
     if(!hr){ toast('「ラック番号」の見出しが見つかりません'); return; }
-    const head=ws.getRow(hr), cols=[]; let doorCol=0, memoCol=0, tgCol=0;
+    const head=ws.getRow(hr), cols=[]; let doorCol=0, cduCol=0, memoCol=0, tgCol=0;
     for(let c=2;c<=head.cellCount;c++){
       const t=cellText(head.getCell(c).value).trim(); if(!t) continue;
-      if(t==='リアドア番号') doorCol=c; else if(t==='対象') tgCol=c; else if(t==='メモ') memoCol=c; else if(t==='進捗') continue; else cols.push({c,name:t});
+      if(t==='リアドア番号') doorCol=c; else if(t==='CDU番号') cduCol=c; else if(t==='対象') tgCol=c; else if(t==='メモ') memoCol=c; else if(t==='進捗') continue; else cols.push({c,name:t});
     }
-    const stampCell=[3,4].map(c=>cellText(ws.getCell(1,c).value)).find(t=>/書き出し/.test(t))||'';
+    const stampCell=[3,4,5].map(c=>cellText(ws.getCell(1,c).value)).find(t=>/書き出し/.test(t))||'';
     const yr=(stampCell.match(/(\d{4})\//)||[])[1];
     const d={format:'cdu-check-tool',source:'excel',exportedAt:null,items:cols.map(x=>({name:x.name,on:true})),servers:[],checks:{},notes:{},issues:{},water:{}};
     const seen=new Set();
     for(let r=hr+1;r<=ws.rowCount;r++){
       const row=ws.getRow(r), name=cellText(row.getCell(1).value).trim(); if(!name||seen.has(name)) continue; seen.add(name);
-      d.servers.push({name,door:doorCol?cellText(row.getCell(doorCol).value).trim():undefined,memo:memoCol?cellText(row.getCell(memoCol).value):undefined,
+      d.servers.push({name,door:doorCol?cellText(row.getCell(doorCol).value).trim():undefined,cdu:cduCol?cellText(row.getCell(cduCol).value).trim():undefined,memo:memoCol?cellText(row.getCell(memoCol).value):undefined,
         target:tgCol?(()=>{ const t=cellText(row.getCell(tgCol).value).normalize('NFKC').trim(); return !!t&&!/外|×|✕|^x$|^0$|^-$|^－$|no|false/i.test(t); })():undefined});
       const ch={};
       cols.forEach(x=>{ const t=parseMark(cellText(row.getCell(x.c).value),yr?+yr:0); if(t) ch[x.name]=t; });
