@@ -1,8 +1,8 @@
 // Service worker: caches the app shell so the UI (and local extraction /
 // file management) opens offline. API calls always go to the network.
-const VERSION = 'appup-ftp-v2';
+const VERSION = 'appup-ftp-v3';
 const SHELL = [
-  './', 'index.html', 'css/app.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',
+  './', 'index.html', 'css/app.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-192.png',
   'js/app.js', 'js/platform/web.js', 'js/vault.js', 'js/relay.js', 'js/localfs.js', 'js/opfs-writer.js',
   'js/archive/index.js', 'js/archive/zip.js', 'js/archive/lzh.js', 'js/archive/util.js',
   'vendor/libarchive/libarchive.js', 'vendor/libarchive/worker-bundle.js', 'vendor/libarchive/libarchive.wasm',
