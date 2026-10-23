@@ -90,6 +90,16 @@ td.pcol .ng{font-size:10.5px;color:#52525b;font-weight:700}
 .tbtn{flex:1;border:1px solid #a1a1aa;background:#fff;border-radius:9px;padding:8px 6px;font-size:13px;font-weight:700;white-space:nowrap}
 .tbtn.on{background:var(--pri);border-color:var(--pri);color:#fff}
 .tbtn:active{filter:brightness(.92)}
+.wv{font-size:10px;font-weight:800;color:#075985;white-space:nowrap}
+.wbox{border:1px solid #7dd3fc;background:#f0f9ff;border-radius:10px;padding:10px 12px}
+.wbox .row input{text-align:right;font-size:16px;font-weight:700}
+.wbox .unit{font-weight:700;color:var(--sub)}
+.wdiff{margin-top:10px;padding:8px 10px;border-radius:8px;background:#fff;border:1px dashed #38bdf8;font-size:15px;display:flex;align-items:center;gap:8px}
+.wdiff b{font-size:20px;color:#075985;margin-left:auto}
+.wdiff.neg b{color:#b91c1c}
+.dl li .wtx{font-size:12.5px;color:#075985;background:#e0f2fe;border-radius:6px;padding:4px 7px;margin-top:4px;font-weight:700}
+.ib.wt{width:30px;opacity:.45}
+.ib.wt.on{opacity:1;background:#e0f2fe;border-color:#38bdf8}
 .legend .l6::before{background:linear-gradient(135deg,#f59e0b 50%,#fff 50%);border:1px solid #a1a1aa}
 td.c .is{position:absolute;top:0;left:0;width:0;height:0;border-style:solid;border-width:13px 13px 0 0;border-color:#f59e0b transparent transparent transparent}
 tr.tgt.iss .tg{background:#facc15;border-color:#d99e00;color:#1c1917}
@@ -262,7 +272,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
     <div class="card">
       <h4><span>使用する項目と順序</span><small id="itemCount"></small></h4>
       <div class="in">
-        <p class="help">スイッチで表示する項目を選び、≡ をドラッグ（または ▲▼）で並び替えます。上から順に左→右の列になります。</p>
+        <p class="help">スイッチで表示する項目を選び、≡ をドラッグ（または ▲▼）で並び替えます。上から順に左→右の列になります。💧 をオンにした項目は、長押しの編集画面で注水前・注水後(kg)を入力でき、差額を自動計算します。</p>
         <div class="row">
           <button class="btn sm" id="itAllOn">すべて使用</button>
           <button class="btn sm" id="itAllOff">すべて解除</button>
@@ -401,7 +411,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.2</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.3</p>
   </div>
 </div>
 
@@ -420,7 +430,7 @@ const bridge=window.AndroidBridge;
 
 /* ---------- default sample ---------- */
 const SAMPLE_ITEMS=[
-  ['作業前 状態確認(ping)',1],['ログイン確認',1],['サービス停止',1],['バックアップ取得',1],
+  ['作業前 状態確認(ping)',1],['ログイン確認',1],['サービス停止',1],['注水作業',1],['バックアップ取得',1],
   ['スナップショット取得',1],['OSパッチ適用',1],['再起動',1],['起動確認',1],
   ['サービス起動確認',1],['ディスク容量確認',1],['時刻同期(NTP)確認',1],['エラーログ確認',1],
   ['監視アラート解除確認',1],['作業完了報告',1],
@@ -440,9 +450,9 @@ function sampleState(){
   SAMPLE_SERVERS().forEach(n=>servers.push({id:uid(),name:n,memo:'',door:'',target:true}));
   return {
     title:'CDU Check Tool', room:'all',
-    items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on})),
-    servers, checks:{}, notes:{}, issues:{},
-    opts:{seq:false,time:true,confirm:true}, sampleVer:3
+    items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on,water:/注水/.test(n)})),
+    servers, checks:{}, notes:{}, issues:{}, water:{},
+    opts:{seq:false,time:true,confirm:true}, sampleVer:4
   };
 }
 
@@ -456,20 +466,28 @@ function load(){
   return sampleState();
 }
 function normalize(d){
-  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.hideOff=!!d.hideOff; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
+  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.water=d.water||{}; d.hideOff=!!d.hideOff; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
   if(!d.title||d.title==='サーバー作業チェック') d.title='CDU Check Tool';
   d.room=d.room||'all';
   // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
   if(!d.sampleVer){
     if(d.servers.length&&d.servers.every(s=>/^SRV-\d{3}$/.test(s.name))){
-      d.servers=SAMPLE_SERVERS().map(n=>({id:uid(),name:n,memo:''})); d.checks={}; d.notes={}; d.issues={};
+      d.servers=SAMPLE_SERVERS().map(n=>({id:uid(),name:n,memo:''})); d.checks={}; d.notes={}; d.issues={}; d.water={};
     }
     d.sampleVer=2;
   }
   // v1.3: 順番どおりモードは初期OFF（終わった作業から自由に「済」を付ける）
   if(d.sampleVer<3){ d.opts.seq=false; d.sampleVer=3; }
   d.servers.forEach(s=>{if(!s.id)s.id=uid(); if(s.memo==null)s.memo=''; if(s.door==null)s.door=''; if(s.target==null)s.target=true;});
-  d.items.forEach(i=>{if(!i.id)i.id=uid(); i.on=!!i.on;});
+  d.items.forEach(i=>{if(!i.id)i.id=uid(); i.on=!!i.on; if(i.water==null) i.water=/注水/.test(i.name); i.water=!!i.water;});
+  // v2.3: 注水作業の項目を追加（重量入力つき）。すでに「注水」を含む項目があればそれを重量入力ありにする
+  if((d.sampleVer||0)<4){
+    if(!d.items.some(i=>/注水/.test(i.name))){
+      const at=d.items.findIndex(i=>i.name==='サービス停止');
+      d.items.splice(at>=0?at+1:Math.min(3,d.items.length),0,{id:uid(),name:'注水作業',on:true,water:true});
+    }
+    d.sampleVer=4;
+  }
   return d;
 }
 let saveT;
@@ -532,6 +550,12 @@ let filter='all', query='';
 const roomOf=sv=>{const i=sv.name.indexOf('-'); return i>0?sv.name.slice(0,i):'その他';};
 function roomList(){ const a=[]; S.servers.forEach(s=>{const r=roomOf(s); if(!a.includes(r)) a.push(r);}); return a; }
 const inRoom=sv=>S.room==='all'||roomOf(sv)===S.room;
+const getW=(sid,iid)=>((S.water[sid]||{})[iid])||null;
+const r3=x=>Math.round(x*1000)/1000;
+const wDiff=w=>(w&&w.before!=null&&w.after!=null)?r3(w.after-w.before):null;
+const fmtKg=v=>(v>0?'+':'')+v;
+function waterCell(sid,iid){ const w=getW(sid,iid); if(!w) return ''; const d=wDiff(w);
+  return d!=null?`<span class="wv">💧${fmtKg(d)}kg</span>`:`<span class="wv">💧入力中</span>`; }
 const hasIssue=sv=>Object.keys(S.issues[sv.id]||{}).length>0;
 function renderRooms(items){
   const rooms=roomList();
@@ -587,10 +611,10 @@ function renderGrid(){
     const c=S.checks[sv.id]||{}, nts=S.notes[sv.id]||{}, iss=S.issues[sv.id]||{};
     h+=`<tr data-s="${sv.id}" class="${sv.target?'tgt':'off'} ${sv.target&&p.done?'done':''} ${hasIssue(sv)?'iss':''}"><td class="sv" data-sv="1"><div class="svw"><span class="tg" data-tg="1"></span><div><div class="n">${esc(sv.name)}</div>${sv.door?`<div class="m">リアドア ${esc(sv.door)}</div>`:'<div class="m none">リアドア －</div>'}</div></div></td>`;
     items.forEach((it,i)=>{
-      const ts=c[it.id], nt=(nts[it.id]?'<i class="nt"></i>':'')+(iss[it.id]?'<i class="is"></i>':'');
-      if(ts) h+=`<td class="c on" data-i="${it.id}">${nt}<div class="ck"><b>済</b>${S.opts.time?`<small>${fmtCell(ts)}</small>`:''}</div></td>`;
-      else if(S.opts.seq&&i===p.next) h+=`<td class="c next" data-i="${it.id}">${nt}<div class="ck"><b>次</b></div></td>`;
-      else h+=`<td class="c ${S.opts.seq?'lock':''}" data-i="${it.id}">${nt}<div class="ck"><b>${S.opts.seq?'・':''}</b></div></td>`;
+      const ts=c[it.id], nt=(nts[it.id]?'<i class="nt"></i>':'')+(iss[it.id]?'<i class="is"></i>':''), wv=it.water?waterCell(sv.id,it.id):'';
+      if(ts) h+=`<td class="c on" data-i="${it.id}">${nt}<div class="ck"><b>済</b>${S.opts.time?`<small>${wv?fmtCell(ts).replace('<br>',' '):fmtCell(ts)}</small>`:''}${wv}</div></td>`;
+      else if(S.opts.seq&&i===p.next) h+=`<td class="c next" data-i="${it.id}">${nt}<div class="ck"><b>次</b>${wv}</div></td>`;
+      else h+=`<td class="c ${S.opts.seq?'lock':''}" data-i="${it.id}">${nt}<div class="ck"><b>${S.opts.seq?'・':''}</b>${wv}</div></td>`;
     });
     h+=sv.target?`<td class="pcol"><b>${p.n}/${p.total}</b>${Math.round(p.n/p.total*100)}%</td></tr>`:`<td class="pcol"><span class="ng">対象外</span></td></tr>`;
   });
@@ -631,7 +655,7 @@ const toTimeVal=d=>`${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 /* edit one cell: done/not done, date, time, note */
 function editCell(sid,iid,after){
   const sv=S.servers.find(s=>s.id===sid), it=S.items.find(i=>i.id===iid); if(!sv||!it) return;
-  const ts=(S.checks[sid]||{})[iid], note=(S.notes[sid]||{})[iid]||'', issue=(S.issues[sid]||{})[iid]||'';
+  const ts=(S.checks[sid]||{})[iid], note=(S.notes[sid]||{})[iid]||'', issue=(S.issues[sid]||{})[iid]||'', w=getW(sid,iid)||{};
   const d=new Date(ts||Date.now());
   openModal(`<div class="sh-h"><h3>${esc(it.name)}<small>${esc(sv.name)}</small></h3><button class="x" data-a="no">×</button></div>
     <div class="sh-b">
@@ -640,12 +664,21 @@ function editCell(sid,iid,after){
         <div class="row"><input class="tin" type="date" id="edDate" value="${toDateVal(d)}"><input class="tin" type="time" id="edTime" value="${toTimeVal(d)}"></div>
         <div class="row"><button class="btn sm" data-a="now">今の日時にする</button></div>
       </div>
+      ${it.water?`<div class="fld"><label>💧 注水量</label><div class="wbox">
+        <div class="row"><span style="width:56px">注水前</span><input class="tin" type="number" inputmode="decimal" step="0.1" id="wBefore" value="${w.before??''}" placeholder="0.0"><span class="unit">kg</span></div>
+        <div class="row"><span style="width:56px">注水後</span><input class="tin" type="number" inputmode="decimal" step="0.1" id="wAfter" value="${w.after??''}" placeholder="0.0"><span class="unit">kg</span></div>
+        <div class="wdiff" id="wDiff"><span>差額（注水量）</span><b id="wDiffV">－</b></div></div></div>`:''}
       <div class="fld issue"><label>⚠ 問題事項（入力するとラック番号のチェックが黄色になります）</label><textarea class="tin" id="edIssue" placeholder="例：ファン異音、ディスク1 警告、再起動で復旧せず">${esc(issue)}</textarea></div>
       <div class="fld"><label>備考</label><textarea class="tin" id="edNote" placeholder="例：ログに警告あり、再確認済み">${esc(note)}</textarea></div>
     </div>
     <div class="sh-f"><button class="btn" data-a="no">キャンセル</button><button class="btn pri" data-a="ok">保存</button></div>`,{center:true,onClose:()=>{if(after)after();}});
   const sync=()=>{ $('#edWhen').style.opacity=$('#edDone').checked?1:.4; };
   $('#edDone').onchange=sync; sync();
+  const readW=()=>{ const f=id=>{ const el=$(id); if(!el||el.value.trim()==='') return null; const n=parseFloat(el.value); return isNaN(n)?null:n; }; return {before:f('#wBefore'),after:f('#wAfter')}; };
+  const calcW=()=>{ if(!$('#wBefore')) return; const x=readW(), box=$('#wDiff'), v=$('#wDiffV');
+    if(x.before==null||x.after==null){ v.textContent='－'; box.classList.remove('neg'); return; }
+    const d=r3(x.after-x.before); v.textContent=`${fmtKg(d)} kg`; box.classList.toggle('neg',d<0); };
+  if($('#wBefore')){ $('#wBefore').oninput=calcW; $('#wAfter').oninput=calcW; calcW(); }
   $('#ovSheet').onclick=e=>{
     const a=e.target.closest('[data-a]'); if(!a) return;
     if(a.dataset.a==='now'){ const n=new Date(); $('#edDate').value=toDateVal(n); $('#edTime').value=toTimeVal(n); $('#edDone').checked=true; sync(); return; }
@@ -660,6 +693,9 @@ function editCell(sid,iid,after){
       const v=$('#edNote').value.trim(), n=S.notes[sid]||(S.notes[sid]={});
       if(v) n[iid]=v; else delete n[iid];
       if(!Object.keys(n).length) delete S.notes[sid];
+      if(it.water){ const x=readW(), wm=S.water[sid]||(S.water[sid]={});
+        if(x.before==null&&x.after==null) delete wm[iid]; else wm[iid]=x;
+        if(!Object.keys(wm).length) delete S.water[sid]; }
       const iv=$('#edIssue').value.trim(), im=S.issues[sid]||(S.issues[sid]={});
       if(iv) im[iid]=iv; else delete im[iid];
       if(!Object.keys(im).length) delete S.issues[sid];
@@ -700,7 +736,7 @@ function openDetail(sid){
     <div class="fld"><label>リアドア番号</label><input class="tin" id="door" style="width:100%" value="${esc(sv.door||'')}" placeholder="例：RD-12"></div><ul class="dl">`;
   items.forEach((it,i)=>{
     const ts=c[it.id];
-    h+=`<li class="${ts?'on':(S.opts.seq&&i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${iss[it.id]?`<div class="itx">⚠ ${esc(iss[it.id])}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">日時・備考・問題</button></li>`;
+    h+=`<li class="${ts?'on':(S.opts.seq&&i===p.next?'next':'')}" data-i="${it.id}"><span class="s">${ts?'✓':i+1}</span><span class="t">${esc(it.name)}${ts?`<div class="tm">${fmtTime(ts,true)}</div>`:''}${(()=>{ const w=it.water&&getW(sid,it.id); if(!w) return ''; const d=wDiff(w); return `<div class="wtx">💧 注水前 ${w.before??'－'}kg → 注水後 ${w.after??'－'}kg${d!=null?`　差額 ${fmtKg(d)}kg`:''}</div>`; })()}${iss[it.id]?`<div class="itx">⚠ ${esc(iss[it.id])}</div>`:''}${nts[it.id]?`<div class="ntx">📝 ${esc(nts[it.id])}</div>`:''}</span><button class="ib" data-a="note" data-n="${it.id}">日時・備考・問題</button></li>`;
   });
   h+=`</ul><p class="help" style="margin:14px 0 6px">メモ</p><textarea class="tin" id="memo" style="min-height:70px" placeholder="作業メモ（例：IP、担当者、注意点）">${esc(sv.memo||'')}</textarea></div>
   <div class="sh-f"><button class="btn dan" data-a="reset">このサーバーをクリア</button><span style="flex:1"></span>${S.opts.seq&&p.next>=0?'<button class="btn pri" data-a="next">次の作業を完了</button>':''}</div>`;
@@ -718,7 +754,7 @@ function openDetail(sid){
     if(a.dataset.a==='close') closeModal();
     if(a.dataset.a==='next'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show'); await toggle(sid,items[p.next].id,true); }
     if(a.dataset.a==='reset'){ saveMemo(); modalClose=null; $('#ov').classList.remove('show');
-      if(await confirmBox(`${esc(sv.name)} のチェック・備考・問題事項をすべて消しますか？`,'クリア',true)){ delete S.checks[sid]; delete S.notes[sid]; delete S.issues[sid]; save(); renderGrid(); }
+      if(await confirmBox(`${esc(sv.name)} のチェック・備考・問題事項・注水量をすべて消しますか？`,'クリア',true)){ delete S.checks[sid]; delete S.notes[sid]; delete S.issues[sid]; delete S.water[sid]; save(); renderGrid(); }
       openDetail(sid);
     }
   };
@@ -756,6 +792,7 @@ function renderItems(){
   $('#itemList').innerHTML=S.items.map((it,i)=>`<li data-id="${it.id}" class="${it.on?'':'off'}">
     <span class="handle">≡</span><span class="idx">${it.on?(++k):'-'}</span>
     <span class="lname" data-a="ren">${esc(it.name)}</span>
+    <button class="ib wt ${it.water?'on':''}" data-a="water" title="注水前後の重量入力">💧</button>
     <button class="ib" data-a="up">▲</button><button class="ib" data-a="dn">▼</button>
     <label class="sw"><input type="checkbox" data-a="on" ${it.on?'checked':''}><i></i></label>
     <button class="ib del" data-a="del">✕</button></li>`).join('');
@@ -785,12 +822,13 @@ function listHandler(arr,render,kind){
       case 'up': move(arr(),i,i-1); break;
       case 'dn': move(arr(),i,i+1); break;
       case 'on': return; // handled by change event
+      case 'water': obj.water=!obj.water; toast(obj.water?`「${obj.name}」に注水前後(kg)の入力を付けました`:`「${obj.name}」の重量入力をやめました`); break;
       case 'ren': { const v=await promptBox(kind==='item'?'項目名を変更':'サーバー名を変更',obj.name); if(v&&v.trim()) obj.name=v.trim(); break; }
       case 'del': {
         const msg=kind==='item'?`項目「${esc(obj.name)}」を削除しますか？<br><small>使わないだけなら、スイッチをオフにすると記録が残ります。</small>`:`サーバー「${esc(obj.name)}」を削除しますか？<br><small>このサーバーのチェック記録も消えます。</small>`;
         if(!(await confirmBox(msg,'削除',true))) return;
         arr().splice(i,1);
-        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; }
+        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); Object.values(S.water).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; delete S.water[obj.id]; }
         break;
       }
       default: return;
@@ -866,7 +904,7 @@ $('#itAllOff').onclick=()=>{S.items.forEach(i=>i.on=false);save();renderItems();
 $('#itOnTop').onclick=()=>{S.items=S.items.filter(i=>i.on).concat(S.items.filter(i=>!i.on));save();renderItems();};
 function addItems(names){
   const ex=new Set(S.items.map(i=>i.name)); let n=0;
-  names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.items.push({id:uid(),name:nm,on:true});ex.add(nm);n++;} });
+  names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.items.push({id:uid(),name:nm,on:true,water:/注水/.test(nm)});ex.add(nm);n++;} });
   save(); renderItems(); toast(n?`${n} 件の項目を追加しました`:'追加する項目がありません（重複は除外）');
 }
 $('#addItem').onclick=()=>{addItems([$('#newItem').value]);$('#newItem').value='';};
@@ -874,7 +912,7 @@ $('#newItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addItem').cl
 $('#addBulkItems').onclick=()=>{addItems($('#bulkItems').value.split(/\r?\n/));$('#bulkItems').value='';};
 
 function addServers(names,replace){
-  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; }
+  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; S.water={}; }
   const ex=new Set(S.servers.map(s=>s.name)); let n=0;
   names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.servers.push({id:uid(),name:nm,memo:''});ex.add(nm);n++;} });
   save(); renderServers();
@@ -914,8 +952,8 @@ function exportData(){
   const byName=src=>{ const o={}; Object.entries(src).forEach(([sid,m])=>{ if(!sname[sid]) return; const r={};
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); if(Object.keys(r).length) o[sname[sid]]=r; }); return o; };
   return {format:'cdu-check-tool',version:2,exportedAt:Date.now(),title:S.title,
-    items:S.items.map(i=>({name:i.name,on:i.on})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),
-    checks:byName(S.checks), notes:byName(S.notes), issues:byName(S.issues)};
+    items:S.items.map(i=>({name:i.name,on:i.on,water:!!i.water})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),
+    checks:byName(S.checks), notes:byName(S.notes), issues:byName(S.issues), water:byName(S.water)};
 }
 function exportName(){ const d=new Date(); return `CDU_${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}.json`; }
 function download(name,text,mime){
@@ -944,8 +982,8 @@ function parseImport(text){
   const iname={}, sname={}; d.items.forEach(i=>iname[i.id]=i.name); d.servers.forEach(s=>sname[s.id]=s.name);
   const conv=src=>{ const o={}; Object.entries(src||{}).forEach(([sid,m])=>{ if(!sname[sid]) return; const r={};
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); o[sname[sid]]=r; }); return o; };
-  return {format:'cdu-check-tool',exportedAt:null,title:d.title,items:d.items.map(i=>({name:i.name,on:!!i.on})),
-    servers:d.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes),issues:conv(d.issues)};
+  return {format:'cdu-check-tool',exportedAt:null,title:d.title,items:d.items.map(i=>({name:i.name,on:!!i.on,water:i.water})),
+    servers:d.servers.map(s=>({name:s.name,door:s.door||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes),issues:conv(d.issues),water:conv(d.water)};
 }
 window.onImportText=function(text){
   const d=parseImport(text);
@@ -955,15 +993,16 @@ window.onImportText=function(text){
 function showImport(d){
   let nChk=0; Object.values(d.checks||{}).forEach(m=>nChk+=Object.keys(m).length);
   let nNote=0; Object.values(d.notes||{}).forEach(m=>nNote+=Object.keys(m).length);
+  let nWat=0; Object.values(d.water||{}).forEach(m=>nWat+=Object.keys(m).length);
   let nIss=0; Object.values(d.issues||{}).forEach(m=>nIss+=Object.keys(m).length);
   const when=d.exportedAt?fmtTime(d.exportedAt,true):'不明';
   openModal(`<div class="sh-h"><h3>データの取り込み</h3><button class="x" data-a="no">×</button></div>
     <div class="sh-b">
-      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件 ／ 問題事項：${nIss}件</div>
+      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件 ／ 問題事項：${nIss}件 ／ 注水量：${nWat}件</div>
       <p class="help" style="margin:4px 0">取り込む内容</p>
       <label class="chk"><input type="checkbox" id="imSrv" checked><span>ラック番号<small>ラック番号・リアドア番号・作業対象・並び順・メモをファイルに合わせます</small></span></label>
       <label class="chk"><input type="checkbox" id="imItem" checked><span>作業項目<small>項目名・使用/不使用・並び順をファイルに合わせます</small></span></label>
-      <label class="chk"><input type="checkbox" id="imProg" checked><span>進捗<small>済・作業日時・備考・問題事項</small></span></label>
+      <label class="chk"><input type="checkbox" id="imProg" checked><span>進捗<small>済・作業日時・備考・問題事項・注水量</small></span></label>
       <p class="help" style="margin:12px 0 4px">進捗の取り込み方</p>
       <label class="chk"><input type="radio" name="imMode" value="replace" checked><span>ファイルの内容で置き換える<small>最新データを受け取るとき（おすすめ）</small></span></label>
       <label class="chk"><input type="radio" name="imMode" value="merge"><span>今のデータと合わせる<small>両方の「済」を残します。同じマスは新しい日時を優先</small></span></label>
@@ -987,7 +1026,7 @@ function applyImport(d,opt){
   const msg=[];
   if(opt.item){
     const cur=new Map(S.items.map(i=>[i.name,i])), seen=new Set();
-    const list=d.items.filter(x=>x&&x.name&&!seen.has(x.name)&&seen.add(x.name)).map(x=>{ const e=cur.get(x.name); return {id:e?e.id:uid(),name:x.name,on:!!x.on}; });
+    const list=d.items.filter(x=>x&&x.name&&!seen.has(x.name)&&seen.add(x.name)).map(x=>{ const e=cur.get(x.name); return {id:e?e.id:uid(),name:x.name,on:!!x.on,water:x.water!=null?!!x.water:(e?!!e.water:/注水/.test(x.name))}; });
     S.items.forEach(i=>{ if(!seen.has(i.name)) list.push(Object.assign({},i,{on:false})); }); // keep local-only items (hidden) so their records stay
     S.items=list; msg.push(`項目${d.items.length}件`);
   }
@@ -998,6 +1037,7 @@ function applyImport(d,opt){
     Object.keys(S.checks).forEach(k=>{ if(!keep.has(k)) delete S.checks[k]; });
     Object.keys(S.notes).forEach(k=>{ if(!keep.has(k)) delete S.notes[k]; });
     Object.keys(S.issues).forEach(k=>{ if(!keep.has(k)) delete S.issues[k]; });
+    Object.keys(S.water).forEach(k=>{ if(!keep.has(k)) delete S.water[k]; });
     S.servers=list; msg.push(`サーバー${list.length}台`);
   }
   if(opt.prog){
@@ -1005,12 +1045,12 @@ function applyImport(d,opt){
     const fileItems=d.items.map(x=>iid.get(x.name)).filter(Boolean);
     let n=0;
     S.servers.forEach(sv=>{
-      const fc=(d.checks||{})[sv.name], fn=(d.notes||{})[sv.name], fi=(d.issues||{})[sv.name];
+      const fc=(d.checks||{})[sv.name], fn=(d.notes||{})[sv.name], fi=(d.issues||{})[sv.name], fw=(d.water||{})[sv.name];
       const inFile=d.servers.some(x=>x.name===sv.name);
       let before=Object.assign({},S.checks[sv.id]||{});
       if(opt.mode==='replace'){
         if(!inFile) return;
-        fileItems.forEach(i=>{ if(S.checks[sv.id]) delete S.checks[sv.id][i]; if(S.notes[sv.id]) delete S.notes[sv.id][i]; if(S.issues[sv.id]) delete S.issues[sv.id][i]; });
+        fileItems.forEach(i=>{ if(S.checks[sv.id]) delete S.checks[sv.id][i]; if(S.notes[sv.id]) delete S.notes[sv.id][i]; if(S.issues[sv.id]) delete S.issues[sv.id][i]; if(S.water[sv.id]) delete S.water[sv.id][i]; });
         if(!opt.srv){ const fs=d.servers.find(x=>x.name===sv.name);
           if(fs&&fs.memo!=null) sv.memo=fs.memo; if(fs&&fs.door!=null) sv.door=String(fs.door); if(fs&&fs.target!=null) sv.target=!!fs.target; }
       }
@@ -1019,6 +1059,8 @@ function applyImport(d,opt){
         if(opt.mode==='replace'||!c[i]||ts>c[i]){ c[i]=ts; } n++; });
       Object.entries(fn||{}).forEach(([nm,t])=>{ const i=iid.get(nm); if(!i||!t) return; const m=S.notes[sv.id]||(S.notes[sv.id]={});
         if(opt.mode==='replace'||!m[i]) m[i]=t; });
+      Object.entries(fw||{}).forEach(([nm,w])=>{ const i=iid.get(nm); if(!i||!w) return; const m=S.water[sv.id]||(S.water[sv.id]={});
+        if(opt.mode==='replace'||!m[i]) m[i]={before:w.before!=null?w.before:null,after:w.after!=null?w.after:null}; });
       Object.entries(fi||{}).forEach(([nm,t])=>{ const i=iid.get(nm); if(!i||!t) return; const m=S.issues[sv.id]||(S.issues[sv.id]={});
         if(opt.mode==='replace'||!m[i]) m[i]=t; });
     });
@@ -1089,6 +1131,16 @@ async function buildXlsx(){
   ns.views=[{state:'frozen',ySplit:1}];
   S.servers.forEach(sv=>{ const nts=S.notes[sv.id]||{};
     S.items.forEach(it=>{ if(nts[it.id]){ const row=ns.addRow([sv.name,it.name,nts[it.id]]); row.alignment={vertical:'top',wrapText:true}; } }); });
+  // water sheet (差額 is a formula so PC edits recalculate)
+  const wsW=wb.addWorksheet('注水');
+  wsW.columns=[{header:'ラック番号',width:14},{header:'作業項目',width:22},{header:'注水前(kg)',width:13},{header:'注水後(kg)',width:13},{header:'差額(kg)',width:12}];
+  wsW.getRow(1).eachCell(cl=>{ cl.fill=fill('FF0369A1'); cl.font={bold:true,color:{argb:'FFFFFFFF'}}; cl.border=border; cl.alignment={horizontal:'center'}; });
+  wsW.views=[{state:'frozen',ySplit:1}];
+  S.servers.forEach(sv=>{ S.items.forEach(it=>{ if(!it.water) return; const w=getW(sv.id,it.id);
+    const row=wsW.addRow([sv.name,it.name,w&&w.before!=null?w.before:null,w&&w.after!=null?w.after:null,null]);
+    const n=row.number; row.getCell(5).value={formula:`IF(AND(ISNUMBER(C${n}),ISNUMBER(D${n})),D${n}-C${n},"")`,result:w?(wDiff(w)??''):''};
+    [3,4,5].forEach(c=>{ row.getCell(c).numFmt='0.0##'; row.getCell(c).alignment={horizontal:'right'}; });
+    row.getCell(5).font={bold:true,color:{argb:'FF075985'}}; }); });
   // issues sheet
   const is=wb.addWorksheet('問題事項');
   is.columns=[{header:'ラック番号',width:14},{header:'作業項目',width:26},{header:'問題事項',width:50}];
@@ -1171,7 +1223,7 @@ async function importXlsx(buf){
     }
     const stampCell=[3,4].map(c=>cellText(ws.getCell(1,c).value)).find(t=>/書き出し/.test(t))||'';
     const yr=(stampCell.match(/(\d{4})\//)||[])[1];
-    const d={format:'cdu-check-tool',source:'excel',exportedAt:null,items:cols.map(x=>({name:x.name,on:true})),servers:[],checks:{},notes:{},issues:{}};
+    const d={format:'cdu-check-tool',source:'excel',exportedAt:null,items:cols.map(x=>({name:x.name,on:true})),servers:[],checks:{},notes:{},issues:{},water:{}};
     const seen=new Set();
     for(let r=hr+1;r<=ws.rowCount;r++){
       const row=ws.getRow(r), name=cellText(row.getCell(1).value).trim(); if(!name||seen.has(name)) continue; seen.add(name);
@@ -1184,6 +1236,10 @@ async function importXlsx(buf){
     const ns=wb.getWorksheet('備考');
     if(ns) ns.eachRow((row,r)=>{ if(r===1) return; const sv=cellText(row.getCell(1).value).trim(), it=cellText(row.getCell(2).value).trim(), t=cellText(row.getCell(3).value).trim();
       if(sv&&it&&t){ (d.notes[sv]||(d.notes[sv]={}))[it]=t; } });
+    const wsx=wb.getWorksheet('注水');
+    if(wsx) wsx.eachRow((row,r)=>{ if(r===1) return; const sv=cellText(row.getCell(1).value).trim(), it=cellText(row.getCell(2).value).trim();
+      const num=c=>{ const v=row.getCell(c).value; if(v==null||v==='') return null; const n=parseFloat(String(typeof v==='object'&&v.result!=null?v.result:v).normalize('NFKC')); return isNaN(n)?null:n; };
+      const b=num(3), a=num(4); if(sv&&it&&(b!=null||a!=null)){ (d.water[sv]||(d.water[sv]={}))[it]={before:b,after:a}; } });
     const is=wb.getWorksheet('問題事項');
     if(is) is.eachRow((row,r)=>{ if(r===1) return; const sv=cellText(row.getCell(1).value).trim(), it=cellText(row.getCell(2).value).trim(), t=cellText(row.getCell(3).value).trim();
       if(sv&&it&&t){ (d.issues[sv]||(d.issues[sv]={}))[it]=t; } });
@@ -1193,7 +1249,7 @@ async function importXlsx(buf){
   }catch(e){ toast('Excel を読み込めませんでした'); }
 }
 window.onImportXlsx=b64=>importXlsx(bufFromB64(b64));
-$('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェック・備考・問題事項をクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; S.notes={}; S.issues={}; save(); toast('クリアしました'); } };
+$('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェック・備考・問題事項・注水量をクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; S.notes={}; S.issues={}; S.water={}; save(); toast('クリアしました'); } };
 $('#resetAll').onclick=async()=>{ if(await confirmBox('項目・サーバー・チェックをすべて初期サンプルに戻しますか？<br><small>元に戻せません。</small>','初期化',true)){ S=sampleState(); save(); renderItems(); renderServers(); renderOpts(); toast('初期サンプルに戻しました'); } };
 
 /* Android back button */
