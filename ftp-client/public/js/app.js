@@ -419,7 +419,7 @@ async function refreshLocal() {
   } catch (err) {
     L.items = [];
     if (L.segs.length) { L.segs = []; return refreshLocal(); }
-    toast(`ローカルを読めません: ${err.message}`, true);
+    toast(`Cannot read Local: ${err.message}`, true);
   }
   L.sel = new Set([...L.sel].filter((n) => L.items.some((i) => i.name === n)));
   renderLocal();
@@ -769,7 +769,7 @@ async function paste(dest, c = state.clip) {
     if (c.side === 'remote' && dest === 'remote' && (R.path + '/').startsWith(rjoin(c.remotePath, it.name) + '/')) throw new Error('フォルダをその中に貼り付けることはできません');
   }
   const clash = c.items.filter((it) => destItems.some((d) => d.name === it.name));
-  const destLabel = dest === 'local' ? `ローカル: ${[Lc.root.label, ...Lc.segs].join('/')}` : `サーバ ${R.profile.name}: ${R.path}`;
+  const destLabel = dest === 'local' ? `Local: ${[Lc.root.label, ...Lc.segs].join('/')}` : `Server (${R.profile.name}): ${R.path}`;
   const verb = { 'local>remote': 'アップロード', 'remote>local': 'ダウンロード' }[`${c.side}>${dest}`] || (c.op === 'cut' ? '移動' : 'コピー');
   let msg = `${c.items.length} 件を ${verb} します。\n先: ${destLabel}`;
   if (clash.length) msg += `\n\n同じ名前があるため上書きされます:\n${clash.map((i) => i.name).join('\n')}`;
@@ -851,6 +851,7 @@ async function paste(dest, c = state.clip) {
 // ---------- misc ----------
 function switchTab(t) {
   state.active = t;
+  document.body.dataset.side = t;
   $('#panes').dataset.active = t;
   $$('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === t));
 }
