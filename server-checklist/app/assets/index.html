@@ -44,7 +44,7 @@ header{background:var(--head);color:#fff;padding:9px 12px 8px;flex:none}
 .room.on.fin small{color:#86efac}
 
 /* toolbar */
-.tools{display:flex;gap:6px;padding:8px 10px;background:var(--card);border-bottom:1px solid var(--line);flex:none;align-items:center}
+.tools{display:none}
 .tools input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#f4f4f5}
 .chip{border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 10px;font-size:12px;white-space:nowrap}
 .chip.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700}
@@ -224,7 +224,24 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
 .legend .l2::before{background:var(--next-weak);border:2px solid var(--next)}
 .legend .l3::before{background:var(--row2);border:1px solid #a1a1aa}
 .legend .l4::before{background:linear-gradient(225deg,var(--note) 50%,#fff 50%);border:1px solid #a1a1aa}
-.legend span:last-child::before{display:none}
+
+
+/* compact list screen: menu panel */
+.hbtn.ico{padding:7px 0;width:38px;text-align:center;font-size:17px;line-height:1;position:relative}
+.hbtn .bdg{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:9px;background:#facc15;color:#1c1917;font-size:11px;font-weight:900;line-height:17px;display:none}
+.hbtn .bdg.on{display:block}
+.rooms{padding:5px 10px !important;gap:5px !important}
+.room{padding:3px 12px !important;font-size:14px !important}
+.room small{font-size:9.5px !important}
+#menuOv{position:fixed;left:0;right:0;bottom:0;top:var(--hh,96px);z-index:15;background:rgba(24,24,27,.45);display:none}
+#menuOv.show{display:block}
+#menu{position:absolute;left:0;right:0;top:0;background:#fff;border-radius:0 0 16px 16px;box-shadow:0 10px 24px rgba(0,0,0,.3);padding:10px 12px 12px;max-height:calc(100% - 10px);overflow:auto}
+#menu .mrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+#menu .mrow input{flex:1;min-width:0;border:1px solid #a1a1aa;border-radius:8px;padding:9px 10px;background:#f4f4f5}
+#menu .mlab{font-size:11px;font-weight:700;color:var(--sub);margin:8px 0 4px}
+#menu .chips .chip{flex:1;padding:8px 6px;font-size:13px}
+#menu .legend{border:0;padding:2px 0;background:none}
+#menu .mhint{font-size:11px;color:var(--sub);margin:4px 0 8px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -235,7 +252,8 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
       <img class="hicon" src="icon.png" alt="">
       <div class="htitle" id="hTitle">CDU Check Tool</div>
       <button class="hbtn" id="btnJump" title="次の作業へ">▶ 次へ</button>
-      <button class="hbtn" id="btnSettings">⚙ 設定</button>
+      <button class="hbtn ico" id="btnMenu" aria-label="メニュー">☰<span class="bdg" id="menuBdg"></span></button>
+      <button class="hbtn ico" id="btnSettings" aria-label="設定">⚙</button>
     </div>
     <div class="prog">
       <span id="pText">0 / 0 台完了</span>
@@ -244,20 +262,30 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
     </div>
   </header>
   <div class="rooms" id="rooms"></div>
-  <div class="tools">
-    <input id="q" type="search" placeholder="検索">
+  <div id="gridWrap"></div>
+</div>
+
+
+<!-- list menu (search / filter / sort / legend) -->
+<div id="menuOv"><div id="menu">
+  <div class="mrow"><input id="q" type="search" placeholder="検索（ラック番号・リアドア・CDU・メモ）"></div>
+  <div class="mlab">絞り込み</div>
+  <div class="mrow chips">
     <button class="chip on" data-f="all">全て</button>
     <button class="chip" data-f="todo">未完了</button>
     <button class="chip" data-f="done">完了</button>
     <button class="chip" data-f="issue">問題</button>
   </div>
-  <div class="tools2">
+  <div class="mlab">表示・並び</div>
+  <div class="mrow">
     <button class="tbtn" id="btnSortList">↕ 番号順に並び替え</button>
     <button class="tbtn" id="btnHideOff">対象のみ表示</button>
   </div>
-  <div class="legend"><span class="l1">済</span><span class="l2" id="lgNext">次の作業</span><span class="l3">未</span><span class="l4">備考あり</span><span class="l5">対象外</span><span class="l6">問題あり</span><span style="margin-left:auto">長押しで編集</span></div>
-  <div id="gridWrap"></div>
-</div>
+  <div class="mlab">凡例</div>
+  <div class="legend"><span class="l1">済</span><span class="l2" id="lgNext">次の作業</span><span class="l3">未</span><span class="l4">備考あり</span><span class="l5">対象外</span><span class="l6">問題あり</span></div>
+  <div class="mhint">マスの長押しで日時・備考・問題事項を編集／ラック番号の左のチェックで対象を切り替え</div>
+  <div class="mrow"><button class="tbtn" id="menuReset">条件をすべて解除</button><button class="tbtn on" id="menuClose">閉じる</button></div>
+</div></div>
 
 <!-- settings -->
 <div id="settings">
@@ -417,7 +445,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.5</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.6</p>
   </div>
 </div>
 
@@ -770,6 +798,23 @@ function openDetail(sid){
   };
 }
 
+
+/* ---------- list menu (☰) ---------- */
+function setHeaderH(){ document.documentElement.style.setProperty('--hh',(document.querySelector('#app>header').getBoundingClientRect().bottom)+'px'); }
+function openMenu(){ setHeaderH(); $('#menuOv').classList.add('show'); }
+function closeMenu(){ $('#menuOv').classList.remove('show'); }
+$('#btnMenu').onclick=()=>{ $('#menuOv').classList.contains('show')?closeMenu():openMenu(); };
+$('#menuOv').addEventListener('click',e=>{ if(e.target.id==='menuOv') closeMenu(); });
+$('#menuClose').onclick=closeMenu;
+$('#menuReset').onclick=()=>{
+  query=''; $('#q').value=''; filter='all'; $$('.chip').forEach(c=>c.classList.toggle('on',c.dataset.f==='all'));
+  if(S.hideOff){ S.hideOff=false; save(); }
+  renderGrid(); toast('検索・絞り込みを解除しました');
+};
+function renderMenuBadge(){
+  const n=(query.trim()?1:0)+(filter!=='all'?1:0)+(S.hideOff?1:0), b=$('#menuBdg');
+  b.textContent=n||''; b.classList.toggle('on',n>0);
+}
 /* jump to first unfinished server */
 $('#btnJump').onclick=()=>{
   const items=active();
@@ -787,7 +832,7 @@ $('#q').addEventListener('input',e=>{query=e.target.value;renderGrid();});
 $$('.chip').forEach(c=>c.onclick=()=>{filter=c.dataset.f;$$('.chip').forEach(x=>x.classList.toggle('on',x===c));renderGrid();});
 
 /* ---------- settings ---------- */
-function openSettings(){ $('#settings').classList.add('show'); renderItems(); renderServers(); renderOpts(); }
+function openSettings(){ closeMenu(); $('#settings').classList.add('show'); renderItems(); renderServers(); renderOpts(); }
 function closeSettings(){ $('#settings').classList.remove('show'); renderGrid(); }
 $('#btnSettings').onclick=openSettings; $('#btnBack').onclick=closeSettings;
 $$('.tabs button').forEach(b=>b.onclick=()=>{
@@ -862,6 +907,7 @@ function sortServers(dir){
   toast(dir>0?'番号の小さい順に並び替えました':'番号の大きい順に並び替えました');
 }
 function renderListBtns(){
+  renderMenuBadge();
   const d=sortDir(), b=$('#btnSortList');
   b.textContent=d>0?'番号順 ▲ 小さい順':(d<0?'番号順 ▼ 大きい順':'↕ 番号順に並び替え');
   b.classList.toggle('on',d!==0);
@@ -1275,6 +1321,7 @@ $('#resetAll').onclick=async()=>{ if(await confirmBox('項目・サーバー・�
 /* Android back button */
 window.onAndroidBack=function(){
   if($('#ov').classList.contains('show')){ closeModal(); return true; }
+  if($('#menuOv').classList.contains('show')){ closeMenu(); return true; }
   if($('#settings').classList.contains('show')){ closeSettings(); return true; }
   return false;
 };
