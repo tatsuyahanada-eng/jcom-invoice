@@ -553,7 +553,7 @@
       #printArea td, #printArea th { border-bottom: 1px solid #aaa; padding: 4px 6px; text-align: left; }
       #printArea td.r, #printArea th.r { text-align: right; }
     }
-    #impEvList { max-height: 44vh; overflow-y: auto; margin: 2px 0 4px; }
+    #impEvList { max-height: 50vh; overflow-y: auto; margin: 2px 0 4px; }
     .evtm { font-family: var(--mono); color: var(--gold-text); letter-spacing: .02em; margin-right: 6px; }
     .fee-in { font-family: var(--mono); font-size: 18px; letter-spacing: .04em; }
     .etc-fee { margin: 0 0 6px 56px; }
@@ -2065,12 +2065,15 @@
       onChange(update());
     };
   }
+  let lastFetchSkips = { declined: 0 };
   async function fetchDeviceEvents() {
     if (settings.deviceCalendarsChosen && !settings.deviceCalendars.length) {
       throw new Error('取り込むカレンダーが選択されていません。設定の「カレンダー連携」で選んでください');
     }
     const raw = await nativeCall('queryEvents', current, JSON.stringify(settings.deviceCalendarsChosen ? settings.deviceCalendars : []));
-    return JSON.parse(raw).map(e => ({
+    const all = JSON.parse(raw);
+    lastFetchSkips = { declined: all.filter(e => e.declined).length };
+    return all.filter(e => !e.declined).map(e => ({
       id: e.id, status: 'confirmed', summary: e.title || '', location: e.location || '', description: e.description || '', calendar: e.calendar || '',
       start: e.allDay ? { date: current } : { dateTime: new Date(e.start).toISOString() },
       end: e.allDay ? { date: current } : { dateTime: new Date(e.end).toISOString() },
@@ -2132,17 +2135,19 @@
     const kw = settings.keyword.split(/[,、，]/).map(x => x.trim()).filter(Boolean);
     const have = new Set(day.jobs.filter(j => j.eventId).map(j => j.eventId));
     const out = [];
+    out.skips = { allDay: 0, keyword: 0, deleted: 0, declined: lastFetchSkips.declined };
     for (const ev of items) {
       if (ev.status === 'cancelled') continue;
       const base = eventToBase(ev);
-      if (settings.excludeAllDay && base.allDay) continue;
-      if (kw.length && !kw.some(k => base.title.includes(k))) continue;
-      if (mode !== 'overwrite' && day.deleted.includes(ev.id)) continue;
+      if (settings.excludeAllDay && base.allDay) { out.skips.allDay++; continue; }
+      if (kw.length && !kw.some(k => base.title.includes(k))) { out.skips.keyword++; continue; }
+      if (mode !== 'overwrite' && day.deleted.includes(ev.id)) { out.skips.deleted++; continue; }
       out.push({ ev, base, existing: mode !== 'overwrite' && have.has(ev.id) });
     }
     out.sort((a, b) => (a.base.allDay ? -1 : 0) - (b.base.allDay ? -1 : 0) || String(a.base.start || '').localeCompare(String(b.base.start || '')));
     return out;
   }
+  const skipText = (sk) => [sk.allDay ? `終日の予定 ${sk.allDay}件` : '', sk.keyword ? `キーワードに合わない予定 ${sk.keyword}件` : '', sk.declined ? `辞退した予定 ${sk.declined}件` : '', sk.deleted ? `アプリで削除した予定 ${sk.deleted}件` : ''].filter(Boolean).join('、');
   async function pickEvents(cands, mode) {
     const rows = cands.map((c, i) => {
       const b = c.base, time = b.allDay ? '終日' : (b.start ? `${hm(b.start)}${b.end ? '–' + hm(b.end) : ''}` : '時間未定');
@@ -2150,7 +2155,7 @@
     }).join('');
     const dlg = askDialog({
       title: `${cands.length}件の予定が見つかりました`,
-      body: `<p style="margin:0 0 6px;">${esc(fmtDateLabel(current))}の予定です。取り込むものを選んでください。</p>${mode === 'overwrite' ? '<p class="dng" style="margin:0 0 6px;">上書き取り込みのため、選ばなかった取り込み済みの案件は消えます。</p>' : ''}<div class="calhead"><span class="cnt"></span><span><button type="button" data-all="1">全選択</button><button type="button" data-all="0">全解除</button></span></div><div id="impEvList">${rows}</div>`,
+      body: `<p style="margin:0 0 6px;">${esc(fmtDateLabel(current))}の予定です。取り込むものを選んでください。${cands.length > 5 ? `<br><small style="color:var(--muted);">全部で${cands.length}件あります。一覧を下にスクロールすると、続きが見えます。</small>` : ''}</p>${mode === 'overwrite' ? '<p class="dng" style="margin:0 0 6px;">上書き取り込みのため、選ばなかった取り込み済みの案件は消えます。</p>' : ''}<div class="calhead"><span class="cnt"></span><span><button type="button" data-all="1">全選択</button><button type="button" data-all="0">全解除</button></span></div><div id="impEvList">${rows}</div>${skipText(cands.skips) ? `<p class="help" style="margin:6px 0 0;">取り込み対象外：${esc(skipText(cands.skips))}</p>` : ''}`,
       buttons: [
         { label: '選んだ予定を取り込む', value: 'ok', kind: 'primary' },
         { label: 'キャンセル', value: null, kind: 'ghost' },
@@ -2201,6 +2206,7 @@
       let toImport = items;
       if (settings.askEvents !== false) {
         const cands = eventCandidates(items, mode);
+        if (!cands.length && skipText(cands.skips)) { toast('取り込める予定がありません（対象外：' + skipText(cands.skips) + '）'); return; }
         if (cands.length) {
           const chosen = await pickEvents(cands, mode);
           if (!chosen) return;

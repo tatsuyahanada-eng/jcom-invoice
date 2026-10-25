@@ -376,7 +376,7 @@ public class MainActivity extends Activity {
                 long begin = c.getLong(2);
                 long end = c.getLong(3);
                 boolean allDay = c.getInt(4) == 1;
-                if (c.getInt(7) == CalendarContract.Attendees.ATTENDEE_STATUS_DECLINED) continue; // 辞退した予定は除く
+                boolean declined = c.getInt(7) == CalendarContract.Attendees.ATTENDEE_STATUS_DECLINED; // 辞退した予定は、JS側で除外して件数を知らせる
                 if (allDay) {
                     String from = utc.format(begin);
                     String to = utc.format(end); // 終了は翌日0時(UTC)
@@ -392,6 +392,7 @@ public class MainActivity extends Activity {
                 o.put("start", begin);
                 o.put("end", end);
                 o.put("allDay", allDay);
+                o.put("declined", declined);
                 o.put("location", c.getString(5));
                 o.put("description", c.getString(6));
                 o.put("calendar", c.getString(8));
