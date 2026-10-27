@@ -35,7 +35,9 @@
       rows.push({ j, c, x, a, lab, status, why });
     }
     const ref = {};
-    for (const r of rows) if (r.x) ref[r.x.d.id + "|" + r.c] = [r.j.unlock, r.j.name, r.status, r.why];
+    // 5番目＝SIM種別（physical=物理SIMのみ／both=物理SIM＋eSIM／esim=eSIMのみ）。J:COMの「対応SIM」欄が元
+    const simOf = s => { s = s || ""; const e = /eSIM/i.test(s), p = /SIM/.test(s.replace(/eSIM/gi, "")); return e && p ? "both" : e ? "esim" : p ? "physical" : ""; };
+    for (const r of rows) if (r.x) ref[r.x.d.id + "|" + r.c] = [r.j.unlock, r.j.name, r.status, r.why, simOf(r.j.sim)];
     const unreg = rows.filter(r => r.status === "アプリ未登録").map(r => ({ cat: r.j.cat, name: r.j.name, unlock: r.j.unlock }));
     const cnt = {}; for (const r of rows) { const k = r.j.cat; cnt[k] = cnt[k] || { 一致: 0, 基準の違い: 0, 相違: 0, アプリ未登録: 0 }; cnt[k][r.status]++; }
     const notInJ = idx.filter(x => !used.has(x.v) && x.v.c !== "free" && x.v.c !== "rakuten");

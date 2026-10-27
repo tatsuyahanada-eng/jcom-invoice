@@ -252,6 +252,29 @@
   #jcOut .jsum .n0 { color: #7a838d; font-weight: 400; }
   #jcOut ul { margin: 4px 0 8px; padding-left: 18px; }
   #jcOut li { margin: 2px 0; font-size: 12.5px; }
+  /* SIM種別（物理SIM／eSIM）。eSIMのみは赤紫の塗りつぶしで強調 */
+  :root { --esim: #e879f9; --esim-bg: rgba(232, 121, 249, .16); }
+  .rtable td.car { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  html.pc .rtable td.car { display: table-cell; }
+  .simb { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 700; white-space: nowrap; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--well); margin-left: 6px; }
+  .simb.both { color: #8fc8ff; border-color: rgba(143, 200, 255, .45); }
+  .simb.physical { color: var(--muted); }
+  .simb.esim { color: #1a0a1f; background: var(--esim); border-color: var(--esim); font-size: 11px; font-weight: 800; box-shadow: 0 0 10px rgba(232, 121, 249, .55); }
+  .rtable tr.sesim { box-shadow: inset 3px 0 0 var(--esim); }
+  .simchip.esim[aria-pressed="true"] { background: var(--esim); color: #1a0a1f; border-color: var(--esim); }
+  .simchip.esim { color: var(--esim); border-color: rgba(232, 121, 249, .5); }
+  .simp { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 8px 0 0; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--well); font-size: 12.5px; color: var(--ink); }
+  .simp .sl { font-size: 11px; font-weight: 800; letter-spacing: .04em; color: var(--muted); }
+  .simp .simp-c { display: inline-flex; gap: 6px; margin-left: auto; }
+  .simp .sc { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line-strong); }
+  .simp .sc.on { color: var(--free); border-color: rgba(60, 240, 164, .45); background: var(--free-bg); }
+  .simp .sc.off { color: var(--faint); text-decoration: line-through; }
+  .simp.none { color: var(--faint); }
+  .simp.esim { display: block; border: 2px solid var(--esim); background: var(--esim-bg); box-shadow: 0 0 16px rgba(232, 121, 249, .35); padding: 10px 12px; }
+  .simp.esim .simp-t { font-size: 16px; font-weight: 800; color: var(--esim); line-height: 1.4; }
+  .simp.esim .simp-c { margin: 6px 0 4px; display: flex; }
+  .simp.esim .sc.off { color: var(--ng); border-color: rgba(255, 93, 118, .5); text-decoration: none; }
+  .simp.esim .simp-n { font-size: 12px; line-height: 1.6; color: var(--ink); }
   /* J:COM照合バッジ */
   .jdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
   .jdot.ok { background: var(--free); box-shadow: 0 0 6px rgba(60, 240, 164, .7); }
@@ -730,6 +753,7 @@
           <span class="grp"><span class="lbl">TYPE</span><span class="chips" id="osChips"></span></span>
           <span class="grp"><span class="lbl">SORT</span><span class="chips" id="sortChips"></span></span>
         </div>
+        <div class="filters"><span class="lbl">SIM</span><div class="chips scroll" id="simChips"></div></div>
         <div class="filters"><span class="lbl">J:COM</span><div class="chips scroll" id="jcChips"></div></div>
       </div>
     </section>
@@ -966,7 +990,7 @@
     sb: "Y!mobile・LINEMO・ソフトバンク系MVNO"
   };
 
-  const state = { limit: 300, q: "", carrier: "all", os: "all", mfr: "all", sort: "new", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set(), buy: "", jc: "all" };
+  const state = { limit: 300, q: "", carrier: "all", os: "all", mfr: "all", sort: "new", tab: "search", sel: null, selCarrier: null, mailSrc: null, mailOs: null, folds: new Set(), buy: "", jc: "all", sim: "all" };
 
   const deviceOs = d => MAKERS[d.maker].os;
   const makerName = d => d.maker === "garaho" && d.brand ? MAKERS[d.brand].name.replace(/（.*/, "") + "（ガラホ）" : MAKERS[d.maker].name;
@@ -983,11 +1007,13 @@
   // メーカー名の（BASIO・かんたんスマホ・DIGNO…）のような副ブランド列挙は、
   // その名を持つ全機種にヒットしてしまうため、索引には括弧の前だけを使う
   const bareMakerName = name => name.replace(/（.*/, "");
+  const SIM_LABEL = { physical: "物理SIMのみ", both: "物理SIM＋eSIM", esim: "eSIMのみ" };
+  const simOf = (d, v) => { const r = typeof JCOM_REF !== "undefined" && JCOM_REF[d.id + "|" + v.c]; return (r && r[4]) || ""; };
   DEVICES.forEach(d => {
     const mf = MFR_BY_KEY[mfrKey(d)];
     const parts = [d.name, d.kana, bareMakerName(MAKERS[d.maker].name), d.brand && bareMakerName(MAKERS[d.brand].name), OSNAME[deviceOs(d)],
       mf && mf.name, mf && mf.alias,
-      ...d.variants.flatMap(v => [v.code, v.n, CARRIERS[v.c].name, CARRIERS[v.c].short])];
+      ...d.variants.flatMap(v => [v.code, v.n, CARRIERS[v.c].name, CARRIERS[v.c].short, SIM_LABEL[simOf(d, v)]])];
     d._idx = norm(parts.join(" "));
   });
 
@@ -1006,6 +1032,27 @@
       .map(([k, n]) => `<button class="chip" data-sort="${k}" aria-pressed="${state.sort === k}">${n}</button>`).join("");
     $("#jcChips").innerHTML = [["all", "すべて"], ["ok", "一致"], ["ng", "相違"], ["info", "基準の違い"], ["none", "J:COM掲載なし"]]
       .map(([k, n]) => `<button class="chip jcchip ${k}" data-jc="${k}" aria-pressed="${state.jc === k}">${k !== "all" ? `<i class="jdot ${k}"></i>` : ""}${n}</button>`).join("");
+    $("#simChips").innerHTML = [["all", "すべて"], ["physical", "物理SIMのみ"], ["both", "物理SIM＋eSIM"], ["esim", "eSIMのみ"]]
+      .map(([k, n]) => `<button class="chip simchip ${k}" data-sim="${k}" aria-pressed="${state.sim === k}">${k === "esim" ? "⚠ " : ""}${n}</button>`).join("");
+  }
+
+  /* ---------- SIM種別（物理SIMのみ／物理SIM＋eSIM／eSIMのみ）：J:COMチェッカーの「対応SIM」欄が元 ---------- */
+  // 一覧のチップ：eSIMのみは赤紫の塗りつぶしで強調（物理SIMカードが挿せないため）
+  const simChip = (d, v) => {
+    const s = simOf(d, v);
+    if (!s) return "";
+    if (s === "esim") return `<span class="simb esim" title="eSIM専用機：物理SIMカードは挿せません">⚠ eSIMのみ</span>`;
+    return `<span class="simb ${s}" title="${esc(SIM_LABEL[s])}">${s === "both" ? "物理＋eSIM" : "物理SIM"}</span>`;
+  };
+  // 詳細の大きな表示：eSIMのみのときは警告バナー
+  function simPanel(d, v) {
+    const s = simOf(d, v);
+    if (!s) return `<div class="simp none"><span class="sl">SIM種別</span><span>情報なし（J:COMチェッカーに掲載なし）</span></div>`;
+    const phys = s !== "esim", es = s !== "physical";
+    const cells = `<span class="sc ${phys ? "on" : "off"}">${phys ? "✔" : "✖"} 物理SIM</span><span class="sc ${es ? "on" : "off"}">${es ? "✔" : "✖"} eSIM</span>`;
+    if (s === "esim") return `<div class="simp esim"><div class="simp-t">⚠ eSIMのみ（物理SIMカードは挿せません）</div><div class="simp-c">${cells}</div>
+      <div class="simp-n">開通にはeSIMの申込み・プロファイル設定（QRコードまたはアプリ）が必要です。SIMカードを差し替えての他社SIMテストはできません。</div></div>`;
+    return `<div class="simp ${s}"><span class="sl">SIM種別</span><b>${esc(SIM_LABEL[s])}</b><span class="simp-c">${cells}</span></div>`;
   }
 
   /* ---------- J:COMチェッカーとの照合状況（キャリア版ごと） ---------- */
@@ -1063,6 +1110,7 @@
     specific.forEach(d => d.variants.forEach(v => {
       if (state.carrier !== "all" && v.c !== state.carrier) return;
       if (state.jc !== "all" && jstat(d, v) !== state.jc) return;
+      if (state.sim !== "all" && simOf(d, v) !== state.sim) return;
       items.push({ d, v, k: relKey(v.rel) });
     }));
     const mfrIdx = d => { const i = MFRS.findIndex(m => m.k === mfrKey(d)); return i < 0 ? 99 : i; };
@@ -1070,17 +1118,17 @@
       state.sort === "old" ? (a.k || 9e9) - (b.k || 9e9) :
       state.sort === "mfr" ? mfrIdx(a.d) - mfrIdx(b.d) || b.k - a.k :
       b.k - a.k);
-    if (state.jc !== "all") generic = [];
+    if (state.jc !== "all" || state.sim !== "all") generic = [];
     const totalRows = items.length + generic.length;
     const rows = items.map(({ d, v }) => {
       const [cls, lb] = judgeOf(v);
       const cur = state.sel === d.id && state.selCarrier === v.c;
-      return `<tr data-id="${d.id}" data-vc="${v.c}" aria-current="${cur}"${jstat(d, v) === "ng" ? ' class="jng"' : ""}>
+      return `<tr data-id="${d.id}" data-vc="${v.c}" aria-current="${cur}"${jstat(d, v) === "ng" ? ' class="jng"' : simOf(d, v) === "esim" ? ' class="sesim"' : ""}>
         <td class="jd"><span class="st ${cls}">${lb}</span></td>
         <td class="jc">${jcBadge(d, v)}</td>
         <td class="mk">${esc(mfrLabel(d))}</td>
         <td class="nm"><span class="mkp">${esc(mfrLabel(d))}</span>${esc(d.name)}${v.n ? `<small class="pn">${esc(v.n)}</small>` : ""}</td>
-        <td class="car">${carDot(v.c)}</td>
+        <td class="car">${carDot(v.c)}${simChip(d, v)}</td>
         <td class="code">${esc(v.code ? v.code.replace(/（.*）/, "") : "—")}</td>
         <td class="rel">${esc(v.rel)}</td></tr>`;
     });
@@ -1091,7 +1139,7 @@
         <td class="nm"><span class="mkp">${esc(mfrLabel(d))}</span>${esc(d.name)}</td>
         <td class="car"><span class="dot" style="--c:#9fd0ff"><i></i>機種が一覧に無いとき用</span></td>
         <td class="code">—</td><td class="rel"></td></tr>`));
-    const filteredOn = state.q || state.carrier !== "all" || state.os !== "all" || state.mfr !== "all" || state.jc !== "all";
+    const filteredOn = state.q || state.carrier !== "all" || state.os !== "all" || state.mfr !== "all" || state.jc !== "all" || state.sim !== "all";
     $("#count").innerHTML = `<span><b>${rows.length}</b>HITS <span style="margin-left:6px">${filteredOn ? `${specific.length}機種` : `登録 ${specific.length}機種`}${generic.length ? ` ＋ 汎用ガイド${generic.length}` : ""}</span></span>
       <span class="legend"><span style="color:var(--ng)">要解除</span><span style="color:var(--amber)">購入日で判定・要確認</span><span style="color:var(--free)">解除不要</span></span>`;
     $("#stHits").textContent = "HITS: " + rows.length;
@@ -1330,6 +1378,7 @@
         <div class="d-meta">${v.code ? `<span>型番 <b class="mono">${esc(v.code)}</b></span>` : ""}<span>発売 ${esc(v.rel)}</span></div>
         ${prodName(d, v) !== d.name ? `<div class="d-pn">${esc(CARRIERS[v.c].name)}での製品名：<b>${esc(prodName(d, v))}</b></div>` : ""}
         <div class="ctabs" role="group" aria-label="販売キャリアを選択">${d.variants.map(x => `<button class="ctab" data-vc="${x.c}" aria-pressed="${x.c === v.c}">${clogo(x.c)}${esc(CARRIERS[x.c].name)}版</button>`).join("")}</div>
+        ${simPanel(d, v)}
         ${jcomRef(d, v)}
       </div>
 
@@ -1368,6 +1417,7 @@
     filtered().filter(d => !d.generic).forEach(d => d.variants.forEach(v => {
       if (state.carrier !== "all" && v.c !== state.carrier) return;
       if (state.jc !== "all" && jstat(d, v) !== state.jc) return;
+      if (state.sim !== "all" && simOf(d, v) !== state.sim) return;
       const mk = MAKERS[d.maker];
       rows.push({ d, v, html: `<tr data-id="${d.id}" data-vc="${v.c}">
         <td><span class="crow">${clogo(v.c)} ${esc(CARRIERS[v.c].name)}</span></td>
@@ -1375,6 +1425,7 @@
         <td><b>${esc(d.name)}</b>${v.n ? `<br><span class="pn2">${esc(v.n)}</span>` : ""}</td>
         <td class="code">${esc(v.code || "—")}</td>
         <td>${esc(v.rel)}</td>
+        <td>${simChip(d, v) || "—"}</td>
         <td><span class="pill ${STATUS[v.ship].cls}">${STATUS[v.ship].short}</span></td>
         <td>${jcBadge(d, v)}</td>
         <td>${esc(pathListText(makerPathList(mk, v.c, d)))}</td>
@@ -1382,8 +1433,8 @@
       </tr>` });
     }));
     rows.sort((a, b) => CARRIER_ORDER.indexOf(a.v.c) - CARRIER_ORDER.indexOf(b.v.c) || relKey(b.v.rel) - relKey(a.v.rel));
-    $("#lockTable").innerHTML = `<thead><tr><th>販売</th><th>メーカー</th><th>機種</th><th>型番</th><th>発売</th><th>出荷時</th><th>J:COM照合</th><th>確認方法（ここを見る）</th><th>メール持運</th></tr></thead>
-      <tbody>${rows.map(r => r.html).join("") || `<tr><td colspan="9">該当なし</td></tr>`}</tbody>`;
+    $("#lockTable").innerHTML = `<thead><tr><th>販売</th><th>メーカー</th><th>機種</th><th>型番</th><th>発売</th><th>SIM種別</th><th>出荷時</th><th>J:COM照合</th><th>確認方法（ここを見る）</th><th>メール持運</th></tr></thead>
+      <tbody>${rows.map(r => r.html).join("") || `<tr><td colspan="10">該当なし</td></tr>`}</tbody>`;
   }
 
   /* ---------- mail view ---------- */
@@ -1518,7 +1569,7 @@
   }
 
   function updateFcount() {
-    const n = (state.carrier !== "all" ? 1 : 0) + (state.os !== "all" ? 1 : 0) + (state.mfr !== "all" ? 1 : 0) + (state.jc !== "all" ? 1 : 0);
+    const n = (state.carrier !== "all" ? 1 : 0) + (state.os !== "all" ? 1 : 0) + (state.mfr !== "all" ? 1 : 0) + (state.jc !== "all" ? 1 : 0) + (state.sim !== "all" ? 1 : 0);
     const el = $("#fcount");
     el.hidden = n === 0;
     el.textContent = String(n);
@@ -1533,7 +1584,7 @@
 
   // タイトルをタップ／クリックしたら検索・絞り込みを初期化してトップに戻る
   function goHome() {
-    state.q = ""; state.carrier = "all"; state.os = "all"; state.mfr = "all"; state.sort = "new"; state.jc = "all";
+    state.q = ""; state.carrier = "all"; state.os = "all"; state.mfr = "all"; state.sort = "new"; state.jc = "all"; state.sim = "all";
     state.sel = null; state.selCarrier = null; state.mailSrc = null; state.mailOs = null;
     $("#q").value = "";
     $("#filterPanel").hidden = false;
@@ -1556,7 +1607,7 @@
   });
   // 検索をやり直す：キーワードと絞り込み条件をまとめてリセット
   $("#clearSearch").addEventListener("click", () => {
-    state.q = ""; state.carrier = "all"; state.os = "all"; state.mfr = "all"; state.sort = "new"; state.jc = "all";
+    state.q = ""; state.carrier = "all"; state.os = "all"; state.mfr = "all"; state.sort = "new"; state.jc = "all"; state.sim = "all";
     $("#q").value = "";
     $("#q").focus();
     refresh();
@@ -1574,6 +1625,7 @@
     if (t.dataset.more) { state.limit += 500; renderResults(); return; }
     if (t.dataset.sort) { state.sort = t.dataset.sort; refresh(); return; }
     if (t.dataset.jc) { state.jc = t.dataset.jc; refresh(); return; }
+    if (t.dataset.sim) { state.sim = t.dataset.sim; refresh(); return; }
     if (t.dataset.buy !== undefined) { state.buy = t.dataset.buy; renderDetail(); return; }
     if (t.dataset.tab) { setTab(t.dataset.tab); return; }
     if (t.tagName === "TR" && t.dataset.id) { if (state.tab !== "search") setTab("search"); openDevice(t.dataset.id, t.dataset.vc); return; }
