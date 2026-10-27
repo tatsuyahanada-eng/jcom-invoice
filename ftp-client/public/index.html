@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/app.css">
   <script type="module" src="js/app.js"></script>
 </head>
-<body data-side="local">
+<body data-view="local">
   <header class="topbar">
     <div class="brand"><img src="icons/icon-192.png" alt="" width="24" height="24"><span>APP UP <b>FTP Manager</b></span></div>
     <div class="server-box">
@@ -30,6 +30,7 @@
     <section class="pane" id="localPane" data-side="local" aria-label="Local">
       <div class="pane-head">
         <h2>Local</h2>
+        <span class="side-sub">This device</span>
         <select id="rootSel" aria-label="Local location"></select>
         <span id="usage" class="muted small"></span>
       </div>
@@ -47,7 +48,7 @@
         <button data-act="rename">名前変更</button>
         <button data-act="delete" class="danger">削除</button>
         <button data-act="save">端末に保存</button>
-        <button data-act="upload" class="primary">アップロード →</button>
+        <button data-act="upload" class="primary to-server">Server へアップロード ▶</button>
       </div>
       <div class="select-all"><label><input type="checkbox" data-role="all"> すべて選択</label><span class="muted small" data-role="count"></span></div>
       <ul class="list" id="localList"></ul>
@@ -72,7 +73,7 @@
         <button data-act="rename">名前変更</button>
         <button data-act="delete" class="danger">削除</button>
         <button data-act="extractRemote" class="accent">DLして解凍</button>
-        <button data-act="download" class="primary">← ダウンロード</button>
+        <button data-act="download" class="primary to-local">◀ Local へダウンロード</button>
       </div>
       <div class="select-all"><label><input type="checkbox" data-role="all"> すべて選択</label><span class="muted small" data-role="count"></span></div>
       <ul class="list" id="remoteList"><li class="empty">サーバに接続してください</li></ul>
@@ -164,6 +165,21 @@
       <button type="button" id="clearWorkBtn" class="danger">作業領域を空にする</button>
     </div>
     <p class="small muted" id="secureInfo"></p>
+  </dialog>
+
+  <!-- same-name conflict (upload / download / copy / move) -->
+  <dialog id="conflictDlg">
+    <form method="dialog" id="cfForm">
+      <div class="cf-head"><h2 id="cfTitle"></h2><div id="cfDest" class="small"></div></div>
+      <p id="cfInfo" class="small muted"></p>
+      <label class="cf-bulk">まとめて設定 <select id="cfAll"></select></label>
+      <ul id="cfList" class="cf-list"></ul>
+      <p id="cfErr" class="err"></p>
+      <div class="btns">
+        <button value="cancel" formnovalidate>キャンセル</button>
+        <button value="ok" class="primary" id="cfOk">実行</button>
+      </div>
+    </form>
   </dialog>
 
   <!-- generic prompt / confirm -->

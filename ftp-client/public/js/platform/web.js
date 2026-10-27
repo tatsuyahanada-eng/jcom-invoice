@@ -68,7 +68,7 @@ export function createWebPlatform({ getToken }) {
     write: (root, segs, blob) => lfs.writeFile(root.handle, segs, blob, isOpfs(root)),
     async walk(root, segs) {
       const out = [];
-      for await (const e of lfs.walk(root.handle, segs)) out.push({ rel: e.rel, dir: !!e.dir, size: e.file?.size || 0 });
+      for await (const e of lfs.walk(root.handle, segs)) out.push({ rel: e.rel, dir: !!e.dir, size: e.file?.size || 0, mtime: e.file?.lastModified || 0 });
       return out;
     },
     async copy(src, srcSegs, dst, dstSegs, onFile) {

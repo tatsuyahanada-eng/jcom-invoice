@@ -270,6 +270,7 @@ public class AppUpPlugin extends Plugin {
             o.put("rel", new JSArray(r));
             o.put("dir", k.isDir());
             o.put("size", k.size());
+            o.put("mtime", k.mtime());
             out.put(o);
             if (k.isDir()) walkInto(k, r, out);
         }

@@ -728,7 +728,7 @@ async function extractLocal(it) {
 function makeClip(op, side) {
   return {
     op, side,
-    items: selected(side).map(({ name, type, size }) => ({ name, type, size })),
+    items: selected(side).map(({ name, type, size, mtime }) => ({ name, type, size, mtime })),
     local: { root: L().root, segs: [...L().segs] },
     remotePath: state.remote.path,
     sid: remote.sessionId,
@@ -745,98 +745,254 @@ function setClip(op, side) {
 function clearClip() { state.clip = null; $('#clipbar').hidden = true; updateButtons(); }
 $('#clipClear').onclick = clearClip;
 
+const sameRoot = (a, b) => a.key === b.key;
+
+// ---------- conflict handling (same name already exists at the destination) ----------
+const CF_MODES = [
+  ['overwrite', '上書き'],
+  ['newer', '新しければ上書き'],
+  ['rename', '名前を変えて保存'],
+  ['skip', 'スキップ'],
+];
+const CF_HELP = {
+  overwrite: '同じ名前のファイルを上書きします（フォルダは中のファイルごとに上書き、他のファイルはそのまま残ります）',
+  newer: '送る側の更新日時が新しいファイルだけ上書きします（フォルダは中のファイルごとに判定）',
+  rename: '上書きせず、別の名前（例: name (2).zip）で保存します。名前は自由に変えられます',
+  skip: 'この項目は送らず、そのままにします',
+};
+
+function splitExt(name, isDir) {
+  const i = isDir ? -1 : name.lastIndexOf('.');
+  return i > 0 ? [name.slice(0, i), name.slice(i)] : [name, ''];
+}
+function uniqueName(name, taken, isDir) {
+  const [base, ext] = splitExt(name, isDir);
+  for (let k = 2; ; k++) {
+    const n = `${base} (${k})${ext}`;
+    if (!taken.has(n)) return n;
+  }
+}
+
+// Returns Map(name -> { mode, newName }) or null when cancelled.
+function conflictDialog({ verb, destSide, destLabel, srcSide, total, rows, destNames }) {
+  const dlg = $('#conflictDlg');
+  dlg.dataset.dest = destSide;
+  $('#cfTitle').textContent = `${verb}: 同じ名前があります`;
+  $('#cfDest').textContent = `→ ${destLabel}`;
+  $('#cfInfo').textContent = `${total} 件中 ${rows.length} 件が同じ名前で存在します。項目ごとに方法を選べます。`;
+  $('#cfErr').textContent = '';
+  const last = vault.data?.settings?.conflictMode;
+  const initial = CF_MODES.some(([v]) => v === last) ? last : 'newer';
+  const chip = (side) => h('span', { class: `side-chip ${side}` }, side === 'local' ? 'Local' : 'Server');
+  const taken = new Set(destNames);
+  const ctl = [];
+  const list = $('#cfList');
+  list.replaceChildren(...rows.map(({ it, entry }) => {
+    const sel = h('select', { class: 'cf-mode', 'aria-label': `${it.name} の方法` }, CF_MODES.map(([v, t]) => h('option', { value: v }, t)));
+    sel.value = initial;
+    const nn = h('input', { class: 'cf-newname', value: uniqueName(it.name, taken, it.type === 'dir'), autocomplete: 'off', 'aria-label': '新しい名前' });
+    taken.add(nn.value);
+    const hint = h('div', { class: 'cf-hint small muted' });
+    const sync = () => { nn.hidden = sel.value !== 'rename'; hint.textContent = CF_HELP[sel.value]; };
+    sel.onchange = sync;
+    sync();
+    ctl.push({ it, sel, nn });
+    const meta = (side, x) => h('div', { class: 'cf-line' }, chip(side), ` ${x.type === 'dir' ? 'フォルダ' : fmtSize(x.size)}  ${fmtDate(x.mtime) || '日時不明'}`);
+    return h('li', { class: 'cf-row' },
+      h('div', { class: 'cf-name' }, it.type === 'dir' ? '📁 ' : '📄 ', it.name),
+      meta(srcSide, it), meta(destSide, entry), sel, nn, hint);
+  }));
+  const all = $('#cfAll');
+  all.replaceChildren(h('option', { value: '' }, '— 個別に選ぶ —'), ...CF_MODES.map(([v, t]) => h('option', { value: v }, t)));
+  all.value = '';
+  all.onchange = () => { if (all.value) ctl.forEach((x) => { x.sel.value = all.value; x.sel.onchange(); }); };
+  return new Promise((resolve) => {
+    const ok = $('#cfOk');
+    ok.onclick = (e) => {
+      e.preventDefault();
+      const out = new Map();
+      const used = new Set(destNames);
+      for (const x of ctl) {
+        const mode = x.sel.value;
+        if (mode === 'rename') {
+          const nm = x.nn.value.trim();
+          if (!validName(nm)) { $('#cfErr').textContent = `使えない名前です: ${nm || '(空)'}`; x.nn.focus(); return; }
+          if (used.has(nm)) { $('#cfErr').textContent = `同じ名前が既にあります: ${nm}`; x.nn.focus(); return; }
+          used.add(nm);
+          out.set(x.it.name, { mode, newName: nm });
+        } else out.set(x.it.name, { mode });
+      }
+      const modes = [...out.values()].map((v) => v.mode);
+      if (vault.isUnlocked() && modes.every((m) => m === modes[0])) { vault.data.settings.conflictMode = modes[0]; vault.save(); }
+      dlg.onclose = null;
+      dlg.close('ok');
+      resolve(out);
+    };
+    dlg.onclose = () => resolve(null);
+    dlg.returnValue = '';
+    dlg.showModal();
+  });
+}
+
 async function remoteTree(path, rel = []) {
   const out = [];
   for (const it of await remote.list(path)) {
     if (it.type === 'dir') { out.push({ rel: [...rel, it.name], dir: true }); out.push(...await remoteTree(rjoin(path, it.name), [...rel, it.name])); }
-    else out.push({ rel: [...rel, it.name], size: it.size, path: rjoin(path, it.name) });
+    else out.push({ rel: [...rel, it.name], size: it.size, mtime: it.mtime, path: rjoin(path, it.name) });
   }
   return out;
 }
-
-const sameRoot = (a, b) => a.key === b.key;
 
 async function paste(dest, c = state.clip) {
   if (!c || !c.items.length) return;
   if ((c.side === 'remote' || dest === 'remote') && !remote.connected) throw new Error('サーバに接続してください');
   if (c.side === 'remote' && c.sid !== remote.sessionId) throw new Error('コピー元のサーバ接続が切れています。もう一度コピーしてください');
+  // snapshot the destination so navigating during a transfer cannot redirect it
   const Lc = L(), R = state.remote;
+  const dRoot = Lc.root, dSegs = [...Lc.segs], dPath = R.path;
   const destItems = dest === 'local' ? Lc.items : R.items;
-  const sameDir = c.side === dest && (dest === 'local' ? sameRoot(c.local.root, Lc.root) && c.local.segs.join('/') === Lc.segs.join('/') : c.remotePath === R.path);
+  const sameDir = c.side === dest && (dest === 'local' ? sameRoot(c.local.root, dRoot) && c.local.segs.join('/') === dSegs.join('/') : c.remotePath === dPath);
   if (sameDir) throw new Error('同じフォルダには貼り付けできません');
   for (const it of c.items) {
-    if (c.side === 'local' && dest === 'local' && sameRoot(c.local.root, Lc.root) && [...Lc.segs, ''].join('/').startsWith([...c.local.segs, it.name, ''].join('/'))) throw new Error('フォルダをその中に貼り付けることはできません');
-    if (c.side === 'remote' && dest === 'remote' && (R.path + '/').startsWith(rjoin(c.remotePath, it.name) + '/')) throw new Error('フォルダをその中に貼り付けることはできません');
+    if (c.side === 'local' && dest === 'local' && sameRoot(c.local.root, dRoot) && [...dSegs, ''].join('/').startsWith([...c.local.segs, it.name, ''].join('/'))) throw new Error('フォルダをその中に貼り付けることはできません');
+    if (c.side === 'remote' && dest === 'remote' && (dPath + '/').startsWith(rjoin(c.remotePath, it.name) + '/')) throw new Error('フォルダをその中に貼り付けることはできません');
   }
-  const clash = c.items.filter((it) => destItems.some((d) => d.name === it.name));
-  const destLabel = dest === 'local' ? `Local: ${[Lc.root.label, ...Lc.segs].join('/')}` : `Server (${R.profile.name}): ${R.path}`;
+  const destLabel = dest === 'local' ? `Local: ${[dRoot.label, ...dSegs].join('/')}` : `Server (${R.profile.name}): ${dPath}`;
   const verb = { 'local>remote': 'アップロード', 'remote>local': 'ダウンロード' }[`${c.side}>${dest}`] || (c.op === 'cut' ? '移動' : 'コピー');
-  let msg = `${c.items.length} 件を ${verb} します。\n先: ${destLabel}`;
-  if (clash.length) msg += `\n\n同じ名前があるため上書きされます:\n${clash.map((i) => i.name).join('\n')}`;
-  if (c.op === 'cut') msg += '\n\n完了後、元のファイルは削除されます。';
-  if (!(await confirmAsk(verb, msg, verb, clash.length > 0))) return;
+
+  const rows = c.items.map((it) => ({ it, entry: destItems.find((d) => d.name === it.name) })).filter((r) => r.entry);
+  let decisions = new Map();
+  if (rows.length) {
+    decisions = await conflictDialog({ verb, destSide: dest, srcSide: c.side, destLabel, total: c.items.length, rows, destNames: destItems.map((d) => d.name) });
+    if (!decisions) return;
+  } else {
+    let msg = `${c.items.length} 件を ${verb} します。\n先: ${destLabel}`;
+    if (c.op === 'cut') msg += '\n\n完了後、元のファイルは削除されます。';
+    if (!(await confirmAsk(verb, msg, verb))) return;
+  }
+  // plan: one entry per selected item
+  const plan = c.items.map((it) => {
+    const d = decisions.get(it.name);
+    return { it, mode: d ? d.mode : 'new', name: d?.mode === 'rename' ? d.newName : it.name, entry: destItems.find((x) => x.name === it.name) };
+  }).filter((p) => p.mode !== 'skip');
+  const skippedItems = c.items.length - plan.length;
+  if (!plan.length) { toast('すべてスキップしました'); return; }
+
+  // does the destination already hold a file at rel that is as new as (or newer than) the source?
+  const dirCache = new Map();
+  const destEntry = async (rel) => {
+    const dir = rel.slice(0, -1);
+    const key = dir.join('/');
+    if (!dirCache.has(key)) {
+      let items = [];
+      try { items = dest === 'local' ? await local.list(dRoot, [...dSegs, ...dir]) : await remote.list(rjoin(dPath, ...dir)); } catch { items = []; }
+      dirCache.set(key, items);
+    }
+    return dirCache.get(key).find((i) => i.name === rel[rel.length - 1]) || null;
+  };
+  const tol = (c.side === 'remote' || dest === 'remote') ? 60000 : 2000; // FTP listings are minute-precise
+  const wanted = async (p, rel, mtime) => {
+    if (p.mode !== 'newer') return true;
+    const e = await destEntry(rel);
+    if (!e) return true;
+    if (e.type !== 'file') return false;
+    return !e.mtime || !mtime || mtime > e.mtime + tol;
+  };
 
   const j = job(verb);
+  let skippedFiles = 0;
+  const finish = (txt) => j.done(`${txt}${skippedItems + skippedFiles ? `（スキップ ${skippedItems + skippedFiles} 件）` : ''}`);
   try {
     if (c.side === 'local' && dest === 'local') {
       let n = 0;
-      for (const it of c.items) {
-        await local.copy(c.local.root, [...c.local.segs, it.name], Lc.root, [...Lc.segs, it.name], () => j.progress(++n, n + 1, it.name));
-        if (c.op === 'cut') await local.remove(c.local.root, [...c.local.segs, it.name]);
+      for (const p of plan) {
+        const src = [...c.local.segs, p.it.name], dst = [...dSegs, p.name];
+        let skipped = 0;
+        if (p.it.type === 'dir' && p.mode === 'newer') {
+          await local.mkdir(dRoot, dst);
+          for (const e of await local.walk(c.local.root, src)) {
+            if (e.dir) { await local.mkdir(dRoot, [...dst, ...e.rel]); continue; }
+            if (await wanted(p, [p.name, ...e.rel], e.mtime)) await local.copy(c.local.root, [...src, ...e.rel], dRoot, [...dst, ...e.rel], () => j.progress(++n, n + 1, e.rel.join('/')));
+            else skipped++;
+          }
+        } else if (await wanted(p, [p.name], p.it.mtime)) {
+          await local.copy(c.local.root, src, dRoot, dst, () => j.progress(++n, n + 1, p.it.name));
+        } else skipped++;
+        skippedFiles += skipped;
+        if (c.op === 'cut' && !skipped) await local.remove(c.local.root, src);
       }
-      j.done(`${verb}しました`);
+      finish(`${verb}しました`);
     } else if (c.side === 'local' && dest === 'remote') {
       const tasks = [];
-      for (const it of c.items) {
-        const segs = [...c.local.segs, it.name];
-        if (it.type === 'file') tasks.push({ rel: [it.name], size: it.size || 0 });
-        else {
-          tasks.push({ rel: [it.name], dir: true });
-          for (const e of await local.walk(c.local.root, segs)) tasks.push({ ...e, rel: [it.name, ...e.rel] });
+      for (const p of plan) {
+        const segs = [...c.local.segs, p.it.name];
+        if (p.it.type === 'file') {
+          if (await wanted(p, [p.name], p.it.mtime)) tasks.push({ p, rel: [p.name], src: [p.it.name], size: p.it.size || 0 }); else { skippedFiles++; p.skipped = (p.skipped || 0) + 1; }
+        } else {
+          tasks.push({ p, rel: [p.name], dir: true });
+          for (const e of await local.walk(c.local.root, segs)) {
+            if (e.dir) { tasks.push({ p, rel: [p.name, ...e.rel], dir: true }); continue; }
+            if (await wanted(p, [p.name, ...e.rel], e.mtime)) tasks.push({ p, rel: [p.name, ...e.rel], src: [p.it.name, ...e.rel], size: e.size || 0 });
+            else { skippedFiles++; p.skipped = (p.skipped || 0) + 1; }
+          }
         }
       }
       const files = tasks.filter((t) => !t.dir);
       const total = files.reduce((s, t) => s + (t.size || 0), 0);
       let doneBytes = 0, count = 0;
       for (const t of tasks) {
-        const target = rjoin(R.path, ...t.rel);
+        const target = rjoin(dPath, ...t.rel);
         if (t.dir) { await remote.mkdir(target); continue; }
-        await remote.uploadLocal(c.local.root, [...c.local.segs, ...t.rel], target,
+        await remote.uploadLocal(c.local.root, [...c.local.segs, ...t.src], target,
           (loaded) => j.progress(doneBytes + loaded, total, `${t.rel.join('/')} (${count + 1}/${files.length})`));
         doneBytes += t.size || 0;
         count++;
       }
-      if (c.op === 'cut') for (const it of c.items) await local.remove(c.local.root, [...c.local.segs, it.name]);
-      j.done(`${count} ファイルをアップロードしました（${fmtSize(total)}）`);
+      if (c.op === 'cut') for (const p of plan) if (!p.skipped) await local.remove(c.local.root, [...c.local.segs, p.it.name]);
+      finish(`${count} ファイルをアップロードしました（${fmtSize(total)}）`);
     } else if (c.side === 'remote' && dest === 'local') {
       let files = 0;
-      for (const it of c.items) {
-        const src = rjoin(c.remotePath, it.name);
-        const list = it.type === 'dir' ? [{ rel: [it.name], dir: true }, ...(await remoteTree(src, [it.name]))] : [{ rel: [it.name], path: src, size: it.size }];
+      for (const p of plan) {
+        const src = rjoin(c.remotePath, p.it.name);
+        const list = p.it.type === 'dir'
+          ? [{ rel: [p.name], dir: true }, ...(await remoteTree(src, [p.name]))]
+          : [{ rel: [p.name], path: src, size: p.it.size, mtime: p.it.mtime }];
+        let skipped = 0;
         for (const e of list) {
-          if (e.dir) { await local.mkdir(Lc.root, [...Lc.segs, ...e.rel]); continue; }
-          await remote.downloadLocal(e.path, Lc.root, [...Lc.segs, ...e.rel], e.size, (d, t) => j.progress(d, t, `${e.rel.join('/')} (${files + 1})`));
+          if (e.dir) { await local.mkdir(dRoot, [...dSegs, ...e.rel]); continue; }
+          if (!(await wanted(p, e.rel, e.mtime))) { skipped++; continue; }
+          await remote.downloadLocal(e.path, dRoot, [...dSegs, ...e.rel], e.size, (d, t) => j.progress(d, t, `${e.rel.join('/')} (${files + 1})`));
           files++;
         }
-        if (c.op === 'cut') await remote.remove(src, it.type === 'dir');
+        skippedFiles += skipped;
+        if (c.op === 'cut' && !skipped) await remote.remove(src, p.it.type === 'dir');
       }
-      j.done(`${files} ファイルをダウンロードしました`);
+      finish(`${files} ファイルをダウンロードしました`);
     } else {
       let files = 0;
-      for (const it of c.items) {
-        const src = rjoin(c.remotePath, it.name);
-        const dst = rjoin(R.path, it.name);
-        if (c.op === 'cut') { await remote.rename(src, dst); files++; continue; }
-        const list = it.type === 'dir' ? [{ rel: [], dir: true }, ...(await remoteTree(src))] : [{ rel: [], path: src }];
+      for (const p of plan) {
+        const src = rjoin(c.remotePath, p.it.name);
+        const dst = rjoin(dPath, p.name);
+        if (c.op === 'cut') {
+          if (p.entry && p.mode !== 'rename') {
+            if (!(await wanted(p, [p.name], p.it.mtime))) { skippedFiles++; continue; }
+            await remote.remove(dst, p.entry.type === 'dir'); // replace
+          }
+          await remote.rename(src, dst);
+          files++;
+          continue;
+        }
+        const list = p.it.type === 'dir' ? [{ rel: [], dir: true }, ...(await remoteTree(src))] : [{ rel: [], path: src, mtime: p.it.mtime }];
         for (const e of list) {
           const target = rjoin(dst, ...e.rel);
           if (e.dir) { await remote.mkdir(target); continue; }
-          j.progress(files, files + 1, e.rel.join('/') || it.name);
+          if (!(await wanted(p, [p.name, ...e.rel], e.mtime))) { skippedFiles++; continue; }
+          j.progress(files, files + 1, e.rel.join('/') || p.it.name);
           await remote.copyRemote(e.path, target);
           files++;
         }
       }
-      j.done(`${verb}しました`);
+      finish(`${verb}しました`);
     }
     if (c === state.clip && c.op === 'cut') clearClip();
   } catch (err) {
@@ -851,7 +1007,7 @@ async function paste(dest, c = state.clip) {
 // ---------- misc ----------
 function switchTab(t) {
   state.active = t;
-  document.body.dataset.side = t;
+  document.body.dataset.view = t;
   $('#panes').dataset.active = t;
   $$('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === t));
 }
