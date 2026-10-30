@@ -1457,38 +1457,55 @@ function editWork(d){
   };
 }
 async function buildWorkXlsx(){
+  // layout: A列は空ける / 表は B〜H / 稼働のない日は灰色 / 担当者名は表の下
   const ExcelJS=await loadExcel(); const wb=new ExcelJS.Workbook(); wb.creator='CDU Check Tool';
-  const ws=wb.addWorksheet(`${wkY}年${wkM}月`,{views:[{state:'frozen',ySplit:4}]});
-  ws.columns=[{width:7},{width:6},{width:10},{width:10},{width:10},{width:48},{width:22}];
-  const thin={style:'thin',color:{argb:'FF9CA3AF'}}, bd={top:thin,left:thin,bottom:thin,right:thin};
-  ws.mergeCells('A1:G1'); const t=ws.getCell('A1'); t.value='業務サマリー'; t.font={bold:true,size:16}; t.alignment={horizontal:'center',vertical:'middle'}; ws.getRow(1).height=28;
-  ws.mergeCells('A2:D2'); ws.getCell('A2').value=`${wkY}年${wkM}月`; ws.getCell('A2').font={bold:true,size:12};
-  ws.mergeCells('E2:G2'); ws.getCell('E2').value=`作業者：${W.worker||''}`; ws.getCell('E2').font={bold:true,size:12}; ws.getCell('E2').alignment={horizontal:'right'};
-  const hr=ws.getRow(4); ['日付','曜日','開始時間','終了時間','超過時間','作業内容','備考'].forEach((v,i)=>{ const c=hr.getCell(i+1); c.value=v;
-    c.fill=fill('FF4A4F57'); c.font={bold:true,color:{argb:'FFFFFFFF'}}; c.alignment={horizontal:'center',vertical:'middle'}; c.border=bd; }); hr.height=22;
+  const ws=wb.addWorksheet(`${wkY}年${wkM}月`,{views:[{state:'frozen',ySplit:5,showGridLines:false}]});
+  ws.columns=[{width:2.5},{width:7},{width:5},{width:9},{width:9},{width:9},{width:46},{width:20}];
+  const thin={style:'thin',color:{argb:'FF000000'}}, med={style:'medium',color:{argb:'FF000000'}}, hair={style:'hair',color:{argb:'FF7F7F7F'}};
+  const C1=2, C2=8; // B..H
+  ws.mergeCells('B2:H2'); const t=ws.getCell('B2'); t.value='業務サマリー'; t.font={bold:true,size:16}; t.alignment={horizontal:'center',vertical:'middle'}; ws.getRow(2).height=28;
+  ws.mergeCells('B3:D3'); ws.getCell('B3').value=`${wkY}年${wkM}月`; ws.getCell('B3').font={bold:true,size:12};
+  const HR=5, hr=ws.getRow(HR); hr.height=22;
+  ['日付','曜日','開始時間','終了時間','超過時間','作業内容','備考'].forEach((v,i)=>{ const c=hr.getCell(C1+i); c.value=v;
+    c.fill=fill('FFD9D9D9'); c.font={bold:true}; c.alignment={horizontal:'center',vertical:'middle'}; });
   const [sh,sm]=W.std.split(':').map(Number);
-  const dim=new Date(wkY,wkM,0).getDate(); let r=5;
-  for(let d=1;d<=dim;d++,r++){
-    const k=dkey(wkY,wkM,d), e=W.entries[k], i=dayInfo(wkY,wkM,d), row=ws.getRow(r); row.height=20;
-    const tv=x=>{ const m=toMin(x); return m==null?null:m/1440; };
-    row.getCell(1).value=`${wkM}/${d}`; row.getCell(2).value=WD[i.wd];
-    if(e){ row.getCell(3).value=tv(e.start); row.getCell(4).value=tv(e.end);
-      row.getCell(5).value={formula:`IF(OR(C${r}="",D${r}=""),"",MAX(0,D${r}+IF(D${r}<C${r},1,0)-TIME(${sh},${sm},0)))`,result:overMin(e)/1440};
-      row.getCell(6).value=e.work||''; }
-    row.getCell(7).value=noteText(wkY,wkM,d,e);
-    for(let c=1;c<=7;c++){ const cl=row.getCell(c); cl.border=bd; cl.alignment={vertical:'middle',horizontal:c===6||c===7?'left':'center',wrapText:c===6||c===7};
-      if(i.off) cl.fill=fill(i.sat?'FFEFF6FF':'FFFDF2F2'); }
-    [3,4].forEach(c=>row.getCell(c).numFmt='h:mm'); row.getCell(5).numFmt='h:mm;;';
-    if(i.off) row.getCell(2).font={bold:true,color:{argb:i.sat?'FF2563EB':'FFDC2626'}};
-    const lines=Math.max(1,...[e&&e.work||'',noteText(wkY,wkM,d,e)].map((t,j)=>String(t).split('\n').reduce((a,l)=>a+Math.max(1,Math.ceil(l.length/(j?11:24))),0)));
-    row.height=Math.max(20,15*lines+5);
+  const dim=new Date(wkY,wkM,0).getDate(), first=HR+1, last=HR+dim;
+  const tv=x=>{ const m=toMin(x); return m==null?null:m/1440; };
+  for(let d=1;d<=dim;d++){
+    const r=HR+d, k=dkey(wkY,wkM,d), e=W.entries[k], i=dayInfo(wkY,wkM,d), row=ws.getRow(r);
+    row.getCell(2).value=`${wkM}/${d}`; row.getCell(3).value=WD[i.wd];
+    if(e){ row.getCell(4).value=tv(e.start); row.getCell(5).value=tv(e.end);
+      row.getCell(6).value={formula:`IF(OR(D${r}="",E${r}=""),"",MAX(0,E${r}+IF(E${r}<D${r},1,0)-TIME(${sh},${sm},0)))`,result:overMin(e)/1440};
+      row.getCell(7).value=e.work||''; }
+    row.getCell(8).value=noteText(wkY,wkM,d,e);
+    for(let c=C1;c<=C2;c++){ const cl=row.getCell(c);
+      cl.alignment={vertical:'middle',horizontal:c>=7?'left':'center',wrapText:c>=7};
+      if(!e){ cl.fill=fill('FFBFBFBF'); cl.font={color:{argb:'FF595959'}}; } }   // 稼働なし → グレーアウト
+    if(i.off) row.getCell(3).font={bold:true,color:{argb:e?(i.sat?'FF1F4E99':'FFC00000'):(i.sat?'FF3B5E9C':'FF9C2B2B')}};
+    [4,5].forEach(c=>row.getCell(c).numFmt='h:mm'); row.getCell(6).numFmt='h:mm;;';
+    const lines=Math.max(1,...[e&&e.work||'',noteText(wkY,wkM,d,e)].map((t,j)=>String(t).split('\n').reduce((a,l)=>a+Math.max(1,Math.ceil(l.length/(j?10:23))),0)));
+    row.height=Math.max(19,15*lines+4);
   }
-  const last=r-1, f=ws.getRow(r+0); f.height=22;
-  ws.mergeCells(`A${r}:B${r}`); f.getCell(1).value='合計'; 
-  f.getCell(3).value='稼働日数'; f.getCell(4).value={formula:`COUNTA(C5:C${last})`}; f.getCell(4).numFmt='0"日"';
-  f.getCell(5).value={formula:`SUM(E5:E${last})`}; f.getCell(5).numFmt='[h]:mm';
-  for(let c=1;c<=7;c++){ const cl=f.getCell(c); cl.border=bd; cl.font={bold:true}; cl.fill=fill('FFE4E4E7'); cl.alignment={horizontal:'center',vertical:'middle'}; }
-  ws.pageSetup={paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1,margins:{left:.4,right:.4,top:.5,bottom:.5,header:.2,footer:.2}};
+  // 合計
+  const TR=last+1, f=ws.getRow(TR); f.height=22;
+  ws.mergeCells(`B${TR}:C${TR}`); f.getCell(2).value='合計';
+  f.getCell(4).value='稼働日数'; f.getCell(5).value={formula:`COUNTA(D${first}:D${last})`}; f.getCell(5).numFmt='0"日"';
+  f.getCell(6).value={formula:`SUM(F${first}:F${last})`}; f.getCell(6).numFmt='[h]:mm';
+  for(let c=C1;c<=C2;c++){ const cl=f.getCell(c); cl.font={bold:true}; cl.fill=fill('FFF2F2F2'); cl.alignment={horizontal:'center',vertical:'middle'}; }
+  // 罫線: 外枠=太線、内側=細線、見出しの下と合計の上=太線
+  for(let r=HR;r<=TR;r++) for(let c=C1;c<=C2;c++){
+    ws.getCell(r,c).border={
+      top: r===HR?med:(r===TR||r===first?med:thin),
+      bottom: r===TR?med:(r===HR?med:thin),
+      left: c===C1?med:thin, right: c===C2?med:thin };
+  }
+  // 担当者名（表の下）
+  const SR=TR+2; ws.getRow(SR).height=26;
+  ws.getCell(SR,7).value='担当者'; ws.getCell(SR,7).alignment={horizontal:'right',vertical:'middle'}; ws.getCell(SR,7).font={bold:true};
+  const nm=ws.getCell(SR,8); nm.value=W.worker||''; nm.font={size:12,bold:true}; nm.alignment={horizontal:'center',vertical:'middle'};
+  nm.border={top:thin,left:thin,bottom:thin,right:thin};
+  ws.pageSetup={paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1,horizontalCentered:true,
+    margins:{left:.3,right:.3,top:.4,bottom:.4,header:.2,footer:.2},printArea:`A1:H${SR}`};
   return await wb.xlsx.writeBuffer();
 }
 async function exportWork(mode){
