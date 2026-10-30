@@ -500,7 +500,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.8.1</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.8.2</p>
   </div>
 </div>
 
@@ -1478,58 +1478,61 @@ function editWork(d){
   };
 }
 async function buildWorkXlsx(){
-  // 参考ファイルのセル構成: A=空 / B=日付 / C=開始 / D=終了 / E=超過 / F〜M=作業内容(結合) / N〜P=備考(結合) / Q=空
-  // 横A4・1枚、稼働していない日は日付以外が灰色、下に 日数・H・担当者名
+  // 元の業務サマリーと同じセル構成（値だけ貼り付けても位置がずれない）
+  //   列: A=空 / B=日付 / C=開始 / D=終了 / E=超過 / F〜J=作業内容(結合) / K=備考
+  //   行: 1〜2=空 / 3=表題 / 4=年月度 / 5=見出し / 6〜=日付(1日〜末日) / 1行空けて 日数・H / 担当者名
+  //   印刷: B3〜K末尾 を横向きA4・1枚。稼働していない日は 開始〜備考 を灰色
   const ExcelJS=await loadExcel(); const wb=new ExcelJS.Workbook(); wb.creator='CDU Check Tool';
-  const ws=wb.addWorksheet(`${wkY}年${wkM}月`,{views:[{state:'frozen',ySplit:3,showGridLines:false}]});
-  const COLW=[8.43,10.6,7.9,7.9,7.9]; for(let i=0;i<12;i++) COLW.push(8.43); COLW.push(8.43); // A..E, F..P, Q
-  ws.columns=COLW.map(w=>({width:w}));
-  const WK1=6, WK2=13, NT1=14, NT2=16, LAST=16;                   // F..M / N..P
+  const ws=wb.addWorksheet(`業務サマリ-${wkY}_${pad2(wkM)}`,{views:[{state:'frozen',ySplit:5,showGridLines:false}]});
+  // 列幅（元ファイルの比率）A..P
+  [2.5,10.2,7.7,7.8,7.7,30.4,8.5,7.2,12.6,8.7,25.9,7,6.8,5.7,3.4,2.9].forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+  const C_DATE=2,C_START=3,C_END=4,C_OVER=5,C_WK1=6,C_WK2=10,C_NOTE=11;
   const FN='ＭＳ Ｐゴシック', f9={name:FN,size:9,color:{argb:'FF000000'}};
-  const thin={style:'thin',color:{argb:'FF000000'}}, box={top:thin,left:thin,bottom:thin,right:thin};
-  const dim=new Date(wkY,wkM,0).getDate(), HR=3, first=HR+1, last=HR+dim;
+  const thin={style:'thin',color:{argb:'FF000000'}}, dbl={style:'double',color:{argb:'FF000000'}}, box={top:thin,left:thin,bottom:thin,right:thin};
+  const dim=new Date(wkY,wkM,0).getDate(), TR=3, SR=4, HR=5, first=HR+1, last=HR+dim;
   const rg=workRange(wkY,wkM), [sh,sm]=W.std.split(':').map(Number);
   const tv=x=>{ const m=toMin(x); return m==null?null:m/1440; };
-  // title / subtitle
-  ws.mergeCells(1,2,1,LAST); const t=ws.getCell(1,2); t.value='業務サマリー'; t.font={name:FN,size:16,underline:true};
-  t.alignment={horizontal:'center',vertical:'bottom'}; ws.getRow(1).height=27;
-  ws.mergeCells(2,2,2,WK1); const sb=ws.getCell(2,2); sb.value=`${wkY}年${wkM}月度(${wkM}月1日～${wkM}月${dim}日)`; sb.font={name:FN,size:10};
-  sb.alignment={horizontal:'left',vertical:'bottom'}; ws.getRow(2).height=17;
-  // header
-  const hr=ws.getRow(HR); hr.height=23;
-  [[2,'日付'],[3,'開始\n時間'],[4,'終了\n時間'],[5,'超過\n時間'],[WK1,'作業内容'],[NT1,'備考']].forEach(([c,v])=>{ hr.getCell(c).value=v; });
-  for(let c=2;c<=LAST;c++){ const cl=hr.getCell(c); cl.font=f9; cl.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cl.border=box; }
-  ws.mergeCells(HR,WK1,HR,WK2); ws.mergeCells(HR,NT1,HR,NT2);
-  // days
+  ws.getRow(1).height=15; ws.getRow(2).height=15;
+  // 表題・年月度
+  ws.mergeCells(TR,C_DATE,TR,C_NOTE); const t=ws.getCell(TR,C_DATE); t.value='業務サマリー'; t.font={name:FN,size:18,underline:true};
+  t.alignment={horizontal:'center',vertical:'middle'}; ws.getRow(TR).height=28;
+  const sb=ws.getCell(SR,C_DATE); sb.value=`${wkY}年${wkM}月度(${wkM}月1日～${wkM}月${dim}日)`; sb.font={name:FN,size:11};
+  sb.alignment={horizontal:'left',vertical:'middle'}; ws.getRow(SR).height=15;
+  // 見出し
+  const hr=ws.getRow(HR); hr.height=25.5;
+  [[C_DATE,'日付'],[C_START,'開始\n時間'],[C_END,'終了\n時間'],[C_OVER,'超過\n時間'],[C_WK1,'作業内容'],[C_NOTE,'備考']].forEach(([c,v])=>{ hr.getCell(c).value=v; });
+  for(let c=C_DATE;c<=C_NOTE;c++){ const cl=hr.getCell(c); cl.font=f9; cl.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cl.border=box; }
+  ws.mergeCells(HR,C_WK1,HR,C_WK2);
+  // 日付行
   for(let d=1;d<=dim;d++){
     const r=HR+d, k=dkey(wkY,wkM,d), e=W.entries[k], i=dayInfo(wkY,wkM,d), row=ws.getRow(r);
-    row.getCell(2).value=`${wkM}/${d}(${WD[i.wd]})`;
-    if(e){ row.getCell(3).value=tv(e.start); row.getCell(4).value=tv(e.end);
-      row.getCell(5).value={formula:`IF(OR(C${r}="",D${r}=""),"",MAX(0,(D${r}+IF(D${r}<C${r},1,0)-TIME(${sh},${sm},0))*24))`,result:Math.round(overMin(e)/60*100)/100};
-      row.getCell(WK1).value=e.work||''; }
-    row.getCell(NT1).value=noteText(wkY,wkM,d,e);
+    row.getCell(C_DATE).value=`${wkM}/${d}(${WD[i.wd]})`;
+    if(e){ row.getCell(C_START).value=tv(e.start); row.getCell(C_END).value=tv(e.end);
+      row.getCell(C_OVER).value={formula:`IF(OR(C${r}="",D${r}=""),"",MAX(0,(D${r}+IF(D${r}<C${r},1,0)-TIME(${sh},${sm},0))*24))`,result:Math.round(overMin(e)/60*100)/100};
+      row.getCell(C_WK1).value=e.work||''; }
+    row.getCell(C_NOTE).value=noteText(wkY,wkM,d,e);
     const gray=grayDay(rg,d);
-    for(let c=2;c<=LAST;c++){ const cl=row.getCell(c); cl.font=f9; cl.border=box;
-      cl.alignment={vertical:'middle',horizontal:c>=WK1&&c<=WK2?'left':(c>=NT1&&i.off?'center':(c>=NT1?'left':'center')),wrapText:c>=WK1};
-      if(gray&&c>=3) cl.fill=fill('FFA6A6A6'); }
-    [3,4].forEach(c=>row.getCell(c).numFmt='h:mm'); row.getCell(5).numFmt='0.0#;;';
-    ws.mergeCells(r,WK1,r,WK2); ws.mergeCells(r,NT1,r,NT2);
-    const lines=Math.max(1,...[e&&e.work||'',noteText(wkY,wkM,d,e)].map((tx,j)=>String(tx).split('\n').reduce((a,l)=>a+Math.max(1,Math.ceil(l.length/(j?12:34))),0)));
-    row.height=Math.max(13.5,12*lines+1.5);
+    for(let c=C_DATE;c<=C_NOTE;c++){ const cl=row.getCell(c); cl.font=f9; cl.border=box;
+      cl.alignment={vertical:'middle',horizontal:(c>=C_WK1&&c<=C_WK2)?'left':(c===C_NOTE?(i.off?'center':'left'):'center'),wrapText:c>=C_WK1};
+      if(gray&&c>=C_START) cl.fill=fill('FFA6A6A6'); }
+    [C_START,C_END].forEach(c=>row.getCell(c).numFmt='h:mm'); row.getCell(C_OVER).numFmt='0.0#;;';
+    ws.mergeCells(r,C_WK1,r,C_WK2);
+    const lines=Math.max(1,...[e&&e.work||'',noteText(wkY,wkM,d,e)].map((tx,j)=>String(tx).split('\n').reduce((a,l)=>a+Math.max(1,Math.ceil(l.length/(j?14:38))),0)));
+    row.height=Math.max(15,12*lines+3);
   }
-  // footer: 日数 ____日   ____H            担当者名: ____
+  // 日数 ____日   ____H   /   担当者名: ____
   const FR=last+2, fr=ws.getRow(FR); fr.height=15;
   const bold={name:FN,size:10,bold:true};
-  const lb=fr.getCell(2); lb.value='日数'; lb.font=bold; lb.alignment={horizontal:'right',vertical:'middle'};
-  const dv=fr.getCell(3); dv.value={formula:`COUNT(C${first}:C${last})`,result:Object.keys(W.entries).filter(k=>k.startsWith(`${wkY}-${pad2(wkM)}-`)).length}; dv.numFmt='0"日"';
-  const ov=fr.getCell(5); ov.value={formula:`SUM(E${first}:E${last})`,result:Math.round(Array.from({length:dim},(_,j)=>overMin(W.entries[dkey(wkY,wkM,j+1)]||{})).reduce((a,b)=>a+b,0)/60*100)/100}; ov.numFmt='0.0#"H"';
+  const lb=fr.getCell(C_DATE); lb.value='日数'; lb.font=bold; lb.alignment={horizontal:'right',vertical:'middle'};
+  const dv=fr.getCell(C_START); dv.value={formula:`COUNT(C${first}:C${last})`,result:Object.keys(W.entries).filter(k=>k.startsWith(`${wkY}-${pad2(wkM)}-`)).length}; dv.numFmt='0"日"';
+  const ov=fr.getCell(C_OVER); ov.value={formula:`SUM(E${first}:E${last})`,result:Math.round(Array.from({length:dim},(_,j)=>overMin(W.entries[dkey(wkY,wkM,j+1)]||{})).reduce((a,b)=>a+b,0)/60*100)/100}; ov.numFmt='0.0#"H"';
   [dv,ov].forEach(c=>{ c.font=bold; c.alignment={horizontal:'right',vertical:'middle'}; c.border={bottom:thin}; });
   const nr=ws.getRow(FR+1); nr.height=15;
-  const nm=nr.getCell(LAST); nm.value=`担当者名:　　　　　　　　${W.worker||'　　'}　　　`; nm.font={name:FN,size:10,underline:'double'};
-  nm.alignment={horizontal:'right',vertical:'middle'};
-  // 印刷: 横向き A4・1枚に収める
-  ws.pageSetup={paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:1,
-    margins:{left:.25,right:.25,top:.2,bottom:.2,header:.1,footer:.1},printArea:`A1:Q${FR+1}`};
+  const nl=nr.getCell(C_WK2); nl.value='担当者名:'; nl.font={name:FN,size:10}; nl.alignment={horizontal:'right',vertical:'middle'}; nl.border={bottom:dbl};
+  const nm=nr.getCell(C_NOTE); nm.value=W.worker||''; nm.font={name:FN,size:10}; nm.alignment={horizontal:'center',vertical:'middle'}; nm.border={bottom:dbl};
+  // 印刷: 横向き A4・1枚、範囲は B3〜K末尾
+  ws.pageSetup={paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:1,horizontalCentered:true,
+    margins:{left:.7,right:.7,top:.2,bottom:.2,header:.1,footer:.1},printArea:`B${TR}:K${FR+1}`};
   return await wb.xlsx.writeBuffer();
 }
 async function exportWork(mode){
