@@ -164,8 +164,8 @@ tr.hl td{animation:hl 1s}
 /* settings */
 #settings{position:fixed;inset:0;background:var(--bg);z-index:10;display:none;flex-direction:column}
 #settings.show{display:flex}
-.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--line);flex:none}
-.tabs button{flex:1;border:0;background:none;padding:12px 2px;border-bottom:3px solid transparent;color:var(--sub);font-weight:600;font-size:13px}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--line);flex:none;overflow-x:auto}
+.tabs button{flex:1 0 auto;white-space:nowrap;padding-left:10px !important;padding-right:10px !important;border:0;background:none;padding:12px 2px;border-bottom:3px solid transparent;color:var(--sub);font-weight:600;font-size:13px}
 .tabs button.on{color:var(--text);border-bottom-color:var(--pri)}
 .pane{flex:1;overflow:auto;padding:12px;display:none}
 .pane.on{display:block}
@@ -242,6 +242,23 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
 #menu .chips .chip{flex:1;padding:8px 6px;font-size:13px}
 #menu .legend{border:0;padding:2px 0;background:none}
 #menu .mhint{font-size:11px;color:var(--sub);margin:4px 0 8px;line-height:1.5}
+
+/* 業務サマリー */
+ul.wkl{list-style:none;margin:0;padding:0}
+ul.wkl li{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-top:1px solid #ececef;min-height:44px}
+ul.wkl li.hol{background:#fdf2f2}
+ul.wkl li.sat{background:#eff6ff}
+ul.wkl li .d{width:62px;flex:none;font-weight:800;font-size:14px;line-height:1.25}
+ul.wkl li .d small{display:block;font-weight:600;font-size:11px;color:var(--sub)}
+ul.wkl li.hol .d small{color:#dc2626}
+ul.wkl li.sat .d small{color:#2563eb}
+ul.wkl li .b{flex:1;min-width:0;font-size:12.5px;line-height:1.45}
+ul.wkl li .t{font-weight:700;font-size:13.5px}
+ul.wkl li .ot{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;background:#fde68a;color:#78350f;font-size:11px;font-weight:800}
+ul.wkl li .w{color:#27272a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ul.wkl li .n{color:var(--sub);font-size:11.5px}
+ul.wkl li .e{color:#a1a1aa}
+ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
 </style>
 </head>
 <body>
@@ -299,6 +316,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
     <button data-t="items" class="on">チェック項目</button>
     <button data-t="servers">サーバー</button>
     <button data-t="share">データ共有</button>
+    <button data-t="work">業務サマリー</button>
     <button data-t="other">その他</button>
   </div>
 
@@ -420,6 +438,39 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
     </div>
   </div>
 
+  <div class="pane" id="pane-work">
+    <div class="card">
+      <h4><span>作業者・基本設定</span></h4>
+      <div class="in">
+        <div class="row"><label style="width:64px;font-size:13px">作業者名</label><input class="tin" id="wkName" placeholder="例：花田"></div>
+        <div class="row"><label style="width:64px;font-size:13px">定時</label><input class="tin" type="time" id="wkStd" style="max-width:130px"><small style="color:var(--sub)">これを過ぎた分を超過時間にします</small></div>
+      </div>
+    </div>
+    <div class="card">
+      <h4><button class="ib" id="wkPrev">◀</button><span id="wkMonth" style="text-align:center;font-size:15px"></span><button class="ib" id="wkNext">▶</button></h4>
+      <div class="in" style="padding-bottom:4px">
+        <div class="sumbox" id="wkSum" style="margin:0"></div>
+        <p class="help" style="margin:8px 0 0">日付をタップして、開始・終了時間と作業内容を登録します。土日祝日の備考は「休日」になります。</p>
+      </div>
+      <ul class="wkl" id="wkList"></ul>
+    </div>
+    <div class="card">
+      <h4><span>Excel 出力</span></h4>
+      <div class="in">
+        <p class="help" id="wkFile"></p>
+        <div class="row"><button class="btn pri wide" id="wkXlsShare">Excel で共有（メール・LINE等）</button></div>
+        <div class="row"><button class="btn wide" id="wkXlsSave">Excel を端末・ドライブに保存</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h4><span>業務サマリーのバックアップ</span></h4>
+      <div class="in">
+        <p class="help">業務サマリーは端末内に保存され、チェック表の「全チェックをクリア」「初期サンプルに戻す」では消えません。機種変更やアプリの入れ直しに備えて、ときどきバックアップしておくと安心です。</p>
+        <div class="row"><button class="btn wide" id="wkBackup">バックアップを保存</button><button class="btn wide" id="wkRestore">バックアップから戻す</button></div>
+      </div>
+    </div>
+  </div>
+
   <div class="pane" id="pane-other">
     <div class="card">
       <h4><span>動作</span></h4>
@@ -445,7 +496,7 @@ textarea.tin{width:100%;min-height:90px;resize:vertical}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.6</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.7</p>
   </div>
 </div>
 
@@ -832,7 +883,7 @@ $('#q').addEventListener('input',e=>{query=e.target.value;renderGrid();});
 $$('.chip').forEach(c=>c.onclick=()=>{filter=c.dataset.f;$$('.chip').forEach(x=>x.classList.toggle('on',x===c));renderGrid();});
 
 /* ---------- settings ---------- */
-function openSettings(){ closeMenu(); $('#settings').classList.add('show'); renderItems(); renderServers(); renderOpts(); }
+function openSettings(){ closeMenu(); renderWork(); $('#settings').classList.add('show'); renderItems(); renderServers(); renderOpts(); }
 function closeSettings(){ $('#settings').classList.remove('show'); renderGrid(); }
 $('#btnSettings').onclick=openSettings; $('#btnBack').onclick=closeSettings;
 $$('.tabs button').forEach(b=>b.onclick=()=>{
@@ -1042,6 +1093,7 @@ function parseImport(text){
     servers:d.servers.map(s=>({name:s.name,door:s.door||'',cdu:s.cdu||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes),issues:conv(d.issues),water:conv(d.water)};
 }
 window.onImportText=function(text){
+  try{ const w=JSON.parse(String(text).replace(/^\ufeff/,'')); if(w&&w.format==='cdu-worklog'){ restoreWork(w); return; } }catch(e){}
   const d=parseImport(text);
   if(!d){ toast('CDU Check Tool のデータとして読み込めませんでした'); return; }
   showImport(d);
@@ -1315,6 +1367,151 @@ async function importXlsx(buf){
   }catch(e){ toast('Excel を読み込めませんでした'); }
 }
 window.onImportXlsx=b64=>importXlsx(bufFromB64(b64));
+
+/* ---------- 業務サマリー (work log; stored separately so it survives checklist resets) ---------- */
+const WKEY='cdu.worklog.v1';
+let W=(()=>{ try{ const raw=bridge?bridge.load(WKEY):localStorage.getItem(WKEY); if(raw){ const d=JSON.parse(raw); if(d&&d.entries) return d; } }catch(e){} return null; })()
+  ||{worker:'',std:'17:30',entries:{}};
+W.std=W.std||'17:30'; W.entries=W.entries||{};
+function saveW(){ const raw=JSON.stringify(W); try{ bridge?bridge.save(WKEY,raw):localStorage.setItem(WKEY,raw); }catch(e){ toast('業務サマリーの保存に失敗しました'); } }
+let wkY, wkM; { const n=new Date(); wkY=n.getFullYear(); wkM=n.getMonth()+1; }
+const WD=['日','月','火','水','木','金','土'];
+// Japanese public holidays (振替休日・国民の休日を含む)
+const holCache={};
+function holidays(y){
+  if(holCache[y]) return holCache[y];
+  const h={}, add=(m,d,n)=>{ h[`${m}-${d}`]=n; };
+  const nthMon=(m,n)=>{ const f=new Date(y,m-1,1).getDay(); return 1+((8-f)%7)+(n-1)*7; };
+  add(1,1,'元日'); add(1,nthMon(1,2),'成人の日'); add(2,11,'建国記念の日'); if(y>=2020) add(2,23,'天皇誕生日');
+  add(3,Math.floor(20.8431+0.242194*(y-1980)-Math.floor((y-1980)/4)),'春分の日');
+  add(4,29,'昭和の日'); add(5,3,'憲法記念日'); add(5,4,'みどりの日'); add(5,5,'こどもの日');
+  add(7,nthMon(7,3),'海の日'); add(8,11,'山の日'); add(9,nthMon(9,3),'敬老の日');
+  add(9,Math.floor(23.2488+0.242194*(y-1980)-Math.floor((y-1980)/4)),'秋分の日');
+  add(10,nthMon(10,2),'スポーツの日'); add(11,3,'文化の日'); add(11,23,'勤労感謝の日');
+  const isH=dt=>h[`${dt.getMonth()+1}-${dt.getDate()}`];
+  // 国民の休日: a weekday sandwiched between two holidays
+  for(let m=1;m<=12;m++){ const dim=new Date(y,m,0).getDate(); for(let d=2;d<dim;d++){ const t=new Date(y,m-1,d);
+    if(!isH(t)&&t.getDay()!==0&&isH(new Date(y,m-1,d-1))&&isH(new Date(y,m-1,d+1))) add(m,d,'国民の休日'); } }
+  // 振替休日: holiday on Sunday -> next non-holiday day
+  Object.keys(h).slice().forEach(k=>{ const [m,d]=k.split('-').map(Number); let t=new Date(y,m-1,d);
+    if(t.getDay()!==0) return; do{ t=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1); }while(isH(t)); if(t.getFullYear()===y) add(t.getMonth()+1,t.getDate(),'振替休日'); });
+  return holCache[y]=h;
+}
+function dayInfo(y,m,d){ const dt=new Date(y,m-1,d), wd=dt.getDay(), hn=holidays(y)[`${m}-${d}`];
+  return {wd,hn,off:wd===0||wd===6||!!hn,sat:wd===6&&!hn}; }
+const dkey=(y,m,d)=>`${y}-${pad2(m)}-${pad2(d)}`;
+const toMin=t=>{ if(!t) return null; const [h,mm]=t.split(':').map(Number); return isNaN(h)?null:h*60+(mm||0); };
+const fmtHM=min=>`${Math.floor(min/60)}:${pad2(min%60)}`;
+function overMin(e){ const s=toMin(e.start), en=toMin(e.end), st=toMin(W.std); if(en==null||st==null) return 0;
+  let end=en; if(s!=null&&en<s) end+=1440; return Math.max(0,end-st); }
+function noteText(y,m,d,e){ const i=dayInfo(y,m,d); return [i.off?'休日':'',(e&&e.note)||''].filter(Boolean).join('　'); }
+function wkFileName(){ return `業務サマリー(${wkY}_${pad2(wkM)})${W.worker||''}.xlsx`; }
+function renderWork(){
+  $('#wkName').value=W.worker||''; $('#wkStd').value=W.std;
+  $('#wkMonth').textContent=`${wkY}年${wkM}月`;
+  const dim=new Date(wkY,wkM,0).getDate(), now=new Date(); let days=0, ot=0, h='';
+  for(let d=1;d<=dim;d++){
+    const k=dkey(wkY,wkM,d), e=W.entries[k], i=dayInfo(wkY,wkM,d), o=e?overMin(e):0;
+    if(e){ days++; ot+=o; }
+    const today=now.getFullYear()===wkY&&now.getMonth()+1===wkM&&now.getDate()===d;
+    const nt=noteText(wkY,wkM,d,e);
+    h+=`<li data-d="${d}" class="${i.sat?'sat':(i.off?'hol':'')} ${today?'today':''}"><div class="d">${wkM}/${d}<small>(${WD[i.wd]})${i.hn?' '+esc(i.hn):''}</small></div><div class="b">`+
+      (e?`<div class="t">${esc(e.start||'－')} 〜 ${esc(e.end||'－')}${o?`<span class="ot">超過 ${fmtHM(o)}</span>`:''}</div>${e.work?`<div class="w">${esc(e.work)}</div>`:''}`:'<div class="e">未登録</div>')+
+      (nt?`<div class="n">備考：${esc(nt)}</div>`:'')+`</div></li>`;
+  }
+  $('#wkList').innerHTML=h;
+  $('#wkSum').innerHTML=`稼働日数：<b>${days}日</b>　超過時間合計：<b>${fmtHM(ot)}</b>`;
+  $('#wkFile').textContent=`ファイル名：${wkFileName()}`;
+}
+$('#wkName').oninput=e=>{ W.worker=e.target.value.trim(); saveW(); $('#wkFile').textContent=`ファイル名：${wkFileName()}`; };
+$('#wkStd').onchange=e=>{ if(e.target.value){ W.std=e.target.value; saveW(); renderWork(); } };
+$('#wkPrev').onclick=()=>{ if(--wkM<1){ wkM=12; wkY--; } renderWork(); };
+$('#wkNext').onclick=()=>{ if(++wkM>12){ wkM=1; wkY++; } renderWork(); };
+$('#wkList').addEventListener('click',e=>{ const li=e.target.closest('li[data-d]'); if(li) editWork(+li.dataset.d); });
+function editWork(d){
+  const k=dkey(wkY,wkM,d), e=W.entries[k], i=dayInfo(wkY,wkM,d);
+  const last=Object.keys(W.entries).sort().filter(x=>x<k).pop(), prev=last?W.entries[last]:null;
+  const v=e||{start:(prev&&prev.start)||'09:00',end:W.std,work:'',note:''};
+  openModal(`<div class="sh-h"><h3>${wkY}年${wkM}月${d}日（${WD[i.wd]}）<small>${i.off?'休日'+(i.hn?'・'+esc(i.hn):''):'平日'}${e?'':'・未登録'}</small></h3><button class="x" data-a="no">×</button></div>
+    <div class="sh-b">
+      <div class="fld"><label>開始時間・終了時間</label><div class="row"><input class="tin" type="time" id="wkS" value="${esc(v.start||'')}"><span>〜</span><input class="tin" type="time" id="wkE" value="${esc(v.end||'')}"></div></div>
+      <div class="fld"><div class="donebox" style="font-weight:600"><span>超過時間（${esc(W.std)} を過ぎた分）</span><b id="wkO" style="font-size:18px"></b></div></div>
+      <div class="fld"><label>作業内容</label><textarea class="tin" id="wkW" placeholder="例：304号室 CDU 充水作業、ラック 304-2-01〜08">${esc(v.work||'')}</textarea>
+        ${prev&&prev.work&&!e?`<div class="row"><button class="btn sm" data-a="copy">前回の作業内容をコピー</button></div>`:''}</div>
+      <div class="fld"><label>備考${i.off?'（「休日」は自動で入ります）':''}</label><textarea class="tin" id="wkN" placeholder="${i.off?'休日（追記があれば入力）':'例：立会いあり'}">${esc(v.note||'')}</textarea></div>
+    </div>
+    <div class="sh-f">${e?'<button class="btn dan" data-a="del">削除</button><span style="flex:1"></span>':''}<button class="btn" data-a="no">キャンセル</button><button class="btn pri" data-a="ok">保存</button></div>`,{center:true});
+  const calc=()=>{ const o=overMin({start:$('#wkS').value,end:$('#wkE').value}); $('#wkO').textContent=o?fmtHM(o):'なし'; };
+  $('#wkS').oninput=calc; $('#wkE').oninput=calc; calc();
+  $('#ovSheet').onclick=async ev=>{
+    const a=ev.target.closest('[data-a]'); if(!a) return;
+    if(a.dataset.a==='no'){ closeModal(); return; }
+    if(a.dataset.a==='copy'){ $('#wkW').value=prev.work; return; }
+    if(a.dataset.a==='del'){ closeModal(); if(await confirmBox(`${wkM}/${d} の登録を削除しますか？`,'削除',true)){ delete W.entries[k]; saveW(); renderWork(); toast('削除しました'); } return; }
+    if(a.dataset.a==='ok'){
+      const st=$('#wkS').value, en=$('#wkE').value;
+      if(!st||!en){ toast('開始時間と終了時間を入力してください'); return; }
+      W.entries[k]={start:st,end:en,work:$('#wkW').value.trim(),note:$('#wkN').value.trim()};
+      saveW(); renderWork(); closeModal(); toast('保存しました');
+    }
+  };
+}
+async function buildWorkXlsx(){
+  const ExcelJS=await loadExcel(); const wb=new ExcelJS.Workbook(); wb.creator='CDU Check Tool';
+  const ws=wb.addWorksheet(`${wkY}年${wkM}月`,{views:[{state:'frozen',ySplit:4}]});
+  ws.columns=[{width:7},{width:6},{width:10},{width:10},{width:10},{width:48},{width:22}];
+  const thin={style:'thin',color:{argb:'FF9CA3AF'}}, bd={top:thin,left:thin,bottom:thin,right:thin};
+  ws.mergeCells('A1:G1'); const t=ws.getCell('A1'); t.value='業務サマリー'; t.font={bold:true,size:16}; t.alignment={horizontal:'center',vertical:'middle'}; ws.getRow(1).height=28;
+  ws.mergeCells('A2:D2'); ws.getCell('A2').value=`${wkY}年${wkM}月`; ws.getCell('A2').font={bold:true,size:12};
+  ws.mergeCells('E2:G2'); ws.getCell('E2').value=`作業者：${W.worker||''}`; ws.getCell('E2').font={bold:true,size:12}; ws.getCell('E2').alignment={horizontal:'right'};
+  const hr=ws.getRow(4); ['日付','曜日','開始時間','終了時間','超過時間','作業内容','備考'].forEach((v,i)=>{ const c=hr.getCell(i+1); c.value=v;
+    c.fill=fill('FF4A4F57'); c.font={bold:true,color:{argb:'FFFFFFFF'}}; c.alignment={horizontal:'center',vertical:'middle'}; c.border=bd; }); hr.height=22;
+  const [sh,sm]=W.std.split(':').map(Number);
+  const dim=new Date(wkY,wkM,0).getDate(); let r=5;
+  for(let d=1;d<=dim;d++,r++){
+    const k=dkey(wkY,wkM,d), e=W.entries[k], i=dayInfo(wkY,wkM,d), row=ws.getRow(r); row.height=20;
+    const tv=x=>{ const m=toMin(x); return m==null?null:m/1440; };
+    row.getCell(1).value=`${wkM}/${d}`; row.getCell(2).value=WD[i.wd];
+    if(e){ row.getCell(3).value=tv(e.start); row.getCell(4).value=tv(e.end);
+      row.getCell(5).value={formula:`IF(OR(C${r}="",D${r}=""),"",MAX(0,D${r}+IF(D${r}<C${r},1,0)-TIME(${sh},${sm},0)))`,result:overMin(e)/1440};
+      row.getCell(6).value=e.work||''; }
+    row.getCell(7).value=noteText(wkY,wkM,d,e);
+    for(let c=1;c<=7;c++){ const cl=row.getCell(c); cl.border=bd; cl.alignment={vertical:'middle',horizontal:c===6||c===7?'left':'center',wrapText:c===6||c===7};
+      if(i.off) cl.fill=fill(i.sat?'FFEFF6FF':'FFFDF2F2'); }
+    [3,4].forEach(c=>row.getCell(c).numFmt='h:mm'); row.getCell(5).numFmt='h:mm;;';
+    if(i.off) row.getCell(2).font={bold:true,color:{argb:i.sat?'FF2563EB':'FFDC2626'}};
+    const lines=Math.max(1,...[e&&e.work||'',noteText(wkY,wkM,d,e)].map((t,j)=>String(t).split('\n').reduce((a,l)=>a+Math.max(1,Math.ceil(l.length/(j?11:24))),0)));
+    row.height=Math.max(20,15*lines+5);
+  }
+  const last=r-1, f=ws.getRow(r+0); f.height=22;
+  ws.mergeCells(`A${r}:B${r}`); f.getCell(1).value='合計'; 
+  f.getCell(3).value='稼働日数'; f.getCell(4).value={formula:`COUNTA(C5:C${last})`}; f.getCell(4).numFmt='0"日"';
+  f.getCell(5).value={formula:`SUM(E5:E${last})`}; f.getCell(5).numFmt='[h]:mm';
+  for(let c=1;c<=7;c++){ const cl=f.getCell(c); cl.border=bd; cl.font={bold:true}; cl.fill=fill('FFE4E4E7'); cl.alignment={horizontal:'center',vertical:'middle'}; }
+  ws.pageSetup={paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1,margins:{left:.4,right:.4,top:.5,bottom:.5,header:.2,footer:.2}};
+  return await wb.xlsx.writeBuffer();
+}
+async function exportWork(mode){
+  if(!W.worker){ const v=await promptBox('作業者名を入力してください（ファイル名に入ります）',''); if(!v||!v.trim()) return; W.worker=v.trim(); saveW(); renderWork(); }
+  toast('Excel を作成中…');
+  try{
+    const buf=await buildWorkXlsx(), n=wkFileName();
+    if(bridge&&bridge.shareFileB64){ const b=b64FromBuf(buf); mode==='share'?bridge.shareFileB64(n,b,XLSX_MIME):bridge.saveFileB64(n,b,XLSX_MIME); }
+    else { const blob=new Blob([buf],{type:XLSX_MIME}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=n; document.body.appendChild(a); a.click(); a.remove(); }
+  }catch(e){ toast('Excel の作成に失敗しました'); }
+}
+$('#wkXlsShare').onclick=()=>exportWork('share');
+$('#wkXlsSave').onclick=()=>exportWork('save');
+$('#wkBackup').onclick=()=>{ const t=JSON.stringify(Object.assign({format:'cdu-worklog',exportedAt:Date.now()},W)), d=new Date();
+  const n=`業務サマリー_バックアップ_${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}.json`;
+  if(bridge&&bridge.saveFile) bridge.saveFile(n,t,'application/json'); else download(n,t,'application/json'); };
+$('#wkRestore').onclick=()=>$('#impFile').click();
+async function restoreWork(w){
+  const n=Object.keys(w.entries||{}).length;
+  if(!(await confirmBox(`業務サマリーのバックアップ（${n}日分）を取り込みますか？<br><small>同じ日付は、バックアップの内容で上書きします。</small>`,'取り込む'))) return;
+  Object.assign(W.entries,w.entries||{}); if(w.worker&&!W.worker) W.worker=w.worker; if(w.std) W.std=w.std;
+  saveW(); renderWork(); toast(`業務サマリーを取り込みました（${n}日分）`);
+}
 $('#resetChecks').onclick=async()=>{ if(await confirmBox('すべてのサーバーのチェック・備考・問題事項・充水量をクリアしますか？<br><small>元に戻せません。</small>','クリア',true)){ S.checks={}; S.notes={}; S.issues={}; S.water={}; save(); toast('クリアしました'); } };
 $('#resetAll').onclick=async()=>{ if(await confirmBox('項目・サーバー・チェックをすべて初期サンプルに戻しますか？<br><small>元に戻せません。</small>','初期化',true)){ S=sampleState(); save(); renderItems(); renderServers(); renderOpts(); toast('初期サンプルに戻しました'); } };
 
