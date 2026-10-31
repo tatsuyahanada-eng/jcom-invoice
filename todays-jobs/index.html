@@ -555,6 +555,9 @@
     }
     #impEvList { max-height: 50vh; overflow-y: auto; margin: 2px 0 4px; }
     .evtm { font-family: var(--mono); color: var(--gold-text); letter-spacing: .02em; margin-right: 6px; }
+    .photo-bar { margin: 8px 0 0; }
+    .photo-up { width: 100%; min-height: 46px; font-size: 14px; background: transparent; color: var(--text); border: 1px solid var(--ok); box-shadow: 0 0 12px rgba(47, 230, 214, .25); }
+    .photo-up svg { color: var(--ok); }
     .photo-row { display: flex; gap: 8px; align-items: stretch; }
     .photo-row .input { flex: 1; min-width: 0; }
     .photo-row .btn { flex: none; min-height: 44px; padding: 6px 12px; font-size: 13px; }
@@ -687,6 +690,7 @@
     <div class="progress"><i id="progressBar"></i></div>
     <section class="sales hidden" id="salesBox" aria-label="本日の売上"></section>
     <div class="etc-line hidden" id="etcLine"></div>
+    <div class="photo-bar hidden" id="photoBar"></div>
 
     <div id="noticeArea"></div>
     <div class="meta-line" id="metaLine">
@@ -825,6 +829,13 @@
           <li>詳細の「駐車場」の下で、写真のファイル名を入れて「写真を撮る」を押すと、カメラが開きます。撮った写真が、そのファイル名で保存されます。</li>
           <li>ファイル名は空でも構いません。そのときは「TJ_日付_時刻」という名前になります。同じ名前がすでにあるときは、自動で番号が付きます。</li>
           <li>保存先は、スマホの「ピクチャ」の中の「TodaysJobs」フォルダです（ギャラリーやファイルアプリで見られます）。撮った写真の名前は、その案件に記録されます。</li>
+        </ul>
+      </details>
+      <details><summary>写真をOneDriveへ</summary>
+        <ul>
+          <li>その日に撮った写真があると、トップに「◯月◯日の写真 ◯枚を、まとめてOneDriveへ」のボタンが出ます。</li>
+          <li>押すと、その日の写真が全部選ばれた状態で、OneDriveのアップロード画面が開きます（OneDriveアプリが必要です）。保存するフォルダは、OneDriveの画面で選んでください。</li>
+          <li>OneDriveアプリが入っていないときは、共有画面が出ます。そこから別のアプリを選べます。</li>
         </ul>
       </details>
       <details><summary>住所と地図</summary>
@@ -1275,6 +1286,11 @@
     el.classList.toggle('hidden', !(eg || eb));
     el.innerHTML = `ETC　行き <b>${eg}</b>回・帰り <b>${eb}</b>回`;
 
+    // 当日の写真をまとめてOneDriveへ
+    const pc = jobs.reduce((n, j) => n + (j.photos || []).length, 0), pbar = $('#photoBar');
+    pbar.classList.toggle('hidden', !pc);
+    pbar.innerHTML = pc ? `<button class="btn photo-up" data-act="uploadPhotos" type="button">${icon('ext')}${esc(fmtDateLabel(current))}の写真 ${pc}枚を、まとめてOneDriveへ</button>` : '';
+
     // Meta
     $('#hintText').innerHTML = total
       ? (editing ? `${icon('info')}矢印で順番変更・ゴミ箱で削除` : `${icon('hand')}長押しで訪問順を入れ替え`)
@@ -1579,7 +1595,7 @@
       j.photoName = photoName.value; saveDay();
       try {
         const r = JSON.parse(await nativeCall('takePhoto', photoName.value.trim()));
-        j.photos = (j.photos || []).concat([{ name: r.name, at: new Date().toISOString() }]);
+        j.photos = (j.photos || []).concat([{ name: r.name, uri: r.uri || '', at: new Date().toISOString() }]);
         j.photoName = ''; saveDay(); render(); renderDetail();
         toast(`写真を保存しました：${r.name}`);
       } catch (err) {
@@ -2972,6 +2988,11 @@
     if (act === 'sync') sync();
     if (act === 'add') openForm();
     if (act === 'demo') loadDemo();
+    if (act === 'uploadPhotos') {
+      if (!(window.TJNative && window.TJNative.sharePhotos)) { toast('写真のアップロードは、Androidアプリ版で使えます'); return; }
+      const items = day.jobs.flatMap(j => (j.photos || []).map(x => ({ name: x.name, uri: x.uri || '' })));
+      if (!window.TJNative.sharePhotos(JSON.stringify(items))) toast('送れる写真が見つかりません（写真を削除していないか確認してください）');
+    }
     if (act === 'goToday') goTo(todayStr());
     if (act === 'prevDay') goTo(addDays(current, -1));
     if (act === 'nextDay') goTo(addDays(current, 1));

@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -176,6 +177,28 @@ public class MainActivity extends Activity {
             runOnUiThread(() -> startPhoto(callbackId, name));
         }
 
+        /** 当日の写真（[{name, uri}]）をまとめてOneDriveなどへ送る。OneDriveアプリがあれば直接、なければ共有画面を出す */
+        @JavascriptInterface
+        public boolean sharePhotos(final String json) {
+            try {
+                JSONArray arr = new JSONArray(json);
+                final ArrayList<Uri> uris = new ArrayList<>();
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject o = arr.getJSONObject(i);
+                    String u = o.optString("uri", "");
+                    Uri uri = null;
+                    if (!u.isEmpty()) uri = Uri.parse(u);
+                    else if (Build.VERSION.SDK_INT >= 29) uri = findPhoto(o.optString("name", ""));
+                    if (uri != null) uris.add(uri);
+                }
+                if (uris.isEmpty()) return false;
+                runOnUiThread(() -> sendPhotos(uris));
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
         /** 売上のCSVなどを、共有シート（Drive・メール・ファイルへ保存など）で出力する */
         @JavascriptInterface
         public boolean shareFile(final String name, final String mime, final String base64) {
@@ -228,6 +251,37 @@ public class MainActivity extends Activity {
         }
     }
 
+    private Uri findPhoto(String name) {
+        try (Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.Media._ID},
+                MediaStore.Images.Media.DISPLAY_NAME + "=? AND " + MediaStore.Images.Media.RELATIVE_PATH + " LIKE ?",
+                new String[]{name, "Pictures/TodaysJobs%"}, null)) {
+            if (c != null && c.moveToFirst()) return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, c.getLong(0));
+        } catch (Exception ignored) { }
+        return null;
+    }
+
+    private void sendPhotos(ArrayList<Uri> uris) {
+        Intent send = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        send.setType("image/*");
+        send.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+        ClipData clip = ClipData.newRawUri("photos", uris.get(0));
+        for (int i = 1; i < uris.size(); i++) clip.addItem(new ClipData.Item(uris.get(i)));
+        send.setClipData(clip);
+        send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            Intent od = new Intent(send);
+            od.setPackage("com.microsoft.skydrive"); // OneDriveアプリがあれば、そのアップロード画面を直接開く
+            startActivity(od);
+            return;
+        } catch (ActivityNotFoundException ignored) { }
+        try {
+            startActivity(Intent.createChooser(send, "写真をアップロード"));
+        } catch (ActivityNotFoundException e) {
+            toast("共有できるアプリがありません");
+        }
+    }
+
     private String photoBaseName(String name) {
         String n = name == null ? "" : name.trim().replaceAll("[\\\\/:*?\"<>|\\r\\n]", "_");
         if (n.toLowerCase(Locale.ROOT).endsWith(".jpg") || n.toLowerCase(Locale.ROOT).endsWith(".jpeg")) n = n.replaceAll("(?i)\\.jpe?g$", "");
@@ -256,6 +310,7 @@ public class MainActivity extends Activity {
                 String base = photoBaseName(name);
                 String saved;
                 String where;
+                String uriStr;
                 if (Build.VERSION.SDK_INT >= 29) {
                     ContentValues v = new ContentValues();
                     v.put(MediaStore.Images.Media.DISPLAY_NAME, base + ".jpg");
@@ -277,6 +332,7 @@ public class MainActivity extends Activity {
                         if (c != null && c.moveToFirst() && c.getString(0) != null) saved = c.getString(0);
                     }
                     where = "Pictures/TodaysJobs";
+                    uriStr = u.toString();
                 } else {
                     File dir = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "TodaysJobs");
                     if (!dir.exists()) dir.mkdirs();
@@ -290,11 +346,13 @@ public class MainActivity extends Activity {
                     }
                     saved = dst.getName();
                     where = "アプリ専用フォルダ（Pictures/TodaysJobs）";
+                    uriStr = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".files", dst).toString();
                 }
                 f.delete();
                 JSONObject o = new JSONObject();
                 o.put("name", saved);
                 o.put("where", where);
+                o.put("uri", uriStr);
                 deliverResult(cb, o.toString(), null);
             } catch (Exception e) {
                 f.delete();
