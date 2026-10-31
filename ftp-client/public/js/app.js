@@ -75,6 +75,48 @@ function job(label) {
   };
 }
 
+// ---------- history (encrypted together with the server list) ----------
+const HIST_MAX = 300;
+const KIND_LABEL = { upload: 'Upload ▶', download: '◀ Download', copy: 'Copy', move: 'Move', delete: 'Delete' };
+const fmtDateTime = (t) => {
+  const d = new Date(t);
+  if (isNaN(d)) return '';
+  const p2 = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${p2(d.getMonth() + 1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+};
+function addHistory(e) {
+  if (!vault.isUnlocked()) return;
+  const list = (vault.data.history ||= []);
+  list.unshift({ id: crypto.randomUUID(), t: Date.now(), ...e });
+  if (list.length > HIST_MAX) list.length = HIST_MAX;
+  vault.save().catch(() => {});
+  updateLastUpload();
+}
+function lastUpload(serverId) {
+  return (vault.data?.history || []).find((e) => e.kind === 'upload' && e.status !== 'error' && (!serverId || e.serverId === serverId));
+}
+// latest successful upload per local item, keyed by "<root>|<dir>|<name>"
+function uploadedIndex() {
+  const m = new Map();
+  for (const e of vault.data?.history || []) {
+    if (e.kind !== 'upload' || !e.srcDir) continue;
+    for (const n of e.items || []) {
+      if (e.status === 'error' && !e.files) continue;
+      const k = `${e.srcDir}|${n}`;
+      if (!m.has(k)) m.set(k, e);
+    }
+  }
+  return m;
+}
+function updateLastUpload() {
+  const el = $('#lastUp');
+  if (!el) return;
+  const p = state.remote.profile;
+  if (!p || !remote.connected) { el.textContent = ''; return; }
+  const e = lastUpload(p.id);
+  el.textContent = e ? `最終アップロード ${fmtDateTime(e.t)}` : 'このサーバへのアップロード履歴はまだありません';
+}
+
 // ---------- state ----------
 let platform, local, remote;
 const state = {
@@ -98,6 +140,9 @@ async function lockApp(msg) {
   await remote.disconnect();
   state.remote.profile = null;
   vault.lock();
+  upIndex = null;
+  $$('dialog[open]').forEach((d) => d.close());
+  $('#histList').replaceChildren();
   setConnState();
   renderRemote();
   showLock(msg);
@@ -321,6 +366,7 @@ function setConnState() {
     $('#connectBtn').textContent = '接続';
     $('#remoteTitle').textContent = '';
   }
+  updateLastUpload();
 }
 
 async function disconnect() {
@@ -431,11 +477,24 @@ function sortItems(items) {
   return items.sort((a, b) => (a.type === 'dir') === (b.type === 'dir') ? a.name.localeCompare(b.name, 'ja', { numeric: true }) : a.type === 'dir' ? -1 : 1);
 }
 
+let upIndex = null;
+function uploadBadge(it) {
+  if (!vault.isUnlocked()) return null;
+  upIndex ||= uploadedIndex();
+  const e = upIndex.get(`${state.local.root.key}|${state.local.segs.join('/')}|${it.name}`);
+  if (!e) return null;
+  const changed = it.type === 'file' && it.mtime && it.mtime > e.t + 2000;
+  return h('span', { class: `up-badge${changed ? ' stale' : ''}`, title: `${e.server || 'Server'} へ ${fmtDateTime(e.t)} にアップロード` },
+    `↑ ${fmtDateTime(e.t).slice(5)}${changed ? ' ⚠更新あり' : ''}`);
+}
+
 function renderList(side) {
+  if (side === 'local') upIndex = null;
   const S = state[side];
   const ul = side === 'local' ? $('#localList') : $('#remoteList');
   const pane = side === 'local' ? $('#localPane') : $('#remotePane');
   if (side === 'remote' && !remote.connected) {
+    S.sel.clear();
     ul.replaceChildren(h('li', { class: 'empty' }, 'サーバに接続してください'));
   } else if (!S.items.length) {
     ul.replaceChildren(h('li', { class: 'empty' }, side === 'local' ? '空のフォルダです。「取り込み」でファイルを追加できます' : '空のフォルダです'));
@@ -447,7 +506,9 @@ function renderList(side) {
         cb,
         h('span', { class: 'ico' }, it.type === 'dir' ? '📁' : it.type === 'link' ? '🔗' : isArchive(it.name) ? '🗜️' : '📄'),
         h('span', { class: 'name', title: it.name }, it.name),
-        h('span', { class: 'meta' }, it.type === 'dir' ? fmtDate(it.mtime) : `${fmtSize(it.size)}  ${fmtDate(it.mtime)}`));
+        h('span', { class: 'meta' },
+          h('span', {}, it.type === 'dir' ? fmtDate(it.mtime) : `${fmtSize(it.size)}  ${fmtDate(it.mtime)}`),
+          side === 'local' ? uploadBadge(it) : null));
       const toggle = () => {
         if (S.sel.has(it.name)) S.sel.delete(it.name); else S.sel.add(it.name);
         renderList(side);
@@ -630,7 +691,12 @@ const remoteActions = {
         await remote.remove(rjoin(state.remote.path, it.name), it.type === 'dir');
       }
       j.done(`${items.length} 件削除しました`);
-    } catch (err) { j.fail(err); throw err; } finally { state.remote.sel.clear(); await refreshRemote(); }
+      addHistory({ kind: 'delete', status: 'ok', server: state.remote.profile.name, serverId: state.remote.profile.id, to: state.remote.path, items: items.map((i) => i.name), itemCount: items.length });
+    } catch (err) {
+      j.fail(err);
+      addHistory({ kind: 'delete', status: 'error', error: err.message, server: state.remote.profile.name, serverId: state.remote.profile.id, to: state.remote.path, items: items.map((i) => i.name), itemCount: items.length });
+      throw err;
+    } finally { state.remote.sel.clear(); await refreshRemote(); }
   },
   download: () => paste('local', makeClip('copy', 'remote')),
   async extractRemote() {
@@ -901,6 +967,17 @@ async function paste(dest, c = state.clip) {
 
   const j = job(verb);
   let skippedFiles = 0;
+  const stats = { files: 0, bytes: 0 };
+  const kind = c.side === 'local' && dest === 'remote' ? 'upload' : c.side === 'remote' && dest === 'local' ? 'download' : (c.op === 'cut' ? 'move' : 'copy');
+  const profile = state.remote.profile;
+  const hist = () => ({
+    kind, server: profile?.name || '', serverId: profile?.id || '',
+    srcDir: c.side === 'local' ? `${c.local.root.key}|${c.local.segs.join('/')}` : '',
+    from: c.side === 'local' ? [c.local.root.label, ...c.local.segs].join('/') : c.remotePath,
+    to: dest === 'local' ? [dRoot.label, ...dSegs].join('/') : dPath,
+    items: plan.map((p) => p.it.name), itemCount: plan.length,
+    files: stats.files, bytes: stats.bytes, skipped: skippedItems + skippedFiles,
+  });
   const finish = (txt) => j.done(`${txt}${skippedItems + skippedFiles ? `（スキップ ${skippedItems + skippedFiles} 件）` : ''}`);
   try {
     if (c.side === 'local' && dest === 'local') {
@@ -919,6 +996,7 @@ async function paste(dest, c = state.clip) {
           await local.copy(c.local.root, src, dRoot, dst, () => j.progress(++n, n + 1, p.it.name));
         } else skipped++;
         skippedFiles += skipped;
+        stats.files = n;
         if (c.op === 'cut' && !skipped) await local.remove(c.local.root, src);
       }
       finish(`${verb}しました`);
@@ -947,6 +1025,7 @@ async function paste(dest, c = state.clip) {
           (loaded) => j.progress(doneBytes + loaded, total, `${t.rel.join('/')} (${count + 1}/${files.length})`));
         doneBytes += t.size || 0;
         count++;
+        stats.files = count; stats.bytes = doneBytes;
       }
       if (c.op === 'cut') for (const p of plan) if (!p.skipped) await local.remove(c.local.root, [...c.local.segs, p.it.name]);
       finish(`${count} ファイルをアップロードしました（${fmtSize(total)}）`);
@@ -963,6 +1042,7 @@ async function paste(dest, c = state.clip) {
           if (!(await wanted(p, e.rel, e.mtime))) { skipped++; continue; }
           await remote.downloadLocal(e.path, dRoot, [...dSegs, ...e.rel], e.size, (d, t) => j.progress(d, t, `${e.rel.join('/')} (${files + 1})`));
           files++;
+          stats.files = files; stats.bytes += e.size || 0;
         }
         skippedFiles += skipped;
         if (c.op === 'cut' && !skipped) await remote.remove(src, p.it.type === 'dir');
@@ -979,7 +1059,7 @@ async function paste(dest, c = state.clip) {
             await remote.remove(dst, p.entry.type === 'dir'); // replace
           }
           await remote.rename(src, dst);
-          files++;
+          files++; stats.files = files;
           continue;
         }
         const list = p.it.type === 'dir' ? [{ rel: [], dir: true }, ...(await remoteTree(src))] : [{ rel: [], path: src, mtime: p.it.mtime }];
@@ -989,20 +1069,81 @@ async function paste(dest, c = state.clip) {
           if (!(await wanted(p, [p.name, ...e.rel], e.mtime))) { skippedFiles++; continue; }
           j.progress(files, files + 1, e.rel.join('/') || p.it.name);
           await remote.copyRemote(e.path, target);
-          files++;
+          files++; stats.files = files;
         }
       }
       finish(`${verb}しました`);
     }
+    addHistory({ ...hist(), status: 'ok' });
     if (c === state.clip && c.op === 'cut') clearClip();
   } catch (err) {
     j.fail(err);
+    addHistory({ ...hist(), status: 'error', error: err.message });
     throw err;
   } finally {
     await refreshLocal();
     if (remote.connected) await refreshRemote();
   }
 }
+
+// ---------- history dialog ----------
+function histSummary(e) {
+  const parts = [];
+  if (e.kind === 'delete') parts.push(`${e.itemCount} 件を削除`);
+  else {
+    if (e.files != null) parts.push(`${e.files} ファイル`);
+    if (e.bytes) parts.push(fmtSize(e.bytes));
+    if (e.skipped) parts.push(`スキップ ${e.skipped}`);
+  }
+  return parts.join(' ・ ');
+}
+function renderHistory() {
+  const f = $('#histFilter').value;
+  const all = vault.data?.history || [];
+  const list = all.filter((e) => !f || (f === 'error' ? e.status === 'error' : e.kind === f));
+  $('#histCount').textContent = `${list.length} 件`;
+  const ul = $('#histList');
+  if (!list.length) { ul.replaceChildren(h('li', { class: 'empty muted' }, '履歴はまだありません')); return; }
+  const out = [];
+  let day = '';
+  for (const e of list) {
+    const d = fmtDateTime(e.t).slice(0, 10);
+    if (d !== day) {
+      day = d;
+      out.push(h('li', { class: 'hist-day' }, `${d} (${'日月火水木金土'[new Date(e.t).getDay()]})`));
+    }
+    const names = e.items || [];
+    const nameTxt = names.slice(0, 3).join(', ') + (names.length > 3 ? ` ほか ${names.length - 3} 件` : '');
+    out.push(h('li', { class: `hist-row ${e.kind}${e.status === 'error' ? ' error' : ''}` },
+      h('div', { class: 'hist-top' },
+        h('span', { class: 'hist-time' }, fmtDateTime(e.t).slice(11)),
+        h('span', { class: `hist-kind ${e.kind}` }, KIND_LABEL[e.kind] || e.kind),
+        e.server ? h('span', { class: 'hist-server' }, e.server) : null,
+        h('span', { class: 'hist-status' }, e.status === 'error' ? '✕ 失敗' : '✓')),
+      h('div', { class: 'hist-names' }, nameTxt),
+      h('div', { class: 'hist-meta small muted' }, `${e.from && e.kind !== 'delete' ? `${e.from} → ` : ''}${e.to || ''}`),
+      histSummary(e) ? h('div', { class: 'hist-meta small muted' }, histSummary(e)) : null,
+      e.status === 'error' ? h('div', { class: 'hist-err small' }, e.error || '') : null));
+  }
+  ul.replaceChildren(...out);
+}
+$('#historyBtn').onclick = () => {
+  if (!vault.isUnlocked()) return;
+  $('#histFilter').value = '';
+  renderHistory();
+  $('#historyDlg').showModal();
+};
+$('#histFilter').onchange = renderHistory;
+$('#histClear').onclick = async () => {
+  if (!(vault.data.history || []).length) return;
+  if (!(await confirmAsk('履歴を消去', '転送履歴をすべて消去します（ファイルやサーバには影響しません）。', '消去する', true))) return;
+  vault.data.history = [];
+  await vault.save();
+  upIndex = null;
+  renderHistory();
+  updateLastUpload();
+  renderLocal();
+};
 
 // ---------- misc ----------
 function switchTab(t) {

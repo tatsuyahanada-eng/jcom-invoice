@@ -20,6 +20,7 @@
       <span id="connState" class="chip off">未接続</span>
     </div>
     <div class="top-actions">
+      <button id="historyBtn" title="転送履歴">履歴</button>
       <button id="serversBtn" title="サーバ管理">サーバ管理</button>
       <button id="settingsBtn" title="設定">設定</button>
       <button id="lockBtn" title="ロック">ロック</button>
@@ -61,6 +62,7 @@
       <div class="pane-head">
         <h2>Server</h2>
         <span id="remoteTitle" class="muted small"></span>
+        <span id="lastUp" class="last-up small"></span>
       </div>
       <nav class="crumbs" id="remoteCrumbs"></nav>
       <div class="toolbar">
@@ -165,6 +167,24 @@
       <button type="button" id="clearWorkBtn" class="danger">作業領域を空にする</button>
     </div>
     <p class="small muted" id="secureInfo"></p>
+  </dialog>
+
+  <!-- history -->
+  <dialog id="historyDlg">
+    <div class="dlg-head"><h2>転送履歴</h2><button type="button" data-close>×</button></div>
+    <div class="hist-tools">
+      <select id="histFilter" aria-label="絞り込み">
+        <option value="">すべて</option>
+        <option value="upload">アップロード</option>
+        <option value="download">ダウンロード</option>
+        <option value="delete">サーバでの削除</option>
+        <option value="error">失敗</option>
+      </select>
+      <span id="histCount" class="muted small"></span>
+      <button type="button" id="histClear" class="danger">履歴を消去</button>
+    </div>
+    <ul id="histList" class="hist-list"></ul>
+    <p class="small muted">この履歴は端末内にだけ、サーバ情報と同じように暗号化して保存されます（最新300件まで）。</p>
   </dialog>
 
   <!-- same-name conflict (upload / download / copy / move) -->
