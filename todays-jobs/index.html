@@ -555,6 +555,10 @@
     }
     #impEvList { max-height: 50vh; overflow-y: auto; margin: 2px 0 4px; }
     .evtm { font-family: var(--mono); color: var(--gold-text); letter-spacing: .02em; margin-right: 6px; }
+    .photo-row { display: flex; gap: 8px; align-items: stretch; }
+    .photo-row .input { flex: 1; min-width: 0; }
+    .photo-row .btn { flex: none; min-height: 44px; padding: 6px 12px; font-size: 13px; }
+    .photo-row .btn svg { width: 18px; height: 18px; }
     .fee-in { font-family: var(--mono); font-size: 18px; letter-spacing: .04em; }
     .etc-fee { margin: 0 0 6px 56px; }
     .etc-fee label.fl { margin-top: 8px; }
@@ -816,6 +820,13 @@
           <li>駐車場代も、詳細の「駐車場」に入れられます。トップの売上パネルに、ETC合計・駐車場代合計が出ます。</li>
         </ul>
       </details>
+      <details><summary>写真（ファイル名つき）</summary>
+        <ul>
+          <li>詳細の「駐車場」の下で、写真のファイル名を入れて「写真を撮る」を押すと、カメラが開きます。撮った写真が、そのファイル名で保存されます。</li>
+          <li>ファイル名は空でも構いません。そのときは「TJ_日付_時刻」という名前になります。同じ名前がすでにあるときは、自動で番号が付きます。</li>
+          <li>保存先は、スマホの「ピクチャ」の中の「TodaysJobs」フォルダです（ギャラリーやファイルアプリで見られます）。撮った写真の名前は、その案件に記録されます。</li>
+        </ul>
+      </details>
       <details><summary>住所と地図</summary>
         <ul>
           <li>詳細の「住所」の欄に、GoogleマップとYahoo!マップのボタンがあります。アプリがなければブラウザで開きます。</li>
@@ -1009,6 +1020,7 @@
     plus: '<path d="M12 5v14M5 12h14"/>',
     route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
     calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
     car: '<path d="M5 17h14v-5l-2-5H7l-2 5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/><path d="M5 12h14"/>',
     note: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
     alert: '<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
@@ -1510,6 +1522,12 @@
         <textarea class="input" id="dParkNote" rows="2" placeholder="例: 建物裏の来客用No.3 / 近隣コインP 30分300円">${esc(j.parking.note)}</textarea>
         <label class="fl" for="dParkFee" style="margin-top:12px;">駐車場代（円・任意）</label>
         <input class="input fee-in" id="dParkFee" type="text" inputmode="numeric" placeholder="例: 600" value="${parkFeeOf(j) || ''}">
+        <label class="fl" for="dPhotoName" style="margin-top:12px;">写真のファイル名（任意）</label>
+        <div class="photo-row">
+          <input class="input" id="dPhotoName" type="text" placeholder="空欄なら TJ_日付_時刻" value="${esc(j.photoName || '')}" autocapitalize="off">
+          <button class="btn sm" id="dPhotoBtn" type="button">${icon('camera')}写真を撮る</button>
+        </div>
+        <p class="help" id="dPhotoList">${(j.photos || []).length ? '保存した写真：' + (j.photos || []).map(x => esc(x.name)).join('、') : 'スマホの「ピクチャ」内の「TodaysJobs」フォルダに保存されます。'}</p>
       </div>
 
       <div class="card">
@@ -1553,6 +1571,21 @@
       j.etc = etcOf(j); j.etc[inp.dataset.etcfee + 'Fee'] = parseYenInput(inp.value); saveDay(); render(); flash('etc');
     }));
     bindSave($('#dParkFee'), () => { j.parking.fee = parseYenInput($('#dParkFee').value); saveDay(); render(); flash('parking'); });
+    // 写真：ファイル名（任意）を付けて、標準カメラで撮影 → 端末に保存
+    const photoName = $('#dPhotoName');
+    photoName.addEventListener('input', debounce(() => { j.photoName = photoName.value; saveDay(); }, 300));
+    $('#dPhotoBtn').addEventListener('click', async () => {
+      if (!(window.TJNative && window.TJNative.takePhoto)) { toast('写真の撮影は、Androidアプリ版で使えます'); return; }
+      j.photoName = photoName.value; saveDay();
+      try {
+        const r = JSON.parse(await nativeCall('takePhoto', photoName.value.trim()));
+        j.photos = (j.photos || []).concat([{ name: r.name, at: new Date().toISOString() }]);
+        j.photoName = ''; saveDay(); render(); renderDetail();
+        toast(`写真を保存しました：${r.name}`);
+      } catch (err) {
+        if (err.message !== 'CANCELED') toast(err.message || '写真を保存できませんでした');
+      }
+    });
     const etcNote = $('#dEtcNote');
     const saveEtcNote = debounce(() => { j.etc = etcOf(j); j.etc.note = etcNote.value; saveDay(); flash('etc'); }, 400);
     etcNote.addEventListener('input', saveEtcNote);

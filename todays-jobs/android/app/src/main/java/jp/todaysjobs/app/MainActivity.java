@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
+import android.content.ContentValues;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,8 +13,11 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.CalendarContract;
+import android.provider.MediaStore;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -30,7 +34,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -46,6 +53,10 @@ public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private static final String START_URL = "https://" + HOST + "/assets/www/index.html";
     private static final int REQ_CAL = 1002;
+    private static final int REQ_PHOTO = 1003;
+    private String pendingPhotoCb;
+    private String pendingPhotoName;
+    private File pendingPhotoFile;
 
     private WebView web;
     private Runnable pendingAfterPermission;
@@ -159,6 +170,12 @@ public class MainActivity extends Activity {
             deviceCall(callbackId, () -> doQueryEvents(date, idsJson));
         }
 
+        /** 標準のカメラで写真を撮り、指定したファイル名（空ならTJ_日付_時刻）で端末のPictures/TodaysJobsに保存する */
+        @JavascriptInterface
+        public void takePhoto(final String callbackId, final String name) {
+            runOnUiThread(() -> startPhoto(callbackId, name));
+        }
+
         /** 売上のCSVなどを、共有シート（Drive・メール・ファイルへ保存など）で出力する */
         @JavascriptInterface
         public boolean shareFile(final String name, final String mime, final String base64) {
@@ -187,6 +204,103 @@ public class MainActivity extends Activity {
                 return false;
             }
         }
+    }
+
+    /* ---------- 写真（標準カメラで撮影 → ファイル名を付けて端末に保存） ---------- */
+
+    private void startPhoto(String cb, String name) {
+        try {
+            File dir = new File(getCacheDir(), "photos");
+            if (!dir.exists()) dir.mkdirs();
+            pendingPhotoFile = File.createTempFile("cap", ".jpg", dir);
+            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".files", pendingPhotoFile);
+            Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            i.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+            i.setClipData(ClipData.newRawUri("photo", uri));
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            pendingPhotoCb = cb;
+            pendingPhotoName = name;
+            startActivityForResult(i, REQ_PHOTO);
+        } catch (ActivityNotFoundException e) {
+            deliverResult(cb, null, "カメラアプリが見つかりません");
+        } catch (Exception e) {
+            deliverResult(cb, null, "カメラを起動できませんでした");
+        }
+    }
+
+    private String photoBaseName(String name) {
+        String n = name == null ? "" : name.trim().replaceAll("[\\\\/:*?\"<>|\\r\\n]", "_");
+        if (n.toLowerCase(Locale.ROOT).endsWith(".jpg") || n.toLowerCase(Locale.ROOT).endsWith(".jpeg")) n = n.replaceAll("(?i)\\.jpe?g$", "");
+        if (n.length() > 80) n = n.substring(0, 80);
+        if (n.isEmpty()) n = "TJ_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new java.util.Date());
+        return n;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_PHOTO) return;
+        final String cb = pendingPhotoCb;
+        final File f = pendingPhotoFile;
+        final String name = pendingPhotoName;
+        pendingPhotoCb = null; pendingPhotoFile = null; pendingPhotoName = null;
+        if (cb == null) return;
+        if (resultCode != RESULT_OK || f == null || !f.exists() || f.length() == 0) {
+            if (f != null) f.delete();
+            deliverResult(cb, null, "CANCELED");
+            return;
+        }
+        new Thread(() -> {
+            try {
+                String base = photoBaseName(name);
+                String saved;
+                String where;
+                if (Build.VERSION.SDK_INT >= 29) {
+                    ContentValues v = new ContentValues();
+                    v.put(MediaStore.Images.Media.DISPLAY_NAME, base + ".jpg");
+                    v.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    v.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/TodaysJobs");
+                    v.put(MediaStore.Images.Media.IS_PENDING, 1);
+                    Uri u = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
+                    if (u == null) throw new Exception("insert failed");
+                    try (InputStream in = new FileInputStream(f); OutputStream out = getContentResolver().openOutputStream(u)) {
+                        byte[] buf = new byte[8192];
+                        int n;
+                        while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                    }
+                    ContentValues done = new ContentValues();
+                    done.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    getContentResolver().update(u, done, null, null);
+                    saved = base + ".jpg";
+                    try (Cursor c = getContentResolver().query(u, new String[]{MediaStore.Images.Media.DISPLAY_NAME}, null, null, null)) {
+                        if (c != null && c.moveToFirst() && c.getString(0) != null) saved = c.getString(0);
+                    }
+                    where = "Pictures/TodaysJobs";
+                } else {
+                    File dir = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "TodaysJobs");
+                    if (!dir.exists()) dir.mkdirs();
+                    File dst = new File(dir, base + ".jpg");
+                    int k = 1;
+                    while (dst.exists()) dst = new File(dir, base + " (" + (k++) + ").jpg");
+                    try (InputStream in = new FileInputStream(f); OutputStream out = new FileOutputStream(dst)) {
+                        byte[] buf = new byte[8192];
+                        int n;
+                        while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                    }
+                    saved = dst.getName();
+                    where = "アプリ専用フォルダ（Pictures/TodaysJobs）";
+                }
+                f.delete();
+                JSONObject o = new JSONObject();
+                o.put("name", saved);
+                o.put("where", where);
+                deliverResult(cb, o.toString(), null);
+            } catch (Exception e) {
+                f.delete();
+                deliverResult(cb, null, "写真を保存できませんでした");
+            }
+        }).start();
     }
 
     /* ---------- 売上の出力（CSV / PDF） ---------- */
