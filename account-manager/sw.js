@@ -1,5 +1,5 @@
 // オフライン用キャッシュ（アプリ本体のみ。データは端末の localStorage に暗号化保存）
-const CACHE = 'account-manager-v4';
+const CACHE = 'account-manager-v6';
 const ASSETS = [
   './', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest',
   'icons/icon-32.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-512-maskable.png',

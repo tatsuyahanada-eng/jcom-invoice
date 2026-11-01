@@ -1190,6 +1190,50 @@ function checkAutoLock() {
 }
 
 /* ---------- 初期化 ---------- */
+/* ---------- アプリとしてインストール ---------- */
+let installEvt = null;
+const isStandalone = () =>
+  window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+function updateInstallUi() {
+  const installed = isStandalone();
+  // Chrome/Edge/Android は専用ダイアログ、それ以外（iOS Safari 等）は手順を表示
+  const canShow = !installed && location.protocol !== 'file:';
+  ['#installBtn', '#installLockBtn', '#installSettingsBtn'].forEach((id) => { $(id).hidden = !canShow; });
+  $('#installStatus').textContent = installed
+    ? '✓ インストール済み（アプリとして起動しています）'
+    : 'ホーム画面に追加すると、アプリとして起動でき、データも消えにくくなります。';
+}
+
+async function onInstall() {
+  if (installEvt) {
+    installEvt.prompt();
+    const r = await installEvt.userChoice.catch(() => null);
+    installEvt = null;
+    if (r && r.outcome === 'accepted') toast('インストールしました');
+    updateInstallUi();
+    return;
+  }
+  const step = (n, t) => h('li', null, h('b', null, `${n}. `), t);
+  const ios = isIOS();
+  $('#installSteps').replaceChildren(
+    h('p', { class: 'muted small' }, 'お使いのブラウザでは自動インストールのボタンが使えないため、次の手順で追加してください。'),
+    h('ol', { class: 'steps' }, ...(ios ? [
+      step(1, 'Safari で画面下（iPad は上）の「共有」ボタン（□に↑）をタップ'),
+      step(2, '「ホーム画面に追加」を選ぶ'),
+      step(3, '右上の「追加」をタップ'),
+      h('li', { class: 'muted small' }, '※ Chrome など Safari 以外では表示されないことがあります。その場合は Safari で開いてください。'),
+    ] : [
+      step(1, 'ブラウザのメニュー（︙ または ⋯）を開く'),
+      step(2, '「アプリをインストール」または「ホーム画面に追加」を選ぶ'),
+      step(3, '確認画面で「インストール」をタップ'),
+      h('li', { class: 'muted small' }, '※ HTTPS の URL で開いている必要があります。'),
+    ])));
+  $('#installDlg').showModal();
+}
+
 function init() {
   $('#lockForm').addEventListener('submit', onLockSubmit);
   $('#restoreBtn').addEventListener('click', () => $('#restoreFile').click());
@@ -1248,6 +1292,12 @@ function init() {
   ['pointerdown', 'keydown', 'scroll', 'input'].forEach((t) => document.addEventListener(t, touch, { passive: true, capture: true }));
   setInterval(checkAutoLock, 10000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkAutoLock(); });
+
+  ['#installBtn', '#installLockBtn', '#installSettingsBtn'].forEach((id) => $(id).addEventListener('click', onInstall));
+  window.addEventListener('beforeinstallprompt', (ev) => { ev.preventDefault(); installEvt = ev; updateInstallUi(); });
+  window.addEventListener('appinstalled', () => { installEvt = null; updateInstallUi(); toast('インストールしました'); });
+  window.matchMedia('(display-mode: standalone)').addEventListener?.('change', updateInstallUi);
+  updateInstallUi();
 
   showLock();
 

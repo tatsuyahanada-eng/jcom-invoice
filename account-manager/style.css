@@ -320,3 +320,20 @@ dialog::backdrop { background: rgba(30, 34, 40, .45); }
   padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--radius); font-size: 13.5px;
 }
 .restore-wrap { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+/* インストール */
+.install-lock { margin-top: 12px; background: var(--blue); border-color: var(--blue-line); color: var(--blue-ink); }
+.install-lock:hover { background: var(--blue-2); }
+.steps { margin: 12px 0 0; padding-left: 0; list-style: none; display: grid; gap: 10px; }
+.steps li { padding: 9px 12px; background: var(--blue); border-left: 3px solid var(--blue-line); border-radius: 0 var(--radius) var(--radius) 0; }
+.steps li.muted { background: transparent; border: 0; padding: 0; }
+
+/* ヘッダーの折り返し防止（狭い画面ではアイコンのみ） */
+.top-btn { white-space: nowrap; }
+.brand h1 { white-space: nowrap; }
+@media (max-width: 520px) {
+  .top-btn span { display: none; }
+  .top-btn { padding: 7px 9px; }
+  .top-actions { gap: 6px; }
+  .topbar h1 { font-size: 15px; }
+}
