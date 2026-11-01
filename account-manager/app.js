@@ -22,7 +22,8 @@ let key = null;        // CryptoKey（ロック中は null）
 let salt = null;       // Uint8Array
 let vault = null;      // { entries: [] }（ロック中は null）
 let filterCat = 'すべて';
-let currentId = null;
+let currentId = null;   // 編集中のID
+let openId = null;      // 一覧で開いているカード
 let lastActivity = Date.now();
 let prefs = loadPrefs();
 
@@ -190,7 +191,7 @@ function enterApp() {
 }
 
 function lock() {
-  key = null; vault = null; currentId = null;
+  key = null; vault = null; currentId = null; openId = null;
   document.querySelectorAll('dialog[open]').forEach((d) => d.close());
   $('#list').replaceChildren();
   showLock();
@@ -260,22 +261,53 @@ function renderList() {
     return;
   }
 
-  $('#list').replaceChildren(...items.map((e) => {
-    const old = e.password && daysSince(e.pwChangedAt || e.updatedAt) >= OLD_PW_DAYS;
-    return h('div', { class: 'card', onclick: () => openDetail(e.id) },
-      h('div', { class: 'avatar', style: `background:${avatarColor(e.service)}` }, (e.service || '?').slice(0, 1).toUpperCase()),
-      h('div', { class: 'card-main' },
-        h('div', { class: 'card-title' },
-          h('span', { class: 'name' }, ...highlight(e.service, terms)),
-          h('span', { class: `badge ${e.category}` }, e.category),
-          old && h('span', { class: 'badge old' }, '要更新')),
-        h('div', { class: 'card-sub' },
-          ...highlight([e.account, e.loginId].filter(Boolean).join(' ・ ') || '（IDなし）', terms)),
-        h('div', { class: 'card-sub' }, `更新: ${fmtDate(e.updatedAt)}`)),
-      h('div', { class: 'card-copy' },
-        e.loginId && h('button', { class: 'btn sm ghost', onclick: (ev) => { ev.stopPropagation(); copy(e.loginId, 'ID'); } }, 'ID'),
-        e.password && h('button', { class: 'btn sm ghost', onclick: (ev) => { ev.stopPropagation(); copy(e.password, 'パスワード'); } }, 'PW')));
-  }));
+  $('#list').replaceChildren(...items.map((e) => buildCard(e, terms)));
+}
+
+/* カード：閉じた状態はサービス名・アカウント名のみ。タップで開いて詳細を表示 */
+function buildCard(e, terms) {
+  const old = e.password && daysSince(e.pwChangedAt || e.updatedAt) >= OLD_PW_DAYS;
+  const inner = h('div', { class: 'card-panel-inner' });
+  const panel = h('div', { class: 'card-panel' }, inner);
+  const head = h('button', { class: 'card-head', type: 'button', 'aria-expanded': 'false' },
+    h('div', { class: 'avatar', style: `background:${avatarColor(e.service)}` }, (e.service || '?').slice(0, 1).toUpperCase()),
+    h('div', { class: 'card-main' },
+      h('div', { class: 'card-title' },
+        h('span', { class: 'name' }, ...highlight(e.service, terms)),
+        h('span', { class: `badge ${e.category}` }, e.category),
+        old && h('span', { class: 'badge old' }, '要更新')),
+      e.account && h('div', { class: 'card-sub' }, ...highlight(e.account, terms))),
+    h('span', { class: 'chev', 'aria-hidden': 'true' }, '›'));
+  const card = h('div', { class: 'card', 'data-id': e.id }, head, panel);
+  head.addEventListener('click', () => toggleCard(card, e.id));
+  if (openId === e.id) openCard(card, e, false);
+  return card;
+}
+
+function openCard(card, e, animate = true) {
+  const inner = card.querySelector('.card-panel-inner');
+  clearTimeout(card._t);
+  inner.replaceChildren(buildDetail(e));
+  card.classList.toggle('no-anim', !animate);
+  card.classList.add('open');
+  card.querySelector('.card-head').setAttribute('aria-expanded', 'true');
+}
+
+function closeCard(card) {
+  card.classList.remove('open', 'no-anim');
+  card.querySelector('.card-head').setAttribute('aria-expanded', 'false');
+  // 閉じたら詳細（パスワード等）を画面から消す
+  card._t = setTimeout(() => card.querySelector('.card-panel-inner').replaceChildren(), 300);
+}
+
+function toggleCard(card, id) {
+  const e = vault.entries.find((x) => x.id === id);
+  if (!e) return;
+  if (card.classList.contains('open')) { closeCard(card); openId = null; return; }
+  document.querySelectorAll('.card.open').forEach(closeCard);   // 開くのは1件だけ
+  openId = id;
+  openCard(card, e);
+  setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 280);
 }
 
 /* ---------- コピー ---------- */
@@ -301,18 +333,11 @@ function maskedValue(value) {
   return { span, btn };
 }
 
-function openDetail(id) {
-  const e = vault.entries.find((x) => x.id === id);
-  if (!e) return;
-  currentId = id;
-  $('#dService').textContent = e.service;
-
+function buildDetail(e) {
   const rows = [];
   const row = (k, v, ...actions) => h('div', { class: 'kv-row' },
     h('span', { class: 'kv-k' }, k), v, actions.length ? h('span', { class: 'kv-actions' }, ...actions) : null);
 
-  rows.push(row('区分', h('span', { class: 'kv-v' }, h('span', { class: `badge ${e.category}` }, e.category))));
-  if (e.account) rows.push(row('アカウント', h('span', { class: 'kv-v' }, e.account)));
   if (e.loginId) rows.push(row('ID', h('span', { class: 'kv-v mono' }, e.loginId),
     h('button', { class: 'btn sm ghost', onclick: () => copy(e.loginId, 'ID') }, 'コピー')));
   if (e.password) {
@@ -353,8 +378,10 @@ function openDetail(id) {
         ...lines);
     }));
 
-  $('#dBody').replaceChildren(h('div', { class: 'kv' }, ...rows), histEl);
-  $('#detailDlg').showModal();
+  const actions = h('div', { class: 'detail-actions' },
+    h('button', { class: 'btn danger', type: 'button', onclick: () => onDelete(e.id) }, '削除'),
+    h('button', { class: 'btn primary', type: 'button', onclick: () => openEdit(e.id) }, '編集'));
+  return h('div', { class: 'detail' }, h('div', { class: 'kv' }, ...rows), histEl, actions);
 }
 
 /* ---------- 追加・編集 ---------- */
@@ -414,19 +441,18 @@ async function onEditSubmit(ev) {
   }
   await persist();
   $('#editDlg').close();
-  const reopen = currentId;
+  if (!currentId) openId = null;
   renderChips();
   renderList();
-  if (reopen) openDetail(reopen);
   toast('保存しました');
 }
 
-async function onDelete() {
-  const e = vault.entries.find((x) => x.id === currentId);
+async function onDelete(id) {
+  const e = vault.entries.find((x) => x.id === id);
   if (!e || !confirm(`「${e.service}」を削除しますか？（履歴も削除されます）`)) return;
-  vault.entries = vault.entries.filter((x) => x.id !== currentId);
+  vault.entries = vault.entries.filter((x) => x.id !== id);
+  openId = null;
   await persist();
-  $('#detailDlg').close();
   renderChips();
   renderList();
   toast('削除しました');
@@ -560,8 +586,6 @@ function init() {
   $('#search').addEventListener('input', renderList);
   $('#sortSel').addEventListener('change', () => { prefs.sort = $('#sortSel').value; savePrefs(); renderList(); });
   $('#editForm').addEventListener('submit', onEditSubmit);
-  $('#dEdit').addEventListener('click', () => { $('#detailDlg').close(); openEdit(currentId); });
-  $('#dDelete').addEventListener('click', onDelete);
   $('#fPassword').addEventListener('input', updateStrength);
   $('#fPwToggle').addEventListener('click', () => {
     const i = $('#fPassword');

@@ -101,10 +101,16 @@ textarea { resize: vertical; }
 /* List */
 .list { max-width: 760px; margin: 0 auto; padding: 8px 16px 100px; display: grid; gap: 10px; }
 .card {
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
-  border: 1px solid var(--line); border-radius: var(--radius); background: #fff; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--radius); background: #fff;
+  transition: box-shadow .25s, border-color .25s;
 }
-.card:hover { box-shadow: var(--shadow); }
+.card.open { box-shadow: var(--shadow); border-color: #cfdaf0; }
+.card-head {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px;
+  border: 0; background: transparent; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  border-radius: var(--radius);
+}
+.card-head:active { background: var(--soft); }
 .avatar {
   flex: none; width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center;
   font-weight: 700; color: #fff; font-size: 18px;
@@ -118,7 +124,18 @@ textarea { resize: vertical; }
 .badge.仕事用 { background: #eaf1fd; color: #2456b3; }
 .badge.その他 { background: #f1f1f4; color: #555; }
 .badge.old { background: #fff4dc; color: #8a5d00; }
-.card-copy { flex: none; display: flex; gap: 4px; }
+.chev { flex: none; font-size: 26px; line-height: 1; color: var(--muted); transition: transform .25s; }
+.card.open .chev { transform: rotate(90deg); color: var(--accent); }
+
+/* 開閉アニメーション */
+.card-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s ease; }
+.card.open .card-panel { grid-template-rows: 1fr; }
+.card-panel-inner { overflow: hidden; min-height: 0; }
+.detail { padding: 0 14px 14px; opacity: 0; transform: translateY(-6px); transition: opacity .25s .05s, transform .25s .05s; }
+.card.open .detail { opacity: 1; transform: none; }
+.card.no-anim .card-panel, .card.no-anim .detail { transition: none; }
+.detail-actions { display: flex; justify-content: space-between; margin-top: 14px; }
+.history h3 { font-size: 14px; color: var(--muted); margin: 0 0 8px; }
 .empty { text-align: center; color: var(--muted); padding: 40px 16px; }
 mark { background: #fff2a8; color: inherit; border-radius: 2px; }
 
