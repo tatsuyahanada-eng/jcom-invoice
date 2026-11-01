@@ -85,7 +85,14 @@
   .alert { color: var(--danger); font-weight: 600; }
   dialog { border: none; border-radius: 14px; max-width: 560px; width: 94%; padding: 16px; }
   dialog::backdrop { background: rgba(0,0,0,.35); }
-  .parsed li { margin: 4px 0; }
+  .parsed { list-style: none; padding: 0; margin: 6px 0; }
+  .parsed li { margin: 4px 0; display: flex; gap: 4px; align-items: center; }
+  .parsed li input[type=text] { flex: 1; min-width: 0; padding: 4px 6px; }
+  .parsed li input[type=number] { width: 72px; padding: 4px 6px; }
+  .ocr-box { border: 2px dashed #e7c79a; border-radius: 10px; padding: 10px; margin-bottom: 10px; background: #fffaf3; }
+  .ocr-btn { display: inline-block; background: var(--accent); color: #fff; border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 600; margin-bottom: 4px; }
+  .ocr-box progress { width: 100%; }
+  .ocr-box img { max-width: 100%; max-height: 160px; margin-top: 6px; border-radius: 6px; }
   .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #3a2e22; color: #fff; padding: 8px 12px; display: flex; justify-content: center; gap: 18px; font-size: 14px; z-index: 10; flex-wrap: wrap; }
   .bar b { font-size: 17px; }
   .bar .plus { color: #7ee2b0; } .bar .minus { color: #ff9fb0; }
@@ -168,10 +175,19 @@
 <!-- チラシ・HPから取り込み -->
 <dialog id="importDlg">
   <h3 style="margin-top:0">📄 チラシ・ホームページから取り込み</h3>
-  <p class="note">ホームページやチラシの商品名と価格の部分をコピーして貼り付けてください。「商品名 198円」「商品名 ¥198」「商品名 198円(税込) 5個入」のような行を自動で読み取ります。</p>
+  <p class="note">チラシの写真を選ぶか、ホームページの商品名と価格の部分をコピーして貼り付けてください。「商品名 198円」「商品名 ¥198」「5個入」などを自動で読み取ります。</p>
+  <div class="ocr-box">
+    <label class="ocr-btn">📷 チラシの写真から読み取る
+      <input type="file" id="impPhoto" accept="image/*" hidden></label>
+    <div class="note">撮影するか、保存済みの写真を選べます。読み取りはこの端末の中で行います（初回は日本語データの読み込みに少し時間がかかります）。</div>
+    <div id="ocrStatus" class="note"></div>
+    <progress id="ocrProg" max="1" value="0" hidden></progress>
+    <img id="ocrThumb" alt="" hidden>
+  </div>
   <label class="f">購入先（店名）<input id="impShop" placeholder="例：業務スーパー"></label>
   <label class="f" style="margin-top:6px">参照URL（任意）<input id="impUrl" placeholder="https://..."></label>
-  <label class="f" style="margin-top:6px">貼り付け<textarea id="impText" placeholder="ミニどら焼き 5個入 298円&#10;バナナ 1房 158円&#10;うまい棒 30本 ¥324"></textarea></label>
+  <label class="f" style="margin-top:6px">読み取った文字・貼り付け（直接直せます）<textarea id="impText" placeholder="ミニどら焼き 5個入 298円&#10;バナナ 1房 158円&#10;うまい棒 30本 ¥324"></textarea></label>
+  <p class="note" style="margin:4px 0 0">見つかった商品（チェックした分を追加。名前・価格はここでも直せます）</p>
   <ul class="parsed" id="impPreview"></ul>
   <div class="row" style="justify-content:flex-end">
     <button class="ghost" id="impCancel">閉じる</button>
@@ -542,27 +558,166 @@
   function openImport(di, ii) {
     impTarget = { di, ii };
     $('impText').value = ''; $('impPreview').innerHTML = ''; impItems = [];
+    $('ocrStatus').textContent = ''; $('ocrProg').hidden = true; $('ocrThumb').hidden = true; $('impPhoto').value = '';
     $('importDlg').showModal();
   }
-  function parseText(text) {
-    const z2h = (s) => s.replace(/[０-９．，]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/，/g, ',');
-    return text.split(/\r?\n/).map(raw => {
-      const s = z2h(raw).trim(); if (!s) return null;
-      const pm = s.match(/(?:¥|￥)\s*([\d,]+)|([\d,]+)\s*円/);
-      if (!pm) return null;
-      const price = parseInt((pm[1] || pm[2]).replace(/,/g, ''), 10);
-      const per = (s.match(/(\d+)\s*(?:個|本|枚|袋|コ|切|食|パック|P)\s*(?:入り?)?/) || [])[1];
-      let name = s.replace(pm[0], '').replace(/[(（]?\s*税(込|抜|別)\s*[)）]?/g, '').replace(/本体価格|税込価格|価格/g, '').trim();
-      return { name: name || '（商品名なし）', price, per: per ? +per : 1, on: true };
-    }).filter(Boolean);
+
+  // 全角→半角、OCRで入る文字間のスペースを詰める
+  function normalize(s) {
+    return s.replace(/[０-９Ａ-Ｚａ-ｚ．，％]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+      .replace(/(\d)\s*[,，.]\s*(\d{3})(?!\d)/g, '$1$2')       // 1,280 / 1.280 → 1280
+      .replace(/([^\x00-\x7F])\s+(?=[^\x00-\x7F])/g, '$1')     // 日 本 語 → 日本語
+      .replace(/(\d)\s+(?=\d)/g, '$1')                         // 2 9 8 → 298
+      .replace(/(\d)\s+(?=[^\x00-\x7F])/g, '$1')               // 1 房 → 1房
+      .replace(/(\d)\s*([個本枚袋])\s*人/g, '$1$2入')            // OCRの「個人」→「個入」
+      .replace(/\s+/g, ' ').trim();
   }
-  $('impText').addEventListener('input', () => {
-    impItems = parseText($('impText').value);
+  // 1行から価格を探す（税込があればそれを優先）
+  function findPrice(s) {
+    const re = /(?:¥|￥|\\)\s*(\d{2,5})|(\d{2,5})\s*円/g;
+    const all = [...s.matchAll(re)].map(m => ({ text: m[0], v: +(m[1] || m[2]), at: m.index }));
+    if (!all.length) return null;
+    const tax = s.search(/税込/);
+    if (tax >= 0) { const after = all.find(p => p.at > tax); if (after) return after; }
+    return all[0];
+  }
+  const PER_RE = /(\d+)\s*(?:個|本|枚|袋|コ|切れ?|食|パック|P|p|入)(?:\s*入り?)?/;
+  function cleanName(s) {
+    return s.replace(/[(（]?\s*税(込|抜|別)[^)）\s]*[)）]?/g, '').replace(/本体(価格)?|税込(価格)?|価格|特価|お買い得|円|¥|￥/g, '')
+      .replace(/^[\s・:：\-–—|｜*※]+|[\s・:：\-–—|｜*※]+$/g, '').trim();
+  }
+  function parseText(text) {
+    const lines = text.split(/\r?\n/).map(normalize).filter(Boolean);
+    const out = [];
+    let pendingName = '';
+    lines.forEach(s => {
+      const p = findPrice(s);
+      // チラシは「円」が小さく読めないことが多いので、数字だけの行も価格とみなす
+      const bare = !p && pendingName && s.match(/^(\d{2,5})$/);
+      if (!p && !bare) { if (/[^\x00-\x7F]/.test(s) && s.length <= 40) pendingName = s; return; }
+      const price = p ? p.v : +bare[1];
+      let name = p ? cleanName(s.replace(p.text, ' ')) : '';
+      // 価格だけの行なら、直前の行を商品名にする
+      if (name.length < 2 && pendingName) { name = cleanName(pendingName); }
+      const per = (s.match(PER_RE) || (pendingName.match(PER_RE)) || [])[1];
+      pendingName = '';
+      if (price < 10) return;
+      out.push({ name: name || '（商品名なし）', price, per: per ? +per : 1, on: true });
+    });
+    return out;
+  }
+  function renderPreview() {
     $('impPreview').innerHTML = impItems.length ? impItems.map((x, i) =>
-      `<li><label><input type="checkbox" data-imp="${i}" checked> ${esc(x.name)} … <b>${yen(x.price)}</b>（${x.per}個入）</label></li>`).join('')
-      : '<li class="note">価格（〇〇円 / ¥〇〇）を含む行が見つかりません。</li>';
+      `<li><input type="checkbox" data-imp="${i}" data-k="on" ${x.on ? 'checked' : ''}>
+        <input type="text" data-imp="${i}" data-k="name" value="${esc(x.name)}">
+        <input type="number" data-imp="${i}" data-k="price" value="${x.price}" title="価格(円)">円
+        <input type="number" data-imp="${i}" data-k="per" value="${x.per}" title="入数" style="width:56px">個</li>`).join('')
+      : '<li class="note">価格（〇〇円 / ¥〇〇）を含む行が見つかりません。上の文字を直すと再度読み取ります。</li>';
+  }
+  $('impText').addEventListener('input', () => { impItems = parseText($('impText').value); renderPreview(); });
+  $('impPreview').addEventListener('input', (e) => {
+    const i = e.target.dataset.imp, k = e.target.dataset.k; if (i === undefined) return;
+    impItems[+i][k] = k === 'on' ? e.target.checked : k === 'name' ? e.target.value : num(e.target.value);
   });
-  $('impPreview').addEventListener('change', (e) => { const i = e.target.dataset.imp; if (i !== undefined) impItems[+i].on = e.target.checked; });
+
+  // ---- 写真から文字認識（Tesseract.js をこの端末内で実行） ----
+  let ocrWorker = null;
+  function loadScript(src) {
+    return new Promise((ok, ng) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => ng(new Error('読み込み失敗')); document.head.appendChild(s); });
+  }
+  async function getWorker(onProg) {
+    if (!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    if (!ocrWorker) ocrWorker = await Tesseract.createWorker('jpn', 1, { logger: m => onProg(m) });
+    return ocrWorker;
+  }
+  // 読み取りやすいように縮小・グレースケール・コントラスト強調
+  async function prepImage(file) {
+    const img = await createImageBitmap(file);
+    const scale = Math.min(1, 2400 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0, c.width, c.height);
+    const d = g.getImageData(0, 0, c.width, c.height), p = d.data;
+    for (let i = 0; i < p.length; i += 4) {
+      let y = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
+      y = Math.max(0, Math.min(255, (y - 128) * 1.5 + 128));
+      p[i] = p[i + 1] = p[i + 2] = y;
+    }
+    g.putImageData(d, 0, 0);
+    return c;
+  }
+  // チラシは商品が横に並ぶので、文字の位置を使って「商品名」と「その下の価格」を組み合わせる
+  function layoutToText(data) {
+    const lines = data.lines || (data.blocks || []).flatMap(b => b.paragraphs.flatMap(p => p.lines));
+    // 1行の中でも、間が大きく空いていれば別のかたまりとして分ける
+    const segs = [];
+    lines.forEach(l => {
+      let cur = null;
+      (l.words || []).forEach(wd => {
+        const b = wd.bbox, h = b.y1 - b.y0;
+        if (cur && b.x0 - cur.x1 > Math.max(h, cur.h) * 1.2) { segs.push(cur); cur = null; }
+        if (!cur) cur = { words: [], x0: b.x0, y0: b.y0, x1: b.x1, y1: b.y1, h };
+        cur.words.push(wd.text); cur.x1 = Math.max(cur.x1, b.x1); cur.y0 = Math.min(cur.y0, b.y0); cur.y1 = Math.max(cur.y1, b.y1); cur.h = Math.max(cur.h, h);
+      });
+      if (cur) segs.push(cur);
+    });
+    segs.forEach(s => {
+      s.text = normalize(s.words.join(' '));
+      const nameText = s.text.replace(/税込|税抜|本体|価格|円|[\d¥￥\\.,%\s]/g, '');
+      const jpCount = (nameText.match(/[぀-ヿ一-鿿]/g) || []).length;
+      const hasNum = /\d{2,5}/.test(s.text);
+      // 数字があって日本語が1〜2文字だけなら、「¥」の読み間違いなどとみなして価格扱い
+      s.isName = jpCount >= 2 && !(hasNum && jpCount <= 2);
+      const p = findPrice(s.text);
+      const bare = !s.isName && s.text.match(/(\d{2,5})(?!.*\d{2,5})/);
+      s.price = p ? p.v : bare ? +bare[1] : null;
+      s.tax = /税込/.test(s.text);
+      if (s.isName && p) s.name = s.text.replace(p.text, ' ');   // 名前と価格が同じ行
+    });
+    // 価格ごとに「すぐ上にある商品名」を探して結びつける
+    const names = segs.filter(s => s.isName && !s.name);
+    segs.filter(s => s.price && !s.isName).forEach(p => {
+      let best = null, bestD = Infinity;
+      names.forEach(n => {
+        if (n.y0 >= p.y0) return;                                    // 価格より上にある
+        if (p.x1 < n.x0 - n.h || p.x0 > n.x1 + n.h) return;          // 横方向に重なる
+        const d = Math.max(0, p.y0 - n.y1);
+        if (d < n.h * 4 && d < bestD) { best = n; bestD = d; }
+      });
+      if (best) (best.prices = best.prices || []).push(p);
+    });
+    const out = [];
+    segs.forEach(n => {
+      if (n.name) { out.push(`${cleanName(n.name)} ${n.price}円`); return; }
+      if (!n.prices) return;
+      // 税込表示があればそれを、なければ一番大きな文字の価格を使う
+      const pick = n.prices.find(p => p.tax) || n.prices.sort((a, b) => b.h - a.h)[0];
+      out.push(`${cleanName(n.text)} ${pick.price}円`);
+    });
+    // 位置で組めなかったときは、読み取った文字をそのまま返す
+    return out.length ? out.join('\n') : (data.text || '').split('\n').map(normalize).filter(Boolean).join('\n');
+  }
+
+  $('impPhoto').addEventListener('change', async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const st = $('ocrStatus'), pg = $('ocrProg');
+    $('ocrThumb').src = URL.createObjectURL(file); $('ocrThumb').hidden = false;
+    pg.hidden = false; pg.removeAttribute('value');
+    const label = { 'loading tesseract core': '準備中', 'loading language traineddata': '日本語データを読み込み中', 'initializing api': '準備中', 'recognizing text': '文字を読み取り中' };
+    try {
+      st.textContent = '準備中…';
+      const canvas = await prepImage(file);
+      const w = await getWorker(m => { st.textContent = (label[m.status] || m.status) + '…'; if (typeof m.progress === 'number') pg.value = m.progress; });
+      const { data } = await w.recognize(canvas, {}, { text: true, blocks: true });
+      const text = layoutToText(data);
+      const ta = $('impText');
+      ta.value = (ta.value ? ta.value + '\n' : '') + text;
+      impItems = parseText(ta.value); renderPreview();
+      st.textContent = `読み取り完了：${impItems.length}件の商品が見つかりました。読み間違いは下で直してください。`;
+    } catch (err) {
+      st.textContent = '読み取りに失敗しました（' + err.message + '）。通信状態を確認するか、文字を手で入力してください。';
+    } finally { pg.hidden = true; }
+  });
   $('impCancel').onclick = () => $('importDlg').close();
   $('impOk').onclick = () => {
     const d = week().days[impTarget.di], it = d.items[impTarget.ii], n = num(db.settings.children);
