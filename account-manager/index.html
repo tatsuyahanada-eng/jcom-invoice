@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="アカウント管理">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>アカウントマネージャー</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-32.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ロック画面（初回設定 / ロック解除） -->
+  <section id="lockScreen" class="lock" hidden>
+    <div class="lock-card">
+      <img src="icons/icon-192.png" alt="" class="lock-icon">
+      <h1>アカウントマネージャー</h1>
+      <p id="lockMsg" class="muted"></p>
+      <form id="lockForm" autocomplete="off">
+        <label class="field">
+          <span>管理者パスワード</span>
+          <input type="password" id="masterPw" required autocomplete="current-password">
+        </label>
+        <label class="field" id="masterPw2Wrap" hidden>
+          <span>管理者パスワード（確認）</span>
+          <input type="password" id="masterPw2" autocomplete="new-password">
+        </label>
+        <p id="lockErr" class="error" role="alert"></p>
+        <button type="submit" class="btn primary block" id="lockBtn">ロック解除</button>
+      </form>
+      <p class="muted small" id="lockNote"></p>
+    </div>
+  </section>
+
+  <!-- メイン画面 -->
+  <div id="app" hidden>
+    <header class="topbar">
+      <h1>アカウント管理</h1>
+      <div class="top-actions">
+        <button class="icon-btn" id="settingsBtn" title="設定" aria-label="設定">⚙</button>
+        <button class="icon-btn" id="lockNowBtn" title="ロック" aria-label="ロック">🔒</button>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="サービス名・ID・メモで検索" autocomplete="off">
+      <div class="chips" id="catChips"></div>
+      <div class="sort-row">
+        <span class="muted small" id="countLabel"></span>
+        <select id="sortSel" aria-label="並び順">
+          <option value="updated">更新日が新しい順</option>
+          <option value="updatedAsc">更新日が古い順</option>
+          <option value="service">サービス名順</option>
+        </select>
+      </div>
+    </div>
+
+    <main id="list" class="list"></main>
+    <p id="empty" class="empty" hidden>アカウントがありません。右下の「＋」から追加してください。</p>
+
+    <button class="fab" id="addBtn" aria-label="アカウントを追加">＋</button>
+  </div>
+
+  <!-- 詳細 -->
+  <dialog id="detailDlg" class="sheet">
+    <div class="sheet-head">
+      <h2 id="dService"></h2>
+      <button class="icon-btn" data-close aria-label="閉じる">✕</button>
+    </div>
+    <div class="sheet-body" id="dBody"></div>
+    <div class="sheet-foot">
+      <button class="btn danger" id="dDelete">削除</button>
+      <button class="btn primary" id="dEdit">編集</button>
+    </div>
+  </dialog>
+
+  <!-- 追加・編集 -->
+  <dialog id="editDlg" class="sheet">
+    <form id="editForm" method="dialog" autocomplete="off">
+      <div class="sheet-head">
+        <h2 id="eTitle">アカウント追加</h2>
+        <button type="button" class="icon-btn" data-close aria-label="閉じる">✕</button>
+      </div>
+      <div class="sheet-body">
+        <label class="field"><span>サービス名 <em>*</em></span>
+          <input id="fService" required placeholder="例: Google, Amazon, 社内システム" list="serviceList">
+          <datalist id="serviceList"></datalist>
+        </label>
+        <label class="field"><span>アカウント名（表示名・用途）</span>
+          <input id="fAccount" placeholder="例: メインアカウント">
+        </label>
+        <label class="field"><span>ID / メールアドレス</span>
+          <input id="fLoginId" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field"><span>パスワード</span>
+          <div class="pw-row">
+            <input id="fPassword" type="password" autocapitalize="off" spellcheck="false" autocomplete="new-password">
+            <button type="button" class="btn ghost" id="fPwToggle">表示</button>
+            <button type="button" class="btn ghost" id="fPwGen">生成</button>
+          </div>
+          <small class="strength" id="fStrength"></small>
+        </label>
+        <div class="field"><span>区分</span>
+          <div class="seg" id="fCategory">
+            <label><input type="radio" name="cat" value="個人用" checked><span>個人用</span></label>
+            <label><input type="radio" name="cat" value="仕事用"><span>仕事用</span></label>
+            <label><input type="radio" name="cat" value="その他"><span>その他</span></label>
+          </div>
+        </div>
+        <label class="field"><span>URL</span>
+          <input id="fUrl" type="url" inputmode="url" placeholder="https://">
+        </label>
+        <label class="field"><span>タグ（カンマ区切り）</span>
+          <input id="fTags" placeholder="例: 銀行, サブスク">
+        </label>
+        <label class="field"><span>メモ</span>
+          <textarea id="fMemo" rows="3" placeholder="秘密の質問、契約番号など"></textarea>
+        </label>
+        <label class="field" id="fChangeNoteWrap" hidden><span>変更理由（履歴に残ります）</span>
+          <input id="fChangeNote" placeholder="例: 定期変更、漏洩対策">
+        </label>
+      </div>
+      <div class="sheet-foot">
+        <button type="button" class="btn" data-close>キャンセル</button>
+        <button type="submit" class="btn primary" value="save">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 設定 -->
+  <dialog id="settingsDlg" class="sheet">
+    <div class="sheet-head">
+      <h2>設定</h2>
+      <button class="icon-btn" data-close aria-label="閉じる">✕</button>
+    </div>
+    <div class="sheet-body">
+      <h3>自動ロック</h3>
+      <select id="autoLockSel">
+        <option value="1">1分</option>
+        <option value="3">3分</option>
+        <option value="5">5分</option>
+        <option value="10">10分</option>
+        <option value="30">30分</option>
+      </select>
+
+      <h3>管理者パスワードの変更</h3>
+      <form id="changePwForm" autocomplete="off">
+        <input type="password" id="cpOld" placeholder="現在のパスワード" required autocomplete="current-password">
+        <input type="password" id="cpNew" placeholder="新しいパスワード（8文字以上）" required autocomplete="new-password">
+        <input type="password" id="cpNew2" placeholder="新しいパスワード（確認）" required autocomplete="new-password">
+        <p class="error" id="cpErr"></p>
+        <button class="btn primary" type="submit">変更する</button>
+      </form>
+
+      <h3>バックアップ</h3>
+      <p class="muted small">バックアップファイルは管理者パスワードで暗号化されたまま保存されます。</p>
+      <div class="btn-row">
+        <button class="btn" id="exportBtn">エクスポート</button>
+        <button class="btn" id="importBtn">インポート</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+
+      <h3>データの初期化</h3>
+      <p class="muted small">すべてのアカウントと管理者パスワードを削除します。元に戻せません。</p>
+      <button class="btn danger" id="wipeBtn">すべて削除</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
