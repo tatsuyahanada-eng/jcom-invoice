@@ -1,0 +1,26 @@
+# Account Manager 用設定
+
+# HTTPS へ自動転送（暗号化機能・PWA は HTTPS でのみ動作します）
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# PWA 用のファイル形式
+AddType application/manifest+json .webmanifest
+AddType text/javascript .js
+
+# アプリ更新がすぐ反映されるよう、本体ファイルはキャッシュしない
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|css|webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set X-Frame-Options "DENY"
+</IfModule>
+
+# フォルダ内の一覧表示を禁止
+Options -Indexes
