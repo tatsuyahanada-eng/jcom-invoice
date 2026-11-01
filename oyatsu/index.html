@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>学童おやつ 仕入れ・納品計算</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#e08a2f">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="おやつ計算">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
   :root {
     --bg: #fdf7ee; --panel: #fff; --line: #e6d6bd; --text: #3a2e22; --muted: #8a7863;
@@ -16,6 +24,11 @@
   .wrap { max-width: 1000px; margin: 0 auto; padding: 16px 12px 120px; }
   h1 { font-size: 22px; margin: 4px 0 2px; }
   .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .install { display: flex; gap: 10px; align-items: center; background: #fff; border: 2px solid var(--accent); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 14px; }
+  .install img { width: 44px; height: 44px; border-radius: 10px; flex: none; }
+  .install .t { flex: 1; font-size: 13px; }
+  .install .t b { font-size: 14px; display: block; }
+  .install .x { background: none; border: none; color: var(--muted); font-size: 20px; padding: 0 4px; }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
   .panel h2 { font-size: 16px; margin: 0 0 10px; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
@@ -103,6 +116,14 @@
 <div class="wrap">
   <h1>🍙 学童おやつ 仕入れ・納品計算</h1>
   <p class="sub">曜日ごとのおやつ（A・B）を入力すると、購入数・金額・予算との差額を自動で計算します。データはこの端末のブラウザに自動保存されます。</p>
+
+  <!-- ホーム画面に追加の案内 -->
+  <div class="install noprint" id="installBox" hidden>
+    <img src="icons/icon-192.png" alt="">
+    <div class="t" id="installText"></div>
+    <button id="installBtn" hidden>インストール</button>
+    <button class="x" id="installClose" title="閉じる">×</button>
+  </div>
 
   <!-- 学童おやつ案（参照表） -->
   <div class="panel ref">
@@ -728,6 +749,32 @@
 
   function renderAll() { renderSettings(); renderDays(); }
   renderAll();
+
+  // ---- アプリとしてインストール ----
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const dismissed = localStorage.getItem('gakudoOyatsu.installDismissed');
+  let deferredPrompt = null;
+  function showInstall(html, withBtn) {
+    if (standalone || dismissed) return;
+    $('installText').innerHTML = html; $('installBtn').hidden = !withBtn; $('installBox').hidden = false;
+  }
+  // Android・パソコンのChrome/Edge：ボタンでインストール
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); deferredPrompt = e;
+    showInstall('<b>アプリとしてインストール</b>ホーム画面から1タップで開けます。', true);
+  });
+  $('installBtn').onclick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('installBox').hidden = true;
+  };
+  window.addEventListener('appinstalled', () => { $('installBox').hidden = true; });
+  // iPhone・iPad：Safariの共有メニューから追加
+  if (isIOS) showInstall('<b>ホーム画面に追加できます</b>Safari下の共有ボタン（□に↑のマーク）→「ホーム画面に追加」をタップしてください。', false);
+  $('installClose').onclick = () => { $('installBox').hidden = true; localStorage.setItem('gakudoOyatsu.installDismissed', '1'); };
 })();
 </script>
 </body>
