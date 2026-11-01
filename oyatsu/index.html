@@ -109,7 +109,45 @@
   .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #3a2e22; color: #fff; padding: 8px 12px; display: flex; justify-content: center; gap: 18px; font-size: 14px; z-index: 10; flex-wrap: wrap; }
   .bar b { font-size: 17px; }
   .bar .plus { color: #7ee2b0; } .bar .minus { color: #ff9fb0; }
-  @media print { .tabs, .bar, button, .noprint { display: none !important; } body { background: #fff; } .day-panel { display: block !important; } }
+  .pdf-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .pdf-row button { flex: 1 1 140px; padding: 10px; font-weight: 700; }
+  #pdfStatus { font-size: 12px; color: var(--muted); }
+
+  /* A4レポート（PDF・印刷用）。画面では見えない位置で作る */
+  #printArea { position: absolute; left: -10000px; top: 0; }
+  #report { width: 794px; background: #fff; color: #222; padding: 34px 38px; font-size: 11px; line-height: 1.45;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans CJK JP", Meiryo, sans-serif; }
+  #report h1 { font-size: 20px; margin: 0 0 2px; }
+  #report .meta { display: flex; justify-content: space-between; font-size: 11px; color: #555; border-bottom: 2px solid #333; padding-bottom: 6px; margin-bottom: 10px; }
+  #report h3 { font-size: 13px; margin: 14px 0 4px; border-left: 4px solid #e08a2f; padding-left: 6px; }
+  #report table { width: 100%; border-collapse: collapse; font-size: 10.5px; min-width: 0; }
+  #report th, #report td { border: 1px solid #999; padding: 3px 4px; text-align: left; vertical-align: middle; word-break: break-all; }
+  #report th { background: #f3eadb; font-weight: 700; color: #222; }
+  #report td.n, #report th.n { text-align: right; white-space: nowrap; }
+  #report td.d { white-space: nowrap; }
+  #report tr.sum td { font-weight: 700; background: #faf6ef; }
+  #report .kp { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #999; }
+  #report .kp div { padding: 6px 8px; border-right: 1px solid #999; }
+  #report .kp div:last-child { border-right: none; }
+  #report .kp span { display: block; font-size: 10px; color: #555; }
+  #report .kp b { font-size: 16px; }
+  #report .plus { color: #127a4f; } #report .minus { color: #c1263f; }
+  #report .ng { color: #c1263f; font-weight: 700; } #report .warn { color: #a06d00; font-weight: 700; }
+  #report .stamps { display: flex; justify-content: flex-end; gap: 0; margin-top: 16px; }
+  #report .stamps div { width: 80px; border: 1px solid #999; text-align: center; font-size: 10px; }
+  #report .stamps div span { display: block; border-bottom: 1px solid #999; background: #f3eadb; padding: 2px; }
+  #report .stamps div i { display: block; height: 52px; }
+  #report .memo { margin-top: 6px; border: 1px solid #999; min-height: 50px; padding: 4px 6px; font-size: 10px; color: #555; }
+
+  @page { size: A4 portrait; margin: 10mm; }
+  @media print {
+    body { background: #fff; }
+    .wrap, .bar, dialog { display: none !important; }
+    #printArea { position: static; }
+    #report { width: auto; padding: 0; }
+    #report tr { break-inside: avoid; }
+    #report h3 { break-after: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -162,6 +200,11 @@
       <div class="kpi"><div class="l">1人あたり（週）</div><div class="v" id="kPer">-</div><div class="l" id="kPerGuide"></div></div>
     </div>
     <div class="scroll" style="margin-top:10px"><table id="dayTable"></table></div>
+    <div class="pdf-row noprint">
+      <button id="pdfBtn">📄 PDFをダウンロード（A4）</button>
+      <button class="ghost" id="printBtn">🖨 印刷</button>
+    </div>
+    <div id="pdfStatus"></div>
   </div>
 
   <!-- 曜日タブ -->
@@ -171,7 +214,7 @@
   <!-- 仕入れリスト -->
   <div class="panel">
     <div class="day-head"><h2>🛒 仕入れリスト（購入先ごと）</h2>
-      <span class="noprint"><button class="ghost sm" id="csvBtn">CSV出力</button> <button class="ghost sm" onclick="window.print()">印刷</button></span></div>
+      <span class="noprint"><button class="ghost sm" id="csvBtn">CSV出力</button> <button class="ghost sm" id="printBtn2">印刷</button></span></div>
     <div class="scroll"><table id="shopTable"></table></div>
   </div>
 
@@ -192,6 +235,9 @@
 </div>
 
 <div class="bar" id="bar"></div>
+
+<!-- A4レポート（PDF・印刷用） -->
+<div id="printArea"><div id="report"></div></div>
 
 <!-- チラシ・HPから取り込み -->
 <dialog id="importDlg">
@@ -573,6 +619,109 @@
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.download = `おやつ仕入れ_${db.settings.weekStart}.csv`; a.click();
   };
+
+  // ---- A4レポート（PDF・印刷） ----
+  function buildReport() {
+    const w = week(), wc = weekCalc(), ws = db.settings.weekStart, n = num(db.settings.children);
+    const cls = (v) => v >= 0 ? 'plus' : 'minus';
+    let h = `<h1>学童おやつ 仕入れ・納品報告書</h1>
+      <div class="meta"><span>対象週：${ws.replace(/-/g, '/')}（月）〜 ${addDays(ws, 4).replace(/-/g, '/')}（金）　児童数：${n}人</span>
+      <span>作成日：${toISO(new Date()).replace(/-/g, '/')}</span></div>
+      <div class="kp"><div><span>予算</span><b>${yen(wc.budget)}</b></div><div><span>仕入れ合計</span><b>${yen(wc.cost)}</b></div>
+      <div><span>差額（予算−仕入れ）</span><b class="${cls(wc.diff)}">${signYen(wc.diff)}</b></div>
+      <div><span>1人あたり（目安 ${wc.guide}円）</span><b>${yen(wc.per)}</b></div></div>`;
+
+    h += `<h3>曜日別の集計</h3><table><tr><th>提供日</th><th>グループ</th><th>品目</th><th class="n">目安/人</th><th class="n">予算</th><th class="n">仕入れ</th><th class="n">差額</th></tr>`;
+    w.days.forEach(d => { const c = dayCalc(d);
+      h += `<tr><td class="d">${md(serveDate(d))}</td><td>${esc(d.group)}</td><td>${d.items.map(it => (it.kind !== '-' ? it.kind + '：' : '') + esc(it.name)).join('<br>')}</td>
+        <td class="n">${c.guide}円</td><td class="n">${yen(c.budget)}</td><td class="n">${yen(c.cost)}</td><td class="n ${cls(c.budget - c.cost)}">${signYen(c.budget - c.cost)}</td></tr>`; });
+    h += `<tr class="sum"><td colspan="3">合計</td><td class="n">${wc.guide}円</td><td class="n">${yen(dayCalcSum('budget'))}</td><td class="n">${yen(wc.cost)}</td><td class="n ${cls(dayCalcSum('budget') - wc.cost)}">${signYen(dayCalcSum('budget') - wc.cost)}</td></tr></table>`;
+
+    h += `<h3>仕入れ明細</h3><table><tr><th>提供日</th><th>品目</th><th>商品名</th><th>購入先</th><th class="n">単価</th><th class="n">入数</th><th class="n">数量</th><th class="n">小計</th><th>納品日</th><th>消費期限</th></tr>`;
+    w.days.forEach(d => d.items.forEach(it => {
+      if (!it.lines.length) { h += `<tr><td class="d">${md(serveDate(d))}</td><td>${esc(it.name)}</td><td colspan="8" style="color:#999">（未入力）</td></tr>`; return; }
+      it.lines.forEach(l => { const st = expiryState(l, d);
+        h += `<tr><td class="d">${md(serveDate(d))}</td><td>${(it.kind !== '-' ? it.kind + '：' : '') + esc(it.name)}</td><td>${esc(l.product)}</td><td>${esc(l.shop)}</td>
+          <td class="n">${yen(num(l.price))}</td><td class="n">${num(l.per)}</td><td class="n">${num(l.qty)}</td><td class="n">${yen(lineCost(l))}</td>
+          <td class="d">${md(l.delivery)}</td><td class="d ${st}">${md(l.expiry)}${st === 'ng' ? ' ⚠' : ''}</td></tr>`; });
+    }));
+    h += `<tr class="sum"><td colspan="7">合計</td><td class="n">${yen(wc.cost)}</td><td colspan="2"></td></tr></table>`;
+
+    const shops = {};
+    allLines().forEach(({ l }) => { const k = l.shop || '（購入先未入力）'; shops[k] = (shops[k] || 0) + lineCost(l); });
+    h += `<h3>購入先別の合計</h3><table><tr><th>購入先</th><th class="n">金額</th></tr>` +
+      Object.keys(shops).sort().map(k => `<tr><td>${esc(k)}</td><td class="n">${yen(shops[k])}</td></tr>`).join('') +
+      `<tr class="sum"><td>合計</td><td class="n">${yen(wc.cost)}</td></tr></table>`;
+
+    const alerts = allLines().filter(({ d, l }) => expiryState(l, d) === 'ng');
+    if (alerts.length) h += `<h3>注意（期限・納品日）</h3><table>${alerts.map(({ d, l }) =>
+      `<tr><td class="ng">${esc(l.product)}：提供日 ${md(serveDate(d))} ／ 納品 ${md(l.delivery) || '-'} ／ 期限 ${md(l.expiry) || '-'}</td></tr>`).join('')}</table>`;
+
+    h += `<div class="memo">備考：</div>
+      <div class="stamps"><div><span>作成</span><i></i></div><div><span>確認</span><i></i></div><div><span>承認</span><i></i></div></div>`;
+    $('report').innerHTML = h;
+  }
+
+  function loadLib(src, test) { return test() ? Promise.resolve() : loadScript(src); }
+
+  async function downloadPDF() {
+    const st = $('pdfStatus'), btn = $('pdfBtn');
+    btn.disabled = true; st.textContent = 'PDFを作成中…';
+    try {
+      await loadLib('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', () => window.html2canvas);
+      await loadLib('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js', () => window.jspdf);
+      buildReport();
+      const el = $('report');
+      // 行の途中で切れないよう、改ページしてよい位置（表の行の下・見出しの上）を集める
+      const top = el.getBoundingClientRect().top;
+      const cuts = [...el.querySelectorAll('tr, h3, .memo, .stamps')].map(e => {
+        const r = e.getBoundingClientRect(); return e.tagName === 'TR' ? r.bottom - top : r.top - top; });
+      // 表の見出し行の位置（2ページ目以降の先頭に繰り返し表示する）
+      const tables = [...el.querySelectorAll('table')].map(t => { const r = t.getBoundingClientRect(), hr = t.rows[0].getBoundingClientRect();
+        return { top: r.top - top, bottom: r.bottom - top, hTop: hr.top - top, hH: hr.height }; });
+      const totalH = el.offsetHeight, pageH = Math.floor(794 * 297 / 210), mt = 40;
+      const scale = 2;
+      const canvas = await html2canvas(el, { scale, backgroundColor: '#ffffff', windowWidth: 794 });
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const pxToMm = 210 / 794;
+      const pages = [];
+      let y = 0;
+      while (y < totalH - 1) {
+        const first = pages.length === 0;
+        const head = first ? null : tables.find(t => y > t.hTop + t.hH && y < t.bottom - 1);
+        const limit = y + pageH - (first ? mt : mt * 2) - (head ? head.hH : 0);
+        let end = totalH <= limit ? totalH : Math.max(...cuts.filter(c => c > y + 50 && c <= limit), 0);
+        if (end <= y) end = limit;                                   // 区切りが見つからないときはそのまま切る
+        pages.push({ a: y, b: end, head }); y = end;
+      }
+      const slice = (a, h) => {
+        const c = document.createElement('canvas');
+        c.width = canvas.width; c.height = Math.ceil(h * scale);
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(canvas, 0, Math.round(a * scale), canvas.width, c.height, 0, 0, c.width, c.height);
+        return c.toDataURL('image/png');
+      };
+      pages.forEach(({ a, b, head }, i) => {
+        if (i) pdf.addPage();
+        let offY = i ? mt : 0;
+        if (head) { pdf.addImage(slice(head.hTop, head.hH), 'PNG', 0, offY * pxToMm, 210, head.hH * pxToMm); offY += head.hH; }
+        pdf.addImage(slice(a, b - a), 'PNG', 0, offY * pxToMm, 210, (b - a) * pxToMm);
+        pdf.setFontSize(9); pdf.setTextColor(120);
+        pdf.text(`${i + 1} / ${pages.length}`, 105, 290, { align: 'center' });
+      });
+      const name = `おやつ報告書_${db.settings.weekStart}.pdf`;
+      pdf.save(name);
+      st.textContent = `ダウンロードしました（${name}・${pages.length}ページ）`;
+    } catch (err) {
+      st.textContent = 'PDFを作れませんでした（' + err.message + '）。通信状態を確認するか「印刷」から「PDFに保存」を選んでください。';
+    } finally { btn.disabled = false; }
+  }
+  function printReport() { buildReport(); window.print(); }
+  $('pdfBtn').onclick = downloadPDF;
+  $('printBtn').onclick = printReport;
+  $('printBtn2').onclick = printReport;
+  window.addEventListener('beforeprint', buildReport);
 
   // ---- チラシ・HP取り込み ----
   let impTarget = null, impItems = [];
