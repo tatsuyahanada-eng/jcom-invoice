@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学童おやつ 仕入れ・納品計算</title>
+<style>
+  :root {
+    --bg: #fdf7ee; --panel: #fff; --line: #e6d6bd; --text: #3a2e22; --muted: #8a7863;
+    --accent: #e08a2f; --accent-d: #c06f17; --ok: #1a8f5f; --danger: #d6435f; --warn: #c98a00;
+    --a: #e8f1ff; --b: #fff1e3; --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5; font-size: 15px; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 16px 12px 120px; }
+  h1 { font-size: 22px; margin: 4px 0 2px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
+  .panel h2 { font-size: 16px; margin: 0 0 10px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+  label.f { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 2px; }
+  input, select, textarea { font: inherit; padding: 7px 8px; border: 1px solid #cdb999; border-radius: 8px; background: #fff; color: var(--text); min-width: 0; }
+  input[type=number] { width: 90px; text-align: right; }
+  textarea { width: 100%; min-height: 90px; }
+  button { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+  button.ghost { background: #fff; color: var(--accent-d); }
+  button.del { background: #fff; color: var(--danger); border-color: #f0b7c2; padding: 4px 9px; }
+  button.sm { padding: 4px 9px; font-size: 13px; }
+
+  /* 週サマリー */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .kpi { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #fffaf3; }
+  .kpi .l { font-size: 12px; color: var(--muted); }
+  .kpi .v { font-size: 22px; font-weight: 700; }
+  .plus { color: var(--ok); } .minus { color: var(--danger); }
+
+  /* 曜日タブ */
+  .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; position: sticky; top: 0; background: var(--bg); padding: 6px 0; z-index: 5; }
+  .tab { flex: 1 0 auto; border: 1px solid var(--line); background: #fff; color: var(--text); border-radius: 10px; padding: 6px 10px; text-align: center; min-width: 88px; }
+  .tab small { display: block; font-size: 11px; }
+  .tab.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tab .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 4px; vertical-align: middle; }
+
+  .day-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .day-head h2 { margin: 0; }
+  .item { border: 1px solid var(--line); border-radius: 10px; margin-top: 12px; overflow: hidden; }
+  .item-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; padding: 10px; }
+  .item.A .item-head { background: var(--a); } .item.B .item-head { background: var(--b); }
+  .badge { font-weight: 700; border-radius: 6px; padding: 2px 8px; background: #fff; border: 1px solid var(--line); }
+  .budget-line { font-size: 13px; padding: 6px 10px; display: flex; flex-wrap: wrap; gap: 14px; border-top: 1px dashed var(--line); background: #fffdf9; }
+  .budget-line b { font-size: 15px; }
+
+  .line { border-top: 1px solid #f1e6d4; padding: 10px; display: grid; gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); align-items: end; }
+  .line .wide { grid-column: span 2; }
+  .line input { width: 100%; }
+  .line .calc { font-size: 13px; color: var(--muted); }
+  .line .calc b { color: var(--text); font-size: 15px; }
+  .line .acts { display: flex; gap: 6px; justify-content: flex-end; }
+  .exp-ng { border-color: var(--danger) !important; background: #ffeef1 !important; }
+  .exp-warn { border-color: var(--warn) !important; background: #fff8e0 !important; }
+  .item-foot { padding: 8px 10px; border-top: 1px solid #f1e6d4; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px 4px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  .scroll { overflow-x: auto; }
+  .scroll table { min-width: 560px; }
+  td, th { word-break: keep-all; }
+  .note { font-size: 12px; color: var(--muted); }
+  .alert { color: var(--danger); font-weight: 600; }
+  dialog { border: none; border-radius: 14px; max-width: 560px; width: 94%; padding: 16px; }
+  dialog::backdrop { background: rgba(0,0,0,.35); }
+  .parsed li { margin: 4px 0; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #3a2e22; color: #fff; padding: 8px 12px; display: flex; justify-content: center; gap: 18px; font-size: 14px; z-index: 10; flex-wrap: wrap; }
+  .bar b { font-size: 17px; }
+  .bar .plus { color: #7ee2b0; } .bar .minus { color: #ff9fb0; }
+  @media print { .tabs, .bar, button, .noprint { display: none !important; } body { background: #fff; } .day-panel { display: block !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🍙 学童おやつ 仕入れ・納品計算</h1>
+  <p class="sub">曜日ごとのおやつ（A・B）を入力すると、購入数・金額・予算との差額を自動で計算します。データはこの端末のブラウザに自動保存されます。</p>
+
+  <!-- 基本設定 -->
+  <div class="panel">
+    <h2>基本設定</h2>
+    <div class="row">
+      <label class="f">週の開始日（月曜）<input type="date" id="weekStart"></label>
+      <label class="f">児童数（人）<input type="number" id="children" min="1"></label>
+      <label class="f">予算の出し方
+        <select id="budgetMode">
+          <option value="guide">目安単価 × 児童数</option>
+          <option value="fixed">週の予算を直接入力</option>
+        </select>
+      </label>
+      <label class="f" id="fixedWrap">週の予算（円）<input type="number" id="fixedBudget" min="0" style="width:120px"></label>
+      <button class="ghost" id="prevWeek">◀ 前週</button>
+      <button class="ghost" id="nextWeek">次週 ▶</button>
+    </div>
+  </div>
+
+  <!-- 週サマリー -->
+  <div class="panel">
+    <h2>今週のまとめ</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="l">予算</div><div class="v" id="kBudget">-</div></div>
+      <div class="kpi"><div class="l">仕入れ合計</div><div class="v" id="kTotal">-</div></div>
+      <div class="kpi"><div class="l">差額（予算 − 仕入れ）</div><div class="v" id="kDiff">-</div></div>
+      <div class="kpi"><div class="l">1人あたり（週）</div><div class="v" id="kPer">-</div><div class="l" id="kPerGuide"></div></div>
+    </div>
+    <div class="scroll" style="margin-top:10px"><table id="dayTable"></table></div>
+  </div>
+
+  <!-- 曜日タブ -->
+  <div class="tabs" id="tabs"></div>
+  <div id="days"></div>
+
+  <!-- 仕入れリスト -->
+  <div class="panel">
+    <div class="day-head"><h2>🛒 仕入れリスト（購入先ごと）</h2>
+      <span class="noprint"><button class="ghost sm" id="csvBtn">CSV出力</button> <button class="ghost sm" onclick="window.print()">印刷</button></span></div>
+    <div class="scroll"><table id="shopTable"></table></div>
+  </div>
+
+  <!-- 納品・消費期限 -->
+  <div class="panel">
+    <h2>🚚 納品予定・消費期限チェック</h2>
+    <div class="scroll"><table id="deliveryTable"></table></div>
+    <p class="note">赤：提供日より前に期限切れ ／ 黄：提供日の当日〜翌日が期限 ／ 納品日が提供日より後の場合も赤で表示します。</p>
+  </div>
+
+  <div class="panel noprint">
+    <h2>データ</h2>
+    <div class="row">
+      <button class="ghost" id="copyPrev">前週の内容をコピー</button>
+      <button class="ghost" id="resetWeek">この週を初期状態に戻す</button>
+    </div>
+  </div>
+</div>
+
+<div class="bar" id="bar"></div>
+
+<!-- チラシ・HPから取り込み -->
+<dialog id="importDlg">
+  <h3 style="margin-top:0">📄 チラシ・ホームページから取り込み</h3>
+  <p class="note">ホームページやチラシの商品名と価格の部分をコピーして貼り付けてください。「商品名 198円」「商品名 ¥198」「商品名 198円(税込) 5個入」のような行を自動で読み取ります。</p>
+  <label class="f">購入先（店名）<input id="impShop" placeholder="例：業務スーパー"></label>
+  <label class="f" style="margin-top:6px">参照URL（任意）<input id="impUrl" placeholder="https://..."></label>
+  <label class="f" style="margin-top:6px">貼り付け<textarea id="impText" placeholder="ミニどら焼き 5個入 298円&#10;バナナ 1房 158円&#10;うまい棒 30本 ¥324"></textarea></label>
+  <ul class="parsed" id="impPreview"></ul>
+  <div class="row" style="justify-content:flex-end">
+    <button class="ghost" id="impCancel">閉じる</button>
+    <button id="impOk">選んだ商品を追加</button>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  const DOW = ['日','月','火','水','木','金','土'];
+  const STORE_KEY = 'gakudoOyatsu.v1';
+
+  // 画像（学童おやつ案）をもとにした初期テンプレート
+  const TEMPLATE = [
+    { dow: 1, group: 'G4', items: [
+      { kind: 'A', name: 'ヨーグルト・プリン・ゼリー', guide: 50 },
+      { kind: 'B', name: '駄菓子', guide: 15 } ] },
+    { dow: 2, group: 'G2', items: [
+      { kind: 'A', name: 'フルーツ', guide: 50 },
+      { kind: 'B', name: '駄菓子', guide: 15 } ] },
+    { dow: 3, group: 'G5', items: [
+      { kind: '-', name: '今川焼・たい焼き', guide: 80 } ] },
+    { dow: 4, group: 'G3', items: [
+      { kind: 'A', name: 'パン', guide: 70 },
+      { kind: 'B', name: '乳酸菌', guide: 24 } ] },
+    { dow: 5, group: 'G1', items: [
+      { kind: '-', name: '伊勢屋', guide: 140 } ] },
+  ];
+  // サンプル入力（画面イメージ用）
+  const SAMPLE_LINES = {
+    'G4-A': [{ product: 'フルーツゼリー 6個入', shop: 'スーパー○○', price: 298, per: 6, expiry: 10 }],
+    'G4-B': [{ product: 'うまい棒 30本', shop: '業務スーパー', price: 324, per: 30, expiry: 120 }],
+    'G2-A': [{ product: 'バナナ 1房(5本)', shop: 'スーパー○○', price: 158, per: 10, expiry: 3 }],
+    'G3-B': [{ product: 'ヤクルト 10本', shop: 'ドラッグストア△△', price: 238, per: 10, expiry: 14 }],
+    'G1-':  [{ product: '伊勢屋 おまんじゅう', shop: '伊勢屋', price: 140, per: 1, expiry: 1 }],
+  };
+
+  const uid = () => Math.random().toString(36).slice(2, 9);
+  const $ = (id) => document.getElementById(id);
+  const yen = (n) => (Math.round(n) || 0).toLocaleString('ja-JP') + '円';
+  const signYen = (n) => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('ja-JP') + '円';
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+
+  function toISO(d) { const z = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; }
+  function addDays(iso, n) { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return toISO(d); }
+  function mondayOf(d) { const x = new Date(d); x.setHours(0,0,0,0); const k = (x.getDay() + 6) % 7; x.setDate(x.getDate() - k); return toISO(x); }
+  function md(iso) { if (!iso) return ''; const d = new Date(iso + 'T00:00:00'); return `${d.getMonth()+1}/${d.getDate()}(${DOW[d.getDay()]})`; }
+
+  function load() {
+    try { const s = JSON.parse(localStorage.getItem(STORE_KEY)); if (s && s.weeks) return s; } catch (e) {}
+    const ws = mondayOf(new Date());
+    // 今日が週末なら翌週を初期表示
+    const today = new Date().getDay();
+    const start = (today === 0 || today === 6) ? addDays(ws, 7) : ws;
+    const d = { settings: { children: 30, budgetMode: 'guide', fixedBudget: 13320, weekStart: start }, weeks: {} };
+    d.weeks[start] = makeWeek(start, true);
+    return d;
+  }
+  function save() { localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
+
+  function makeWeek(ws, withSample, children = 30) {
+    return { days: TEMPLATE.map(t => {
+      const serve = addDays(ws, t.dow - 1);
+      return { dow: t.dow, group: t.group, items: t.items.map(it => ({
+        id: uid(), kind: it.kind, name: it.name, guide: it.guide,
+        lines: (withSample ? (SAMPLE_LINES[`${t.group}-${it.kind === '-' ? '' : it.kind}`] || []) : []).map(l => ({
+          id: uid(), product: l.product, shop: l.shop, url: '', price: l.price, per: l.per,
+          qty: Math.ceil(children / l.per), expiry: addDays(serve, l.expiry), delivery: addDays(serve, -1),
+        })),
+      })) };
+    }) };
+  }
+
+  function week() {
+    const ws = db.settings.weekStart;
+    if (!db.weeks[ws]) db.weeks[ws] = makeWeek(ws, false);
+    return db.weeks[ws];
+  }
+  const serveDate = (day) => addDays(db.settings.weekStart, day.dow - 1);
+
+  let db = load();
+  let cur = 0; // 表示中の曜日タブ
+
+  // ---- 計算 ----
+  function lineCost(l) { return num(l.price) * num(l.qty); }
+  function linePieces(l) { return (num(l.per) || 1) * num(l.qty); }
+  function itemCalc(it) {
+    const n = num(db.settings.children);
+    const cost = it.lines.reduce((s, l) => s + lineCost(l), 0);
+    const pieces = it.lines.reduce((s, l) => s + linePieces(l), 0);
+    const budget = num(it.guide) * n;
+    return { cost, pieces, budget, diff: budget - cost, per: n ? cost / n : 0, short: Math.max(0, n - pieces) };
+  }
+  function dayCalc(day) {
+    return day.items.reduce((a, it) => { const c = itemCalc(it); a.cost += c.cost; a.budget += c.budget; a.guide += num(it.guide); return a; }, { cost: 0, budget: 0, guide: 0 });
+  }
+  function weekCalc() {
+    const w = week(); let cost = 0, budget = 0, guide = 0;
+    w.days.forEach(d => { const c = dayCalc(d); cost += c.cost; budget += c.budget; guide += c.guide; });
+    if (db.settings.budgetMode === 'fixed') budget = num(db.settings.fixedBudget);
+    return { cost, budget, guide, diff: budget - cost, per: num(db.settings.children) ? cost / num(db.settings.children) : 0 };
+  }
+  function expiryState(l, day) {
+    const s = serveDate(day);
+    if (l.delivery && l.delivery > s) return 'ng';
+    if (!l.expiry) return '';
+    if (l.expiry < s) return 'ng';
+    if (l.expiry <= addDays(s, 1)) return 'warn';
+    return '';
+  }
+
+  // ---- 描画 ----
+  function renderSettings() {
+    const s = db.settings;
+    $('weekStart').value = s.weekStart; $('children').value = s.children;
+    $('budgetMode').value = s.budgetMode; $('fixedBudget').value = s.fixedBudget;
+    $('fixedWrap').style.display = s.budgetMode === 'fixed' ? '' : 'none';
+  }
+
+  function renderDays() {
+    const w = week();
+    $('tabs').innerHTML = w.days.map((d, i) => `<button class="tab ${i === cur ? 'on' : ''}" data-tab="${i}">
+      ${DOW[d.dow]}曜 <span class="dot" id="dot${i}"></span><small>${esc(d.group)}・${md(serveDate(d))}</small></button>`).join('');
+
+    $('days').innerHTML = w.days.map((d, di) => `
+      <div class="panel day-panel" style="display:${di === cur ? 'block' : 'none'}">
+        <div class="day-head">
+          <h2>${md(serveDate(d))} ${esc(d.group)}</h2>
+          <span class="note" id="dayInfo${di}"></span>
+        </div>
+        ${d.items.map((it, ii) => itemHTML(d, di, it, ii)).join('')}
+        <div class="row noprint" style="margin-top:12px">
+          <button class="ghost" data-act="addItem" data-d="${di}">＋ 種類（項目）を追加</button>
+        </div>
+      </div>`).join('');
+    updateCalcs();
+  }
+
+  function itemHTML(d, di, it, ii) {
+    const k = `${di}-${ii}`;
+    return `<div class="item ${it.kind === 'B' ? 'B' : 'A'}">
+      <div class="item-head">
+        <label class="f">種類<select data-f="kind" data-d="${di}" data-i="${ii}">
+          ${['A','B','C','D','-'].map(x => `<option ${x === it.kind ? 'selected' : ''} value="${x}">${x === '-' ? '（区分なし）' : x}</option>`).join('')}
+        </select></label>
+        <label class="f" style="flex:1 1 160px">品目<input class="name" data-f="name" data-d="${di}" data-i="${ii}" value="${esc(it.name)}"></label>
+        <label class="f">目安単価(円/人)<input type="number" min="0" data-f="guide" data-d="${di}" data-i="${ii}" value="${esc(it.guide)}"></label>
+        <button class="del noprint" data-act="delItem" data-d="${di}" data-i="${ii}" title="この種類を削除">🗑</button>
+      </div>
+      <div class="budget-line">
+        <span>予算 <b id="ib${k}"></b></span>
+        <span>仕入れ <b id="ic${k}"></b></span>
+        <span>差額 <b id="id${k}"></b></span>
+        <span>1人あたり <b id="ip${k}"></b></span>
+        <span id="is${k}"></span>
+      </div>
+      ${it.lines.map((l, li) => lineHTML(d, di, ii, l, li)).join('')}
+      <div class="item-foot noprint">
+        <button class="ghost sm" data-act="addLine" data-d="${di}" data-i="${ii}">＋ 商品を追加</button>
+        <button class="ghost sm" data-act="import" data-d="${di}" data-i="${ii}">📄 チラシ・HPから取り込み</button>
+      </div>
+    </div>`;
+  }
+
+  function lineHTML(d, di, ii, l, li) {
+    const a = `data-d="${di}" data-i="${ii}" data-l="${li}"`;
+    const k = `${di}-${ii}-${li}`;
+    return `<div class="line">
+      <label class="f wide">商品名<input data-f="product" ${a} value="${esc(l.product)}" placeholder="例：ミニどら焼き 5個入"></label>
+      <label class="f">購入先<input data-f="shop" ${a} value="${esc(l.shop)}" placeholder="店名"></label>
+      <label class="f wide">HP・チラシURL
+        <span style="display:flex;gap:4px"><input data-f="url" ${a} value="${esc(l.url)}" placeholder="https://...">
+        ${l.url ? `<a href="${esc(l.url)}" target="_blank" rel="noopener" class="noprint" style="align-self:center">開く</a>` : ''}</span></label>
+      <label class="f">単価(円)<input type="number" min="0" data-f="price" ${a} value="${esc(l.price)}"></label>
+      <label class="f">入数(個/袋)<input type="number" min="1" data-f="per" ${a} value="${esc(l.per)}"></label>
+      <label class="f">購入数<span style="display:flex;gap:4px"><input type="number" min="0" data-f="qty" ${a} value="${esc(l.qty)}">
+        <button class="ghost sm noprint" data-act="autoQty" ${a} title="児童数から必要数を計算">自動</button></span></label>
+      <label class="f">納品日<input type="date" data-f="delivery" ${a} value="${esc(l.delivery)}" id="dl${k}"></label>
+      <label class="f">消費期限<input type="date" data-f="expiry" ${a} value="${esc(l.expiry)}" id="ex${k}"></label>
+      <div class="calc">小計<br><b id="lc${k}"></b><br><span id="lp${k}"></span></div>
+      <div class="acts noprint"><button class="del" data-act="delLine" ${a} title="削除">🗑</button></div>
+    </div>`;
+  }
+
+  function setDiff(el, v) { el.textContent = signYen(v); el.classList.remove('plus', 'minus'); el.classList.add(v >= 0 ? 'plus' : 'minus'); }
+
+  function updateCalcs() {
+    const w = week(); const n = num(db.settings.children);
+    w.days.forEach((d, di) => {
+      let bad = false;
+      d.items.forEach((it, ii) => {
+        const k = `${di}-${ii}`, c = itemCalc(it);
+        if (!$('ib' + k)) return;
+        $('ib' + k).textContent = yen(c.budget);
+        $('ic' + k).textContent = yen(c.cost);
+        setDiff($('id' + k), c.diff);
+        $('ip' + k).textContent = yen(c.per) + ` / 目安${num(it.guide)}円`;
+        $('is' + k).innerHTML = it.lines.length === 0 ? '<span class="note">商品が未入力です</span>'
+          : c.short > 0 ? `<span class="alert">⚠ ${c.short}個不足（${c.pieces}/${n}個）</span>`
+          : `<span class="plus">✔ ${c.pieces}個 確保（${n}人分）</span>`;
+        if (c.short > 0 || c.diff < 0) bad = true;
+        it.lines.forEach((l, li) => {
+          const lk = `${k}-${li}`;
+          $('lc' + lk).textContent = yen(lineCost(l));
+          $('lp' + lk).textContent = `${linePieces(l)}個`;
+          const st = expiryState(l, d);
+          $('ex' + lk).className = st === 'ng' ? 'exp-ng' : st === 'warn' ? 'exp-warn' : '';
+          $('dl' + lk).className = (l.delivery && l.delivery > serveDate(d)) ? 'exp-ng' : '';
+          if (st === 'ng') bad = true;
+        });
+      });
+      const dc = dayCalc(d);
+      const info = $('dayInfo' + di);
+      if (info) info.innerHTML = `予算 ${yen(dc.budget)} ／ 仕入れ ${yen(dc.cost)} ／ 差額 <b class="${dc.budget - dc.cost >= 0 ? 'plus' : 'minus'}">${signYen(dc.budget - dc.cost)}</b>`;
+      const dot = $('dot' + di);
+      if (dot) dot.style.background = bad ? 'var(--danger)' : d.items.every(it => it.lines.length) ? '#3cc48a' : '#ccc';
+    });
+
+    const wc = weekCalc();
+    $('kBudget').textContent = yen(wc.budget);
+    $('kTotal').textContent = yen(wc.cost);
+    setDiff($('kDiff'), wc.diff);
+    $('kPer').textContent = yen(wc.per);
+    $('kPerGuide').textContent = `目安 ${wc.guide}円/人・週`;
+    $('bar').innerHTML = `<span>予算 <b>${yen(wc.budget)}</b></span><span>仕入れ <b>${yen(wc.cost)}</b></span><span>差額 <b class="${wc.diff >= 0 ? 'plus' : 'minus'}">${signYen(wc.diff)}</b></span>`;
+
+    $('dayTable').innerHTML = `<tr><th>曜日</th><th>グループ</th><th>品目</th><th class="n">目安/人</th><th class="n">予算</th><th class="n">仕入れ</th><th class="n">差額</th></tr>` +
+      w.days.map(d => { const c = dayCalc(d); return `<tr><td>${md(serveDate(d))}</td><td>${esc(d.group)}</td>
+        <td>${d.items.map(it => (it.kind !== '-' ? it.kind + '：' : '') + esc(it.name)).join('<br>')}</td>
+        <td class="n">${c.guide}円</td><td class="n">${yen(c.budget)}</td><td class="n">${yen(c.cost)}</td>
+        <td class="n ${c.budget - c.cost >= 0 ? 'plus' : 'minus'}">${signYen(c.budget - c.cost)}</td></tr>`; }).join('') +
+      `<tr><th colspan="3">合計</th><th class="n">${wc.guide}円</th><th class="n">${yen(dayCalcSum('budget'))}</th><th class="n">${yen(wc.cost)}</th><th class="n"></th></tr>`;
+
+    renderShop(); renderDelivery();
+  }
+  function dayCalcSum(k) { return week().days.reduce((s, d) => s + dayCalc(d)[k], 0); }
+
+  function allLines() {
+    const out = [];
+    week().days.forEach(d => d.items.forEach(it => it.lines.forEach(l => out.push({ d, it, l }))));
+    return out;
+  }
+  function renderShop() {
+    const groups = {};
+    allLines().forEach(x => { const s = x.l.shop || '（購入先未入力）'; (groups[s] = groups[s] || []).push(x); });
+    const names = Object.keys(groups).sort();
+    if (!names.length) { $('shopTable').innerHTML = '<tr><td class="note">商品を入力すると、ここに購入先ごとの買い物リストが表示されます。</td></tr>'; return; }
+    let h = `<tr><th>購入先 / 商品</th><th>使う日</th><th class="n">単価</th><th class="n">購入数</th><th class="n">小計</th></tr>`;
+    names.forEach(s => {
+      const sum = groups[s].reduce((a, x) => a + lineCost(x.l), 0);
+      h += `<tr><th colspan="4">🏪 ${esc(s)}</th><th class="n">${yen(sum)}</th></tr>`;
+      groups[s].forEach(({ d, l }) => {
+        h += `<tr><td>${esc(l.product) || '-'}</td><td>${md(serveDate(d))}</td><td class="n">${yen(num(l.price))}</td><td class="n">${num(l.qty)}</td><td class="n">${yen(lineCost(l))}</td></tr>`;
+      });
+    });
+    $('shopTable').innerHTML = h;
+  }
+  function renderDelivery() {
+    const rows = allLines().sort((a, b) => (a.l.delivery || '9').localeCompare(b.l.delivery || '9'));
+    if (!rows.length) { $('deliveryTable').innerHTML = '<tr><td class="note">商品が未入力です。</td></tr>'; return; }
+    $('deliveryTable').innerHTML = `<tr><th>納品日</th><th>商品</th><th>購入先</th><th>提供日</th><th>消費期限</th><th>状態</th></tr>` +
+      rows.map(({ d, l }) => { const st = expiryState(l, d);
+        const msg = l.delivery && l.delivery > serveDate(d) ? '<span class="alert">納品が提供日より後</span>'
+          : st === 'ng' ? '<span class="alert">提供日に期限切れ</span>' : st === 'warn' ? '<span style="color:var(--warn);font-weight:600">期限が近い</span>'
+          : !l.expiry ? '<span class="note">期限未入力</span>' : '<span class="plus">OK</span>';
+        return `<tr><td>${md(l.delivery) || '<span class="note">未定</span>'}</td><td>${esc(l.product)}</td><td>${esc(l.shop)}</td><td>${md(serveDate(d))}</td><td>${md(l.expiry)}</td><td>${msg}</td></tr>`; }).join('');
+  }
+
+  // ---- 入力イベント ----
+  document.addEventListener('input', (e) => {
+    const t = e.target, f = t.dataset.f;
+    if (!f) return;
+    const day = week().days[+t.dataset.d], it = day.items[+t.dataset.i];
+    if (t.dataset.l !== undefined) it.lines[+t.dataset.l][f] = t.value; else it[f] = t.value;
+    save();
+    if (f === 'kind') { renderDays(); return; }
+    updateCalcs();
+  });
+  document.addEventListener('change', (e) => {
+    // URL変更時は「開く」リンクを出すため再描画
+    if (e.target.dataset.f === 'url' || e.target.dataset.f === 'name') renderDays();
+  });
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act],[data-tab]');
+    if (!b) return;
+    if (b.dataset.tab !== undefined) { cur = +b.dataset.tab; renderDays(); return; }
+    const w = week(), d = w.days[+b.dataset.d], it = d && d.items[+b.dataset.i];
+    switch (b.dataset.act) {
+      case 'addItem': d.items.push({ id: uid(), kind: 'A', name: '', guide: 0, lines: [] }); break;
+      case 'delItem': if (!confirm(`「${it.name || 'この種類'}」を削除しますか？`)) return; d.items.splice(+b.dataset.i, 1); break;
+      case 'addLine': it.lines.push(newLine(d)); break;
+      case 'delLine': it.lines.splice(+b.dataset.l, 1); break;
+      case 'autoQty': { const l = it.lines[+b.dataset.l];
+        // 他の行で確保済みの個数を差し引いて、足りない分だけ購入数にする
+        const others = it.lines.reduce((s, x) => x === l ? s : s + linePieces(x), 0);
+        l.qty = Math.max(0, Math.ceil((num(db.settings.children) - others) / (num(l.per) || 1))); break; }
+      case 'import': openImport(+b.dataset.d, +b.dataset.i); return;
+    }
+    save(); renderDays();
+  });
+  function newLine(d, o = {}) {
+    return Object.assign({ id: uid(), product: '', shop: '', url: '', price: '', per: 1, qty: '', expiry: '', delivery: addDays(serveDate(d), -1) }, o);
+  }
+
+  // 設定
+  $('weekStart').addEventListener('change', (e) => { if (!e.target.value) return; db.settings.weekStart = mondayOf(new Date(e.target.value + 'T00:00:00')); save(); renderAll(); });
+  $('children').addEventListener('input', (e) => { db.settings.children = e.target.value; save(); updateCalcs(); });
+  $('budgetMode').addEventListener('change', (e) => { db.settings.budgetMode = e.target.value; save(); renderSettings(); updateCalcs(); });
+  $('fixedBudget').addEventListener('input', (e) => { db.settings.fixedBudget = e.target.value; save(); updateCalcs(); });
+  $('prevWeek').onclick = () => { db.settings.weekStart = addDays(db.settings.weekStart, -7); save(); renderAll(); };
+  $('nextWeek').onclick = () => { db.settings.weekStart = addDays(db.settings.weekStart, 7); save(); renderAll(); };
+
+  $('copyPrev').onclick = () => {
+    const ws = db.settings.weekStart, prev = db.weeks[addDays(ws, -7)];
+    if (!prev) { alert('前週のデータがありません。'); return; }
+    if (!confirm('前週の品目・商品をこの週にコピーします（日付は1週間後ろにずらします）。よろしいですか？')) return;
+    const c = JSON.parse(JSON.stringify(prev));
+    c.days.forEach(d => d.items.forEach(it => { it.id = uid(); it.lines.forEach(l => {
+      l.id = uid(); if (l.delivery) l.delivery = addDays(l.delivery, 7); l.expiry = ''; }); }));
+    db.weeks[ws] = c; save(); renderAll();
+    alert('コピーしました。消費期限は新しい商品に合わせて入力し直してください。');
+  };
+  $('resetWeek').onclick = () => {
+    if (!confirm('この週の入力を消して、初期テンプレート（学童おやつ案）に戻します。よろしいですか？')) return;
+    db.weeks[db.settings.weekStart] = makeWeek(db.settings.weekStart, false); save(); renderAll();
+  };
+
+  // CSV
+  $('csvBtn').onclick = () => {
+    const rows = [['提供日','グループ','種類','品目','目安単価','商品名','購入先','URL','単価','入数','購入数','小計','納品日','消費期限']];
+    week().days.forEach(d => d.items.forEach(it => {
+      if (!it.lines.length) rows.push([serveDate(d), d.group, it.kind, it.name, it.guide, '', '', '', '', '', '', 0, '', '']);
+      it.lines.forEach(l => rows.push([serveDate(d), d.group, it.kind, it.name, it.guide, l.product, l.shop, l.url, l.price, l.per, l.qty, lineCost(l), l.delivery, l.expiry]));
+    }));
+    const wc = weekCalc();
+    rows.push([], ['予算', wc.budget], ['仕入れ合計', wc.cost], ['差額', wc.diff]);
+    const csv = '﻿' + rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `おやつ仕入れ_${db.settings.weekStart}.csv`; a.click();
+  };
+
+  // ---- チラシ・HP取り込み ----
+  let impTarget = null, impItems = [];
+  function openImport(di, ii) {
+    impTarget = { di, ii };
+    $('impText').value = ''; $('impPreview').innerHTML = ''; impItems = [];
+    $('importDlg').showModal();
+  }
+  function parseText(text) {
+    const z2h = (s) => s.replace(/[０-９．，]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/，/g, ',');
+    return text.split(/\r?\n/).map(raw => {
+      const s = z2h(raw).trim(); if (!s) return null;
+      const pm = s.match(/(?:¥|￥)\s*([\d,]+)|([\d,]+)\s*円/);
+      if (!pm) return null;
+      const price = parseInt((pm[1] || pm[2]).replace(/,/g, ''), 10);
+      const per = (s.match(/(\d+)\s*(?:個|本|枚|袋|コ|切|食|パック|P)\s*(?:入り?)?/) || [])[1];
+      let name = s.replace(pm[0], '').replace(/[(（]?\s*税(込|抜|別)\s*[)）]?/g, '').replace(/本体価格|税込価格|価格/g, '').trim();
+      return { name: name || '（商品名なし）', price, per: per ? +per : 1, on: true };
+    }).filter(Boolean);
+  }
+  $('impText').addEventListener('input', () => {
+    impItems = parseText($('impText').value);
+    $('impPreview').innerHTML = impItems.length ? impItems.map((x, i) =>
+      `<li><label><input type="checkbox" data-imp="${i}" checked> ${esc(x.name)} … <b>${yen(x.price)}</b>（${x.per}個入）</label></li>`).join('')
+      : '<li class="note">価格（〇〇円 / ¥〇〇）を含む行が見つかりません。</li>';
+  });
+  $('impPreview').addEventListener('change', (e) => { const i = e.target.dataset.imp; if (i !== undefined) impItems[+i].on = e.target.checked; });
+  $('impCancel').onclick = () => $('importDlg').close();
+  $('impOk').onclick = () => {
+    const d = week().days[impTarget.di], it = d.items[impTarget.ii], n = num(db.settings.children);
+    impItems.filter(x => x.on).forEach(x => it.lines.push(newLine(d, {
+      product: x.name, price: x.price, per: x.per, qty: Math.ceil(n / x.per), shop: $('impShop').value, url: $('impUrl').value })));
+    save(); $('importDlg').close(); renderDays();
+  };
+
+  function renderAll() { renderSettings(); renderDays(); }
+  renderAll();
+})();
+</script>
+</body>
+</html>
