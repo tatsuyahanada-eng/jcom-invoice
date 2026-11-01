@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="アカウント管理">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>アカウントマネージャー</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-32.png" type="image/png">
@@ -34,6 +34,11 @@
         <button type="submit" class="btn primary block" id="lockBtn">ロック解除</button>
       </form>
       <p class="muted small" id="lockNote"></p>
+      <div id="restoreWrap" class="restore-wrap" hidden>
+        <p class="muted small">機種変更などで、バックアップファイルがある場合はこちら</p>
+        <button type="button" class="btn block" id="restoreBtn">バックアップから復元</button>
+        <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+      </div>
     </div>
   </section>
 
@@ -48,7 +53,11 @@
     </header>
 
     <div class="toolbar">
-      <input type="search" id="search" placeholder="サービス名・ID・メモで検索" autocomplete="off">
+      <div id="backupBanner" class="banner" hidden>
+        <span id="backupBannerText"></span>
+        <button class="btn sm primary" id="bannerBackupBtn">今すぐバックアップ</button>
+      </div>
+      <input type="search" id="search" placeholder="サービス名・ID・メモ・ファイル名で検索" autocomplete="off">
       <div class="chips" id="catChips"></div>
       <div class="sort-row">
         <span class="muted small" id="countLabel"></span>
@@ -108,6 +117,14 @@
         <label class="field"><span>メモ</span>
           <textarea id="fMemo" rows="3" placeholder="秘密の質問、契約番号など"></textarea>
         </label>
+        <div class="field"><span>添付ファイル（画像・PDFなど）</span>
+          <div class="drop" id="fAttDrop">
+            <button type="button" class="btn" id="fAttPick">📎 ファイルを選択</button>
+            <p class="muted small">ここにドラッグ、または画像を貼り付け（Ctrl/⌘+V）<br>1ファイル25MBまで・暗号化して保存</p>
+            <input type="file" id="fAttInput" multiple hidden>
+          </div>
+          <div id="fAttList" class="att-list"></div>
+        </div>
         <label class="field" id="fChangeNoteWrap" hidden><span>変更理由（履歴に残ります）</span>
           <input id="fChangeNote" placeholder="例: 定期変更、漏洩対策">
         </label>
@@ -135,6 +152,26 @@
         <option value="30">30分</option>
       </select>
 
+      <h3>データの保護状態</h3>
+      <div id="storageStatus" class="status"></div>
+
+      <h3>バックアップ</h3>
+      <p class="muted small">添付ファイルも含めて、管理者パスワードで暗号化したまま1つのファイルに保存します。端末の故障・紛失に備えて、iCloud Drive や Google ドライブなど端末の外にも保管してください。</p>
+      <div class="btn-row">
+        <button class="btn primary" id="exportBtn">ダウンロード保存</button>
+        <button class="btn" id="shareBtn">共有して保存</button>
+        <button class="btn" id="importBtn">取り込み（統合）</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+
+      <h3>復元ポイント</h3>
+      <p class="muted small">保存するたびに直前の状態を自動で記録しています（最新50件）。間違えて変更・削除したときに戻せます。</p>
+      <div id="snapList" class="rows"></div>
+
+      <h3>ゴミ箱</h3>
+      <p class="muted small">削除したアカウントは30日間ここに残ります。</p>
+      <div id="trashList" class="rows"></div>
+
       <h3>管理者パスワードの変更</h3>
       <form id="changePwForm" autocomplete="off">
         <input type="password" id="cpOld" placeholder="現在のパスワード" required autocomplete="current-password">
@@ -144,17 +181,22 @@
         <button class="btn primary" type="submit">変更する</button>
       </form>
 
-      <h3>バックアップ</h3>
-      <p class="muted small">バックアップファイルは管理者パスワードで暗号化されたまま保存されます。</p>
-      <div class="btn-row">
-        <button class="btn" id="exportBtn">エクスポート</button>
-        <button class="btn" id="importBtn">インポート</button>
-        <input type="file" id="importFile" accept=".json,application/json" hidden>
-      </div>
-
       <h3>データの初期化</h3>
-      <p class="muted small">すべてのアカウントと管理者パスワードを削除します。元に戻せません。</p>
+      <p class="muted small">すべてのアカウント・添付ファイル・管理者パスワードを削除します。元に戻せません。</p>
       <button class="btn danger" id="wipeBtn">すべて削除</button>
+    </div>
+  </dialog>
+
+  <!-- ファイル表示 -->
+  <dialog id="viewerDlg" class="sheet viewer">
+    <div class="sheet-head">
+      <h2 id="viewerTitle"></h2>
+      <button class="icon-btn" data-close aria-label="閉じる">✕</button>
+    </div>
+    <div class="sheet-body" id="viewerBody"></div>
+    <div class="sheet-foot">
+      <button class="btn" id="viewerSave">端末に保存</button>
+      <button class="btn primary" id="viewerOpen">別タブで開く</button>
     </div>
   </dialog>
 
