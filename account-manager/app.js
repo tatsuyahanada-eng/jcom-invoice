@@ -1134,6 +1134,50 @@ async function onImport(ev) {
   } catch (e) { reportSaveError(e); }
 }
 
+/** 取り込み用ファイル（平文JSON）から追加。重複（サービス名＋ID）は飛ばす */
+async function onPlainImport(ev) {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  let list;
+  try {
+    const j = JSON.parse(await file.text());
+    list = Array.isArray(j) ? j : j.entries;
+    if (!Array.isArray(list) || !list.length) throw 0;
+  } catch { toast('取り込み用ファイルの形式が正しくありません'); return; }
+
+  const norm = (v) => String(v ?? '').trim();
+  const key = (x) => `${norm(x.service).toLowerCase()}\u0000${norm(x.loginId).toLowerCase()}`;
+  const have = new Set(vault.entries.map(key));
+  const now = Date.now();
+  const fresh = [];
+  let dup = 0;
+  for (const r of list) {
+    if (!norm(r.service)) continue;
+    if (have.has(key(r))) { dup++; continue; }
+    have.add(key(r));
+    fresh.push({
+      id: uid(),
+      service: norm(r.service),
+      account: norm(r.account),
+      loginId: norm(r.loginId),
+      password: String(r.password ?? ''),
+      url: norm(r.url),
+      tags: Array.isArray(r.tags) ? r.tags.map(norm).filter(Boolean) : [],
+      memo: String(r.memo ?? ''),
+      category: CATEGORIES.includes(r.category) ? r.category : '個人用',
+      attachments: [],
+      createdAt: now, updatedAt: now, pwChangedAt: now, history: [],
+    });
+  }
+  if (!fresh.length) { toast(`追加できるアカウントがありません（重複 ${dup}件）`, 3500); return; }
+  if (!confirm(`${fresh.length}件を追加します（重複で飛ばす：${dup}件）。よろしいですか？\n※ 取り込み前の状態は復元ポイントに残ります。`)) return;
+  const ok = await commit((v) => { v.entries.push(...fresh); });
+  if (!ok) return;
+  renderChips(); renderList(); renderSettingsLists();
+  toast(`取り込み完了：${fresh.length}件を追加しました。元ファイルは削除してください。`, 5000);
+}
+
 /** 初回画面から：バックアップで丸ごと復元（新しい端末への移行用） */
 async function onRestoreFirst(ev) {
   const file = ev.target.files[0];
@@ -1278,6 +1322,8 @@ function init() {
   $('#importBtn').addEventListener('click', () => $('#importFile').click());
   $('#importFile').addEventListener('change', onImport);
   $('#wipeBtn').addEventListener('click', onWipe);
+  $('#plainImportBtn').addEventListener('click', () => $('#plainImportFile').click());
+  $('#plainImportFile').addEventListener('change', onPlainImport);
   $('#viewerDlg').addEventListener('close', () => { dropUrl(viewerUrl); viewerUrl = null; $('#viewerBody').replaceChildren(); });
 
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => {

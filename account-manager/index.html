@@ -180,6 +180,11 @@
         <input type="file" id="importFile" accept=".json,application/json" hidden>
       </div>
 
+      <h3>他サービスからの取り込み</h3>
+      <p class="muted small">Notion などから変換した取り込み用ファイル（JSON）を読み込みます。同じサービス名とIDのアカウントは重複として飛ばします。取り込み後は<b>必ず元のファイルを削除</b>してください（パスワードが暗号化されていません）。</p>
+      <button class="btn" id="plainImportBtn">取り込み用ファイルを選択</button>
+      <input type="file" id="plainImportFile" accept=".json,application/json" hidden>
+
       <h3>復元ポイント</h3>
       <p class="muted small">保存するたびに直前の状態を自動で記録しています（最新50件）。間違えて変更・削除したときに戻せます。</p>
       <div id="snapList" class="rows"></div>
