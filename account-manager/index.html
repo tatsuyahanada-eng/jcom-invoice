@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#353a40">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="アカウント管理">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Account Manager">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>アカウントマネージャー</title>
+  <title>Account Manager</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-32.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -18,9 +18,14 @@
   <!-- ロック画面（初回設定 / ロック解除） -->
   <section id="lockScreen" class="lock" hidden>
     <div class="lock-card">
-      <img src="icons/icon-192.png" alt="" class="lock-icon">
-      <h1>アカウントマネージャー</h1>
-      <p id="lockMsg" class="muted"></p>
+      <div class="lock-brand">
+        <img src="icons/icon-192.png" alt="" class="lock-icon">
+        <div>
+          <h1>Account Manager</h1>
+          <div class="lock-sub">Secure Credential Vault</div>
+        </div>
+      </div>
+      <p id="lockMsg" class="lock-msg"></p>
       <form id="lockForm" autocomplete="off">
         <label class="field">
           <span>管理者パスワード</span>
@@ -45,10 +50,13 @@
   <!-- メイン画面 -->
   <div id="app" hidden>
     <header class="topbar">
-      <h1>アカウント管理</h1>
+      <div class="brand">
+        <img src="icons/icon-192.png" alt="">
+        <h1>Account Manager</h1>
+      </div>
       <div class="top-actions">
-        <button class="icon-btn" id="settingsBtn" title="設定" aria-label="設定">⚙</button>
-        <button class="icon-btn" id="lockNowBtn" title="ロック" aria-label="ロック">🔒</button>
+        <button class="top-btn" id="settingsBtn" title="設定"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>設定</span></button>
+        <button class="top-btn" id="lockNowBtn" title="ロック"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>ロック</span></button>
       </div>
     </header>
 
@@ -57,7 +65,9 @@
         <span id="backupBannerText"></span>
         <button class="btn sm primary" id="bannerBackupBtn">今すぐバックアップ</button>
       </div>
+      <div class="search-wrap"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input type="search" id="search" placeholder="サービス名・ID・メモ・ファイル名で検索" autocomplete="off">
+      </div>
       <div class="chips" id="catChips"></div>
       <div class="sort-row">
         <span class="muted small" id="countLabel"></span>
@@ -70,9 +80,9 @@
     </div>
 
     <main id="list" class="list"></main>
-    <p id="empty" class="empty" hidden>アカウントがありません。右下の「＋」から追加してください。</p>
+    <p id="empty" class="empty" hidden>アカウントがありません。右下の「新規登録」から追加してください。</p>
 
-    <button class="fab" id="addBtn" aria-label="アカウントを追加">＋</button>
+    <button class="fab" id="addBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>新規登録</span></button>
   </div>
 
   <!-- 追加・編集 -->
@@ -80,7 +90,7 @@
     <form id="editForm" method="dialog" autocomplete="off">
       <div class="sheet-head">
         <h2 id="eTitle">アカウント追加</h2>
-        <button type="button" class="icon-btn" data-close aria-label="閉じる">✕</button>
+        <button type="button" class="icon-btn" data-close aria-label="閉じる"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <div class="sheet-body">
         <label class="field"><span>サービス名 <em>*</em></span>
@@ -119,7 +129,7 @@
         </label>
         <div class="field"><span>添付ファイル（画像・PDFなど）</span>
           <div class="drop" id="fAttDrop">
-            <button type="button" class="btn" id="fAttPick">📎 ファイルを選択</button>
+            <button type="button" class="btn" id="fAttPick"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>ファイルを選択</button>
             <p class="muted small">ここにドラッグ、または画像を貼り付け（Ctrl/⌘+V）<br>1ファイル25MBまで・暗号化して保存</p>
             <input type="file" id="fAttInput" multiple hidden>
           </div>
@@ -140,7 +150,7 @@
   <dialog id="settingsDlg" class="sheet">
     <div class="sheet-head">
       <h2>設定</h2>
-      <button class="icon-btn" data-close aria-label="閉じる">✕</button>
+      <button class="icon-btn" data-close aria-label="閉じる"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="sheet-body">
       <h3>自動ロック</h3>
@@ -191,7 +201,7 @@
   <dialog id="viewerDlg" class="sheet viewer">
     <div class="sheet-head">
       <h2 id="viewerTitle"></h2>
-      <button class="icon-btn" data-close aria-label="閉じる">✕</button>
+      <button class="icon-btn" data-close aria-label="閉じる"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="sheet-body" id="viewerBody"></div>
     <div class="sheet-foot">

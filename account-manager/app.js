@@ -1,7 +1,7 @@
 'use strict';
 
 /* =========================================================
- * アカウントマネージャー
+ * Account Manager（アカウントマネージャー）
  *
  * 【保存の仕組み】
  * - 保存先は端末内の IndexedDB（容量が大きく、添付ファイルも保存できる）
@@ -112,10 +112,30 @@ function downloadBlob(blob, name) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(u), 5000);
 }
-function fileIcon(type) {
-  if ((type || '').startsWith('image/')) return '🖼';
-  if (type === 'application/pdf') return '📕';
-  return '📄';
+/** ファイル種別ラベル（IMG / PDF / 拡張子） */
+function fileIcon(type, name = '') {
+  if ((type || '').startsWith('image/')) return h('span', { class: 'ftype img' }, 'IMG');
+  if (type === 'application/pdf') return h('span', { class: 'ftype pdf' }, 'PDF');
+  const ext = (name.split('.').pop() || '').slice(0, 4).toUpperCase();
+  return h('span', { class: 'ftype' }, ext && ext !== name.toUpperCase() ? ext : 'FILE');
+}
+/** 線画アイコン */
+const ICONS = {
+  chevron: 'M9 6l6 6-6 6',
+  clip: 'M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9',
+  close: 'M6 6l12 12M18 6L6 18',
+};
+function icon(name) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'ico');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const [k, v] of Object.entries({ fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })) svg.setAttribute(k, v);
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('d', ICONS[name]);
+  svg.append(path);
+  return svg;
 }
 
 /* ---------- IndexedDB ---------- */
@@ -486,7 +506,7 @@ function renderChips() {
     return h('button', {
       class: 'chip' + (filterCat === c ? ' on' : ''),
       onclick: () => { filterCat = c; renderChips(); renderList(); },
-    }, `${c} ${n}`);
+    }, c, h('span', { class: 'n' }, n));
   }));
 }
 
@@ -515,12 +535,6 @@ function highlight(text, terms) {
   }
   out.push(text.slice(pos));
   return out;
-}
-
-function avatarColor(name) {
-  let x = 0;
-  for (const ch of name || '?') x = (x * 31 + ch.codePointAt(0)) >>> 0;
-  return `hsl(${x % 360} 55% 52%)`;
 }
 
 function renderList() {
@@ -552,15 +566,15 @@ function buildCard(e, terms) {
   const inner = h('div', { class: 'card-panel-inner' });
   const panel = h('div', { class: 'card-panel' }, inner);
   const head = h('button', { class: 'card-head', type: 'button', 'aria-expanded': 'false' },
-    h('div', { class: 'avatar', style: `background:${avatarColor(e.service)}` }, (e.service || '?').slice(0, 1).toUpperCase()),
+    h('div', { class: `avatar ${e.category}` }, (e.service || '?').slice(0, 1).toUpperCase()),
     h('div', { class: 'card-main' },
       h('div', { class: 'card-title' },
         h('span', { class: 'name' }, ...highlight(e.service, terms)),
         h('span', { class: `badge ${e.category}` }, e.category),
         old && h('span', { class: 'badge old' }, '要更新'),
-        nAtt > 0 && h('span', { class: 'badge att', title: '添付ファイル' }, `📎${nAtt}`)),
+        nAtt > 0 && h('span', { class: 'badge att', title: '添付ファイル' }, icon('clip'), nAtt)),
       e.account && h('div', { class: 'card-sub' }, ...highlight(e.account, terms))),
-    h('span', { class: 'chev', 'aria-hidden': 'true' }, '›'));
+    h('span', { class: 'chev', 'aria-hidden': 'true' }, icon('chevron')));
   const card = h('div', { class: 'card', 'data-id': e.id }, head, panel);
   head.addEventListener('click', () => toggleCard(card, e.id));
   if (openId === e.id) openCard(card, e, false);
@@ -624,13 +638,13 @@ function maskedValue(value) {
 function buildAttachmentGrid(atts, urls) {
   return h('div', { class: 'att-grid' }, ...atts.map((a) => {
     const isImg = (a.type || '').startsWith('image/');
-    const thumb = h('div', { class: 'att-thumb' }, fileIcon(a.type));
+    const thumb = h('div', { class: 'att-thumb' }, fileIcon(a.type, a.name));
     if (isImg) {
       loadFile(a).then((blob) => {
         const u = makeUrl(blob);
         urls.push(u);
         thumb.replaceChildren(h('img', { src: u, alt: '' }));
-      }).catch(() => thumb.replaceChildren('⚠'));
+      }).catch(() => thumb.replaceChildren(h('span', { class: 'ftype' }, 'ERR')));
     }
     return h('button', { class: 'att-item', type: 'button', onclick: () => openViewer(a) },
       thumb,
@@ -710,7 +724,7 @@ async function openViewer(att) {
   const isImg = (att.type || '').startsWith('image/');
   body.replaceChildren(
     isImg ? h('img', { src: viewerUrl, alt: att.name, class: 'viewer-img' })
-      : h('div', { class: 'viewer-file' }, h('div', { class: 'viewer-icon' }, fileIcon(att.type)),
+      : h('div', { class: 'viewer-file' }, h('div', { class: 'viewer-icon' }, fileIcon(att.type, att.name)),
         h('p', null, att.name), h('p', { class: 'muted small' }, `${fmtSize(att.size)}・${fmtDate(att.addedAt)} 追加`)));
   $('#viewerOpen').onclick = () => window.open(viewerUrl, '_blank', 'noopener');
   $('#viewerSave').onclick = () => downloadBlob(blob, att.name);
@@ -749,11 +763,11 @@ function renderEditAtts() {
     ...pendingFiles.map((f, i) => ({ name: f.name, size: f.size, type: f.type, isNew: true, remove: () => { pendingFiles.splice(i, 1); renderEditAtts(); } })),
   ];
   $('#fAttList').replaceChildren(...items.map((it) => h('div', { class: 'att-row' },
-    h('span', { class: 'att-row-icon' }, fileIcon(it.type)),
+    fileIcon(it.type, it.name),
     h('span', { class: 'att-row-name' }, it.name),
     it.isNew && h('span', { class: 'badge new' }, '追加'),
     h('span', { class: 'att-size' }, fmtSize(it.size)),
-    h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': '外す', onclick: it.remove }, '✕'))));
+    h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': '外す', onclick: it.remove }, icon('close')))));
 }
 
 function addPendingFiles(files) {
@@ -1026,7 +1040,7 @@ async function onShareBackup() {
     const { blob, name } = await buildBackup();
     const file = new File([blob], name, { type: 'application/json' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'アカウントマネージャー バックアップ' });
+      await navigator.share({ files: [file], title: 'Account Manager バックアップ' });
       markBackedUp();
       toast('バックアップを共有しました');
     } else {
