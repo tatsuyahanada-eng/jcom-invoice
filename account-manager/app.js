@@ -479,6 +479,8 @@ function lock() {
   dek = null; vault = null; header = null; currentId = null; openId = null;
   editAtts = []; pendingFiles = [];
   document.querySelectorAll('dialog[open]').forEach((d) => d.close());
+  $('#search').value = '';
+  $('#searchClear').hidden = true;
   $('#list').replaceChildren();
   liveUrls.forEach((u) => URL.revokeObjectURL(u));
   liveUrls.clear();
@@ -1284,7 +1286,15 @@ function init() {
   $('#restoreFile').addEventListener('change', onRestoreFirst);
   $('#lockNowBtn').addEventListener('click', lock);
   $('#addBtn').addEventListener('click', () => openEdit(null));
-  $('#search').addEventListener('input', renderList);
+  const syncClear = () => { $('#searchClear').hidden = !$('#search').value; };
+  $('#search').addEventListener('input', () => { syncClear(); renderList(); });
+  $('#search').addEventListener('keydown', (ev) => { if (ev.key === 'Escape') $('#searchClear').click(); });
+  $('#searchClear').addEventListener('click', () => {
+    $('#search').value = '';
+    syncClear();
+    renderList();
+    $('#search').focus();
+  });
   $('#sortSel').addEventListener('change', () => { prefs.sort = $('#sortSel').value; savePrefs(); renderList(); });
   $('#editForm').addEventListener('submit', onEditSubmit);
   $('#fPassword').addEventListener('input', updateStrength);
