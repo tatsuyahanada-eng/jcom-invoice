@@ -261,6 +261,56 @@ ul.wkl li .w{color:#27272a;white-space:nowrap;overflow:hidden;text-overflow:elli
 ul.wkl li .n{color:var(--sub);font-size:11.5px}
 ul.wkl li .e{color:#a1a1aa}
 ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
+
+/* 測定値（成績書） */
+#rcScreen{position:fixed;inset:0;background:var(--bg);z-index:12;display:none;flex-direction:column}
+#rcScreen.show{display:flex}
+.hsel{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:6px 6px;font-size:13px;max-width:96px}
+.hsel option{color:#000}
+.rtabs{display:flex;background:var(--card);border-bottom:1px solid var(--line);flex:none}
+.rtabs button{flex:1;border:0;background:none;padding:11px 4px;border-bottom:3px solid transparent;color:var(--sub);font-weight:700;font-size:14px}
+.rtabs button.on{color:var(--text);border-bottom-color:var(--pri)}
+#rcBody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.rnav{display:flex;gap:8px;align-items:center;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3}
+.rnav .nb{width:46px;height:46px;border:1px solid #a1a1aa;background:#fff;border-radius:10px;font-size:20px;flex:none}
+.rnav .nb:active{background:#e4e4e7}
+.rnav select{flex:1;min-width:0;height:46px;font-size:20px;font-weight:800;border:1px solid #a1a1aa;border-radius:10px;background:#fff;padding:0 10px;text-align:center}
+.rprog{padding:6px 14px;font-size:12px;color:var(--sub);background:#f4f4f5;border-bottom:1px solid var(--line)}
+.rprog b{color:var(--text)}
+.ritem{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border-bottom:1px solid #e4e4e7}
+.ritem:nth-child(even){background:#f4f4f6}
+.ritem .rno{width:34px;height:34px;border-radius:8px;background:var(--pri);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex:none}
+.ritem .rnm{flex:1;min-width:0;line-height:1.3}
+.ritem .rnm b{display:block;font-size:14.5px;word-break:break-all}
+.ritem .rnm small{display:block;color:var(--sub);font-size:11px}
+.ritem .rin{width:112px;height:44px;font-size:19px;font-weight:700;text-align:right;border:1.5px solid #a1a1aa;border-radius:9px;padding:0 8px;background:#fffef5}
+.ritem .rin:focus{outline:none;border-color:#0369a1;background:#fff}
+.ritem .rin.txt{width:120px;text-align:center}
+.ritem .rin.has{border-color:#16a34a;background:#f0fdf4}
+.ritem .run{width:38px;font-size:12px;color:var(--sub);flex:none}
+.rfoot{padding:12px;display:flex;gap:8px}
+.rfoot .btn{flex:1;padding:13px;font-size:15px}
+.rgrid{border-collapse:separate;border-spacing:0;background:#fff;font-size:13px}
+.rgrid th,.rgrid td{border-right:1px solid #c9c9cf;border-bottom:1px solid #c9c9cf;padding:0;text-align:center}
+.rgrid thead th{position:sticky;top:0;z-index:2;background:var(--th);color:#fff;min-width:78px;height:42px;font-size:13px;font-weight:800}
+.rgrid thead th.c0{left:0;z-index:4;min-width:150px;text-align:left;padding:4px 8px}
+.rgrid tbody th.c0{position:sticky;left:0;z-index:1;background:#f1f1f3;min-width:150px;text-align:left;padding:5px 8px;font-weight:600;line-height:1.25}
+.rgrid tbody th.c0 b{display:inline-block;min-width:24px;margin-right:4px;color:#fff;background:var(--pri);border-radius:5px;text-align:center;font-size:12px;padding:0 3px}
+.rgrid tbody th.c0 small{color:var(--sub);font-weight:400}
+.rgrid td{height:44px;font-size:15px;font-weight:700;color:#1e3a8a}
+.rgrid td.e{color:#c4c4cc;font-weight:400}
+.rgrid td:active{background:#e0f2fe}
+.rgrid tbody tr:nth-child(even) td{background:#f7f7f9}
+.rgrid thead th.rk{cursor:pointer}
+.rgrid .un{font-size:10.5px;color:var(--sub);font-weight:400;display:block}
+/* 成績書フォーマット（設定） */
+.rg{padding:7px 12px;background:#e4e4e7;font-size:12px;font-weight:800;color:#3f3f46;border-top:1px solid var(--line)}
+.ri{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff;border-bottom:1px solid #ececef}
+.ri.off{opacity:.55}
+.ri .no{width:26px;text-align:right;font-weight:800;font-size:13px;flex:none;color:var(--sub)}
+.ri .nm{flex:1;min-width:0;font-size:13.5px;line-height:1.3;word-break:break-all}
+.ri .nm small{display:block;color:var(--sub);font-size:11px}
+.ri .un{border:1px solid #c4c4cc;background:#fff;border-radius:7px;min-width:46px;height:32px;font-size:12px;flex:none;padding:0 6px}
 </style>
 </head>
 <body>
@@ -287,6 +337,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
 
 <!-- list menu (search / filter / sort / legend) -->
 <div id="menuOv"><div id="menu">
+  <div class="mrow"><button class="tbtn on" id="menuRec" style="padding:12px;font-size:15px">📋 測定値入力（成績書）</button></div>
   <div class="mrow"><input id="q" type="search" placeholder="検索（ラック番号・リアドア・CDU・メモ）"></div>
   <div class="mlab">絞り込み</div>
   <div class="mrow chips">
@@ -306,6 +357,18 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
   <div class="mrow"><button class="tbtn" id="menuReset">条件をすべて解除</button><button class="tbtn on" id="menuClose">閉じる</button></div>
 </div></div>
 
+<!-- 測定値（成績書） -->
+<div id="rcScreen">
+  <header><div class="hrow">
+    <button class="hbtn" id="rcBack">← 戻る</button>
+    <div class="htitle" style="font-size:16px">測定値（成績書）</div>
+    <select class="hsel" id="rcRoom"></select>
+    <button class="hbtn ico" id="rcFmt" aria-label="項目選択" title="入力する項目を選ぶ">⚙</button>
+  </div></header>
+  <div class="rtabs" id="rcTabs"><button data-m="rack" class="on">ラック別入力</button><button data-m="grid">一覧表</button></div>
+  <div id="rcBody"></div>
+</div>
+
 <!-- settings -->
 <div id="settings">
   <header>
@@ -318,6 +381,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
     <button data-t="items" class="on">チェック項目</button>
     <button data-t="servers">サーバー</button>
     <button data-t="share">データ共有</button>
+    <button data-t="rec">成績書</button>
     <button data-t="work">業務サマリー</button>
     <button data-t="other">その他</button>
   </div>
@@ -440,6 +504,22 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
     </div>
   </div>
 
+  <div class="pane" id="pane-rec">
+    <div class="card">
+      <h4><span>入力する項目（チェックした項目だけ入力できます）</span><small id="rcCount"></small></h4>
+      <div class="in">
+        <p class="help">成績書「5.ステータス確認、設定値確認」の番号つき項目です。スイッチをオンにした項目だけが、測定値の入力画面に出ます。単位（右のボタン）は、タップで書き換えられます。</p>
+        <div class="row"><button class="btn sm" id="rcAll">すべて選択</button><button class="btn sm" id="rcNone">すべて解除</button><button class="btn sm" id="rcHand">手書き表と同じ（1,2,21,25,27,29,34,35,36）</button></div>
+        <div class="row"><button class="btn sm" id="rcKpa">圧力の単位を kPa にする</button><button class="btn sm" id="rcAdd">項目を追加</button></div>
+      </div>
+      <div id="rcFmtList"></div>
+    </div>
+    <div class="card">
+      <h4><span>入力した測定値</span></h4>
+      <div class="in"><p class="help" id="rcStat"></p><div class="row"><button class="btn dan" id="rcClear">測定値をすべてクリア</button></div></div>
+    </div>
+  </div>
+
   <div class="pane" id="pane-work">
     <div class="card">
       <h4><span>作業者・基本設定</span></h4>
@@ -498,7 +578,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.8.3</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.9</p>
   </div>
 </div>
 
@@ -516,6 +596,35 @@ const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slic
 const bridge=window.AndroidBridge;
 
 /* ---------- default sample ---------- */
+// 成績書フォーマット（MCDU-4U スタートアップ成績書 5.ステータス確認、設定値確認）。番号は成績書の行番号（23・24 は非表示行）
+const REC_FMT=[
+ [1,'Active Temp Summary','HxSec In Temp','℃','値を記録'],[2,'Active Temp Summary','HxSec Out Temp','℃','値を記録'],
+ [3,'Active Temp Summary','HxPri In Temp','℃','値を記録'],[4,'Active Temp Summary','Room DB Temp','℃','値を記録'],
+ [5,'Active Temp Summary','Room Humidity','%','値を記録'],[6,'Active Temp Summary','Dew Point','℃','値を記録'],
+ [7,'Temperature I/O','Sec Supply Temp SST_1','%Rh','値を記録'],[8,'Temperature I/O','Sec Supply Temp SST_2','℃','値を記録'],
+ [9,'Temperature I/O','Sec Return Temp SRT','%Rh','値を記録'],[10,'Temperature I/O','Pri Supply Temp PST','℃','値を記録'],
+ [11,'HMI Dew Point 1','Room DB Temp','℃','値を記録'],[12,'HMI Dew Point 1','Room Humidity','%','値を記録'],[13,'HMI Dew Point 1','Dew Point','℃','値を記録'],
+ [14,'Ext Dewpoint 2','Room DB Temp','℃','該当にチェック'],[15,'Ext Dewpoint 2','Room Humidity','%','値を記録'],[16,'Ext Dewpoint 2','Dew Point','℃','該当にチェック'],
+ [17,'Active Press Summary','Primary In','psi','値を記録'],[18,'Active Press Summary','System out','psi','値を記録'],
+ [19,'Active Press Summary','System in','psi','値を記録'],[20,'Active Press Summary','System DP','psi','値を記録'],
+ [21,'Pressures I/O','Secondary Supply Press SSP_1','psi','値を記録'],[22,'Pressures I/O','Secondary Supply Press SSP_2','psi','値を記録'],
+ [25,'Pressures I/O','Sec Return Press SRP_1','psi','値を記録'],[26,'Pressures I/O','Sec Return Press SRP_2','psi','値を記録'],[27,'Pressures I/O','System DP','psi','値を記録'],
+ [28,'Main VDF Outputs','Pri Supply Press PSP','psi','値を記録'],[29,'Main VDF Outputs','Pump VFD Speed','%','値を記録'],
+ [30,'Main VDF Outputs','CW Valve Out put','v','値を記録'],[31,'Main VDF Outputs','CW Actuator Open','%','値を記録'],
+ [32,'Power Status','Power Status A','-','値を記録','text'],[33,'Power Status','Power Status B','-','値を記録','text'],
+ [34,'Pump rpm','P1 Speed','rpm','値を記録'],[35,'Pump rpm','P2 Speed','rpm','値を記録'],
+ [36,'Secondary Flow Meter','GPM Out','GPM','値を記録'],[37,'Primary Flow Meter','GPM In','GPM','値を記録'],
+ [38,'Pump Configuration','Rotation Type','-','値を記録','text'],[39,'Pump Configuration','Pump select','Hrs','値を記録','text'],[40,'Pump Configuration','Current Lead Pump','-','値を記録','text'],
+ [41,'Pump Info','Operating hours Unit','h','値を記録'],[42,'Pump Info','Operating hours Pump1','h','値を記録'],[43,'Pump Info','Operating hours Pump2','h','値を記録'],
+ [44,'Setpoint Flow System Differential','Set Point','psi','17 psi'],[45,'Setpoint Flow System Differential','Control Band','psi','4.0psi'],
+ [46,'Setpoint Flow System Differential','PI Time Band','sec','40sec'],[47,'Setpoint Flow System Differential','Min pump Speed','%','30%'],
+ [48,'Setpoint Flow System Differential','Pump run mode','','Single','text'],
+ [49,'HXS Outlet Set Point','Regulation type','','値を記録','text'],[50,'HXS Outlet Set Point','Setpoint','℃','値を記録'],
+ [51,'HXS Outlet Set Point','PI/PID Gain','℃','値を記録'],[52,'HXS Outlet Set Point','Integral time','S','値を記録'],
+ [53,'HXS Outlet Set Point','Derivative Time','S','値を記録'],[54,'HXS Outlet Set Point','Dead Band','℃','値を記録']
+];
+const REC_DEFAULT_ON=[1,2,21,25,27,29,34,35,36];   // 手書きの記録表で使っている番号
+function defaultRec(){ return {fmt:REC_FMT.map(([no,grp,name,unit,note,kind])=>({no,grp,name,unit,note,kind:kind||'num',on:REC_DEFAULT_ON.includes(no)})),vals:{}}; }
 const SAMPLE_ITEMS=[
   ['作業前 状態確認(ping)',1],['ログイン確認',1],['サービス停止',1],['充水作業',1],['バックアップ取得',1],
   ['スナップショット取得',1],['OSパッチ適用',1],['再起動',1],['起動確認',1],
@@ -538,7 +647,7 @@ function sampleState(){
   return {
     title:'CDU Check Tool', room:'all',
     items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on,water:/充水|注水/.test(n)})),
-    servers, checks:{}, notes:{}, issues:{}, water:{},
+    servers, checks:{}, notes:{}, issues:{}, water:{}, rec:defaultRec(),
     opts:{seq:false,time:true,confirm:true}, sampleVer:5
   };
 }
@@ -553,7 +662,7 @@ function load(){
   return sampleState();
 }
 function normalize(d){
-  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.water=d.water||{}; d.hideOff=!!d.hideOff; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
+  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.water=d.water||{}; d.hideOff=!!d.hideOff; if(!d.rec||!Array.isArray(d.rec.fmt)) d.rec=defaultRec(); d.rec.vals=d.rec.vals||{}; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
   if(!d.title||d.title==='サーバー作業チェック') d.title='CDU Check Tool';
   d.room=d.room||'all';
   // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
@@ -885,9 +994,10 @@ $('#q').addEventListener('input',e=>{query=e.target.value;renderGrid();});
 $$('.chip').forEach(c=>c.onclick=()=>{filter=c.dataset.f;$$('.chip').forEach(x=>x.classList.toggle('on',x===c));renderGrid();});
 
 /* ---------- settings ---------- */
-function openSettings(){ closeMenu(); renderWork(); $('#settings').classList.add('show'); renderItems(); renderServers(); renderOpts(); }
+function openSettings(tab){ closeMenu(); renderWork(); renderRecFmt(); $('#settings').classList.add('show'); renderItems(); renderServers(); renderOpts();
+  if(typeof tab==='string'){ const b=document.querySelector(`#settings .tabs button[data-t="${tab}"]`); if(b) b.click(); } }
 function closeSettings(){ $('#settings').classList.remove('show'); renderGrid(); }
-$('#btnSettings').onclick=openSettings; $('#btnBack').onclick=closeSettings;
+$('#btnSettings').onclick=()=>openSettings(); $('#btnBack').onclick=closeSettings;
 $$('.tabs button').forEach(b=>b.onclick=()=>{
   $$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
   $$('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+b.dataset.t));
@@ -936,7 +1046,7 @@ function listHandler(arr,render,kind){
         const msg=kind==='item'?`項目「${esc(obj.name)}」を削除しますか？<br><small>使わないだけなら、スイッチをオフにすると記録が残ります。</small>`:`サーバー「${esc(obj.name)}」を削除しますか？<br><small>このサーバーのチェック記録も消えます。</small>`;
         if(!(await confirmBox(msg,'削除',true))) return;
         arr().splice(i,1);
-        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); Object.values(S.water).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; delete S.water[obj.id]; }
+        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); Object.values(S.water).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; delete S.water[obj.id]; delete S.rec.vals[obj.id]; }
         break;
       }
       default: return;
@@ -1021,7 +1131,7 @@ $('#newItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addItem').cl
 $('#addBulkItems').onclick=()=>{addItems($('#bulkItems').value.split(/\r?\n/));$('#bulkItems').value='';};
 
 function addServers(names,replace){
-  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; S.water={}; }
+  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; S.water={}; S.rec.vals={}; }
   const ex=new Set(S.servers.map(s=>s.name)); let n=0;
   names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.servers.push({id:uid(),name:nm,memo:''});ex.add(nm);n++;} });
   save(); renderServers();
@@ -1062,7 +1172,8 @@ function exportData(){
       Object.entries(m).forEach(([iid,v])=>{ if(iname[iid]!=null) r[iname[iid]]=v; }); if(Object.keys(r).length) o[sname[sid]]=r; }); return o; };
   return {format:'cdu-check-tool',version:2,exportedAt:Date.now(),title:S.title,
     items:S.items.map(i=>({name:i.name,on:i.on,water:!!i.water})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',cdu:s.cdu||'',memo:s.memo||'',target:s.target!==false})),
-    checks:byName(S.checks), notes:byName(S.notes), issues:byName(S.issues), water:byName(S.water)};
+    checks:byName(S.checks), notes:byName(S.notes), issues:byName(S.issues), water:byName(S.water),
+    rec:{fmt:S.rec.fmt, vals:(()=>{ const o={}; Object.entries(S.rec.vals).forEach(([sid,m])=>{ if(sname[sid]&&Object.keys(m).length) o[sname[sid]]=m; }); return o; })()}};
 }
 function exportName(){ const d=new Date(); return `CDU_${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}.json`; }
 function download(name,text,mime){
@@ -1113,15 +1224,16 @@ function showImport(d){
   let nChk=0; Object.values(d.checks||{}).forEach(m=>nChk+=Object.keys(m).length);
   let nNote=0; Object.values(d.notes||{}).forEach(m=>nNote+=Object.keys(m).length);
   let nWat=0; Object.values(d.water||{}).forEach(m=>nWat+=Object.keys(m).length);
+  let nRec=0; Object.values((d.rec&&d.rec.vals)||{}).forEach(m=>nRec+=Object.keys(m).length);
   let nIss=0; Object.values(d.issues||{}).forEach(m=>nIss+=Object.keys(m).length);
   const when=d.exportedAt?fmtTime(d.exportedAt,true):'不明';
   openModal(`<div class="sh-h"><h3>データの取り込み</h3><button class="x" data-a="no">×</button></div>
     <div class="sh-b">
-      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件 ／ 問題事項：${nIss}件 ／ 充水量：${nWat}件</div>
+      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件 ／ 問題事項：${nIss}件 ／ 充水量：${nWat}件 ／ 測定値：${nRec}件</div>
       <p class="help" style="margin:4px 0">取り込む内容</p>
       <label class="chk"><input type="checkbox" id="imSrv" checked><span>ラック番号<small>ラック番号・リアドア番号・CDU番号・作業対象・並び順・メモをファイルに合わせます</small></span></label>
       <label class="chk"><input type="checkbox" id="imItem" checked><span>作業項目<small>項目名・使用/不使用・並び順をファイルに合わせます</small></span></label>
-      <label class="chk"><input type="checkbox" id="imProg" checked><span>進捗<small>済・作業日時・備考・問題事項・充水量</small></span></label>
+      <label class="chk"><input type="checkbox" id="imProg" checked><span>進捗<small>済・作業日時・備考・問題事項・充水量・測定値</small></span></label>
       <p class="help" style="margin:12px 0 4px">進捗の取り込み方</p>
       <label class="chk"><input type="radio" name="imMode" value="replace" checked><span>ファイルの内容で置き換える<small>最新データを受け取るとき（おすすめ）</small></span></label>
       <label class="chk"><input type="radio" name="imMode" value="merge"><span>今のデータと合わせる<small>両方の「済」を残します。同じマスは新しい日時を優先</small></span></label>
@@ -1185,6 +1297,14 @@ function applyImport(d,opt){
     });
     msg.push(`済${n}件`);
   }
+  if(d.rec&&Array.isArray(d.rec.fmt)&&opt.item){
+    S.rec.fmt=d.rec.fmt.map(f=>({no:+f.no,grp:f.grp||'',name:f.name||'',unit:f.unit||'',note:f.note||'値を記録',kind:f.kind||'num',on:!!f.on})); msg.push('成績書項目'); }
+  if(d.rec&&d.rec.vals&&opt.prog){
+    const idByName=new Map(S.servers.map(x=>[x.name,x.id])); let n=0;
+    if(opt.mode==='replace') (d.servers||[]).forEach(x=>{ const id=idByName.get(x.name); if(id) delete S.rec.vals[id]; });
+    Object.entries(d.rec.vals).forEach(([nm,m])=>{ const id=idByName.get(nm); if(!id) return; const cur=S.rec.vals[id]||(S.rec.vals[id]={});
+      Object.entries(m).forEach(([no,v])=>{ if(v===''||v==null) return; if(cur[no]==null||cur[no]==='') { cur[no]=String(v); n++; } }); });
+    msg.push(`測定値${n}件`); }
   if(d.title&&opt.item&&opt.srv) S.title=d.title;
   return msg;
 }
@@ -1261,6 +1381,14 @@ async function buildXlsx(){
     const n=row.number; row.getCell(5).value={formula:`IF(AND(ISNUMBER(C${n}),ISNUMBER(D${n})),D${n}-C${n},"")`,result:w?(wDiff(w)??''):''};
     [3,4,5].forEach(c=>{ row.getCell(c).numFmt='0.0##'; row.getCell(c).alignment={horizontal:'right'}; });
     row.getCell(5).font={bold:true,color:{argb:'FF075985'}}; }); });
+  // 測定値（成績書）: 行=項目番号、列=ラック
+  { const wr=wb.addWorksheet('測定値'), its=rcItems();
+    wr.columns=[{width:7},{width:30},{width:8}].concat(S.servers.map(()=>({width:11})));
+    const hrw=wr.addRow(['番号','項目','単位'].concat(S.servers.map(x=>x.name)));
+    hrw.eachCell(cl=>{ cl.fill=fill('FF0369A1'); cl.font={bold:true,color:{argb:'FFFFFFFF'}}; cl.border=border; cl.alignment={horizontal:'center'}; });
+    its.forEach(f=>{ const row=wr.addRow([f.no,f.name,f.unit].concat(S.servers.map(x=>{ const v=(S.rec.vals[x.id]||{})[f.no]; if(v==null||v==='') return null; return /^-?\d+(\.\d+)?$/.test(v)?parseFloat(v):v; })));
+      row.eachCell(cl=>{ cl.border=border; }); row.getCell(1).alignment={horizontal:'center'}; });
+    wr.views=[{state:'frozen',xSplit:3,ySplit:1}]; }
   // issues sheet
   const is=wb.addWorksheet('問題事項');
   is.columns=[{header:'ラック番号',width:14},{header:'作業項目',width:26},{header:'問題事項',width:50}];
@@ -1369,6 +1497,96 @@ async function importXlsx(buf){
   }catch(e){ toast('Excel を読み込めませんでした'); }
 }
 window.onImportXlsx=b64=>importXlsx(bufFromB64(b64));
+
+
+/* ---------- 測定値（成績書） ---------- */
+let rcMode='rack', rcRoom=null, rcSid=null;
+const rcItems=()=>S.rec.fmt.filter(f=>f.on).sort((a,b)=>a.no-b.no);
+const rcRacks=()=>S.servers.filter(s=>s.target&&(rcRoom==='all'||roomOf(s)===rcRoom));
+const rcVals=sid=>S.rec.vals[sid]||{};
+function rcSet(sid,no,v){ v=String(v==null?'':v).trim(); const m=S.rec.vals[sid]||(S.rec.vals[sid]={});
+  if(v==='') delete m[no]; else m[no]=v; if(!Object.keys(m).length) delete S.rec.vals[sid]; save(); }
+function openRec(){ closeMenu(); if(rcRoom==null) rcRoom=S.room||'all';
+  const rooms=roomList(); if(rcRoom!=='all'&&!rooms.includes(rcRoom)) rcRoom='all';
+  $('#rcRoom').innerHTML=['all',...rooms].map(r=>`<option value="${esc(r)}" ${r===rcRoom?'selected':''}>${r==='all'?'全部屋':esc(r)}</option>`).join('');
+  $('#rcScreen').classList.add('show'); renderRec(); }
+function closeRec(){ $('#rcScreen').classList.remove('show'); }
+$('#menuRec').onclick=openRec; $('#rcBack').onclick=closeRec;
+$('#rcRoom').onchange=e=>{ rcRoom=e.target.value; rcSid=null; renderRec(); };
+$('#rcFmt').onclick=()=>{ closeRec(); openSettings('rec'); };
+$$('#rcTabs button').forEach(b=>b.onclick=()=>{ rcMode=b.dataset.m; renderRec(); });
+function renderRec(){
+  $$('#rcTabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===rcMode));
+  rcMode==='rack'?renderRecRack():renderRecGrid();
+}
+function recEmpty(msg){ $('#rcBody').innerHTML=`<div class="empty">${msg}</div>`; }
+function recHint(f){ return f.note&&f.note!=='値を記録'?(f.note==='該当にチェック'?'該当にチェック':`設定値 ${f.note}`):''; }
+function renderRecRack(){
+  const racks=rcRacks(), items=rcItems(), body=$('#rcBody');
+  if(!items.length){ recEmpty('入力する項目が選ばれていません。<br>右上の ⚙ から選んでください。'); return; }
+  if(!racks.length){ recEmpty('対象のラックがありません。'); return; }
+  if(!racks.some(r=>r.id===rcSid)) rcSid=racks[0].id;
+  const idx=racks.findIndex(r=>r.id===rcSid), sv=racks[idx], vals=rcVals(sv.id);
+  const done=items.filter(f=>(vals[f.no]||'')!=='').length;
+  let h=`<div class="rnav"><button class="nb" id="rcPrev">◀</button><select id="rcSel">${racks.map(r=>`<option value="${r.id}" ${r.id===rcSid?'selected':''}>${esc(r.name)}</option>`).join('')}</select><button class="nb" id="rcNext">▶</button></div>
+    <div class="rprog">${idx+1} / ${racks.length} 台目　入力済み <b id="rcDone">${done}</b> / ${items.length} 項目</div>`;
+  items.forEach(f=>{ const v=vals[f.no]||'', txt=f.kind==='text';
+    h+=`<div class="ritem"><div class="rno">${f.no}</div><div class="rnm"><b>${esc(f.name)}</b><small>${esc(f.grp)}${recHint(f)?'　'+esc(recHint(f)):''}</small></div>
+      <input class="rin ${txt?'txt':''} ${v?'has':''}" data-no="${f.no}" ${txt?'':'inputmode="decimal"'} enterkeyhint="next" autocomplete="off" value="${esc(v)}" placeholder="${txt?esc(f.note&&f.note!=='値を記録'?f.note:'－'):'－'}"><span class="run">${esc(f.unit)}</span></div>`; });
+  h+=`<div class="rfoot"><button class="btn" id="rcPrev2">◀ 前のラック</button><button class="btn pri" id="rcNext2">次のラック ▶</button></div>`;
+  body.innerHTML=h; body.scrollTop=0;
+  const go=d=>{ const n=racks.length; rcSid=racks[(idx+d+n)%n].id; renderRecRack(); };
+  $('#rcPrev').onclick=$('#rcPrev2').onclick=()=>go(-1); $('#rcNext').onclick=$('#rcNext2').onclick=()=>go(1);
+  $('#rcSel').onchange=e=>{ rcSid=e.target.value; renderRecRack(); };
+  const ins=$$('#rcBody .rin');
+  ins.forEach((el,i)=>{
+    el.addEventListener('input',()=>{ rcSet(sv.id,el.dataset.no,el.value); el.classList.toggle('has',el.value.trim()!==''); 
+      $('#rcDone').textContent=items.filter(f=>(rcVals(sv.id)[f.no]||'')!=='').length; });
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if(ins[i+1]) ins[i+1].focus(); else el.blur(); } });
+    el.addEventListener('focus',()=>setTimeout(()=>{ try{ el.scrollIntoView({block:'center'}); }catch(x){} },250));
+  });
+}
+function renderRecGrid(){
+  const racks=rcRacks(), items=rcItems(), body=$('#rcBody');
+  if(!items.length){ recEmpty('入力する項目が選ばれていません。<br>右上の ⚙ から選んでください。'); return; }
+  if(!racks.length){ recEmpty('対象のラックがありません。'); return; }
+  const short=n=>rcRoom==='all'?n:n.replace(/^[^-]+-/,'');
+  let h='<table class="rgrid"><thead><tr><th class="c0">番号　項目（単位）</th>'+racks.map(r=>`<th class="rk" data-s="${r.id}">${esc(short(r.name))}</th>`).join('')+'</tr></thead><tbody>';
+  items.forEach(f=>{ h+=`<tr><th class="c0"><b>${f.no}</b>${esc(f.name)}<small> ${esc(f.unit)}</small></th>`+
+    racks.map(r=>{ const v=rcVals(r.id)[f.no]; return `<td class="${v?'':'e'}" data-s="${r.id}" data-n="${f.no}">${v?esc(v):'－'}</td>`; }).join('')+'</tr>'; });
+  h+='</tbody></table>';
+  const st=body.scrollTop, sl=body.scrollLeft; body.innerHTML=h; body.scrollTop=st; body.scrollLeft=sl;
+}
+$('#rcBody').addEventListener('click',async e=>{
+  if(rcMode!=='grid') return;
+  const th=e.target.closest('th.rk'); if(th){ rcSid=th.dataset.s; rcMode='rack'; renderRec(); return; }
+  const td=e.target.closest('td[data-n]'); if(!td) return;
+  const sv=S.servers.find(x=>x.id===td.dataset.s), f=S.rec.fmt.find(x=>x.no===+td.dataset.n); if(!sv||!f) return;
+  const v=await promptBox(`${sv.name}　No.${f.no} ${f.name}${f.unit?'（'+f.unit+'）':''}`,rcVals(sv.id)[f.no]||'');
+  if(v!==null){ rcSet(sv.id,f.no,v); renderRecGrid(); }
+});
+/* 成績書フォーマット（設定タブ） */
+function renderRecFmt(){
+  const on=S.rec.fmt.filter(f=>f.on).length; $('#rcCount').textContent=`選択 ${on} / ${S.rec.fmt.length}`;
+  let h='', last=null;
+  S.rec.fmt.slice().sort((a,b)=>a.no-b.no).forEach(f=>{
+    if(f.grp!==last){ h+=`<div class="rg">${esc(f.grp)}</div>`; last=f.grp; }
+    h+=`<div class="ri ${f.on?'':'off'}" data-no="${f.no}"><span class="no">${f.no}</span><span class="nm">${esc(f.name)}${recHint(f)?`<small>${esc(recHint(f))}</small>`:''}</span>
+      <button class="un" data-a="unit">${esc(f.unit)||'単位'}</button><label class="sw"><input type="checkbox" data-a="on" ${f.on?'checked':''}><i></i></label></div>`; });
+  $('#rcFmtList').innerHTML=h;
+  let n=0, v=0; Object.values(S.rec.vals).forEach(m=>{ n++; v+=Object.keys(m).length; });
+  $('#rcStat').textContent=v?`${n} 台分・${v} 件の測定値が保存されています。`:'まだ測定値は入力されていません。';
+}
+$('#rcFmtList').addEventListener('change',e=>{ if(e.target.dataset.a!=='on') return; const f=S.rec.fmt.find(x=>x.no===+e.target.closest('.ri').dataset.no); f.on=e.target.checked; save(); renderRecFmt(); });
+$('#rcFmtList').addEventListener('click',async e=>{ const b=e.target.closest('[data-a=unit]'); if(!b) return;
+  const f=S.rec.fmt.find(x=>x.no===+b.closest('.ri').dataset.no); const v=await promptBox(`No.${f.no} ${f.name} の単位`,f.unit||''); if(v!==null){ f.unit=v.trim(); save(); renderRecFmt(); } });
+$('#rcAll').onclick=()=>{ S.rec.fmt.forEach(f=>f.on=true); save(); renderRecFmt(); };
+$('#rcNone').onclick=()=>{ S.rec.fmt.forEach(f=>f.on=false); save(); renderRecFmt(); };
+$('#rcHand').onclick=()=>{ S.rec.fmt.forEach(f=>f.on=REC_DEFAULT_ON.includes(f.no)); save(); renderRecFmt(); toast('手書き表と同じ項目にしました'); };
+$('#rcKpa').onclick=()=>{ let n=0; S.rec.fmt.forEach(f=>{ if(f.unit==='psi'){ f.unit='kPa'; n++; } }); save(); renderRecFmt(); toast(n?`${n} 項目の単位を kPa にしました`:'psi の項目はありません'); };
+$('#rcAdd').onclick=async()=>{ const nm=await promptBox('追加する項目名',''); if(!nm||!nm.trim()) return; const un=await promptBox('単位（なければ空欄）','');
+  const no=Math.max(0,...S.rec.fmt.map(f=>f.no))+1; S.rec.fmt.push({no,grp:'追加項目',name:nm.trim(),unit:(un||'').trim(),note:'値を記録',kind:'num',on:true}); save(); renderRecFmt(); toast(`No.${no} を追加しました`); };
+$('#rcClear').onclick=async()=>{ if(await confirmBox('入力した測定値をすべて消しますか？<br><small>元に戻せません。項目の選択は残ります。</small>','クリア',true)){ S.rec.vals={}; save(); renderRecFmt(); toast('測定値をクリアしました'); } };
 
 /* ---------- 業務サマリー (work log; stored separately so it survives checklist resets) ---------- */
 const WKEY='cdu.worklog.v1';
@@ -1546,6 +1764,7 @@ $('#resetAll').onclick=async()=>{ if(await confirmBox('項目・サーバー・�
 window.onAndroidBack=function(){
   if($('#ov').classList.contains('show')){ closeModal(); return true; }
   if($('#menuOv').classList.contains('show')){ closeMenu(); return true; }
+  if($('#rcScreen').classList.contains('show')){ closeRec(); return true; }
   if($('#settings').classList.contains('show')){ closeSettings(); return true; }
   return false;
 };
