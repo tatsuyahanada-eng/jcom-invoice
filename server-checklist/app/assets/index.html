@@ -578,7 +578,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.9</p>
+    <p class="help" style="text-align:center">CDU Check Tool v2.9.1</p>
   </div>
 </div>
 
@@ -1206,7 +1206,7 @@ function parseImport(text){
     servers:d.servers.map(s=>({name:s.name,door:s.door||'',cdu:s.cdu||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes),issues:conv(d.issues),water:conv(d.water)};
 }
 window.onImportText=function(text){
-  try{ const w=JSON.parse(String(text).replace(/^\ufeff/,'')); if(w&&w.format==='cdu-worklog'){ restoreWork(w); return; } }catch(e){}
+  try{ const w=JSON.parse(String(text).replace(/^\ufeff/,'')); if(w&&w.format==='cdu-worklog'){ restoreWork(w); return; } if(w&&w.format==='cdu-rec'){ showRecImport(w); return; } }catch(e){}
   const d=parseImport(text);
   if(!d){ toast('CDU Check Tool のデータとして読み込めませんでした'); return; }
   showImport(d);
@@ -1565,6 +1565,48 @@ $('#rcBody').addEventListener('click',async e=>{
   const v=await promptBox(`${sv.name}　No.${f.no} ${f.name}${f.unit?'（'+f.unit+'）':''}`,rcVals(sv.id)[f.no]||'');
   if(v!==null){ rcSet(sv.id,f.no,v); renderRecGrid(); }
 });
+
+/* 測定値だけの取り込み（format: cdu-rec）。ラック一覧・チェック等には触れない */
+function showRecImport(d){
+  const racks=d.racks||{}, names=Object.keys(racks);
+  const have=new Set(S.servers.map(x=>x.name)), missing=names.filter(n=>!have.has(n));
+  let n=0; names.forEach(k=>n+=Object.keys(racks[k]||{}).length);
+  const units=d.units||{}, uList=Object.entries(units).map(([no,u])=>`No.${no}→${esc(u)}`).join('、');
+  openModal(`<div class="sh-h"><h3>測定値の取り込み<small>${esc(d.title||'')}</small></h3><button class="x" data-a="no">×</button></div>
+    <div class="sh-b">
+      <div class="sumbox">ラック：<b>${names.length}台</b> ／ 測定値：<b>${n}件</b><br>項目番号：${(d.items||[]).join(', ')}</div>
+      ${missing.length?`<label class="chk"><input type="checkbox" id="riAdd" checked><span>アプリに無いラックを追加する<small>${missing.map(esc).join('、')}</small></span></label>`:''}
+      <label class="chk"><input type="checkbox" id="riOn" checked><span>この項目を入力対象（チェック）にする</span></label>
+      ${uList?`<label class="chk"><input type="checkbox" id="riUnit" checked><span>単位をファイルに合わせる<small>${uList}</small></span></label>`:''}
+      <p class="help" style="margin:12px 0 4px">すでに値が入っているマス</p>
+      <label class="chk"><input type="radio" name="riMode" value="over" checked><span>ファイルの値で上書きする</span></label>
+      <label class="chk"><input type="radio" name="riMode" value="keep"><span>今の値を残す（空欄だけ埋める）</span></label>
+    </div>
+    <div class="sh-f"><button class="btn" data-a="no">キャンセル</button><button class="btn pri" data-a="ok">取り込む</button></div>`,{center:true});
+  $('#ovSheet').onclick=e=>{
+    const a=e.target.closest('[data-a]'); if(!a) return;
+    if(a.dataset.a==='no'){ closeModal(); return; }
+    const add=$('#riAdd')?$('#riAdd').checked:false, on=$('#riOn').checked, un=$('#riUnit')?$('#riUnit').checked:false;
+    const over=document.querySelector('input[name=riMode]:checked').value==='over';
+    closeModal();
+    let added=0, put=0, skipped=0;
+    if(add) missing.forEach(nm=>{ // 同じ部屋の番号順の位置に入れる
+      const sv={id:uid(),name:nm,memo:'',door:'',cdu:'',target:true}, room=roomOf(sv);
+      let at=S.servers.findIndex(x=>roomOf(x)===room&&collator.compare(x.name,nm)>0);
+      if(at<0){ const last=S.servers.map(x=>roomOf(x)).lastIndexOf(room); at=last<0?S.servers.length:last+1; }
+      S.servers.splice(at,0,sv); added++; });
+    const idByName=new Map(S.servers.map(x=>[x.name,x.id]));
+    names.forEach(nm=>{ const id=idByName.get(nm); const m=racks[nm]||{}; if(!id){ skipped+=Object.keys(m).length; return; }
+      const cur=S.rec.vals[id]||(S.rec.vals[id]={});
+      Object.entries(m).forEach(([no,v])=>{ v=String(v==null?'':v).trim(); if(!v) return; if(over||cur[no]==null||cur[no]===''){ cur[no]=v; put++; } });
+      if(!Object.keys(cur).length) delete S.rec.vals[id]; });
+    if(on) (d.items||[]).forEach(no=>{ const f=S.rec.fmt.find(x=>x.no===+no); if(f) f.on=true; });
+    if(un) Object.entries(units).forEach(([no,u])=>{ const f=S.rec.fmt.find(x=>x.no===+no); if(f) f.unit=u; });
+    save(); renderGrid(); if($('#settings').classList.contains('show')){ renderServers(); renderRecFmt(); }
+    if($('#rcScreen').classList.contains('show')) renderRec();
+    toast(`測定値 ${put}件を取り込みました`+(added?`（ラック ${added}台を追加）`:'')+(skipped?`／${skipped}件はラックが無いため未取込`:''));
+  };
+}
 /* 成績書フォーマット（設定タブ） */
 function renderRecFmt(){
   const on=S.rec.fmt.filter(f=>f.on).length; $('#rcCount').textContent=`選択 ${on} / ${S.rec.fmt.length}`;
