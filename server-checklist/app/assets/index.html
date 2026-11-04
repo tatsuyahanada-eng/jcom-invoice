@@ -342,6 +342,15 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
 .dytbl tr.no td{color:#a1a1aa}
 .dytbl tbody tr{cursor:pointer}
 .dytbl td.off{color:#dc2626;font-weight:700}
+.dytbl td.nt{text-align:left;white-space:normal;min-width:110px;max-width:200px;font-size:12px;color:#3f3f46;word-break:break-all}
+.lcd .ln.rngl{flex-wrap:wrap}
+.lcd .ln.rngl .k{flex:1 1 100%}
+.lcd .ln .rng{flex:1;display:flex;align-items:center;justify-content:flex-end;gap:4px}
+.lcd .ln .rng input{width:80px}
+.lcd .ln .rng b{font-size:16px}
+.dymemo{margin:0 12px 8px}
+.dymemo label{display:block;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:4px}
+.dymemo textarea{width:100%;min-height:64px}
 /* フォーム切替・負荷試験 */
 .rform{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e4e4e7;border-bottom:1px solid var(--line);flex:none}
 .rform label{font-size:12px;font-weight:700;color:var(--sub);flex:none}
@@ -668,7 +677,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v3.1</p>
+    <p class="help" style="text-align:center">CDU Check Tool v3.2</p>
   </div>
 </div>
 
@@ -1513,13 +1522,13 @@ async function buildXlsx(){
     wr.views=[{state:'frozen',xSplit:3,ySplit:1}]; }
   // デイリー記録
   { const days=Object.keys(S.daily).sort(); if(days.length){ const wd=wb.addWorksheet('デイリー記録');
-    wd.columns=[{width:12},{width:7},{width:12},{width:13},{width:13},{width:12},{width:14},{width:10}];
-    const hd=wd.addRow(['日付','時刻','ラック番号','Pump Supply (kPa)','Pump Return (kPa)','System DP (kPa)','HxS Out Temp (℃)','Unit status']);
+    wd.columns=[{width:12},{width:7},{width:12},{width:13},{width:13},{width:13},{width:12},{width:14},{width:10},{width:36}];
+    const hd=wd.addRow(['日付','時刻','ラック番号','Pump Supply から (kPa)','Pump Supply まで (kPa)','Pump Return (kPa)','System DP (kPa)','HxS Out Temp (℃)','Unit status','備考']);
     hd.eachCell(cl=>{ cl.fill=fill('FF16181A'); cl.font={bold:true,color:{argb:'FFFFFFFF'}}; cl.border=border; cl.alignment={horizontal:'center',wrapText:true}; });
     const num=v=>v==null||v===''?null:(/^-?\d+(\.\d+)?$/.test(v)?parseFloat(v):v);
     days.forEach(d=>S.servers.forEach(x=>{ const r=S.daily[d][x.id]; if(!dyHas(r)) return;
-      const row=wd.addRow([d.replace(/-/g,'/'),r.t||'',x.name,num(r.sup),num(r.ret),num(r.dp),num(r.hxs),r.st==='OFF'?'OFF':'ON']); row.eachCell({includeEmpty:true},cl=>{ cl.border=border; }); }));
-    wd.views=[{state:'frozen',ySplit:1}]; wd.autoFilter={from:'A1',to:'H1'}; } }
+      const row=wd.addRow([d.replace(/-/g,'/'),r.t||'',x.name,num(r.sup),num(r.sup2),num(r.ret),num(r.dp),num(r.hxs),r.st==='OFF'?'OFF':'ON',r.note||'']); row.getCell(10).alignment={wrapText:true,vertical:'top'}; row.eachCell({includeEmpty:true},cl=>{ cl.border=border; }); }));
+    wd.views=[{state:'frozen',ySplit:1}]; wd.autoFilter={from:'A1',to:'J1'}; } }
   // 負荷試験（MCDU / RDHx）: ラックごとに 項目 × Step1〜3 前・最大
   ['mcdu','rdhx'].forEach(k=>{ const fd=S.recx[k], its=rcItemsOf(k), racks=S.servers.filter(x=>fd.vals[x.id]&&Object.keys(fd.vals[x.id]).length); if(!racks.length) return;
     const wx=wb.addWorksheet(k==='mcdu'?'負荷試験(MCDU)':'負荷試験(RDHx)');
@@ -1645,7 +1654,9 @@ let dyDate=null, dySid=null, dyRoom=null, dyMode='in';
 const dToday=()=>{ const n=new Date(); return `${n.getFullYear()}-${pad2(n.getMonth()+1)}-${pad2(n.getDate())}`; };
 const dyRacks=()=>S.servers.filter(s=>s.target&&(dyRoom==='all'||roomOf(s)===dyRoom));
 const dyGet=(d,sid)=>(S.daily[d]||{})[sid]||null;
-const dyHas=r=>!!r&&DY_F.some(([k])=>r[k]!=null&&r[k]!=='');
+const dyHas=r=>!!r&&[...DY_F.map(([k])=>k),'sup2','note'].some(k=>r[k]!=null&&r[k]!=='');
+// Pump Supply は「から〜まで」（sup〜sup2）
+const dyVal=(r,k)=>k==='sup'&&r.sup2?`${r.sup||'?'}〜${r.sup2}`:(r[k]||'－');
 function dySet(d,sid,patch){
   const day=S.daily[d]||(S.daily[d]={}), r=day[sid]||(day[sid]={st:'ON'});
   if(!r.t){ const n=new Date(); r.t=`${pad2(n.getHours())}:${pad2(n.getMinutes())}`; }
@@ -1681,14 +1692,18 @@ function renderDyInput(){
    <div class="bezel"><div class="bzl-top"><span class="mn"></span>pGD1<span class="rk">${esc(sv.name)}</span></div>
    <div class="lcdrow"><div class="lcd">
      <div class="l0"><span>${L.ymd}</span><span>${L.wd}</span><span id="dyT" title="タップで時刻を修正">${esc(r.t||'--:--')}</span></div>`;
-  DY_F.forEach(([k,lab,u])=>{ h+=`<label class="ln"><span class="k">${lab}:</span><input class="dyin" data-k="${k}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${esc(r[k]||'')}" placeholder="---.-"><span class="u">${u}</span></label>`; });
+  const inp=(k,ph)=>`<input class="dyin" data-k="${k}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${esc(r[k]||'')}" placeholder="${ph||'---.-'}">`;
+  DY_F.forEach(([k,lab,u])=>{ h+=k==='sup'
+    ?`<div class="ln rngl"><span class="k">${lab}:</span><span class="rng">${inp('sup','から')}<b>〜</b>${inp('sup2','まで')}</span><span class="u">${u}</span></div>`
+    :`<label class="ln"><span class="k">${lab}:</span>${inp(k)}<span class="u">${u}</span></label>`; });
   h+=`<div class="st"><span>Unit status:</span><button id="dySt" class="${r.st==='OFF'?'off':''}">${r.st==='OFF'?'OFF':'ON'}</button></div>
      </div><div class="lcdbtns"><button id="dyUp" title="前のラック">↑</button><button id="dyEnt" title="次のラックへ">↵</button><button id="dyDn" title="次のラック">↓</button></div></div></div>
-   <p class="dyhint">↑↓：ラックの切り替え　↵：次のラックへ。System DP は Supply − Return を自動で入れます（書き換え可）。時刻は最初に入力したときに入ります。</p>`;
+   <div class="dymemo"><label for="dyNote">備考</label><textarea class="tin" id="dyNote" placeholder="例：アラームなし、Supply が 266〜270 で変動">${esc(r.note||'')}</textarea></div>
+   <p class="dyhint">↑↓：ラックの切り替え　↵：次のラックへ。Pump Supply は「から〜まで」で入力（1つだけでも可）。System DP は Supply が1つのとき Supply − Return を自動で入れます（書き換え可）。時刻は最初に入力したときに入ります。</p>`;
   // 履歴（このラックの直近の記録）
   const days=Object.keys(S.daily).filter(d=>dyHas(S.daily[d][sv.id])).sort().reverse().slice(0,14);
-  h+=`<div class="dyhist"><h4>${esc(sv.name)} の記録（新しい順・最大14日）</h4>`+(days.length?`<table class="dytbl"><thead><tr><th>日付</th><th>時刻</th><th>Supply</th><th>Return</th><th>DP</th><th>HxS ℃</th></tr></thead><tbody>`+
-    days.map(d=>{ const x=S.daily[d][sv.id]; return `<tr class="${d===dyDate?'cur':''}" data-d="${d}"><td>${d.slice(5).replace('-','/')}</td><td>${esc(x.t||'')}</td>${DY_F.map(([k])=>`<td>${esc(x[k]||'－')}</td>`).join('')}</tr>`; }).join('')+'</tbody></table>':'<p class="help" style="padding:10px 12px;margin:0">まだ記録がありません。</p>')+'</div>';
+  h+=`<div class="dyhist"><h4>${esc(sv.name)} の記録（新しい順・最大14日）</h4>`+(days.length?`<table class="dytbl"><thead><tr><th>日付</th><th>時刻</th><th>Supply</th><th>Return</th><th>DP</th><th>HxS ℃</th><th>備考</th></tr></thead><tbody>`+
+    days.map(d=>{ const x=S.daily[d][sv.id]; return `<tr class="${d===dyDate?'cur':''}" data-d="${d}"><td>${d.slice(5).replace('-','/')}</td><td>${esc(x.t||'')}</td>${DY_F.map(([k])=>`<td>${esc(dyVal(x,k))}</td>`).join('')}<td class="nt">${esc(x.note||'')}</td></tr>`; }).join('')+'</tbody></table>':'<p class="help" style="padding:10px 12px;margin:0">まだ記録がありません。</p>')+'</div>';
   body.innerHTML=h;
   const go=n=>{ const k=racks.length; dySid=racks[(idx+n+k)%k].id; renderDyInput(); };
   $('#dyPrev').onclick=$('#dyUp').onclick=()=>go(-1); $('#dyNext').onclick=$('#dyDn').onclick=()=>go(1); $('#dyEnt').onclick=()=>go(1);
@@ -1700,13 +1715,15 @@ function renderDyInput(){
   $('#dySt').onclick=()=>{ const cur=(dyGet(dyDate,sv.id)||{}).st==='OFF'?'OFF':'ON'; const nx=cur==='ON'?'OFF':'ON';
     if(!dyHas(dyGet(dyDate,sv.id))){ toast('先に値を入力してください'); return; } dySet(dyDate,sv.id,{st:nx}); renderDyInput(); };
   $$('#dyBody .dyhist tr[data-d]').forEach(tr=>tr.onclick=()=>{ dyDate=tr.dataset.d; renderDaily(); });
+  $('#dyNote').addEventListener('input',e=>{ dySet(dyDate,sv.id,{note:e.target.value}); const t=$('#dyT'), x=dyGet(dyDate,sv.id); if(t) t.textContent=(x&&x.t)||'--:--';
+    $('#dyDone').textContent=racks.filter(x=>dyHas(dyGet(dyDate,x.id))).length; });
   const ins=$$('#dyBody .dyin'), byK=k=>ins.find(x=>x.dataset.k===k);
   let dpAuto=!r.dp;
-  const autoDp=()=>{ if(!dpAuto) return; const a=parseFloat(byK('sup').value), b=parseFloat(byK('ret').value), dp=byK('dp');
+  const autoDp=()=>{ if(!dpAuto||byK('sup2').value.trim()!=='') return; const a=parseFloat(byK('sup').value), b=parseFloat(byK('ret').value), dp=byK('dp');
     if(!isNaN(a)&&!isNaN(b)){ dp.value=(Math.round((a-b)*10)/10).toFixed(1); dp.classList.add('auto'); dySet(dyDate,sv.id,{dp:dp.value}); } };
   ins.forEach((el,i)=>{
     el.addEventListener('input',()=>{ if(el.dataset.k==='dp'){ dpAuto=el.value.trim()===''; el.classList.remove('auto'); }
-      dySet(dyDate,sv.id,{[el.dataset.k]:el.value}); if(el.dataset.k==='sup'||el.dataset.k==='ret') autoDp();
+      dySet(dyDate,sv.id,{[el.dataset.k]:el.value}); if(['sup','sup2','ret'].includes(el.dataset.k)) autoDp();
       const t=$('#dyT'), x=dyGet(dyDate,sv.id); if(t) t.textContent=(x&&x.t)||'--:--';
       $('#dyDone').textContent=racks.filter(x=>dyHas(dyGet(dyDate,x.id))).length; });
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const nx=ins.slice(i+1).find(x=>!x.classList.contains('auto'))||null; if(nx) nx.focus(); else { el.blur(); go(1); } } });
@@ -1717,10 +1734,10 @@ function renderDyList(){
   if(!racks.length){ body.innerHTML='<div class="empty">対象のラックがありません。</div>'; return; }
   const done=racks.filter(x=>dyHas(dyGet(dyDate,x.id))).length;
   let h=`<div class="rprog">${dyDate.replace(/-/g,'/')}（${WD[new Date(dyDate+'T00:00:00').getDay()]}）　登録済み <b>${done}</b> / ${racks.length} 台　行をタップで入力</div>
-    <div style="overflow:auto"><table class="dytbl"><thead><tr><th>ラック</th><th>時刻</th><th>Supply<br>kPa</th><th>Return<br>kPa</th><th>DP<br>kPa</th><th>HxS<br>℃</th><th>状態</th></tr></thead><tbody>`;
+    <div style="overflow:auto"><table class="dytbl"><thead><tr><th>ラック</th><th>時刻</th><th>Supply<br>kPa</th><th>Return<br>kPa</th><th>DP<br>kPa</th><th>HxS<br>℃</th><th>状態</th><th>備考</th></tr></thead><tbody>`;
   racks.forEach(x=>{ const r=dyGet(dyDate,x.id);
-    h+=r&&dyHas(r)?`<tr data-s="${x.id}"><td><b>${esc(x.name)}</b></td><td>${esc(r.t||'')}</td>${DY_F.map(([k])=>`<td>${esc(r[k]||'－')}</td>`).join('')}<td class="${r.st==='OFF'?'off':''}">${r.st==='OFF'?'OFF':'ON'}</td></tr>`
-      :`<tr class="no" data-s="${x.id}"><td>${esc(x.name)}</td><td colspan="6" style="text-align:center">未登録</td></tr>`; });
+    h+=r&&dyHas(r)?`<tr data-s="${x.id}"><td><b>${esc(x.name)}</b></td><td>${esc(r.t||'')}</td>${DY_F.map(([k])=>`<td>${esc(dyVal(r,k))}</td>`).join('')}<td class="${r.st==='OFF'?'off':''}">${r.st==='OFF'?'OFF':'ON'}</td><td class="nt">${esc(r.note||'')}</td></tr>`
+      :`<tr class="no" data-s="${x.id}"><td>${esc(x.name)}</td><td colspan="7" style="text-align:center">未登録</td></tr>`; });
   h+='</tbody></table></div>';
   body.innerHTML=h;
   $$('#dyBody tr[data-s]').forEach(tr=>tr.onclick=()=>{ dySid=tr.dataset.s; dyMode='in'; renderDaily(); });
