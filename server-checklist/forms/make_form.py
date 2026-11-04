@@ -1,9 +1,13 @@
-"""デイリー記録の手書き用フォーム（A4 縦・1枚・部屋ごと）。ラック名は印刷済み。
-使い方: python3 make_form.py 部屋番号 出力.html  →  Chromium で PDF 化"""
+"""デイリー記録の手書き用フォーム（A4 縦・1枚・部屋ごと）。対象ラックの名前は印刷済み。
+使い方: python3 make_form.py 部屋番号 出力.html [ラック接尾辞,...]  →  Chromium で PDF 化
+接尾辞を省略すると、対象サーバー（1-11、2列・3列の 01・02・05・06・11・12・15・16）になります。"""
 import sys
 
 ROOM = sys.argv[1]
-RACKS = [f'{ROOM}-{row}-{i:02d}' for row in (2, 3) for i in range(1, 17)]   # 32 台
+TARGET = ['1-11'] + [f'{row}-{i:02d}' for row in (2, 3) for i in (1, 2, 5, 6, 11, 12, 15, 16)]   # 対象サーバー 17 台
+SUFFIX = sys.argv[3].split(',') if len(sys.argv) > 3 else TARGET
+RACKS = [f'{ROOM}-{x}' for x in SUFFIX]
+SPARE = 2                                                  # 手書きで足せる予備行
 CSS = """
 @page { size: A4 portrait; margin: 10mm 10mm 9mm 10mm; }
 * { box-sizing: border-box; }
@@ -40,9 +44,11 @@ head = ('<thead><tr><th rowspan="2">ラック番号</th><th rowspan="2">チェ�
         '<tr><th>から</th><th></th><th>まで</th></tr></thead>')
 cols = [18, 12, 15, 4, 15, 15, 15, 15, 0]          # mm 相当の比率（最後は残り＝備考）
 colgroup = '<colgroup>' + ''.join(f'<col style="width:{w}%">' if w else '<col>' for w in [13, 9.5, 10.5, 3.5, 10.5, 11, 11, 11]) + '<col></colgroup>'
-rows = ''.join(f'<tr class="{"sep" if i == 16 else ""}"><td class="rk">{r}</td><td class="tm">:</td><td></td><td class="rg">〜</td><td></td><td></td><td></td><td></td><td></td></tr>' for i, r in enumerate(RACKS))
+def grp(r): return r.split('-')[1]            # 1 / 2 / 3（列）
+rows = ''.join(f'<tr class="{"sep" if i and grp(r) != grp(RACKS[i-1]) else ""}"><td class="rk">{r}</td><td class="tm">:</td><td></td><td class="rg">〜</td><td></td><td></td><td></td><td></td><td></td></tr>' for i, r in enumerate(RACKS))
+rows += ''.join(f'<tr class="{"sep" if k == 0 else ""}"><td class="rk"></td><td class="tm">:</td><td></td><td class="rg">〜</td><td></td><td></td><td></td><td></td><td></td></tr>' for k in range(SPARE))
 body = f"""<div class="page">
-<div class="ttl">デイリー記録表<small>CDU（pGD1 画面）の値を、ラックごとに記録します　／　{ROOM} 号室　2列・3列（各16台）</small></div>
+<div class="ttl">デイリー記録表<small>CDU（pGD1 画面）の値を、ラックごとに記録します　／　{ROOM} 号室　対象 {len(RACKS)} 台</small></div>
 <div class="fill">
  <div class="f room"><i>部屋番号</i><b>{ROOM}</b></div>
  <div class="f date"><i>日付</i><b class="s"></b>年<b class="l"></b>月<b class="l"></b>日（<b class="l"></b>）</div>

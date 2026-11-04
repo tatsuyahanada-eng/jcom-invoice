@@ -39,4 +39,4 @@ ANDROID_HOME=/path/to/sdk ./build.sh   # platforms;android-34, build-tools;34.0.
 同梱ライブラリ：ExcelJS（MIT）、JSZip（MIT）。ライセンスは `app/assets/*.LICENSE.txt`。
 
 ## 手書き用フォーム
-`forms/デイリー記録表_304.pdf`・`_306.pdf`・`_302.pdf`：デイリー記録の手書き用 PDF（A4 縦・各1枚）。ラック名（2列・3列 各16台＝32台）は印刷済み。列は チェック時刻／Pump Supply（から〜まで）／Pump Return／System DP／HxS Out Temp／備考。作り直しは `python3 forms/make_form.py 部屋番号 出力.html`（HTML を作成 → Chromium で PDF 化）。
+`forms/デイリー記録表_304.pdf`・`_306.pdf`・`_302.pdf`：デイリー記録の手書き用 PDF（A4 縦・各1枚）。対象サーバー17台（x-1-11、2列・3列の 01・02・05・06・11・12・15・16）の名前を印刷済みで、予備の空き行が2行。列は チェック時刻／Pump Supply（から〜まで）／Pump Return／System DP／HxS Out Temp／備考。作り直しは `python3 forms/make_form.py 部屋番号 出力.html [接尾辞,...]`（HTML を作成 → Chromium で PDF 化。接尾辞を省略すると上の17台）。
