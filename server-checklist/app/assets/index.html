@@ -348,6 +348,10 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
 .lcd .ln .rng{flex:1;display:flex;align-items:center;justify-content:flex-end;gap:4px}
 .lcd .ln .rng input{width:80px}
 .lcd .ln .rng b{font-size:16px}
+.dytime{display:flex;align-items:center;gap:6px;margin:0 12px 10px}
+.dytime label{font-size:13px;font-weight:800;color:var(--text);flex:none;width:86px}
+.dytime input{flex:1;min-width:0;height:44px;font-size:20px;font-weight:800;text-align:center;letter-spacing:1px}
+.dytime .btn{height:44px;padding:0 12px;flex:none}
 .dymemo{margin:0 12px 8px}
 .dymemo label{display:block;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:4px}
 .dymemo textarea{width:100%;min-height:64px}
@@ -677,7 +681,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v3.2</p>
+    <p class="help" style="text-align:center">CDU Check Tool v3.3</p>
   </div>
 </div>
 
@@ -1654,7 +1658,9 @@ let dyDate=null, dySid=null, dyRoom=null, dyMode='in';
 const dToday=()=>{ const n=new Date(); return `${n.getFullYear()}-${pad2(n.getMonth()+1)}-${pad2(n.getDate())}`; };
 const dyRacks=()=>S.servers.filter(s=>s.target&&(dyRoom==='all'||roomOf(s)===dyRoom));
 const dyGet=(d,sid)=>(S.daily[d]||{})[sid]||null;
-const dyHas=r=>!!r&&[...DY_F.map(([k])=>k),'sup2','note'].some(k=>r[k]!=null&&r[k]!=='');
+const dyHas=r=>!!r&&[...DY_F.map(([k])=>k),'sup2','note','tm'].some(k=>r[k]!=null&&r[k]!=='');
+// 時刻の入力（919 / 0919 / 9:19 / ９：１９ → 09:19）
+function normTime(v){ const m=String(v||'').normalize('NFKC').replace(/\s/g,'').match(/^(\d{1,2})[:.時]?(\d{2})分?$/); if(!m||+m[1]>23||+m[2]>59) return null; return `${pad2(+m[1])}:${m[2]}`; }
 // Pump Supply は「から〜まで」（sup〜sup2）
 const dyVal=(r,k)=>k==='sup'&&r.sup2?`${r.sup||'?'}〜${r.sup2}`:(r[k]||'－');
 function dySet(d,sid,patch){
@@ -1698,8 +1704,9 @@ function renderDyInput(){
     :`<label class="ln"><span class="k">${lab}:</span>${inp(k)}<span class="u">${u}</span></label>`; });
   h+=`<div class="st"><span>Unit status:</span><button id="dySt" class="${r.st==='OFF'?'off':''}">${r.st==='OFF'?'OFF':'ON'}</button></div>
      </div><div class="lcdbtns"><button id="dyUp" title="前のラック">↑</button><button id="dyEnt" title="次のラックへ">↵</button><button id="dyDn" title="次のラック">↓</button></div></div></div>
+   <div class="dytime"><label for="dyTi">チェック時刻</label><input class="tin" id="dyTi" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="例 09:19" value="${esc(r.t||'')}"><button class="btn" id="dyNow">今の時刻</button><button class="btn" id="dyTclr" title="時刻を消す">×</button></div>
    <div class="dymemo"><label for="dyNote">備考</label><textarea class="tin" id="dyNote" placeholder="例：アラームなし、Supply が 266〜270 で変動">${esc(r.note||'')}</textarea></div>
-   <p class="dyhint">↑↓：ラックの切り替え　↵：次のラックへ。Pump Supply は「から〜まで」で入力（1つだけでも可）。System DP は Supply が1つのとき Supply − Return を自動で入れます（書き換え可）。時刻は最初に入力したときに入ります。</p>`;
+   <p class="dyhint">↑↓：ラックの切り替え　↵：次のラックへ。Pump Supply は「から〜まで」で入力（1つだけでも可）。System DP は Supply が1つのとき Supply − Return を自動で入れます（書き換え可）。チェック時刻は、最初に値を入れたときに自動で入ります。下の欄で入力・修正もできます（0919 → 09:19）。</p>`;
   // 履歴（このラックの直近の記録）
   const days=Object.keys(S.daily).filter(d=>dyHas(S.daily[d][sv.id])).sort().reverse().slice(0,14);
   h+=`<div class="dyhist"><h4>${esc(sv.name)} の記録（新しい順・最大14日）</h4>`+(days.length?`<table class="dytbl"><thead><tr><th>日付</th><th>時刻</th><th>Supply</th><th>Return</th><th>DP</th><th>HxS ℃</th><th>備考</th></tr></thead><tbody>`+
@@ -1708,15 +1715,19 @@ function renderDyInput(){
   const go=n=>{ const k=racks.length; dySid=racks[(idx+n+k)%k].id; renderDyInput(); };
   $('#dyPrev').onclick=$('#dyUp').onclick=()=>go(-1); $('#dyNext').onclick=$('#dyDn').onclick=()=>go(1); $('#dyEnt').onclick=()=>go(1);
   $('#dySel').onchange=e=>{ dySid=e.target.value; renderDyInput(); };
-  $('#dyT').onclick=async()=>{ if(!dyHas(dyGet(dyDate,sv.id))){ toast('先に値を入力してください'); return; }
-    const v=await promptBox('記録の時刻（例 09:19）',dyGet(dyDate,sv.id).t||''); if(v==null) return;
-    const m=String(v).normalize('NFKC').trim().match(/^(\d{1,2})[:：]?(\d{2})$/); if(!m||+m[1]>23||+m[2]>59){ toast('時刻は 09:19 の形で入力してください'); return; }
-    dySet(dyDate,sv.id,{t:`${pad2(+m[1])}:${m[2]}`}); renderDyInput(); };
+  const showT=()=>{ const x=dyGet(dyDate,sv.id)||{}; $('#dyT').textContent=x.t||'--:--'; const ti=$('#dyTi'); if(document.activeElement!==ti) ti.value=x.t||'';
+    $('#dyDone').textContent=racks.filter(y=>dyHas(dyGet(dyDate,y.id))).length; };
+  const setT=t=>{ dySet(dyDate,sv.id,t?{t,tm:'1'}:{t:'',tm:''}); showT(); };
+  $('#dyT').onclick=()=>{ const ti=$('#dyTi'); ti.focus(); ti.select(); };
+  $('#dyNow').onclick=()=>{ const n=new Date(); setT(`${pad2(n.getHours())}:${pad2(n.getMinutes())}`); toast('今の時刻を入れました'); };
+  $('#dyTclr').onclick=()=>{ setT(''); $('#dyTi').value=''; };
+  $('#dyTi').addEventListener('input',e=>{ const d=e.target.value.normalize('NFKC').replace(/[^0-9]/g,''); if(d.length===4&&!e.target.value.includes(':')) e.target.value=`${d.slice(0,2)}:${d.slice(2)}`; });
+  $('#dyTi').addEventListener('change',e=>{ const v=e.target.value.trim(); if(!v){ setT(''); return; } const t=normTime(v); if(!t){ toast('時刻は 09:19 の形で入力してください'); showT(); return; } setT(t); e.target.value=t; });
+  $('#dyTi').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } });
   $('#dySt').onclick=()=>{ const cur=(dyGet(dyDate,sv.id)||{}).st==='OFF'?'OFF':'ON'; const nx=cur==='ON'?'OFF':'ON';
     if(!dyHas(dyGet(dyDate,sv.id))){ toast('先に値を入力してください'); return; } dySet(dyDate,sv.id,{st:nx}); renderDyInput(); };
   $$('#dyBody .dyhist tr[data-d]').forEach(tr=>tr.onclick=()=>{ dyDate=tr.dataset.d; renderDaily(); });
-  $('#dyNote').addEventListener('input',e=>{ dySet(dyDate,sv.id,{note:e.target.value}); const t=$('#dyT'), x=dyGet(dyDate,sv.id); if(t) t.textContent=(x&&x.t)||'--:--';
-    $('#dyDone').textContent=racks.filter(x=>dyHas(dyGet(dyDate,x.id))).length; });
+  $('#dyNote').addEventListener('input',e=>{ dySet(dyDate,sv.id,{note:e.target.value}); showT(); });
   const ins=$$('#dyBody .dyin'), byK=k=>ins.find(x=>x.dataset.k===k);
   let dpAuto=!r.dp;
   const autoDp=()=>{ if(!dpAuto||byK('sup2').value.trim()!=='') return; const a=parseFloat(byK('sup').value), b=parseFloat(byK('ret').value), dp=byK('dp');
@@ -1724,8 +1735,7 @@ function renderDyInput(){
   ins.forEach((el,i)=>{
     el.addEventListener('input',()=>{ if(el.dataset.k==='dp'){ dpAuto=el.value.trim()===''; el.classList.remove('auto'); }
       dySet(dyDate,sv.id,{[el.dataset.k]:el.value}); if(['sup','sup2','ret'].includes(el.dataset.k)) autoDp();
-      const t=$('#dyT'), x=dyGet(dyDate,sv.id); if(t) t.textContent=(x&&x.t)||'--:--';
-      $('#dyDone').textContent=racks.filter(x=>dyHas(dyGet(dyDate,x.id))).length; });
+      showT(); });
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const nx=ins.slice(i+1).find(x=>!x.classList.contains('auto'))||null; if(nx) nx.focus(); else { el.blur(); go(1); } } });
   });
 }
