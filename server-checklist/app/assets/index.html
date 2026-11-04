@@ -681,7 +681,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v3.3</p>
+    <p class="help" style="text-align:center">CDU Check Tool v3.4</p>
   </div>
 </div>
 
@@ -1329,7 +1329,7 @@ function parseImport(text){
     servers:d.servers.map(s=>({name:s.name,door:s.door||'',cdu:s.cdu||'',memo:s.memo||'',target:s.target!==false})),checks:conv(d.checks),notes:conv(d.notes),issues:conv(d.issues),water:conv(d.water)};
 }
 window.onImportText=function(text){
-  try{ const w=JSON.parse(String(text).replace(/^\ufeff/,'')); if(w&&w.format==='cdu-worklog'){ restoreWork(w); return; } if(w&&w.format==='cdu-rec'){ showRecImport(w); return; } }catch(e){}
+  try{ const w=JSON.parse(String(text).replace(/^\ufeff/,'')); if(w&&w.format==='cdu-worklog'){ restoreWork(w); return; } if(w&&w.format==='cdu-rec'){ showRecImport(w); return; } if(w&&w.format==='cdu-daily'){ showDailyImport(w); return; } }catch(e){}
   const d=parseImport(text);
   if(!d){ toast('CDU Check Tool のデータとして読み込めませんでした'); return; }
   showImport(d);
@@ -1882,6 +1882,36 @@ $('#rcBody').addEventListener('click',async e=>{
   if(v!==null){ rcSetF(rcForm,sv.id,f.no,c,v); renderRec(); }
 });
 
+/* デイリー記録だけの取り込み（format: cdu-daily）。{daily:{'2026-11-04':{'304-2-01':{t,sup,sup2,ret,dp,hxs,st,note}}}} */
+function showDailyImport(d){
+  const days=Object.keys(d.daily||{}).sort(), names=new Set(); let n=0;
+  days.forEach(day=>Object.entries(d.daily[day]||{}).forEach(([nm,r])=>{ names.add(nm); if(dyHas(r)) n++; }));
+  const have=new Set(S.servers.map(x=>x.name)), missing=[...names].filter(x=>!have.has(x));
+  openModal(`<div class="sh-h"><h3>デイリー記録の取り込み<small>${esc(d.title||'')}</small></h3><button class="x" data-a="no">×</button></div>
+    <div class="sh-b">
+      <div class="sumbox">日付：<b>${days.map(x=>x.replace(/-/g,'/')).join('、')}</b><br>ラック：<b>${names.size}台</b> ／ 記録：<b>${n}件</b></div>
+      ${missing.length?`<label class="chk"><input type="checkbox" id="diAdd" checked><span>アプリに無いラックを追加する<small>${missing.map(esc).join('、')}</small></span></label>`:''}
+      <p class="help" style="margin:12px 0 4px">すでに記録があるラック（同じ日）</p>
+      <label class="chk"><input type="radio" name="diMode" value="over" checked><span>ファイルの内容で上書きする</span></label>
+      <label class="chk"><input type="radio" name="diMode" value="keep"><span>今の記録を残す（未登録のラックだけ入れる）</span></label>
+    </div>
+    <div class="sh-f"><button class="btn" data-a="no">キャンセル</button><button class="btn pri" data-a="ok">取り込む</button></div>`,{center:true});
+  $('#ovSheet').onclick=e=>{
+    const a=e.target.closest('[data-a]'); if(!a) return;
+    if(a.dataset.a==='no'){ closeModal(); return; }
+    const add=$('#diAdd')?$('#diAdd').checked:false, over=document.querySelector('input[name=diMode]:checked').value==='over';
+    closeModal(); let added=0, put=0, skipped=0;
+    if(add) missing.forEach(nm=>{ const sv={id:uid(),name:nm,memo:'',door:'',cdu:'',target:true}, room=roomOf(sv);
+      let at=S.servers.findIndex(x=>roomOf(x)===room&&collator.compare(x.name,nm)>0);
+      if(at<0){ const last=S.servers.map(x=>roomOf(x)).lastIndexOf(room); at=last<0?S.servers.length:last+1; }
+      S.servers.splice(at,0,sv); added++; });
+    const idByName=new Map(S.servers.map(x=>[x.name,x.id]));
+    days.forEach(day=>Object.entries(d.daily[day]||{}).forEach(([nm,r])=>{ const id=idByName.get(nm); if(!r||!dyHas(r)) return; if(!id){ skipped++; return; }
+      const dd=S.daily[day]||(S.daily[day]={}); if(over||!dyHas(dd[id])){ dd[id]=Object.assign({st:'ON'},r); put++; } }));
+    save(); renderGrid(); if($('#dyScreen').classList.contains('show')) renderDaily();
+    toast(`デイリー記録 ${put}件を取り込みました`+(added?`（ラック ${added}台を追加）`:'')+(skipped?`／${skipped}件はラックが無いため未取込`:''));
+  };
+}
 /* 測定値だけの取り込み（format: cdu-rec）。ラック一覧・チェック等には触れない
    1つの表なら {form, items, units, racks}、複数なら {parts:[...]}。値のキーは "番号" または "番号:列(0〜5)" */
 function showRecImport(d){
