@@ -39,4 +39,4 @@ ANDROID_HOME=/path/to/sdk ./build.sh   # platforms;android-34, build-tools;34.0.
 同梱ライブラリ：ExcelJS（MIT）、JSZip（MIT）。ライセンスは `app/assets/*.LICENSE.txt`。
 
 ## 手書き用フォーム
-`forms/` にデイリー記録の手書き用 PDF（A4 横）があります：`デイリー記録表_304_306.pdf`（4ページ）、`デイリー記録表_304.pdf`、`デイリー記録表_306.pdf`。作り直しは `forms/make_forms.py`（HTML を作成 → Chromium で PDF 化）。
+`forms/デイリー記録表.pdf`：デイリー記録の手書き用 PDF（A4 縦・1枚・共通）。部屋番号・ラック番号は手書き（302・304・306 など共通で使えます）。列は チェック時刻／Pump Supply（から〜まで）／Pump Return／System DP／HxS Out Temp／備考。作り直しは `forms/make_form.py`（HTML を作成 → Chromium で PDF 化）。
