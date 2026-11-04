@@ -814,7 +814,7 @@
       <details><summary>事前連絡・直前連絡</summary>
         <ul>
           <li>通話済・留守電・コールのみ・SMS・Mailの結果をタップで記録します（時刻つき）。通話できた方（本人・配偶者など）も選べます。</li>
-          <li>「直前電話」「直前Mail」をオンにすると、トップに赤い印が出ます。「通話済」「Mail送信」を記録すると完了、案件が「完了」になると印は消えます。</li>
+          <li>「直前電話」「直前Mail」をオンにすると、その案件のカードに赤い印が出ます。上の赤いバナーは、その案件が<b>次の訪問</b>になったときだけ出ます。「通話済」「Mail送信」を記録すると完了、案件が「完了」になると印は消えます。</li>
           <li>本文やメモの中の電話番号は、タップすると電話アプリが開きます。</li>
         </ul>
       </details>
@@ -1342,25 +1342,21 @@
       ? `${total}件の訪問予定。タップで詳細、長押しで順番を入れ替えます。`
       : 'カレンダーから読み込むか、手動で追加してください。';
 
-    // 直前連絡が必要な案件の目立つ印（バナー・日付の横・カード）
-    const flagged = jobs.filter(flaggedAny);
-    const pCall = jobs.filter(j => pendingFlags(j).includes('call')).length;
-    const pMail = jobs.filter(j => pendingFlags(j).includes('mail')).length;
-    const pTotal = pCall + pMail;
+    // 直前連絡の赤い印（上部のバナー・日付の横）は、「次の訪問」の案件が対応待ちのときだけ出す。
+    // ほかの案件の印は、その案件のカードにだけ出る。
+    const nxt = jobs.find(j => j.work !== 'done');
+    const pf = nxt ? pendingFlags(nxt) : [];
     const ub = $('#urgentBanner');
-    if (flagged.length) {
-      ub.classList.remove('hidden'); ub.classList.toggle('done', !pTotal);
-      const parts = [pCall ? `電話 ${pCall}件` : '', pMail ? `Mail ${pMail}件` : ''].filter(Boolean).join('・');
-      ub.innerHTML = pTotal
-        ? `${icon(pCall ? 'phone' : 'mail')}<span>直前連絡が必要：${parts}<small>タップで該当の案件へ</small></span>`
-        : `${icon('check')}<span>直前連絡はすべて完了<small>${flagged.length}件</small></span>`;
+    if (pf.length) {
+      const parts = [pf.includes('call') ? '電話' : '', pf.includes('mail') ? 'Mail' : ''].filter(Boolean).join('・');
+      ub.classList.remove('hidden'); ub.classList.remove('done');
+      ub.innerHTML = `${icon(pf.includes('call') ? 'phone' : 'mail')}<span>次の訪問は直前連絡が必要：${parts}<small>タップで次の訪問の案件を開く</small></span>`;
     } else ub.classList.add('hidden');
     const du = $('#dateUrgent');
-    du.classList.toggle('hidden', !pTotal);
-    du.textContent = `直前連絡 ${pTotal}`;
+    du.classList.toggle('hidden', !pf.length);
+    du.textContent = '次の訪問：直前連絡';
 
     // 次の訪問（未完了の先頭）
-    const nxt = jobs.find(j => j.work !== 'done');
     const nextArea = $('#nextArea');
     if (nxt && !editing) {
       const t = nxt.allDay ? '終日' : (nxt.start ? `${hm(nxt.start)}${nxt.end ? '–' + hm(nxt.end) : ''}` : '時間未定');
@@ -3014,9 +3010,8 @@
   $('#tabEdit').addEventListener('click', () => { editing = !editing; render(); });
   $('#btnReorder').addEventListener('click', () => { editing = true; render(); });
   $('#urgentBanner').addEventListener('click', () => {
-    const j = day.jobs.find(x => pendingFlags(x).length) || day.jobs.find(flaggedAny);
-    const el = j && listEl.querySelector(`.job[data-id="${j.id}"]`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const j = day.jobs.find(x => x.work !== 'done'); // 次の訪問
+    if (j) openDetail(j.id);
   });
   $('#nextArea').addEventListener('click', (e) => { const b = e.target.closest('[data-next]'); if (b) openDetail(b.dataset.next); });
   $('#btnEditDone').addEventListener('click', () => { editing = false; render(); });
