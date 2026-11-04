@@ -303,6 +303,45 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
 .rgrid tbody tr:nth-child(even) td{background:#f7f7f9}
 .rgrid thead th.rk{cursor:pointer}
 .rgrid .un{font-size:10.5px;color:var(--sub);font-weight:400;display:block}
+/* デイリー記録 */
+#dyScreen{position:fixed;inset:0;background:var(--bg);z-index:12;display:none;flex-direction:column}
+#dyScreen.show{display:flex}
+.dydate{display:flex;gap:6px;align-items:center;padding:8px 12px;background:#e4e4e7;border-bottom:1px solid var(--line);flex:none}
+.dydate input{flex:1;min-width:0;height:40px;font-size:16px;font-weight:700;border:1px solid #a1a1aa;border-radius:9px;padding:0 8px;background:#fff}
+.dydate .nb{width:40px;height:40px;border:1px solid #a1a1aa;background:#fff;border-radius:9px;font-size:16px;flex:none}
+#dyBody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.bezel{margin:12px;padding:12px 10px 14px;border-radius:18px;background:linear-gradient(160deg,#2b2f36,#121418);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 18px rgba(0,0,0,.35)}
+.bzl-top{display:flex;align-items:center;gap:10px;color:#8ea2ff;font:700 12px/1 system-ui;margin:0 4px 8px}
+.bzl-top .mn{width:22px;height:14px;border-top:2px solid #8ea2ff;border-bottom:2px solid #8ea2ff;position:relative}
+.bzl-top .mn::after{content:"";position:absolute;left:0;right:0;top:4px;border-top:2px solid #8ea2ff}
+.bzl-top .rk{margin-left:auto;color:#cbd5ff;font-size:13px}
+.lcdrow{display:flex;gap:6px;align-items:stretch}
+.lcd{flex:1;min-width:0;background:#dfe3dc;border:3px solid #0d0f12;border-radius:4px;padding:6px 8px 8px;color:#16181a;font-family:"DejaVu Sans Mono","Roboto Mono","Courier New",monospace;box-shadow:inset 0 0 12px rgba(0,0,0,.18)}
+.lcd .l0{display:flex;justify-content:space-between;align-items:center;background:#16181a;color:#dfe3dc;margin:-6px -8px 6px;padding:4px 8px;font-size:15px;font-weight:700;letter-spacing:.5px}
+.lcd .l0 #dyT{min-width:56px;text-align:right;border-bottom:1px dotted #8b949e;cursor:pointer}
+.lcd .ln{display:flex;align-items:baseline;gap:4px;font-size:15px;font-weight:700;padding:3px 0;border-bottom:1px dashed rgba(0,0,0,.12)}
+.lcd .ln span.k{flex:1;white-space:nowrap}
+.lcd .ln input{width:86px;background:rgba(255,255,255,.55);border:1.5px solid #6b7280;border-radius:4px;font:inherit;font-size:18px;text-align:right;padding:3px 5px;color:#000}
+.lcd .ln input:focus{outline:none;border-color:#1d4ed8;background:#fff}
+.lcd .ln input.auto{border-style:dashed;color:#1d4ed8}
+.lcd .ln span.u{width:30px;font-size:13px}
+.lcd .st{display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;font-size:15px;font-weight:700}
+.lcd .st button{font:inherit;font-size:16px;border:2px solid #16181a;background:#16181a;color:#dfe3dc;border-radius:4px;padding:2px 12px}
+.lcd .st button.off{background:transparent;color:#16181a}
+.lcdbtns{display:flex;flex-direction:column;gap:6px;width:48px;flex:none}
+.lcdbtns button{flex:1;border:2px solid #0d0f12;background:#e9ecef;border-radius:4px;font-size:22px;font-weight:800;color:#111;min-height:52px}
+.lcdbtns button:active{background:#cbd5e1}
+.dyhint{margin:0 14px;font-size:12px;color:var(--sub)}
+.dyhist{margin:10px 12px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.dyhist h4{margin:0;padding:8px 12px;font-size:13px;background:#f4f4f5;border-bottom:1px solid var(--line)}
+.dytbl{width:100%;border-collapse:collapse;font-size:13px}
+.dytbl th,.dytbl td{border-bottom:1px solid #ececef;padding:7px 6px;text-align:right;white-space:nowrap}
+.dytbl th{background:#f8f8fa;color:var(--sub);font-weight:700;font-size:11.5px}
+.dytbl td:first-child,.dytbl th:first-child{text-align:left}
+.dytbl tr.cur td{background:#eff6ff}
+.dytbl tr.no td{color:#a1a1aa}
+.dytbl tbody tr{cursor:pointer}
+.dytbl td.off{color:#dc2626;font-weight:700}
 /* フォーム切替・負荷試験 */
 .rform{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e4e4e7;border-bottom:1px solid var(--line);flex:none}
 .rform label{font-size:12px;font-weight:700;color:var(--sub);flex:none}
@@ -373,6 +412,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
 
 <!-- list menu (search / filter / sort / legend) -->
 <div id="menuOv"><div id="menu">
+  <div class="mrow"><button class="tbtn on" id="menuDaily" style="padding:12px;font-size:15px">📟 デイリー記録（毎日の値）</button></div>
   <div class="mrow"><button class="tbtn on" id="menuRec" style="padding:12px;font-size:15px">📋 測定値入力（成績書）</button></div>
   <div class="mrow"><input id="q" type="search" placeholder="検索（ラック番号・リアドア・CDU・メモ）"></div>
   <div class="mlab">絞り込み</div>
@@ -392,6 +432,18 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
   <div class="mhint">マスの長押しで日時・備考・問題事項を編集／ラック番号の左のチェックで対象を切り替え</div>
   <div class="mrow"><button class="tbtn" id="menuReset">条件をすべて解除</button><button class="tbtn on" id="menuClose">閉じる</button></div>
 </div></div>
+
+<!-- デイリー記録（pGD1 画面の4項目を毎日登録） -->
+<div id="dyScreen">
+  <header><div class="hrow">
+    <button class="hbtn" id="dyBack">← 戻る</button>
+    <div class="htitle" style="font-size:16px">デイリー記録</div>
+    <select class="hsel" id="dyRoom"></select>
+  </div></header>
+  <div class="rtabs" id="dyTabs"><button data-m="in" class="on">入力</button><button data-m="list">一覧</button></div>
+  <div class="dydate"><button class="nb" id="dyPrevD">◀</button><input type="date" id="dyDate"><button class="nb" id="dyNextD">▶</button><button class="btn sm" id="dyToday">今日</button></div>
+  <div id="dyBody"></div>
+</div>
 
 <!-- 測定値（成績書） -->
 <div id="rcScreen">
@@ -616,7 +668,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v3.0</p>
+    <p class="help" style="text-align:center">CDU Check Tool v3.1</p>
   </div>
 </div>
 
@@ -702,7 +754,7 @@ function sampleState(){
   return {
     title:'CDU Check Tool', room:'all',
     items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on,water:/充水|注水/.test(n)})),
-    servers, checks:{}, notes:{}, issues:{}, water:{}, rec:defaultRec(), recx:defaultRecx(),
+    servers, checks:{}, notes:{}, issues:{}, water:{}, rec:defaultRec(), recx:defaultRecx(), daily:{},
     opts:{seq:false,time:true,confirm:true}, sampleVer:5
   };
 }
@@ -718,7 +770,7 @@ function load(){
 }
 function normalize(d){
   d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.water=d.water||{}; d.hideOff=!!d.hideOff; if(!d.rec||!Array.isArray(d.rec.fmt)) d.rec=defaultRec(); d.rec.vals=d.rec.vals||{};
-  d.recx=d.recx||{}; const dx=defaultRecx(); ['mcdu','rdhx'].forEach(k=>{ if(!d.recx[k]||!Array.isArray(d.recx[k].fmt)) d.recx[k]=dx[k]; d.recx[k].vals=d.recx[k].vals||{}; }); d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
+  d.daily=d.daily||{}; d.recx=d.recx||{}; const dx=defaultRecx(); ['mcdu','rdhx'].forEach(k=>{ if(!d.recx[k]||!Array.isArray(d.recx[k].fmt)) d.recx[k]=dx[k]; d.recx[k].vals=d.recx[k].vals||{}; }); d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
   if(!d.title||d.title==='サーバー作業チェック') d.title='CDU Check Tool';
   d.room=d.room||'all';
   // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
@@ -1102,7 +1154,7 @@ function listHandler(arr,render,kind){
         const msg=kind==='item'?`項目「${esc(obj.name)}」を削除しますか？<br><small>使わないだけなら、スイッチをオフにすると記録が残ります。</small>`:`サーバー「${esc(obj.name)}」を削除しますか？<br><small>このサーバーのチェック記録も消えます。</small>`;
         if(!(await confirmBox(msg,'削除',true))) return;
         arr().splice(i,1);
-        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); Object.values(S.water).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; delete S.water[obj.id]; delete S.rec.vals[obj.id]; Object.values(S.recx).forEach(f=>delete f.vals[obj.id]); }
+        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); Object.values(S.water).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; delete S.water[obj.id]; delete S.rec.vals[obj.id]; Object.values(S.recx).forEach(f=>delete f.vals[obj.id]); Object.values(S.daily).forEach(m=>delete m[obj.id]); }
         break;
       }
       default: return;
@@ -1187,7 +1239,7 @@ $('#newItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addItem').cl
 $('#addBulkItems').onclick=()=>{addItems($('#bulkItems').value.split(/\r?\n/));$('#bulkItems').value='';};
 
 function addServers(names,replace){
-  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; S.water={}; S.rec.vals={}; Object.values(S.recx).forEach(f=>f.vals={}); }
+  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; S.water={}; S.rec.vals={}; Object.values(S.recx).forEach(f=>f.vals={}); S.daily={}; }
   const ex=new Set(S.servers.map(s=>s.name)); let n=0;
   names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.servers.push({id:uid(),name:nm,memo:''});ex.add(nm);n++;} });
   save(); renderServers();
@@ -1229,6 +1281,7 @@ function exportData(){
   return {format:'cdu-check-tool',version:2,exportedAt:Date.now(),title:S.title,
     items:S.items.map(i=>({name:i.name,on:i.on,water:!!i.water})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',cdu:s.cdu||'',memo:s.memo||'',target:s.target!==false})),
     checks:byName(S.checks), notes:byName(S.notes), issues:byName(S.issues), water:byName(S.water),
+    daily:Object.fromEntries(Object.entries(S.daily).map(([d,m])=>[d,Object.fromEntries(Object.entries(m).filter(([sid])=>sname[sid]).map(([sid,r])=>[sname[sid],r]))])),
     recx:Object.fromEntries(Object.entries(S.recx).map(([k,f])=>[k,{fmt:f.fmt,vals:Object.fromEntries(Object.entries(f.vals).filter(([sid,m])=>sname[sid]&&Object.keys(m).length).map(([sid,m])=>[sname[sid],m]))}])),
     rec:{fmt:S.rec.fmt, vals:(()=>{ const o={}; Object.entries(S.rec.vals).forEach(([sid,m])=>{ if(sname[sid]&&Object.keys(m).length) o[sname[sid]]=m; }); return o; })()}};
 }
@@ -1281,13 +1334,14 @@ function showImport(d){
   let nChk=0; Object.values(d.checks||{}).forEach(m=>nChk+=Object.keys(m).length);
   let nNote=0; Object.values(d.notes||{}).forEach(m=>nNote+=Object.keys(m).length);
   let nWat=0; Object.values(d.water||{}).forEach(m=>nWat+=Object.keys(m).length);
+  let nDy=0; Object.values(d.daily||{}).forEach(m=>nDy+=Object.keys(m||{}).length);
   let nRec=0; Object.values((d.rec&&d.rec.vals)||{}).forEach(m=>nRec+=Object.keys(m).length);
   Object.values(d.recx||{}).forEach(f=>Object.values((f&&f.vals)||{}).forEach(m=>nRec+=Object.keys(m).length));
   let nIss=0; Object.values(d.issues||{}).forEach(m=>nIss+=Object.keys(m).length);
   const when=d.exportedAt?fmtTime(d.exportedAt,true):'不明';
   openModal(`<div class="sh-h"><h3>データの取り込み</h3><button class="x" data-a="no">×</button></div>
     <div class="sh-b">
-      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件 ／ 問題事項：${nIss}件 ／ 充水量：${nWat}件 ／ 測定値：${nRec}件</div>
+      <div class="sumbox">${d.source==='excel'?'種類：<b>Excel</b><br>':''}書き出し日時：<b>${when}</b><br>ラック：${d.servers.length}台 ／ 作業項目：${d.items.length}件<br>済：${nChk}件 ／ 備考：${nNote}件 ／ 問題事項：${nIss}件 ／ 充水量：${nWat}件 ／ 測定値：${nRec}件 ／ デイリー：${nDy}件</div>
       <p class="help" style="margin:4px 0">取り込む内容</p>
       <label class="chk"><input type="checkbox" id="imSrv" checked><span>ラック番号<small>ラック番号・リアドア番号・CDU番号・作業対象・並び順・メモをファイルに合わせます</small></span></label>
       <label class="chk"><input type="checkbox" id="imItem" checked><span>作業項目<small>項目名・使用/不使用・並び順をファイルに合わせます</small></span></label>
@@ -1363,6 +1417,10 @@ function applyImport(d,opt){
     Object.entries(d.rec.vals).forEach(([nm,m])=>{ const id=idByName.get(nm); if(!id) return; const cur=S.rec.vals[id]||(S.rec.vals[id]={});
       Object.entries(m).forEach(([no,v])=>{ if(v===''||v==null) return; if(cur[no]==null||cur[no]==='') { cur[no]=String(v); n++; } }); });
     msg.push(`測定値${n}件`); }
+  if(d.daily&&opt.prog){ const idByName=new Map(S.servers.map(x=>[x.name,x.id])); let n=0;
+    Object.entries(d.daily).forEach(([day,m])=>Object.entries(m||{}).forEach(([nm,r])=>{ const id=idByName.get(nm); if(!id||!r) return;
+      const dd=S.daily[day]||(S.daily[day]={}); if(opt.mode==='replace'||!dyHas(dd[id])){ dd[id]=Object.assign({},r); n++; } }));
+    if(n) msg.push(`デイリー${n}件`); }
   if(d.recx){ const idByName=new Map(S.servers.map(x=>[x.name,x.id]));
     Object.entries(d.recx).forEach(([k,f])=>{ const fd=S.recx[k]; if(!fd||!f) return;
       if(opt.item&&Array.isArray(f.fmt)) fd.fmt=f.fmt.map(x=>({no:+x.no,lbl:x.lbl,grp:x.grp||'',name:x.name||'',unit:x.unit||'',note:x.note||'',kind:x.kind||'num',on:!!x.on}));
@@ -1453,6 +1511,15 @@ async function buildXlsx(){
     its.forEach(f=>{ const row=wr.addRow([f.no,f.name,f.unit].concat(S.servers.map(x=>{ const v=(S.rec.vals[x.id]||{})[f.no]; if(v==null||v==='') return null; return /^-?\d+(\.\d+)?$/.test(v)?parseFloat(v):v; })));
       row.eachCell(cl=>{ cl.border=border; }); row.getCell(1).alignment={horizontal:'center'}; });
     wr.views=[{state:'frozen',xSplit:3,ySplit:1}]; }
+  // デイリー記録
+  { const days=Object.keys(S.daily).sort(); if(days.length){ const wd=wb.addWorksheet('デイリー記録');
+    wd.columns=[{width:12},{width:7},{width:12},{width:13},{width:13},{width:12},{width:14},{width:10}];
+    const hd=wd.addRow(['日付','時刻','ラック番号','Pump Supply (kPa)','Pump Return (kPa)','System DP (kPa)','HxS Out Temp (℃)','Unit status']);
+    hd.eachCell(cl=>{ cl.fill=fill('FF16181A'); cl.font={bold:true,color:{argb:'FFFFFFFF'}}; cl.border=border; cl.alignment={horizontal:'center',wrapText:true}; });
+    const num=v=>v==null||v===''?null:(/^-?\d+(\.\d+)?$/.test(v)?parseFloat(v):v);
+    days.forEach(d=>S.servers.forEach(x=>{ const r=S.daily[d][x.id]; if(!dyHas(r)) return;
+      const row=wd.addRow([d.replace(/-/g,'/'),r.t||'',x.name,num(r.sup),num(r.ret),num(r.dp),num(r.hxs),r.st==='OFF'?'OFF':'ON']); row.eachCell({includeEmpty:true},cl=>{ cl.border=border; }); }));
+    wd.views=[{state:'frozen',ySplit:1}]; wd.autoFilter={from:'A1',to:'H1'}; } }
   // 負荷試験（MCDU / RDHx）: ラックごとに 項目 × Step1〜3 前・最大
   ['mcdu','rdhx'].forEach(k=>{ const fd=S.recx[k], its=rcItemsOf(k), racks=S.servers.filter(x=>fd.vals[x.id]&&Object.keys(fd.vals[x.id]).length); if(!racks.length) return;
     const wx=wb.addWorksheet(k==='mcdu'?'負荷試験(MCDU)':'負荷試験(RDHx)');
@@ -1570,6 +1637,94 @@ async function importXlsx(buf){
 }
 window.onImportXlsx=b64=>importXlsx(bufFromB64(b64));
 
+
+/* ---------- デイリー記録（pGD1 画面の4項目） ---------- */
+const DY_F=[['sup','Pump Supply','kPa'],['ret','Pump Return','kPa'],['dp','System DP','kPa'],['hxs','HxS Out Temp','℃']];
+const WD_EN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let dyDate=null, dySid=null, dyRoom=null, dyMode='in';
+const dToday=()=>{ const n=new Date(); return `${n.getFullYear()}-${pad2(n.getMonth()+1)}-${pad2(n.getDate())}`; };
+const dyRacks=()=>S.servers.filter(s=>s.target&&(dyRoom==='all'||roomOf(s)===dyRoom));
+const dyGet=(d,sid)=>(S.daily[d]||{})[sid]||null;
+const dyHas=r=>!!r&&DY_F.some(([k])=>r[k]!=null&&r[k]!=='');
+function dySet(d,sid,patch){
+  const day=S.daily[d]||(S.daily[d]={}), r=day[sid]||(day[sid]={st:'ON'});
+  if(!r.t){ const n=new Date(); r.t=`${pad2(n.getHours())}:${pad2(n.getMinutes())}`; }
+  Object.entries(patch).forEach(([k,v])=>{ v=v==null?'':String(v).trim(); if(v==='') delete r[k]; else r[k]=v; });
+  if(!dyHas(r)) delete day[sid]; if(!Object.keys(day).length) delete S.daily[d]; save();
+}
+function openDaily(){ closeMenu(); if(dyRoom==null) dyRoom=S.room||'all'; if(!dyDate) dyDate=dToday();
+  const rooms=roomList(); if(dyRoom!=='all'&&!rooms.includes(dyRoom)) dyRoom='all';
+  $('#dyRoom').innerHTML=['all',...rooms].map(r=>`<option value="${esc(r)}" ${r===dyRoom?'selected':''}>${r==='all'?'全部屋':esc(r)}</option>`).join('');
+  $('#dyScreen').classList.add('show'); renderDaily(); }
+function closeDaily(){ $('#dyScreen').classList.remove('show'); }
+$('#menuDaily').onclick=openDaily; $('#dyBack').onclick=closeDaily;
+$('#dyRoom').onchange=e=>{ dyRoom=e.target.value; dySid=null; renderDaily(); };
+$$('#dyTabs button').forEach(b=>b.onclick=()=>{ dyMode=b.dataset.m; renderDaily(); });
+const shiftDay=(d,n)=>{ const t=new Date(d+'T00:00:00'); t.setDate(t.getDate()+n); return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}`; };
+$('#dyPrevD').onclick=()=>{ dyDate=shiftDay(dyDate,-1); renderDaily(); };
+$('#dyNextD').onclick=()=>{ dyDate=shiftDay(dyDate,1); renderDaily(); };
+$('#dyToday').onclick=()=>{ dyDate=dToday(); renderDaily(); };
+$('#dyDate').onchange=e=>{ if(e.target.value){ dyDate=e.target.value; renderDaily(); } };
+function renderDaily(){
+  $$('#dyTabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===dyMode));
+  $('#dyDate').value=dyDate; dyMode==='in'?renderDyInput():renderDyList();
+}
+const lcdDate=d=>{ const t=new Date(d+'T00:00:00'); return {ymd:`${String(t.getFullYear()).slice(2)}/${pad2(t.getMonth()+1)}/${pad2(t.getDate())}`,wd:WD_EN[t.getDay()]}; };
+function renderDyInput(){
+  const racks=dyRacks(), body=$('#dyBody');
+  if(!racks.length){ body.innerHTML='<div class="empty">対象のラックがありません。</div>'; return; }
+  if(!racks.some(r=>r.id===dySid)) dySid=(racks.find(r=>!dyHas(dyGet(dyDate,r.id)))||racks[0]).id;
+  const idx=racks.findIndex(r=>r.id===dySid), sv=racks[idx], r=dyGet(dyDate,sv.id)||{}, L=lcdDate(dyDate);
+  const done=racks.filter(x=>dyHas(dyGet(dyDate,x.id))).length;
+  let h=`<div class="rnav"><button class="nb" id="dyPrev">◀</button><select id="dySel">${racks.map(x=>`<option value="${x.id}" ${x.id===dySid?'selected':''}>${dyHas(dyGet(dyDate,x.id))?'✓ ':''}${esc(x.name)}</option>`).join('')}</select><button class="nb" id="dyNext">▶</button></div>
+   <div class="rprog">${dyDate.replace(/-/g,'/')}　登録済み <b id="dyDone">${done}</b> / ${racks.length} 台</div>
+   <div class="bezel"><div class="bzl-top"><span class="mn"></span>pGD1<span class="rk">${esc(sv.name)}</span></div>
+   <div class="lcdrow"><div class="lcd">
+     <div class="l0"><span>${L.ymd}</span><span>${L.wd}</span><span id="dyT" title="タップで時刻を修正">${esc(r.t||'--:--')}</span></div>`;
+  DY_F.forEach(([k,lab,u])=>{ h+=`<label class="ln"><span class="k">${lab}:</span><input class="dyin" data-k="${k}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${esc(r[k]||'')}" placeholder="---.-"><span class="u">${u}</span></label>`; });
+  h+=`<div class="st"><span>Unit status:</span><button id="dySt" class="${r.st==='OFF'?'off':''}">${r.st==='OFF'?'OFF':'ON'}</button></div>
+     </div><div class="lcdbtns"><button id="dyUp" title="前のラック">↑</button><button id="dyEnt" title="次のラックへ">↵</button><button id="dyDn" title="次のラック">↓</button></div></div></div>
+   <p class="dyhint">↑↓：ラックの切り替え　↵：次のラックへ。System DP は Supply − Return を自動で入れます（書き換え可）。時刻は最初に入力したときに入ります。</p>`;
+  // 履歴（このラックの直近の記録）
+  const days=Object.keys(S.daily).filter(d=>dyHas(S.daily[d][sv.id])).sort().reverse().slice(0,14);
+  h+=`<div class="dyhist"><h4>${esc(sv.name)} の記録（新しい順・最大14日）</h4>`+(days.length?`<table class="dytbl"><thead><tr><th>日付</th><th>時刻</th><th>Supply</th><th>Return</th><th>DP</th><th>HxS ℃</th></tr></thead><tbody>`+
+    days.map(d=>{ const x=S.daily[d][sv.id]; return `<tr class="${d===dyDate?'cur':''}" data-d="${d}"><td>${d.slice(5).replace('-','/')}</td><td>${esc(x.t||'')}</td>${DY_F.map(([k])=>`<td>${esc(x[k]||'－')}</td>`).join('')}</tr>`; }).join('')+'</tbody></table>':'<p class="help" style="padding:10px 12px;margin:0">まだ記録がありません。</p>')+'</div>';
+  body.innerHTML=h;
+  const go=n=>{ const k=racks.length; dySid=racks[(idx+n+k)%k].id; renderDyInput(); };
+  $('#dyPrev').onclick=$('#dyUp').onclick=()=>go(-1); $('#dyNext').onclick=$('#dyDn').onclick=()=>go(1); $('#dyEnt').onclick=()=>go(1);
+  $('#dySel').onchange=e=>{ dySid=e.target.value; renderDyInput(); };
+  $('#dyT').onclick=async()=>{ if(!dyHas(dyGet(dyDate,sv.id))){ toast('先に値を入力してください'); return; }
+    const v=await promptBox('記録の時刻（例 09:19）',dyGet(dyDate,sv.id).t||''); if(v==null) return;
+    const m=String(v).normalize('NFKC').trim().match(/^(\d{1,2})[:：]?(\d{2})$/); if(!m||+m[1]>23||+m[2]>59){ toast('時刻は 09:19 の形で入力してください'); return; }
+    dySet(dyDate,sv.id,{t:`${pad2(+m[1])}:${m[2]}`}); renderDyInput(); };
+  $('#dySt').onclick=()=>{ const cur=(dyGet(dyDate,sv.id)||{}).st==='OFF'?'OFF':'ON'; const nx=cur==='ON'?'OFF':'ON';
+    if(!dyHas(dyGet(dyDate,sv.id))){ toast('先に値を入力してください'); return; } dySet(dyDate,sv.id,{st:nx}); renderDyInput(); };
+  $$('#dyBody .dyhist tr[data-d]').forEach(tr=>tr.onclick=()=>{ dyDate=tr.dataset.d; renderDaily(); });
+  const ins=$$('#dyBody .dyin'), byK=k=>ins.find(x=>x.dataset.k===k);
+  let dpAuto=!r.dp;
+  const autoDp=()=>{ if(!dpAuto) return; const a=parseFloat(byK('sup').value), b=parseFloat(byK('ret').value), dp=byK('dp');
+    if(!isNaN(a)&&!isNaN(b)){ dp.value=(Math.round((a-b)*10)/10).toFixed(1); dp.classList.add('auto'); dySet(dyDate,sv.id,{dp:dp.value}); } };
+  ins.forEach((el,i)=>{
+    el.addEventListener('input',()=>{ if(el.dataset.k==='dp'){ dpAuto=el.value.trim()===''; el.classList.remove('auto'); }
+      dySet(dyDate,sv.id,{[el.dataset.k]:el.value}); if(el.dataset.k==='sup'||el.dataset.k==='ret') autoDp();
+      const t=$('#dyT'), x=dyGet(dyDate,sv.id); if(t) t.textContent=(x&&x.t)||'--:--';
+      $('#dyDone').textContent=racks.filter(x=>dyHas(dyGet(dyDate,x.id))).length; });
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const nx=ins.slice(i+1).find(x=>!x.classList.contains('auto'))||null; if(nx) nx.focus(); else { el.blur(); go(1); } } });
+  });
+}
+function renderDyList(){
+  const racks=dyRacks(), body=$('#dyBody');
+  if(!racks.length){ body.innerHTML='<div class="empty">対象のラックがありません。</div>'; return; }
+  const done=racks.filter(x=>dyHas(dyGet(dyDate,x.id))).length;
+  let h=`<div class="rprog">${dyDate.replace(/-/g,'/')}（${WD[new Date(dyDate+'T00:00:00').getDay()]}）　登録済み <b>${done}</b> / ${racks.length} 台　行をタップで入力</div>
+    <div style="overflow:auto"><table class="dytbl"><thead><tr><th>ラック</th><th>時刻</th><th>Supply<br>kPa</th><th>Return<br>kPa</th><th>DP<br>kPa</th><th>HxS<br>℃</th><th>状態</th></tr></thead><tbody>`;
+  racks.forEach(x=>{ const r=dyGet(dyDate,x.id);
+    h+=r&&dyHas(r)?`<tr data-s="${x.id}"><td><b>${esc(x.name)}</b></td><td>${esc(r.t||'')}</td>${DY_F.map(([k])=>`<td>${esc(r[k]||'－')}</td>`).join('')}<td class="${r.st==='OFF'?'off':''}">${r.st==='OFF'?'OFF':'ON'}</td></tr>`
+      :`<tr class="no" data-s="${x.id}"><td>${esc(x.name)}</td><td colspan="6" style="text-align:center">未登録</td></tr>`; });
+  h+='</tbody></table></div>';
+  body.innerHTML=h;
+  $$('#dyBody tr[data-s]').forEach(tr=>tr.onclick=()=>{ dySid=tr.dataset.s; dyMode='in'; renderDaily(); });
+}
 
 /* ---------- 測定値（成績書・負荷試験） ---------- */
 const STEPCOLS=['Step1 負荷試験前','Step1 最大負荷時','Step2 負荷試験前','Step2 最大負荷時','Step3 負荷試験前','Step3 最大負荷時'];
@@ -1951,6 +2106,7 @@ window.onAndroidBack=function(){
   if($('#ov').classList.contains('show')){ closeModal(); return true; }
   if($('#menuOv').classList.contains('show')){ closeMenu(); return true; }
   if($('#rcScreen').classList.contains('show')){ closeRec(); return true; }
+  if($('#dyScreen').classList.contains('show')){ closeDaily(); return true; }
   if($('#settings').classList.contains('show')){ closeSettings(); return true; }
   return false;
 };
