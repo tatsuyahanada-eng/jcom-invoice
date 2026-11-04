@@ -2,7 +2,7 @@
 使い方: python3 make_form.py 出力.html  →  Chromium で PDF 化（forms/README 参照）"""
 import sys
 
-ROWS = 18   # 1 列 16 台 + 予備 2 行
+ROWS = 25   # 1 列 16 台 + 予備（行の高さは約 9.5mm）
 CSS = """
 @page { size: A4 portrait; margin: 10mm 10mm 9mm 10mm; }
 * { box-sizing: border-box; }
@@ -24,7 +24,7 @@ table { width: 100%; border-collapse: collapse; table-layout: fixed; flex: 1; }
 th, td { border: 1px solid #000; text-align: center; vertical-align: middle; }
 thead th { background: #e6e6e6; font-size: 9.5pt; font-weight: 700; padding: 1.2mm 0.5mm; line-height: 1.25; }
 thead th small { display: block; font-weight: 500; font-size: 7.5pt; color: #222; }
-tbody td { font-size: 11pt; }
+tbody td { font-size: 10.5pt; }
 td.rk { text-align: left; padding-left: 1.5mm; color: #bbb; font-size: 10pt; letter-spacing: 0; white-space: nowrap; }
 td.tm { color: #aaa; font-size: 12pt; }
 td.rg { color: #888; font-size: 11pt; }
