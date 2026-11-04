@@ -303,6 +303,42 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
 .rgrid tbody tr:nth-child(even) td{background:#f7f7f9}
 .rgrid thead th.rk{cursor:pointer}
 .rgrid .un{font-size:10.5px;color:var(--sub);font-weight:400;display:block}
+/* フォーム切替・負荷試験 */
+.rform{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e4e4e7;border-bottom:1px solid var(--line);flex:none}
+.rform label{font-size:12px;font-weight:700;color:var(--sub);flex:none}
+.rform select{flex:1;min-width:0;height:40px;font-size:15px;font-weight:700;border:1px solid #a1a1aa;border-radius:9px;background:#fff;padding:0 8px}
+.rsteps{display:flex;gap:6px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:67px;z-index:2}
+.rsteps button{flex:1;height:40px;border:1px solid #a1a1aa;background:#fff;border-radius:9px;font-weight:800;font-size:15px}
+.rsteps button.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.rsteps button small{display:block;font-size:10px;font-weight:600;opacity:.8}
+.ritem2{padding:9px 12px;background:#fff;border-bottom:1px solid #e4e4e7}
+.ritem2:nth-child(odd){background:#f4f4f6}
+.ritem2 .hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ritem2 .rno{width:30px;height:28px;border-radius:7px;background:var(--pri);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
+.ritem2 .rno.nl{background:#a1a1aa}
+.ritem2 .hd b{flex:1;min-width:0;font-size:14.5px;word-break:break-all}
+.ritem2 .hd small{color:var(--sub);font-size:12px;flex:none}
+.ritem2 .two{display:flex;gap:8px}
+.ritem2 .two label{flex:1;display:flex;flex-direction:column;gap:2px;font-size:10.5px;color:var(--sub);font-weight:700}
+.ritem2 .rin{width:100%;height:42px;font-size:19px;font-weight:700;text-align:right;border:1.5px solid #a1a1aa;border-radius:9px;padding:0 8px;background:#fffef5}
+.ritem2 .rin:focus{outline:none;border-color:#0369a1;background:#fff}
+.ritem2 .rin.has{border-color:#16a34a;background:#f0fdf4}
+.ptbl{border-collapse:separate;border-spacing:0;background:#fff;font-size:12.5px}
+.ptbl th,.ptbl td{border-right:1px solid #b4b4bc;border-bottom:1px solid #b4b4bc;padding:0;text-align:center}
+.ptbl thead th{position:sticky;background:var(--th);color:#fff;font-weight:700;z-index:2;padding:4px 2px}
+.ptbl thead tr.a th{top:0;height:24px}
+.ptbl thead tr.b th{top:24px;height:24px;font-size:10.5px;min-width:64px}
+.ptbl thead th.c0{left:0;z-index:4;text-align:left;padding:4px 8px;min-width:160px}
+.ptbl tbody th{position:sticky;left:0;z-index:1;background:#f1f1f3;text-align:left;padding:4px 8px;font-weight:600;line-height:1.25;min-width:160px}
+.ptbl tbody th b{display:inline-block;min-width:22px;margin-right:4px;color:#fff;background:var(--pri);border-radius:5px;text-align:center;font-size:11px}
+.ptbl tbody th b.nl{background:#a1a1aa}
+.ptbl tbody th small{color:var(--sub);font-weight:400}
+.ptbl td{height:38px;font-size:14px;font-weight:700;color:#1e3a8a;min-width:64px}
+.ptbl td.e{color:#c4c4cc;font-weight:400}
+.ptbl td.s2{border-left:2px solid #6b7280}
+.ptbl tbody tr:nth-child(even) td{background:#f7f7f9}
+.ptbl td:active{background:#e0f2fe}
+.ptbl tr.grp th{background:#e4e4e7;color:#3f3f46;font-size:11px;font-weight:800;position:static}
 /* 成績書フォーマット（設定） */
 .rg{padding:7px 12px;background:#e4e4e7;font-size:12px;font-weight:800;color:#3f3f46;border-top:1px solid var(--line)}
 .ri{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff;border-bottom:1px solid #ececef}
@@ -365,6 +401,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
     <select class="hsel" id="rcRoom"></select>
     <button class="hbtn ico" id="rcFmt" aria-label="項目選択" title="入力する項目を選ぶ">⚙</button>
   </div></header>
+  <div class="rform"><label>表</label><select id="rcFormSel"></select></div>
   <div class="rtabs" id="rcTabs"><button data-m="rack" class="on">ラック別入力</button><button data-m="grid">一覧表</button></div>
   <div id="rcBody"></div>
 </div>
@@ -506,9 +543,10 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
 
   <div class="pane" id="pane-rec">
     <div class="card">
-      <h4><span>入力する項目（チェックした項目だけ入力できます）</span><small id="rcCount"></small></h4>
+      <h4><span>表と入力する項目（チェックした項目だけ入力できます）</span><small id="rcCount"></small></h4>
       <div class="in">
-        <p class="help">成績書「5.ステータス確認、設定値確認」の番号つき項目です。スイッチをオンにした項目だけが、測定値の入力画面に出ます。単位（右のボタン）は、タップで書き換えられます。</p>
+        <div class="row" style="margin-bottom:8px"><select class="tin" id="fmFormSel" style="font-weight:700"></select></div>
+        <p class="help" id="fmHelp"></p>
         <div class="row"><button class="btn sm" id="rcAll">すべて選択</button><button class="btn sm" id="rcNone">すべて解除</button><button class="btn sm" id="rcHand">手書き表と同じ（1,2,21,25,27,29,34,35,36）</button></div>
         <div class="row"><button class="btn sm" id="rcKpa">圧力の単位を kPa にする</button><button class="btn sm" id="rcAdd">項目を追加</button></div>
       </div>
@@ -578,7 +616,7 @@ ul.wkl li.today{box-shadow:inset 4px 0 0 #2563eb}
         <p class="help" style="margin-top:10px">「全チェックをクリア」は項目・サーバー設定を残したまま、チェック・備考・問題事項を消します。</p>
       </div>
     </div>
-    <p class="help" style="text-align:center">CDU Check Tool v2.9.1</p>
+    <p class="help" style="text-align:center">CDU Check Tool v3.0</p>
   </div>
 </div>
 
@@ -625,6 +663,23 @@ const REC_FMT=[
 ];
 const REC_DEFAULT_ON=[1,2,21,25,27,29,34,35,36];   // 手書きの記録表で使っている番号
 function defaultRec(){ return {fmt:REC_FMT.map(([no,grp,name,unit,note,kind])=>({no,grp,name,unit,note,kind:kind||'num',on:REC_DEFAULT_ON.includes(no)})),vals:{}}; }
+// 負荷試験の確認書（Step1〜3 × 負荷試験前／最大負荷時）。lbl は印刷の番号（空欄＝番号なしの行）
+const MCDU_FMT=[
+ ['1','Summary','Pump Supply','kPa'],['2','Summary','Pump Return','kPa'],['3','Summary','System DP','kPa'],['4','Summary','HxS Out Temp','℃'],
+ ['5','Active Temp Summary','HxSec In Temp','℃'],['6','Active Temp Summary','HxSec Out Temp','℃'],['','Active Temp Summary','HxPri In Temp','℃'],
+ ['8','Temperature I/O','Sec Supply Temp (SST_1)','℃'],['9','Temperature I/O','Sec Return Temp (SRT)','℃'],['10','Temperature I/O','Pri Supply Temp (PST)','℃'],
+ ['11','Temperature I/O HMI Dew Point 1','ROOM DB Temp','℃'],['12','Temperature I/O HMI Dew Point 1','Room Humidity','%RH'],
+ ['13','Active Press Summary','Primary In','kPa'],['14','Active Press Summary','System Out','kPa'],['','Active Press Summary','System In','kPa'],['15','Active Press Summary','System DP','kPa'],
+ ['16','Pressuers I/O','SEC Supply Press (SSP_1)','kPa'],['17','Pressuers I/O','SEC Return Press (SRP_1)','kPa'],['18','Pressuer I/O','Pri Supply Press (PSP)','kPa'],
+ ['19','Main Outputs','Pump VFD Speed','%'],['20','Main Outputs','CW Valve Output','V'],['21','Main Outputs','CWC Actuator Open','%'],
+ ['22','Pump RPM','P1','rpm'],['23','Pump RPM','P2','rpm'],['24','Seconday Flow Meter','Lpm Out','LPM'],['25','Primary Flow Meter','LPM In','LPM']];
+const RDHX_FMT=[
+ ['1','Motivair Chilled Door','Supplyn Air','℃'],['2','Motivair Chilled Door','Return Water','℃'],['3','Motivair Chilled Door','Fun Press','℃'],['4','Motivair Chilled Door','Server Air Out','℃'],
+ ['5','Input/Output Info','Fan Speed Output','%'],['','Input/Output Info','CWV Output 0-10v','V'],['6','Input/Output Info','Supply Water','℃',0],
+ ['7','Input/Output Info','Room Temp','℃'],['8','Input/Output Info','Supply Water','℃'],
+ ['9','Main Fan Info','Fan 1:Speed','rpm'],['10','Main Fan Info','Fan 2:Speed','rpm'],['11','Main Fan Info','Fan 3:Speed','rpm'],['12','Main Fan Info','Fan 4:Speed','rpm'],['13','Main Fan Info','Fan 5:Speed','rpm']];
+function defaultStepForm(src){ return {fmt:src.map(([lbl,grp,name,unit,on],i)=>({no:i+1,lbl,grp,name,unit,note:'',kind:'num',on:on!==0})),vals:{}}; }
+function defaultRecx(){ return {mcdu:defaultStepForm(MCDU_FMT),rdhx:defaultStepForm(RDHX_FMT)}; }
 const SAMPLE_ITEMS=[
   ['作業前 状態確認(ping)',1],['ログイン確認',1],['サービス停止',1],['充水作業',1],['バックアップ取得',1],
   ['スナップショット取得',1],['OSパッチ適用',1],['再起動',1],['起動確認',1],
@@ -647,7 +702,7 @@ function sampleState(){
   return {
     title:'CDU Check Tool', room:'all',
     items:SAMPLE_ITEMS.map(([n,on])=>({id:uid(),name:n,on:!!on,water:/充水|注水/.test(n)})),
-    servers, checks:{}, notes:{}, issues:{}, water:{}, rec:defaultRec(),
+    servers, checks:{}, notes:{}, issues:{}, water:{}, rec:defaultRec(), recx:defaultRecx(),
     opts:{seq:false,time:true,confirm:true}, sampleVer:5
   };
 }
@@ -662,7 +717,8 @@ function load(){
   return sampleState();
 }
 function normalize(d){
-  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.water=d.water||{}; d.hideOff=!!d.hideOff; if(!d.rec||!Array.isArray(d.rec.fmt)) d.rec=defaultRec(); d.rec.vals=d.rec.vals||{}; d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
+  d.checks=d.checks||{}; d.notes=d.notes||{}; d.issues=d.issues||{}; d.water=d.water||{}; d.hideOff=!!d.hideOff; if(!d.rec||!Array.isArray(d.rec.fmt)) d.rec=defaultRec(); d.rec.vals=d.rec.vals||{};
+  d.recx=d.recx||{}; const dx=defaultRecx(); ['mcdu','rdhx'].forEach(k=>{ if(!d.recx[k]||!Array.isArray(d.recx[k].fmt)) d.recx[k]=dx[k]; d.recx[k].vals=d.recx[k].vals||{}; }); d.opts=Object.assign({seq:false,time:true,confirm:true},d.opts||{});
   if(!d.title||d.title==='サーバー作業チェック') d.title='CDU Check Tool';
   d.room=d.room||'all';
   // v1 の仮サーバー名（SRV-001〜）のままなら新しいサーバー名に置き換える
@@ -1046,7 +1102,7 @@ function listHandler(arr,render,kind){
         const msg=kind==='item'?`項目「${esc(obj.name)}」を削除しますか？<br><small>使わないだけなら、スイッチをオフにすると記録が残ります。</small>`:`サーバー「${esc(obj.name)}」を削除しますか？<br><small>このサーバーのチェック記録も消えます。</small>`;
         if(!(await confirmBox(msg,'削除',true))) return;
         arr().splice(i,1);
-        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); Object.values(S.water).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; delete S.water[obj.id]; delete S.rec.vals[obj.id]; }
+        if(kind==='item'){ Object.values(S.checks).forEach(c=>delete c[obj.id]); Object.values(S.notes).forEach(c=>delete c[obj.id]); Object.values(S.issues).forEach(c=>delete c[obj.id]); Object.values(S.water).forEach(c=>delete c[obj.id]); } else { delete S.checks[obj.id]; delete S.notes[obj.id]; delete S.issues[obj.id]; delete S.water[obj.id]; delete S.rec.vals[obj.id]; Object.values(S.recx).forEach(f=>delete f.vals[obj.id]); }
         break;
       }
       default: return;
@@ -1131,7 +1187,7 @@ $('#newItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addItem').cl
 $('#addBulkItems').onclick=()=>{addItems($('#bulkItems').value.split(/\r?\n/));$('#bulkItems').value='';};
 
 function addServers(names,replace){
-  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; S.water={}; S.rec.vals={}; }
+  if(replace){ S.servers=[]; S.checks={}; S.notes={}; S.issues={}; S.water={}; S.rec.vals={}; Object.values(S.recx).forEach(f=>f.vals={}); }
   const ex=new Set(S.servers.map(s=>s.name)); let n=0;
   names.map(s=>s.trim()).filter(Boolean).forEach(nm=>{ if(!ex.has(nm)){S.servers.push({id:uid(),name:nm,memo:''});ex.add(nm);n++;} });
   save(); renderServers();
@@ -1173,6 +1229,7 @@ function exportData(){
   return {format:'cdu-check-tool',version:2,exportedAt:Date.now(),title:S.title,
     items:S.items.map(i=>({name:i.name,on:i.on,water:!!i.water})), servers:S.servers.map(s=>({name:s.name,door:s.door||'',cdu:s.cdu||'',memo:s.memo||'',target:s.target!==false})),
     checks:byName(S.checks), notes:byName(S.notes), issues:byName(S.issues), water:byName(S.water),
+    recx:Object.fromEntries(Object.entries(S.recx).map(([k,f])=>[k,{fmt:f.fmt,vals:Object.fromEntries(Object.entries(f.vals).filter(([sid,m])=>sname[sid]&&Object.keys(m).length).map(([sid,m])=>[sname[sid],m]))}])),
     rec:{fmt:S.rec.fmt, vals:(()=>{ const o={}; Object.entries(S.rec.vals).forEach(([sid,m])=>{ if(sname[sid]&&Object.keys(m).length) o[sname[sid]]=m; }); return o; })()}};
 }
 function exportName(){ const d=new Date(); return `CDU_${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}.json`; }
@@ -1225,6 +1282,7 @@ function showImport(d){
   let nNote=0; Object.values(d.notes||{}).forEach(m=>nNote+=Object.keys(m).length);
   let nWat=0; Object.values(d.water||{}).forEach(m=>nWat+=Object.keys(m).length);
   let nRec=0; Object.values((d.rec&&d.rec.vals)||{}).forEach(m=>nRec+=Object.keys(m).length);
+  Object.values(d.recx||{}).forEach(f=>Object.values((f&&f.vals)||{}).forEach(m=>nRec+=Object.keys(m).length));
   let nIss=0; Object.values(d.issues||{}).forEach(m=>nIss+=Object.keys(m).length);
   const when=d.exportedAt?fmtTime(d.exportedAt,true):'不明';
   openModal(`<div class="sh-h"><h3>データの取り込み</h3><button class="x" data-a="no">×</button></div>
@@ -1305,6 +1363,12 @@ function applyImport(d,opt){
     Object.entries(d.rec.vals).forEach(([nm,m])=>{ const id=idByName.get(nm); if(!id) return; const cur=S.rec.vals[id]||(S.rec.vals[id]={});
       Object.entries(m).forEach(([no,v])=>{ if(v===''||v==null) return; if(cur[no]==null||cur[no]==='') { cur[no]=String(v); n++; } }); });
     msg.push(`測定値${n}件`); }
+  if(d.recx){ const idByName=new Map(S.servers.map(x=>[x.name,x.id]));
+    Object.entries(d.recx).forEach(([k,f])=>{ const fd=S.recx[k]; if(!fd||!f) return;
+      if(opt.item&&Array.isArray(f.fmt)) fd.fmt=f.fmt.map(x=>({no:+x.no,lbl:x.lbl,grp:x.grp||'',name:x.name||'',unit:x.unit||'',note:x.note||'',kind:x.kind||'num',on:!!x.on}));
+      if(opt.prog&&f.vals){ if(opt.mode==='replace') (d.servers||[]).forEach(x=>{ const id=idByName.get(x.name); if(id) delete fd.vals[id]; });
+        Object.entries(f.vals).forEach(([nm,m])=>{ const id=idByName.get(nm); if(!id) return; const cur=fd.vals[id]||(fd.vals[id]={});
+          Object.entries(m).forEach(([kk,v])=>{ if(v===''||v==null) return; if(cur[kk]==null||cur[kk]==='') cur[kk]=String(v); }); }); } }); }
   if(d.title&&opt.item&&opt.srv) S.title=d.title;
   return msg;
 }
@@ -1382,13 +1446,21 @@ async function buildXlsx(){
     [3,4,5].forEach(c=>{ row.getCell(c).numFmt='0.0##'; row.getCell(c).alignment={horizontal:'right'}; });
     row.getCell(5).font={bold:true,color:{argb:'FF075985'}}; }); });
   // 測定値（成績書）: 行=項目番号、列=ラック
-  { const wr=wb.addWorksheet('測定値'), its=rcItems();
+  { const wr=wb.addWorksheet('測定値'), its=rcItemsOf('startup');
     wr.columns=[{width:7},{width:30},{width:8}].concat(S.servers.map(()=>({width:11})));
     const hrw=wr.addRow(['番号','項目','単位'].concat(S.servers.map(x=>x.name)));
     hrw.eachCell(cl=>{ cl.fill=fill('FF0369A1'); cl.font={bold:true,color:{argb:'FFFFFFFF'}}; cl.border=border; cl.alignment={horizontal:'center'}; });
     its.forEach(f=>{ const row=wr.addRow([f.no,f.name,f.unit].concat(S.servers.map(x=>{ const v=(S.rec.vals[x.id]||{})[f.no]; if(v==null||v==='') return null; return /^-?\d+(\.\d+)?$/.test(v)?parseFloat(v):v; })));
       row.eachCell(cl=>{ cl.border=border; }); row.getCell(1).alignment={horizontal:'center'}; });
     wr.views=[{state:'frozen',xSplit:3,ySplit:1}]; }
+  // 負荷試験（MCDU / RDHx）: ラックごとに 項目 × Step1〜3 前・最大
+  ['mcdu','rdhx'].forEach(k=>{ const fd=S.recx[k], its=rcItemsOf(k), racks=S.servers.filter(x=>fd.vals[x.id]&&Object.keys(fd.vals[x.id]).length); if(!racks.length) return;
+    const wx=wb.addWorksheet(k==='mcdu'?'負荷試験(MCDU)':'負荷試験(RDHx)');
+    wx.columns=[{width:12},{width:6},{width:30},{width:8}].concat(STEPCOLS.map(()=>({width:13})));
+    const hx=wx.addRow(['ラック番号','番号','項目','単位'].concat(STEPCOLS)); hx.eachCell(cl=>{ cl.fill=fill('FF0369A1'); cl.font={bold:true,color:{argb:'FFFFFFFF'}}; cl.border=border; cl.alignment={horizontal:'center',wrapText:true}; });
+    racks.forEach(x=>its.forEach(f=>{ const row=wx.addRow([x.name,lblOf(f),f.name,f.unit].concat([0,1,2,3,4,5].map(c=>{ const v=rcGet(k,x.id,f.no,c); return v===''?null:(/^-?\d+(\.\d+)?$/.test(v)?parseFloat(v):v); })));
+      row.eachCell({includeEmpty:true},cl=>{ cl.border=border; }); }));
+    wx.views=[{state:'frozen',xSplit:4,ySplit:1}]; });
   // issues sheet
   const is=wb.addWorksheet('問題事項');
   is.columns=[{header:'ラック番号',width:14},{header:'作業項目',width:26},{header:'問題事項',width:50}];
@@ -1499,52 +1571,98 @@ async function importXlsx(buf){
 window.onImportXlsx=b64=>importXlsx(bufFromB64(b64));
 
 
-/* ---------- 測定値（成績書） ---------- */
-let rcMode='rack', rcRoom=null, rcSid=null;
-const rcItems=()=>S.rec.fmt.filter(f=>f.on).sort((a,b)=>a.no-b.no);
+/* ---------- 測定値（成績書・負荷試験） ---------- */
+const STEPCOLS=['Step1 負荷試験前','Step1 最大負荷時','Step2 負荷試験前','Step2 最大負荷時','Step3 負荷試験前','Step3 最大負荷時'];
+const FORMS=[
+ {id:'startup',name:'スタートアップ成績書',full:'MCDU-4U スタートアップ成績書　5.ステータス確認、設定値確認',multi:false},
+ {id:'mcdu',name:'MCDU 負荷試験',full:'MCDU-4U GPUサーバ負荷試験Status確認書　1.ステータス確認、設定値確認',multi:true},
+ {id:'rdhx',name:'RDHx 負荷試験',full:'RDHx負荷試験Status確認書　1.ステータス確認、設定値確認',multi:true}];
+let rcForm='startup', rcStep=0, rcMode='rack', rcRoom=null, rcSid=null, fmForm='startup';
+const FD=id=>id==='startup'?S.rec:S.recx[id];
+const FM=id=>FORMS.find(f=>f.id===id);
+const lblOf=f=>f.lbl!=null?String(f.lbl):String(f.no);
+const lblHtml=(f,cls)=>{ const l=lblOf(f); return l?`<b>${esc(l)}</b>`:`<b class="${cls||'nl'}">－</b>`; };
+const rcItemsOf=id=>FD(id).fmt.filter(f=>f.on).sort((a,b)=>a.no-b.no);
+const rcItems=()=>rcItemsOf(rcForm);
 const rcRacks=()=>S.servers.filter(s=>s.target&&(rcRoom==='all'||roomOf(s)===rcRoom));
-const rcVals=sid=>S.rec.vals[sid]||{};
-function rcSet(sid,no,v){ v=String(v==null?'':v).trim(); const m=S.rec.vals[sid]||(S.rec.vals[sid]={});
-  if(v==='') delete m[no]; else m[no]=v; if(!Object.keys(m).length) delete S.rec.vals[sid]; save(); }
+const vKey=(no,c)=>c==null||c===''?String(no):`${no}:${c}`;
+const rcGet=(id,sid,no,c)=>((FD(id).vals[sid]||{})[vKey(no,c)])||'';
+const rcVals=sid=>FD(rcForm).vals[sid]||{};
+function rcSetF(id,sid,no,c,v){ v=String(v==null?'':v).trim(); const fd=FD(id), m=fd.vals[sid]||(fd.vals[sid]={}), k=vKey(no,c);
+  if(v==='') delete m[k]; else m[k]=v; if(!Object.keys(m).length) delete fd.vals[sid]; save(); }
+function rcSet(sid,no,v){ rcSetF(rcForm,sid,no,null,v); }
+function formOptions(sel){ return FORMS.map(f=>`<option value="${f.id}" ${f.id===sel?'selected':''}>${esc(f.name)}</option>`).join(''); }
 function openRec(){ closeMenu(); if(rcRoom==null) rcRoom=S.room||'all';
   const rooms=roomList(); if(rcRoom!=='all'&&!rooms.includes(rcRoom)) rcRoom='all';
   $('#rcRoom').innerHTML=['all',...rooms].map(r=>`<option value="${esc(r)}" ${r===rcRoom?'selected':''}>${r==='all'?'全部屋':esc(r)}</option>`).join('');
+  $('#rcFormSel').innerHTML=formOptions(rcForm);
   $('#rcScreen').classList.add('show'); renderRec(); }
 function closeRec(){ $('#rcScreen').classList.remove('show'); }
 $('#menuRec').onclick=openRec; $('#rcBack').onclick=closeRec;
 $('#rcRoom').onchange=e=>{ rcRoom=e.target.value; rcSid=null; renderRec(); };
-$('#rcFmt').onclick=()=>{ closeRec(); openSettings('rec'); };
+$('#rcFormSel').onchange=e=>{ rcForm=e.target.value; rcStep=0; renderRec(); };
+$('#rcFmt').onclick=()=>{ closeRec(); fmForm=rcForm; openSettings('rec'); };
 $$('#rcTabs button').forEach(b=>b.onclick=()=>{ rcMode=b.dataset.m; renderRec(); });
 function renderRec(){
   $$('#rcTabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===rcMode));
-  rcMode==='rack'?renderRecRack():renderRecGrid();
+  const multi=FM(rcForm).multi;
+  if(rcMode==='rack') multi?renderStepRack():renderRecRack(); else multi?renderStepGrid():renderRecGrid();
 }
 function recEmpty(msg){ $('#rcBody').innerHTML=`<div class="empty">${msg}</div>`; }
 function recHint(f){ return f.note&&f.note!=='値を記録'?(f.note==='該当にチェック'?'該当にチェック':`設定値 ${f.note}`):''; }
-function renderRecRack(){
-  const racks=rcRacks(), items=rcItems(), body=$('#rcBody');
-  if(!items.length){ recEmpty('入力する項目が選ばれていません。<br>右上の ⚙ から選んでください。'); return; }
-  if(!racks.length){ recEmpty('対象のラックがありません。'); return; }
+// ラック切替（◀ ▶ とプルダウン）を共通化
+function rackNav(racks,idx,rerender){
+  const h=`<div class="rnav"><button class="nb" id="rcPrev">◀</button><select id="rcSel">${racks.map(r=>`<option value="${r.id}" ${r.id===rcSid?'selected':''}>${esc(r.name)}</option>`).join('')}</select><button class="nb" id="rcNext">▶</button></div>`;
+  const bind=()=>{ const go=d=>{ const n=racks.length; rcSid=racks[(idx+d+n)%n].id; rerender(); };
+    $('#rcPrev').onclick=()=>go(-1); $('#rcNext').onclick=()=>go(1); const p2=$('#rcPrev2'), n2=$('#rcNext2'); if(p2) p2.onclick=()=>go(-1); if(n2) n2.onclick=()=>go(1);
+    $('#rcSel').onchange=e=>{ rcSid=e.target.value; rerender(); }; };
+  return {h,bind};
+}
+function pickRack(){ const racks=rcRacks(), items=rcItems();
+  if(!items.length){ recEmpty('入力する項目が選ばれていません。<br>右上の ⚙ から選んでください。'); return null; }
+  if(!racks.length){ recEmpty('対象のラックがありません。'); return null; }
   if(!racks.some(r=>r.id===rcSid)) rcSid=racks[0].id;
-  const idx=racks.findIndex(r=>r.id===rcSid), sv=racks[idx], vals=rcVals(sv.id);
-  const done=items.filter(f=>(vals[f.no]||'')!=='').length;
-  let h=`<div class="rnav"><button class="nb" id="rcPrev">◀</button><select id="rcSel">${racks.map(r=>`<option value="${r.id}" ${r.id===rcSid?'selected':''}>${esc(r.name)}</option>`).join('')}</select><button class="nb" id="rcNext">▶</button></div>
-    <div class="rprog">${idx+1} / ${racks.length} 台目　入力済み <b id="rcDone">${done}</b> / ${items.length} 項目</div>`;
-  items.forEach(f=>{ const v=vals[f.no]||'', txt=f.kind==='text';
-    h+=`<div class="ritem"><div class="rno">${f.no}</div><div class="rnm"><b>${esc(f.name)}</b><small>${esc(f.grp)}${recHint(f)?'　'+esc(recHint(f)):''}</small></div>
-      <input class="rin ${txt?'txt':''} ${v?'has':''}" data-no="${f.no}" ${txt?'':'inputmode="decimal"'} enterkeyhint="next" autocomplete="off" value="${esc(v)}" placeholder="${txt?esc(f.note&&f.note!=='値を記録'?f.note:'－'):'－'}"><span class="run">${esc(f.unit)}</span></div>`; });
-  h+=`<div class="rfoot"><button class="btn" id="rcPrev2">◀ 前のラック</button><button class="btn pri" id="rcNext2">次のラック ▶</button></div>`;
-  body.innerHTML=h; body.scrollTop=0;
-  const go=d=>{ const n=racks.length; rcSid=racks[(idx+d+n)%n].id; renderRecRack(); };
-  $('#rcPrev').onclick=$('#rcPrev2').onclick=()=>go(-1); $('#rcNext').onclick=$('#rcNext2').onclick=()=>go(1);
-  $('#rcSel').onchange=e=>{ rcSid=e.target.value; renderRecRack(); };
+  const idx=racks.findIndex(r=>r.id===rcSid); return {racks,items,idx,sv:racks[idx]}; }
+function bindInputs(sv,onChange){
   const ins=$$('#rcBody .rin');
   ins.forEach((el,i)=>{
-    el.addEventListener('input',()=>{ rcSet(sv.id,el.dataset.no,el.value); el.classList.toggle('has',el.value.trim()!==''); 
-      $('#rcDone').textContent=items.filter(f=>(rcVals(sv.id)[f.no]||'')!=='').length; });
+    el.addEventListener('input',()=>{ rcSetF(rcForm,sv.id,el.dataset.no,el.dataset.c==null?null:el.dataset.c,el.value); el.classList.toggle('has',el.value.trim()!==''); onChange(); });
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if(ins[i+1]) ins[i+1].focus(); else el.blur(); } });
     el.addEventListener('focus',()=>setTimeout(()=>{ try{ el.scrollIntoView({block:'center'}); }catch(x){} },250));
   });
+}
+function renderRecRack(){
+  const P=pickRack(); if(!P) return; const {racks,items,idx,sv}=P, body=$('#rcBody'), vals=rcVals(sv.id);
+  const nav=rackNav(racks,idx,renderRecRack);
+  const done=()=>items.filter(f=>(rcVals(sv.id)[f.no]||'')!=='').length;
+  let h=nav.h+`<div class="rprog">${idx+1} / ${racks.length} 台目　入力済み <b id="rcDone">${done()}</b> / ${items.length} 項目</div>`;
+  items.forEach(f=>{ const v=vals[f.no]||'', txt=f.kind==='text';
+    h+=`<div class="ritem"><div class="rno">${esc(lblOf(f))}</div><div class="rnm"><b>${esc(f.name)}</b><small>${esc(f.grp)}${recHint(f)?'　'+esc(recHint(f)):''}</small></div>
+      <input class="rin ${txt?'txt':''} ${v?'has':''}" data-no="${f.no}" ${txt?'':'inputmode="decimal"'} enterkeyhint="next" autocomplete="off" value="${esc(v)}" placeholder="${txt?esc(f.note&&f.note!=='値を記録'?f.note:'－'):'－'}"><span class="run">${esc(f.unit)}</span></div>`; });
+  h+=`<div class="rfoot"><button class="btn" id="rcPrev2">◀ 前のラック</button><button class="btn pri" id="rcNext2">次のラック ▶</button></div>`;
+  body.innerHTML=h; body.scrollTop=0; nav.bind();
+  bindInputs(sv,()=>{ $('#rcDone').textContent=done(); });
+}
+// 負荷試験：Step を選び、各項目に「負荷試験前」「最大負荷時」の2つを入力
+function renderStepRack(){
+  const P=pickRack(); if(!P) return; const {racks,items,idx,sv}=P, body=$('#rcBody');
+  const nav=rackNav(racks,idx,renderStepRack), c0=rcStep*2, c1=c0+1;
+  const done=()=>items.reduce((a,f)=>a+(rcGet(rcForm,sv.id,f.no,c0)?1:0)+(rcGet(rcForm,sv.id,f.no,c1)?1:0),0);
+  let h=nav.h+`<div class="rsteps">${[0,1,2].map(i=>{ const n=items.reduce((a,f)=>a+(rcGet(rcForm,sv.id,f.no,i*2)?1:0)+(rcGet(rcForm,sv.id,f.no,i*2+1)?1:0),0);
+      return `<button data-st="${i}" class="${i===rcStep?'on':''}">Step${i+1}<small>${n} / ${items.length*2}</small></button>`; }).join('')}</div>
+    <div class="rprog">${idx+1} / ${racks.length} 台目　Step${rcStep+1} 入力済み <b id="rcDone">${done()}</b> / ${items.length*2}</div>`;
+  let last=null;
+  items.forEach(f=>{
+    if(f.grp!==last){ h+=`<div class="rg">${esc(f.grp)}</div>`; last=f.grp; }
+    const v0=rcGet(rcForm,sv.id,f.no,c0), v1=rcGet(rcForm,sv.id,f.no,c1), l=lblOf(f);
+    h+=`<div class="ritem2"><div class="hd"><span class="rno ${l?'':'nl'}">${l?esc(l):'－'}</span><b>${esc(f.name)}</b><small>${esc(f.unit)}</small></div>
+      <div class="two"><label>負荷試験前<input class="rin ${v0?'has':''}" data-no="${f.no}" data-c="${c0}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${esc(v0)}" placeholder="－"></label>
+      <label>最大負荷時<input class="rin ${v1?'has':''}" data-no="${f.no}" data-c="${c1}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${esc(v1)}" placeholder="－"></label></div></div>`; });
+  h+=`<div class="rfoot">${rcStep<2?`<button class="btn" id="rcStepNext">Step${rcStep+2} へ ▶</button>`:''}<button class="btn pri" id="rcNext2">次のラック ▶</button></div>`;
+  body.innerHTML=h; body.scrollTop=0; nav.bind();
+  $$('#rcBody .rsteps button').forEach(b=>b.onclick=()=>{ rcStep=+b.dataset.st; renderStepRack(); });
+  const sn=$('#rcStepNext'); if(sn) sn.onclick=()=>{ rcStep++; renderStepRack(); };
+  bindInputs(sv,()=>{ $('#rcDone').textContent=done(); });
 }
 function renderRecGrid(){
   const racks=rcRacks(), items=rcItems(), body=$('#rcBody');
@@ -1552,31 +1670,49 @@ function renderRecGrid(){
   if(!racks.length){ recEmpty('対象のラックがありません。'); return; }
   const short=n=>rcRoom==='all'?n:n.replace(/^[^-]+-/,'');
   let h='<table class="rgrid"><thead><tr><th class="c0">番号　項目（単位）</th>'+racks.map(r=>`<th class="rk" data-s="${r.id}">${esc(short(r.name))}</th>`).join('')+'</tr></thead><tbody>';
-  items.forEach(f=>{ h+=`<tr><th class="c0"><b>${f.no}</b>${esc(f.name)}<small> ${esc(f.unit)}</small></th>`+
+  items.forEach(f=>{ h+=`<tr><th class="c0">${lblHtml(f)}${esc(f.name)}<small> ${esc(f.unit)}</small></th>`+
     racks.map(r=>{ const v=rcVals(r.id)[f.no]; return `<td class="${v?'':'e'}" data-s="${r.id}" data-n="${f.no}">${v?esc(v):'－'}</td>`; }).join('')+'</tr>'; });
   h+='</tbody></table>';
   const st=body.scrollTop, sl=body.scrollLeft; body.innerHTML=h; body.scrollTop=st; body.scrollLeft=sl;
+}
+// 負荷試験の一覧表：紙の確認書と同じ形（項目 × Step1〜3 の 負荷試験前／最大負荷時）をラックごとに表示
+function renderStepGrid(){
+  const P=pickRack(); if(!P) return; const {racks,items,idx,sv}=P, body=$('#rcBody');
+  const nav=rackNav(racks,idx,renderStepGrid);
+  let h=nav.h+`<div class="rprog">${esc(FM(rcForm).full)}</div><div style="overflow:auto"><table class="ptbl"><thead>
+    <tr class="a"><th class="c0" rowspan="2">Display Interfaceの表示</th><th colspan="2">Step1</th><th colspan="2">Step2</th><th colspan="2">Step3</th></tr>
+    <tr class="b">${[0,1,2].map(()=>'<th>負荷試験前</th><th>最大負荷時</th>').join('')}</tr></thead><tbody>`;
+  let last=null;
+  items.forEach(f=>{
+    if(f.grp!==last){ h+=`<tr class="grp"><th colspan="7">${esc(f.grp)}</th></tr>`; last=f.grp; }
+    h+=`<tr><th>${lblHtml(f)}${esc(f.name)}<small> ${esc(f.unit)}</small></th>`+[0,1,2,3,4,5].map(c=>{ const v=rcGet(rcForm,sv.id,f.no,c);
+      return `<td class="${v?'':'e'} ${c%2===0&&c?'s2':''}" data-s="${sv.id}" data-n="${f.no}" data-c="${c}">${v?esc(v):'－'}</td>`; }).join('')+'</tr>'; });
+  h+='</tbody></table></div>';
+  body.innerHTML=h; nav.bind();
 }
 $('#rcBody').addEventListener('click',async e=>{
   if(rcMode!=='grid') return;
   const th=e.target.closest('th.rk'); if(th){ rcSid=th.dataset.s; rcMode='rack'; renderRec(); return; }
   const td=e.target.closest('td[data-n]'); if(!td) return;
-  const sv=S.servers.find(x=>x.id===td.dataset.s), f=S.rec.fmt.find(x=>x.no===+td.dataset.n); if(!sv||!f) return;
-  const v=await promptBox(`${sv.name}　No.${f.no} ${f.name}${f.unit?'（'+f.unit+'）':''}`,rcVals(sv.id)[f.no]||'');
-  if(v!==null){ rcSet(sv.id,f.no,v); renderRecGrid(); }
+  const sv=S.servers.find(x=>x.id===td.dataset.s), f=FD(rcForm).fmt.find(x=>x.no===+td.dataset.n); if(!sv||!f) return;
+  const c=td.dataset.c==null?null:+td.dataset.c, col=c==null?'':'　'+STEPCOLS[c], l=lblOf(f);
+  const v=await promptBox(`${sv.name}　${l?'No.'+l+' ':''}${f.name}${f.unit?'（'+f.unit+'）':''}${col}`,rcGet(rcForm,sv.id,f.no,c));
+  if(v!==null){ rcSetF(rcForm,sv.id,f.no,c,v); renderRec(); }
 });
 
-/* 測定値だけの取り込み（format: cdu-rec）。ラック一覧・チェック等には触れない */
+/* 測定値だけの取り込み（format: cdu-rec）。ラック一覧・チェック等には触れない
+   1つの表なら {form, items, units, racks}、複数なら {parts:[...]}。値のキーは "番号" または "番号:列(0〜5)" */
 function showRecImport(d){
-  const racks=d.racks||{}, names=Object.keys(racks);
-  const have=new Set(S.servers.map(x=>x.name)), missing=names.filter(n=>!have.has(n));
-  let n=0; names.forEach(k=>n+=Object.keys(racks[k]||{}).length);
-  const units=d.units||{}, uList=Object.entries(units).map(([no,u])=>`No.${no}→${esc(u)}`).join('、');
+  const parts=(Array.isArray(d.parts)?d.parts:[d]).map(p=>Object.assign({form:'startup'},p)).filter(p=>FM(p.form));
+  const have=new Set(S.servers.map(x=>x.name)), all=new Set(); let n=0;
+  parts.forEach(p=>Object.entries(p.racks||{}).forEach(([nm,m])=>{ all.add(nm); n+=Object.keys(m||{}).length; }));
+  const missing=[...all].filter(x=>!have.has(x));
+  const uList=parts.map(p=>Object.entries(p.units||{}).map(([no,u])=>`${FM(p.form).name} No.${no}→${esc(u)}`).join('、')).filter(Boolean).join('／');
   openModal(`<div class="sh-h"><h3>測定値の取り込み<small>${esc(d.title||'')}</small></h3><button class="x" data-a="no">×</button></div>
     <div class="sh-b">
-      <div class="sumbox">ラック：<b>${names.length}台</b> ／ 測定値：<b>${n}件</b><br>項目番号：${(d.items||[]).join(', ')}</div>
+      <div class="sumbox">${parts.map(p=>`${esc(FM(p.form).name)}：ラック ${Object.keys(p.racks||{}).length}台`).join('<br>')}<br>測定値：<b>${n}件</b></div>
       ${missing.length?`<label class="chk"><input type="checkbox" id="riAdd" checked><span>アプリに無いラックを追加する<small>${missing.map(esc).join('、')}</small></span></label>`:''}
-      <label class="chk"><input type="checkbox" id="riOn" checked><span>この項目を入力対象（チェック）にする</span></label>
+      <label class="chk"><input type="checkbox" id="riOn" checked><span>値のある項目を入力対象（チェック）にする</span></label>
       ${uList?`<label class="chk"><input type="checkbox" id="riUnit" checked><span>単位をファイルに合わせる<small>${uList}</small></span></label>`:''}
       <p class="help" style="margin:12px 0 4px">すでに値が入っているマス</p>
       <label class="chk"><input type="radio" name="riMode" value="over" checked><span>ファイルの値で上書きする</span></label>
@@ -1596,39 +1732,47 @@ function showRecImport(d){
       if(at<0){ const last=S.servers.map(x=>roomOf(x)).lastIndexOf(room); at=last<0?S.servers.length:last+1; }
       S.servers.splice(at,0,sv); added++; });
     const idByName=new Map(S.servers.map(x=>[x.name,x.id]));
-    names.forEach(nm=>{ const id=idByName.get(nm); const m=racks[nm]||{}; if(!id){ skipped+=Object.keys(m).length; return; }
-      const cur=S.rec.vals[id]||(S.rec.vals[id]={});
-      Object.entries(m).forEach(([no,v])=>{ v=String(v==null?'':v).trim(); if(!v) return; if(over||cur[no]==null||cur[no]===''){ cur[no]=v; put++; } });
-      if(!Object.keys(cur).length) delete S.rec.vals[id]; });
-    if(on) (d.items||[]).forEach(no=>{ const f=S.rec.fmt.find(x=>x.no===+no); if(f) f.on=true; });
-    if(un) Object.entries(units).forEach(([no,u])=>{ const f=S.rec.fmt.find(x=>x.no===+no); if(f) f.unit=u; });
+    parts.forEach(p=>{ const fd=FD(p.form), used=new Set();
+      Object.entries(p.racks||{}).forEach(([nm,m])=>{ const id=idByName.get(nm); if(!id){ skipped+=Object.keys(m||{}).length; return; }
+        const cur=fd.vals[id]||(fd.vals[id]={});
+        Object.entries(m||{}).forEach(([k,v])=>{ v=String(v==null?'':v).trim(); if(!v) return; used.add(+String(k).split(':')[0]);
+          if(over||cur[k]==null||cur[k]===''){ cur[k]=v; put++; } });
+        if(!Object.keys(cur).length) delete fd.vals[id]; });
+      if(on) [...(p.items||[]),...used].forEach(no=>{ const f=fd.fmt.find(x=>x.no===+no); if(f) f.on=true; });
+      if(un) Object.entries(p.units||{}).forEach(([no,u])=>{ const f=fd.fmt.find(x=>x.no===+no); if(f) f.unit=u; }); });
     save(); renderGrid(); if($('#settings').classList.contains('show')){ renderServers(); renderRecFmt(); }
     if($('#rcScreen').classList.contains('show')) renderRec();
     toast(`測定値 ${put}件を取り込みました`+(added?`（ラック ${added}台を追加）`:'')+(skipped?`／${skipped}件はラックが無いため未取込`:''));
   };
 }
-/* 成績書フォーマット（設定タブ） */
+/* 成績書・確認書フォーマット（設定タブ） */
 function renderRecFmt(){
-  const on=S.rec.fmt.filter(f=>f.on).length; $('#rcCount').textContent=`選択 ${on} / ${S.rec.fmt.length}`;
+  const fd=FD(fmForm), F=FM(fmForm);
+  $('#fmFormSel').innerHTML=formOptions(fmForm);
+  $('#fmHelp').textContent=F.multi?`${F.full}。Step1〜3 の「負荷試験前」「最大負荷時」を入力します。スイッチをオンにした項目だけが入力画面に出ます。番号が「－」の行は、確認書で番号のない行です。`
+    :`${F.full}。番号つきの項目です。スイッチをオンにした項目だけが、測定値の入力画面に出ます。単位（右のボタン）は、タップで書き換えられます。`;
+  $('#rcHand').style.display=fmForm==='startup'?'':'none';
+  const on=fd.fmt.filter(f=>f.on).length; $('#rcCount').textContent=`選択 ${on} / ${fd.fmt.length}`;
   let h='', last=null;
-  S.rec.fmt.slice().sort((a,b)=>a.no-b.no).forEach(f=>{
+  fd.fmt.slice().sort((a,b)=>a.no-b.no).forEach(f=>{
     if(f.grp!==last){ h+=`<div class="rg">${esc(f.grp)}</div>`; last=f.grp; }
-    h+=`<div class="ri ${f.on?'':'off'}" data-no="${f.no}"><span class="no">${f.no}</span><span class="nm">${esc(f.name)}${recHint(f)?`<small>${esc(recHint(f))}</small>`:''}</span>
+    h+=`<div class="ri ${f.on?'':'off'}" data-no="${f.no}"><span class="no">${esc(lblOf(f))||'－'}</span><span class="nm">${esc(f.name)}${recHint(f)?`<small>${esc(recHint(f))}</small>`:''}</span>
       <button class="un" data-a="unit">${esc(f.unit)||'単位'}</button><label class="sw"><input type="checkbox" data-a="on" ${f.on?'checked':''}><i></i></label></div>`; });
   $('#rcFmtList').innerHTML=h;
-  let n=0, v=0; Object.values(S.rec.vals).forEach(m=>{ n++; v+=Object.keys(m).length; });
-  $('#rcStat').textContent=v?`${n} 台分・${v} 件の測定値が保存されています。`:'まだ測定値は入力されていません。';
+  let n=0, v=0; Object.values(fd.vals).forEach(m=>{ n++; v+=Object.keys(m).length; });
+  $('#rcStat').textContent=v?`${F.name}：${n} 台分・${v} 件の値が保存されています。`:`${F.name}：まだ値は入力されていません。`;
 }
-$('#rcFmtList').addEventListener('change',e=>{ if(e.target.dataset.a!=='on') return; const f=S.rec.fmt.find(x=>x.no===+e.target.closest('.ri').dataset.no); f.on=e.target.checked; save(); renderRecFmt(); });
+$('#fmFormSel').onchange=e=>{ fmForm=e.target.value; renderRecFmt(); };
+$('#rcFmtList').addEventListener('change',e=>{ if(e.target.dataset.a!=='on') return; const f=FD(fmForm).fmt.find(x=>x.no===+e.target.closest('.ri').dataset.no); f.on=e.target.checked; save(); renderRecFmt(); });
 $('#rcFmtList').addEventListener('click',async e=>{ const b=e.target.closest('[data-a=unit]'); if(!b) return;
-  const f=S.rec.fmt.find(x=>x.no===+b.closest('.ri').dataset.no); const v=await promptBox(`No.${f.no} ${f.name} の単位`,f.unit||''); if(v!==null){ f.unit=v.trim(); save(); renderRecFmt(); } });
-$('#rcAll').onclick=()=>{ S.rec.fmt.forEach(f=>f.on=true); save(); renderRecFmt(); };
-$('#rcNone').onclick=()=>{ S.rec.fmt.forEach(f=>f.on=false); save(); renderRecFmt(); };
+  const f=FD(fmForm).fmt.find(x=>x.no===+b.closest('.ri').dataset.no); const v=await promptBox(`${lblOf(f)?'No.'+lblOf(f)+' ':''}${f.name} の単位`,f.unit||''); if(v!==null){ f.unit=v.trim(); save(); renderRecFmt(); } });
+$('#rcAll').onclick=()=>{ FD(fmForm).fmt.forEach(f=>f.on=true); save(); renderRecFmt(); };
+$('#rcNone').onclick=()=>{ FD(fmForm).fmt.forEach(f=>f.on=false); save(); renderRecFmt(); };
 $('#rcHand').onclick=()=>{ S.rec.fmt.forEach(f=>f.on=REC_DEFAULT_ON.includes(f.no)); save(); renderRecFmt(); toast('手書き表と同じ項目にしました'); };
-$('#rcKpa').onclick=()=>{ let n=0; S.rec.fmt.forEach(f=>{ if(f.unit==='psi'){ f.unit='kPa'; n++; } }); save(); renderRecFmt(); toast(n?`${n} 項目の単位を kPa にしました`:'psi の項目はありません'); };
+$('#rcKpa').onclick=()=>{ let n=0; FD(fmForm).fmt.forEach(f=>{ if(f.unit==='psi'){ f.unit='kPa'; n++; } }); save(); renderRecFmt(); toast(n?`${n} 項目の単位を kPa にしました`:'psi の項目はありません'); };
 $('#rcAdd').onclick=async()=>{ const nm=await promptBox('追加する項目名',''); if(!nm||!nm.trim()) return; const un=await promptBox('単位（なければ空欄）','');
-  const no=Math.max(0,...S.rec.fmt.map(f=>f.no))+1; S.rec.fmt.push({no,grp:'追加項目',name:nm.trim(),unit:(un||'').trim(),note:'値を記録',kind:'num',on:true}); save(); renderRecFmt(); toast(`No.${no} を追加しました`); };
-$('#rcClear').onclick=async()=>{ if(await confirmBox('入力した測定値をすべて消しますか？<br><small>元に戻せません。項目の選択は残ります。</small>','クリア',true)){ S.rec.vals={}; save(); renderRecFmt(); toast('測定値をクリアしました'); } };
+  const fd=FD(fmForm), no=Math.max(0,...fd.fmt.map(f=>f.no))+1; fd.fmt.push({no,lbl:fmForm==='startup'?undefined:'',grp:'追加項目',name:nm.trim(),unit:(un||'').trim(),note:'値を記録',kind:'num',on:true}); save(); renderRecFmt(); toast(`「${nm.trim()}」を追加しました`); };
+$('#rcClear').onclick=async()=>{ const F=FM(fmForm); if(await confirmBox(`「${esc(F.name)}」に入力した値をすべて消しますか？<br><small>元に戻せません。項目の選択は残ります。</small>`,'クリア',true)){ FD(fmForm).vals={}; save(); renderRecFmt(); toast('クリアしました'); } };
 
 /* ---------- 業務サマリー (work log; stored separately so it survives checklist resets) ---------- */
 const WKEY='cdu.worklog.v1';
