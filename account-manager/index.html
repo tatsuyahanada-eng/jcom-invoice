@@ -177,9 +177,29 @@
       <div class="btn-row">
         <button class="btn primary" id="exportBtn">ダウンロード保存</button>
         <button class="btn" id="shareBtn">共有して保存</button>
-        <button class="btn" id="importBtn">取り込み（統合）</button>
-        <input type="file" id="importFile" accept=".json,application/json" hidden>
       </div>
+
+      <h3>スマホとパソコンで共有</h3>
+      <ol class="share-steps">
+        <li>データを入力した端末で「ダウンロード保存」または「共有して保存」</li>
+        <li>そのファイルを iCloud Drive・Google ドライブ・AirDrop・メールなどでもう一方の端末へ</li>
+        <li>もう一方の端末で、下のどちらかを選んでファイルを読み込む</li>
+      </ol>
+      <div class="share-opts">
+        <div class="share-opt">
+          <b>置き換え</b>
+          <p class="muted small">相手の端末と同じ状態にします。削除したものも反映されます。普段の同期はこちら。</p>
+          <button class="btn primary" id="replaceBtn">バックアップで置き換え</button>
+          <input type="file" id="replaceFile" accept=".json,application/json" hidden>
+        </div>
+        <div class="share-opt">
+          <b>統合</b>
+          <p class="muted small">今のデータを残したまま、無いものを追加し、新しい方で更新します。両方の端末で編集した場合に。</p>
+          <button class="btn" id="importBtn">バックアップを統合</button>
+          <input type="file" id="importFile" accept=".json,application/json" hidden>
+        </div>
+      </div>
+      <p class="muted small">※ 管理者パスワードは端末ごとに別でもかまいません。読み込むときは「バックアップを作った端末」のパスワードを入力します。</p>
 
       <h3>他サービスからの取り込み</h3>
       <p class="muted small">Notion などから変換した取り込み用ファイル（JSON）を読み込みます。同じサービス名とIDのアカウントは重複として飛ばします。取り込み後は<b>必ず元のファイルを削除</b>してください（パスワードが暗号化されていません）。</p>

@@ -91,6 +91,10 @@ function daysSince(ts) { return Math.floor((Date.now() - ts) / 86400000); }
 function uid() { return b64(crypto.getRandomValues(new Uint8Array(12))).replace(/[+/=]/g, ''); }
 function toast(msg, ms = 2200) {
   const t = $('#toast');
+  // モーダル表示中は最前面のダイアログ内に移す（裏に隠れて見えなくなるのを防ぐ）
+  const top = [...document.querySelectorAll('dialog[open]')].pop();
+  const host = top || document.body;
+  if (t.parentNode !== host) host.append(t);
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toast._t);
@@ -1079,6 +1083,51 @@ async function readBackupFile(file) {
   throw new Error('形式が違います');
 }
 
+/** 処理中の表示（最前面・閉じられない） */
+function busy(msg) {
+  let d = $('#busyDlg');
+  if (!d) {
+    d = h('dialog', { id: 'busyDlg', class: 'busy' }, h('div', { class: 'spinner' }), h('p', { id: 'busyMsg' }));
+    d.addEventListener('cancel', (ev) => ev.preventDefault());
+    document.body.append(d);
+  }
+  $('#busyMsg').textContent = msg;
+  if (!d.open) d.showModal();
+}
+function busyEnd() { const d = $('#busyDlg'); if (d && d.open) d.close(); }
+
+/** ファイル選択 → 形式確認 → パスワード → 復号 までの共通処理 */
+async function pickBackup(file, message) {
+  let bk;
+  try { bk = await readBackupFile(file); }
+  catch { throw new Error('バックアップファイルの形式が正しくありません。アプリの「バックアップ」で保存した .json ファイルを選んでください。'); }
+  const pw = await askPassword(message);
+  if (pw == null) return null;
+  busy('バックアップを開いています…');
+  try {
+    const opened = await openBackup(bk, pw);
+    return { bk, pw, ...opened };
+  } catch (e) {
+    busyEnd();
+    if (e && e.name === 'OperationError') throw new Error('パスワードが違います。バックアップを作った端末の管理者パスワードを入力してください。');
+    throw e;
+  }
+}
+
+/** 取り込み・置き換えのあと、一覧画面に戻して結果を見せる */
+function showListAfterImport(message) {
+  busyEnd();
+  document.querySelectorAll('dialog[open]').forEach((d) => d.close());
+  $('#search').value = '';
+  $('#searchClear').hidden = true;
+  filterCat = 'すべて';
+  openId = null;
+  renderChips();
+  renderList();
+  window.scrollTo({ top: 0 });
+  toast(message, 4500);
+}
+
 /** バックアップを開く → { data, dekB } */
 async function openBackup(bk, pw) {
   if (bk.legacy) {
@@ -1102,22 +1151,16 @@ async function importFiles(bk, dekB, atts) {
   }
 }
 
-/** 設定画面から：今のデータにバックアップを統合 */
+/** 設定画面から：今のデータにバックアップを統合（追加＋新しい方で更新） */
 async function onImport(ev) {
   const file = ev.target.files[0];
   ev.target.value = '';
   if (!file) return;
-  let bk;
-  try { bk = await readBackupFile(file); }
-  catch { toast('バックアップファイルの形式が正しくありません'); return; }
-  const pw = await askPassword('バックアップ作成時の管理者パスワードを入力してください。');
-  if (pw == null) return;
-  let opened;
-  try { opened = await openBackup(bk, pw); }
-  catch { toast('パスワードが違うため読み込めませんでした'); return; }
-
   try {
-    const { data, dekB } = opened;
+    const r = await pickBackup(file, 'バックアップ作成時の管理者パスワードを入力してください。');
+    if (!r) return;
+    busy('取り込んでいます…');
+    const { bk, data, dekB } = r;
     const toTake = data.entries.filter((inc) => {
       const cur = vault.entries.find((x) => x.id === inc.id);
       return !cur || (inc.updatedAt || 0) > (cur.updatedAt || 0);
@@ -1125,15 +1168,45 @@ async function onImport(ev) {
     if (dekB) await importFiles(bk, dekB, toTake.flatMap((e) => e.attachments || []));
     let added = 0, updated = 0;
     const ok = await commit((v) => {
+      added = 0; updated = 0;
       for (const inc of toTake) {
         const i = v.entries.findIndex((x) => x.id === inc.id);
         if (i < 0) { v.entries.push(inc); added++; } else { v.entries[i] = inc; updated++; }
       }
     });
+    busyEnd();
     if (!ok) return;
-    renderChips(); renderList();
-    toast(`インポート完了：追加 ${added}件 / 更新 ${updated}件`, 3500);
-  } catch (e) { reportSaveError(e); }
+    showListAfterImport(added + updated
+      ? `統合しました：追加 ${added}件 / 更新 ${updated}件`
+      : '統合しました：新しいデータはありませんでした（すでに最新です）');
+  } catch (e) {
+    busyEnd();
+    alert(e.message || e);
+  }
+}
+
+/** 設定画面から：このデバイスのデータをバックアップの内容で置き換え（PC→スマホの同期用） */
+async function onReplace(ev) {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  try {
+    const r = await pickBackup(file, 'バックアップ作成時の管理者パスワードを入力してください。（このデバイスの管理者パスワードは変わりません）');
+    if (!r) return;
+    busyEnd();
+    const { bk, data, dekB } = r;
+    const when = bk.exportedAt ? fmtDate(bk.exportedAt) : '不明';
+    if (!confirm(`このデバイスのデータを、バックアップ（${when} 作成・${data.entries.length}件）の内容で置き換えます。\n\n今のデータ（${vault.entries.length}件）は復元ポイントに残るので、あとで戻せます。よろしいですか？`)) return;
+    busy('置き換えています…');
+    if (dekB) await importFiles(bk, dekB, [...data.entries, ...data.trash].flatMap((e) => e.attachments || []));
+    const ok = await commit(() => data);
+    busyEnd();
+    if (!ok) return;
+    showListAfterImport(`置き換えました（${data.entries.length}件）`);
+  } catch (e) {
+    busyEnd();
+    alert(e.message || e);
+  }
 }
 
 /** 取り込み用ファイル（平文JSON）から追加。重複（サービス名＋ID）は飛ばす */
@@ -1187,14 +1260,11 @@ async function onRestoreFirst(ev) {
   if (!file) return;
   const err = $('#lockErr');
   err.textContent = '';
-  let bk;
-  try { bk = await readBackupFile(file); }
-  catch { err.textContent = 'バックアップファイルの形式が正しくありません。'; return; }
-  const pw = await askPassword('バックアップ作成時の管理者パスワードを入力してください。復元後はこのパスワードでロック解除します。');
-  if (pw == null) return;
-  $('#lockMsg').textContent = '復元中…';
   try {
-    const { data, dekB } = await openBackup(bk, pw);
+    const r = await pickBackup(file, 'バックアップ作成時の管理者パスワードを入力してください。復元後はこのパスワードでロック解除します。');
+    if (!r) return;
+    busy('復元しています…');
+    const { bk, pw, data, dekB } = r;
     const raw = crypto.getRandomValues(new Uint8Array(32));
     const hdr = await wrapDek(pw, raw);
     dek = await importDek(raw);
@@ -1205,12 +1275,13 @@ async function onRestoreFirst(ev) {
     vault = data;
     prefs.lastBackupAt = bk.exportedAt || Date.now();
     savePrefs();
-    enterApp();
-    toast(`復元しました（${data.entries.length}件）`, 3000);
+    busyEnd();
+    await enterApp();
+    toast(`復元しました（${data.entries.length}件）`, 4000);
   } catch (e) {
-    dek = null;
-    $('#lockMsg').textContent = '最初に管理者パスワードを設定してください。';
-    err.textContent = e && e.name === 'OperationError' ? 'パスワードが違います。' : '復元に失敗しました: ' + (e && e.message);
+    busyEnd();
+    dek = null; vault = null;
+    err.textContent = (e && e.message) ? e.message : '復元に失敗しました: ' + e;
   }
 }
 
@@ -1331,6 +1402,8 @@ function init() {
   $('#shareBtn').addEventListener('click', onShareBackup);
   $('#importBtn').addEventListener('click', () => $('#importFile').click());
   $('#importFile').addEventListener('change', onImport);
+  $('#replaceBtn').addEventListener('click', () => $('#replaceFile').click());
+  $('#replaceFile').addEventListener('change', onReplace);
   $('#wipeBtn').addEventListener('click', onWipe);
   $('#plainImportBtn').addEventListener('click', () => $('#plainImportFile').click());
   $('#plainImportFile').addEventListener('change', onPlainImport);

@@ -347,3 +347,25 @@ dialog::backdrop { background: rgba(30, 34, 40, .45); }
   color: var(--blue-ink); display: grid; place-items: center; cursor: pointer;
 }
 .search-clear:hover { background: var(--blue-2); }
+
+/* 処理中表示 */
+dialog.busy {
+  border: 0; border-radius: var(--radius); padding: 22px 26px; text-align: center; min-width: 220px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25); color: var(--text);
+}
+dialog.busy::backdrop { background: rgba(30, 34, 40, .5); }
+dialog.busy p { margin: 12px 0 0; font-size: 14px; }
+.spinner {
+  width: 30px; height: 30px; margin: 0 auto; border-radius: 50%;
+  border: 3px solid var(--blue-2); border-top-color: var(--ink); animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 共有の手順 */
+.share-steps { margin: 0 0 10px; padding-left: 20px; font-size: 13.5px; }
+.share-steps li { margin-bottom: 4px; }
+.share-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.share-opt { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; background: var(--soft); display: flex; flex-direction: column; gap: 4px; }
+.share-opt:first-child { background: var(--blue); border-color: var(--blue-line); }
+.share-opt p { margin: 0 0 6px; flex: 1; }
+@media (max-width: 480px) { .share-opts { grid-template-columns: 1fr; } }
