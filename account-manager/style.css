@@ -369,3 +369,13 @@ dialog.busy p { margin: 12px 0 0; font-size: 14px; }
 .share-opt:first-child { background: var(--blue); border-color: var(--blue-line); }
 .share-opt p { margin: 0 0 6px; flex: 1; }
 @media (max-width: 480px) { .share-opts { grid-template-columns: 1fr; } }
+
+/* 二段階ログイン */
+.lock-step { display: flex; align-items: center; gap: 8px; margin: 18px 0 8px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.lock-step .step-no {
+  width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center;
+  background: var(--ink); color: #fff; font-size: 11px;
+}
+#pin, #pin2 { letter-spacing: .3em; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.user-label { font-size: 12px; color: #c9ced4; margin-left: 4px; white-space: nowrap; }
+@media (max-width: 520px) { .user-label { display: none; } }

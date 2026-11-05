@@ -1,5 +1,5 @@
 // オフライン用キャッシュ（アプリ本体のみ。データは端末の localStorage に暗号化保存）
-const CACHE = 'account-manager-v9';
+const CACHE = 'account-manager-v10';
 const ASSETS = [
   './', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest',
   'icons/icon-32.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-512-maskable.png',
@@ -17,7 +17,8 @@ self.addEventListener('activate', (e) => {
 
 // ネット優先・失敗時はキャッシュ（更新がすぐ反映され、オフラインでも動く）
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
+  const u = new URL(e.request.url);
+  if (e.request.method !== 'GET' || u.origin !== location.origin || u.pathname.endsWith('api.php')) return;
   e.respondWith(
     fetch(e.request)
       .then((res) => {

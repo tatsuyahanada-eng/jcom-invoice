@@ -26,14 +26,29 @@
         </div>
       </div>
       <p id="lockMsg" class="lock-msg"></p>
-      <form id="lockForm" autocomplete="off">
+      <div id="retryWrap" hidden><button type="button" class="btn block" id="retryBtn">再接続</button></div>
+      <form id="lockForm" autocomplete="on" hidden>
         <label class="field">
-          <span>管理者パスワード</span>
+          <span>ユーザー名</span>
+          <input type="text" id="username" required autocomplete="username" autocapitalize="off" spellcheck="false">
+        </label>
+        <div class="lock-step"><span class="step-no">1</span>パスワード</div>
+        <label class="field">
+          <span>パスワード</span>
           <input type="password" id="masterPw" required autocomplete="current-password">
         </label>
         <label class="field" id="masterPw2Wrap" hidden>
-          <span>管理者パスワード（確認）</span>
+          <span>パスワード（確認）</span>
           <input type="password" id="masterPw2" autocomplete="new-password">
+        </label>
+        <div class="lock-step"><span class="step-no">2</span>暗証番号（4〜8桁の数字）</div>
+        <label class="field">
+          <span>暗証番号</span>
+          <input type="password" id="pin" required inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">
+        </label>
+        <label class="field" id="pin2Wrap" hidden>
+          <span>暗証番号（確認）</span>
+          <input type="password" id="pin2" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">
         </label>
         <p id="lockErr" class="error" role="alert"></p>
         <button type="submit" class="btn primary block" id="lockBtn">ロック解除</button>
@@ -41,8 +56,8 @@
       <p class="muted small" id="lockNote"></p>
       <button type="button" class="btn block install-lock" id="installLockBtn" hidden><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14"/></svg>アプリとしてインストール</button>
       <div id="restoreWrap" class="restore-wrap" hidden>
-        <p class="muted small">機種変更などで、バックアップファイルがある場合はこちら</p>
-        <button type="button" class="btn block" id="restoreBtn">バックアップから復元</button>
+        <p class="muted small">バックアップファイルがある場合は、上の欄を入力してからこちら。アカウントを作成してバックアップの内容で始めます。</p>
+        <button type="button" class="btn block" id="restoreBtn">アカウントを作成してバックアップから復元</button>
         <input type="file" id="restoreFile" accept=".json,application/json" hidden>
       </div>
     </div>
@@ -54,6 +69,7 @@
       <div class="brand">
         <img src="icons/icon-192.png" alt="">
         <h1>Account Manager</h1>
+        <span class="user-label" id="userLabel"></span>
       </div>
       <div class="top-actions">
         <button class="top-btn" id="installBtn" title="アプリとしてインストール" hidden><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14"/></svg><span>インストール</span></button>
@@ -180,26 +196,33 @@
       </div>
 
       <h3>スマホとパソコンで共有</h3>
-      <ol class="share-steps">
-        <li>データを入力した端末で「ダウンロード保存」または「共有して保存」</li>
-        <li>そのファイルを iCloud Drive・Google ドライブ・AirDrop・メールなどでもう一方の端末へ</li>
-        <li>もう一方の端末で、下のどちらかを選んでファイルを読み込む</li>
-      </ol>
+      <p class="muted small">データはサーバーに保存されるので、どの端末でも同じユーザー名・パスワード・暗証番号でログインすれば同じ内容が表示されます。操作は不要です。</p>
+
+      <h3>バックアップから読み込み</h3>
       <div class="share-opts">
         <div class="share-opt">
           <b>置き換え</b>
-          <p class="muted small">相手の端末と同じ状態にします。削除したものも反映されます。普段の同期はこちら。</p>
+          <p class="muted small">今のデータをバックアップの内容に丸ごと置き換えます（すべての端末に反映）。</p>
           <button class="btn primary" id="replaceBtn">バックアップで置き換え</button>
           <input type="file" id="replaceFile" accept=".json,application/json" hidden>
         </div>
         <div class="share-opt">
           <b>統合</b>
-          <p class="muted small">今のデータを残したまま、無いものを追加し、新しい方で更新します。両方の端末で編集した場合に。</p>
+          <p class="muted small">今のデータを残したまま、無いものを追加し、新しい方で更新します。</p>
           <button class="btn" id="importBtn">バックアップを統合</button>
           <input type="file" id="importFile" accept=".json,application/json" hidden>
         </div>
       </div>
-      <p class="muted small">※ 管理者パスワードは端末ごとに別でもかまいません。読み込むときは「バックアップを作った端末」のパスワードを入力します。</p>
+      <p class="muted small">※ 読み込むときは、そのバックアップを作ったときのパスワードを入力します。</p>
+
+      <div id="legacyWrap" hidden>
+        <h3>以前の版のデータ（この端末）</h3>
+        <p class="muted small" id="legacyInfo"></p>
+        <div class="btn-row">
+          <button class="btn primary" id="legacyMergeBtn">サーバーへ引き継ぐ</button>
+          <button class="btn danger" id="legacyDeleteBtn">この端末から削除</button>
+        </div>
+      </div>
 
       <h3>他サービスからの取り込み</h3>
       <p class="muted small">Notion などから変換した取り込み用ファイル（JSON）を読み込みます。同じサービス名とIDのアカウントは重複として飛ばします。取り込み後は<b>必ず元のファイルを削除</b>してください（パスワードが暗号化されていません）。</p>
@@ -214,7 +237,7 @@
       <p class="muted small">削除したアカウントは30日間ここに残ります。</p>
       <div id="trashList" class="rows"></div>
 
-      <h3>管理者パスワードの変更</h3>
+      <h3>パスワードの変更</h3>
       <form id="changePwForm" autocomplete="off">
         <input type="password" id="cpOld" placeholder="現在のパスワード" required autocomplete="current-password">
         <input type="password" id="cpNew" placeholder="新しいパスワード（8文字以上）" required autocomplete="new-password">
@@ -223,8 +246,25 @@
         <button class="btn primary" type="submit">変更する</button>
       </form>
 
+      <h3>暗証番号の変更</h3>
+      <form id="changePinForm" autocomplete="off">
+        <input type="password" id="cpinPw" placeholder="現在のパスワード" required autocomplete="current-password">
+        <input type="password" id="cpinNew" placeholder="新しい暗証番号（4〜8桁の数字）" required inputmode="numeric" maxlength="8" autocomplete="off">
+        <input type="password" id="cpinNew2" placeholder="新しい暗証番号（確認）" required inputmode="numeric" maxlength="8" autocomplete="off">
+        <p class="error" id="pinErr"></p>
+        <button class="btn primary" type="submit">変更する</button>
+      </form>
+
+      <h3>ユーザー名の変更</h3>
+      <form id="changeUserForm" autocomplete="off">
+        <input type="text" id="cuName" placeholder="新しいユーザー名" required autocapitalize="off" spellcheck="false">
+        <input type="password" id="cuPw" placeholder="現在のパスワード" required autocomplete="current-password">
+        <p class="error" id="cuErr"></p>
+        <button class="btn primary" type="submit">変更する</button>
+      </form>
+
       <h3>データの初期化</h3>
-      <p class="muted small">すべてのアカウント・添付ファイル・管理者パスワードを削除します。元に戻せません。</p>
+      <p class="muted small">サーバー上のすべてのデータとログイン用アカウントを削除します。すべての端末で使えなくなり、元に戻せません。</p>
       <button class="btn danger" id="wipeBtn">すべて削除</button>
     </div>
   </dialog>

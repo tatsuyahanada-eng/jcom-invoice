@@ -6,6 +6,8 @@
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !=https
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # データフォルダへの直接アクセスを禁止（data/.htaccess でも二重に禁止）
+  RewriteRule (^|/)data(/|$) - [F,L]
 </IfModule>
 
 # PWA 用のファイル形式
@@ -14,7 +16,7 @@ AddType text/javascript .js
 
 # アプリ更新がすぐ反映されるよう、本体ファイルはキャッシュしない
 <IfModule mod_headers.c>
-  <FilesMatch "\.(html|js|css|webmanifest)$">
+  <FilesMatch "\.(html|js|css|webmanifest|php)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
   Header always set X-Content-Type-Options "nosniff"

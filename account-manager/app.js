@@ -4,29 +4,25 @@
  * Account Manager（アカウントマネージャー）
  *
  * 【保存の仕組み】
- * - 保存先は端末内の IndexedDB（容量が大きく、添付ファイルも保存できる）
- * - 全データは「データ鍵」(AES-256-GCM) で暗号化。データ鍵は管理者パスワード
- *   から PBKDF2-SHA256 で作った鍵で暗号化して保存（パスワード変更時は鍵だけ掛け替え）
- * - 添付ファイルも1件ずつ暗号化して保存。ファイル名などの情報は本体側に暗号化して保持
+ * - データはサーバー（api.php）に保存し、どの端末からでも同じ内容を表示
+ * - ただし保存するのは、この端末で暗号化したものだけ（サーバーは中身を読めない）
+ *   データ鍵(AES-256-GCM)を、パスワードから PBKDF2 で作った鍵で包んでサーバーに保管
+ * - ログインは「ユーザー名＋パスワード」と「暗証番号」の二重チェック
+ *   パスワード自体は送らず、パスワードから作った認証鍵だけをサーバーに送る
  *
  * 【消えないための対策】
- * - 保存ごとに直前の状態を「復元ポイント」として最大 MAX_SNAPSHOTS 件保持
+ * - 保存ごとに直前の状態をサーバー上の「復元ポイント」に最大50件保持
  * - 削除したアカウントはゴミ箱へ（TRASH_DAYS 日間は復元可）
- * - ブラウザに「永続ストレージ」を要求（容量不足時の自動削除を防ぐ）
- * - 保存は1トランザクションで行い、別タブでの同時編集による上書きを検知
- * - 保存に失敗した場合は画面上の変更を確定させない
- * - 暗号化バックアップ（添付ファイル込み）の書き出し・復元、未バックアップ時の通知
+ * - 別の端末と同時に保存した場合は検知し、最新を読み直して変更をやり直す
+ * - 暗号化バックアップ（添付ファイル込み）の書き出し・読み込み、未バックアップ時の通知
  * ========================================================= */
 
 const DB_NAME = 'account-manager';
-const LEGACY_VAULT_KEY = 'am.vault';   // 旧版（localStorage保存）
 const PREFS_KEY = 'am.prefs';
-const FAIL_KEY = 'am.fail';
 const KDF_ITER = 600000;
 const CATEGORIES = ['個人用', '仕事用', 'その他'];
 const OLD_PW_DAYS = 180;
 const CLIPBOARD_CLEAR_SEC = 30;
-const MAX_SNAPSHOTS = 50;
 const TRASH_DAYS = 30;
 const MAX_FILE_MB = 25;
 const BACKUP_REMIND_DAYS = 7;
@@ -142,17 +138,17 @@ function icon(name) {
   return svg;
 }
 
-/* ---------- IndexedDB ---------- */
+/* ---------- IndexedDB（添付ファイルのキャッシュ／旧版データの読み出し用） ---------- */
 let dbPromise = null;
 function db() {
   if (!dbPromise) {
     dbPromise = new Promise((resolve, reject) => {
-      const r = indexedDB.open(DB_NAME, 1);
+      const r = indexedDB.open(DB_NAME, 2);
       r.onupgradeneeded = () => {
         const d = r.result;
-        d.createObjectStore('meta');
-        d.createObjectStore('files');
-        d.createObjectStore('snapshots', { keyPath: 'sid', autoIncrement: true });
+        for (const s of ['meta', 'files']) if (!d.objectStoreNames.contains(s)) d.createObjectStore(s);
+        if (!d.objectStoreNames.contains('snapshots')) d.createObjectStore('snapshots', { keyPath: 'sid', autoIncrement: true });
+        if (!d.objectStoreNames.contains('fcache')) d.createObjectStore('fcache');
       };
       r.onsuccess = () => {
         r.result.onversionchange = () => { r.result.close(); dbPromise = null; };
@@ -177,11 +173,9 @@ async function idb(store, mode, fn) {
   await txDone(tx);
   return out;
 }
-const idbGet = (s, k) => idb(s, 'readonly', (os) => os.get(k));
-const idbAll = (s) => idb(s, 'readonly', (os) => os.getAll());
-const idbKeys = (s) => idb(s, 'readonly', (os) => os.getAllKeys());
-const idbPut = (s, v, k) => idb(s, 'readwrite', (os) => os.put(v, k));
-const idbDel = (s, k) => idb(s, 'readwrite', (os) => os.delete(k));
+const idbGet = (s, k) => idb(s, 'readonly', (os) => os.get(k)).catch(() => undefined);
+const idbPut = (s, v, k) => idb(s, 'readwrite', (os) => os.put(v, k)).catch(() => undefined);
+const idbClear = (s) => idb(s, 'readwrite', (os) => os.clear()).catch(() => undefined);
 
 /* ---------- 暗号化 ---------- */
 async function deriveKek(password, saltBytes, iter) {
@@ -189,6 +183,17 @@ async function deriveKek(password, saltBytes, iter) {
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt: saltBytes, iterations: iter, hash: 'SHA-256' },
     base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+/** パスワードから「データ鍵を包む鍵」と「サーバー用の認証鍵」を作る。
+ *  前半32バイトは deriveKek と同じ値なので、バックアップの形式はそのまま使える */
+async function deriveLogin(password, saltB64, iter) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: unb64(saltB64), iterations: iter, hash: 'SHA-256' }, base, 512));
+  const kek = await crypto.subtle.importKey('raw', bits.slice(0, 32), 'AES-GCM', false, ['encrypt', 'decrypt']);
+  const auth = b64(bits.slice(32));
+  bits.fill(0);
+  return { kek, auth };
 }
 async function aesEnc(k, data) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -198,13 +203,7 @@ async function aesEnc(k, data) {
 const aesDec = (k, iv, ct) => crypto.subtle.decrypt({ name: 'AES-GCM', iv }, k, ct);
 const importDek = (raw) => crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
 
-async function wrapDek(password, raw) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const kek = await deriveKek(password, salt, KDF_ITER);
-  const w = await aesEnc(kek, raw);
-  return { iter: KDF_ITER, salt: b64(salt), wkIv: b64(w.iv), wk: b64(w.ct) };
-}
-/** パスワードでデータ鍵を取り出す。違う場合は例外 */
+/** パスワードでデータ鍵を取り出す（バックアップ・旧データ用）。違う場合は例外 */
 async function unwrapDekRaw(hdr, password) {
   const kek = await deriveKek(password, unb64(hdr.salt), hdr.iter);
   return new Uint8Array(await aesDec(kek, unb64(hdr.wkIv), unb64(hdr.wk)));
@@ -212,56 +211,74 @@ async function unwrapDekRaw(hdr, password) {
 async function decryptJson(k, ivB64, ctB64) {
   return JSON.parse(dec.decode(await aesDec(k, unb64(ivB64), unb64(ctB64))));
 }
+async function encryptJson(k, data) {
+  const { iv, ct } = await aesEnc(k, enc.encode(JSON.stringify(data)));
+  return { iv: b64(iv), ct: b64(ct) };
+}
 function normalize(data) {
   data.entries = data.entries || [];
   data.trash = data.trash || [];
   return data;
 }
 
-/* ---------- 保存 ---------- */
+/* ---------- サーバー通信 ---------- */
+class ApiError extends Error {
+  constructor(status, msg, data) { super(msg); this.status = status; this.data = data || {}; }
+}
 class ConflictError extends Error {}
+let token = null;      // ログイン中のセッション（メモリ上のみ）
 
-/** 暗号化して保存。直前の状態は復元ポイントへ。別タブで更新されていたら中止 */
-async function persist(data, newHeader = header) {
-  const { iv, ct } = await aesEnc(dek, enc.encode(JSON.stringify(data)));
-  const rec = { v: 2, ...newHeader, iv: b64(iv), ct: b64(ct), rev: rev + 1, n: data.entries.length, savedAt: Date.now() };
-  const tx = (await db()).transaction(['meta', 'snapshots'], 'readwrite');
-  const meta = tx.objectStore('meta');
-  const snaps = tx.objectStore('snapshots');
-  let conflict = false;
-  meta.get('vault').onsuccess = (ev) => {
-    const cur = ev.target.result;
-    if (cur && cur.rev !== rev) { conflict = true; tx.abort(); return; }
-    if (cur) snaps.add({ savedAt: cur.savedAt, rev: cur.rev, n: cur.n, iv: cur.iv, ct: cur.ct });
-    meta.put(rec, 'vault');
-    snaps.count().onsuccess = (e2) => {
-      let extra = e2.target.result - MAX_SNAPSHOTS;
-      if (extra <= 0) return;
-      snaps.openCursor().onsuccess = (e3) => {
-        const c = e3.target.result;
-        if (c && extra-- > 0) { c.delete(); c.continue(); }
-      };
-    };
-  };
-  try { await txDone(tx); }
-  catch (e) { throw conflict ? new ConflictError() : e; }
-  rev = rec.rev;
-  header = newHeader;
+async function api(action, body, { raw = false, binary = null, query = '' } = {}) {
+  let res;
+  try {
+    res = await fetch(`api.php?a=${action}${query}`, {
+      method: 'POST',
+      headers: binary
+        ? { 'Content-Type': 'application/octet-stream', ...(token ? { 'X-Auth-Token': token } : {}) }
+        : { 'Content-Type': 'application/json', ...(token ? { 'X-Auth-Token': token } : {}) },
+      body: binary || JSON.stringify(body || {}),
+      cache: 'no-store',
+      credentials: 'omit',
+    });
+  } catch {
+    throw new ApiError(0, 'サーバーに接続できません。通信状態を確認してください。');
+  }
+  if (raw && res.ok) return res.arrayBuffer();
+  let j = {};
+  try { j = await res.json(); } catch {
+    throw new ApiError(res.status, res.status === 404
+      ? 'api.php が見つかりません。サーバーにアップロードされているか確認してください。'
+      : `サーバーの応答が正しくありません（${res.status}）。PHPが使えるか確認してください。`);
+  }
+  if (!res.ok) {
+    if (res.status === 401 && token) { token = null; setTimeout(() => { alert(j.error || 'ログインし直してください'); lock(); }, 0); }
+    if (res.status === 409 && action === 'vault_put') throw new ConflictError(j.error);
+    throw new ApiError(res.status, j.error || `エラー（${res.status}）`, j);
+  }
+  return j;
+}
+
+/* ---------- 保存 ---------- */
+/** 暗号化してサーバーへ保存。直前の状態はサーバー側で復元ポイントに。別の端末で更新済みなら中止 */
+async function persist(data) {
+  const { iv, ct } = await encryptJson(dek, data);
+  const r = await api('vault_put', { base: rev, iv, ct, n: data.entries.length });
+  rev = r.rev;
   prefs.lastChangeAt = Date.now();
   savePrefs();
   updateBackupBanner();
 }
 
-/** 保存済みの最新データを読み直す（別タブで更新された場合） */
+/** サーバーの最新データを読み直す（別の端末で更新された場合） */
 async function reloadVault() {
-  const rec = await idbGet('meta', 'vault');
-  vault = normalize(await decryptJson(dek, rec.iv, rec.ct));
-  header = { iter: rec.iter, salt: rec.salt, wkIv: rec.wkIv, wk: rec.wk };
-  rev = rec.rev;
+  const r = await api('vault_get');
+  vault = normalize(await decryptJson(dek, r.vault.iv, r.vault.ct));
+  header = r.header;
+  rev = r.vault.rev;
 }
 
 /** 変更を複製に適用して保存。成功したときだけ画面のデータに反映。
- *  別タブで先に保存されていたら、最新データを読み直して同じ変更をやり直す */
+ *  別の端末で先に保存されていたら、最新データを読み直して同じ変更をやり直す */
 async function commit(mutate) {
   for (let attempt = 0; ; attempt++) {
     try {
@@ -271,7 +288,7 @@ async function commit(mutate) {
       vault = r;
       return true;
     } catch (e) {
-      if (e instanceof ConflictError && attempt === 0) {
+      if (e instanceof ConflictError && attempt < 2) {
         try { await reloadVault(); continue; } catch { /* 下で通知 */ }
       }
       reportSaveError(e);
@@ -283,203 +300,186 @@ async function commit(mutate) {
 
 function reportSaveError(e) {
   console.error(e);
+  if (e instanceof ApiError && e.status === 401) return;   // ログイン画面へ戻る処理は api() 側で実施
   if (e instanceof ConflictError) {
-    alert('別のタブ／ウィンドウでデータが更新されています。上書きを防ぐため保存を中止しました。\nロックして開き直します。');
-    lock();
-  } else if (e && e.name === 'QuotaExceededError') {
-    alert('端末の空き容量が不足しているため保存できませんでした。\n大きな添付ファイルを減らすか、端末の空き容量を増やしてください。');
+    alert('別の端末で同時に更新されたため保存できませんでした。もう一度お試しください。');
   } else {
     alert('保存に失敗しました。変更は確定していません。\n' + (e && e.message ? e.message : e));
   }
 }
 
-async function requestPersistentStorage() {
-  try {
-    if (navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) {
-      await navigator.storage.persist();
-    }
-  } catch { /* 非対応 */ }
+/* ---------- 添付ファイル（サーバーに暗号化して保存・端末にもキャッシュ） ---------- */
+function packFile(iv, ct) {
+  const out = new Uint8Array(12 + ct.byteLength);
+  out.set(new Uint8Array(iv), 0);
+  out.set(new Uint8Array(ct), 12);
+  return out;
 }
-
-/* ---------- 添付ファイル ---------- */
+async function uploadEncrypted(id, iv, ct) {
+  await api('file_put', null, { binary: packFile(iv, ct), query: `&id=${encodeURIComponent(id)}` });
+  await idbPut('fcache', { iv, ct }, id);
+}
 async function storeFile(file) {
   const id = uid();
   const { iv, ct } = await aesEnc(dek, await file.arrayBuffer());
-  await idbPut('files', { iv, ct, addedAt: Date.now() }, id);
+  await uploadEncrypted(id, iv, ct);
   return { id, name: file.name || 'ファイル', type: file.type || 'application/octet-stream', size: file.size, addedAt: Date.now() };
 }
+/** 暗号化されたままのファイルを取得（キャッシュ → サーバー） */
+async function getEncryptedFile(id) {
+  const c = await idbGet('fcache', id);
+  if (c) return c;
+  const buf = new Uint8Array(await api('file_get', null, { raw: true, query: `&id=${encodeURIComponent(id)}` }));
+  const rec = { iv: buf.slice(0, 12), ct: buf.slice(12).buffer };
+  await idbPut('fcache', rec, id);
+  return rec;
+}
 async function loadFile(att) {
-  const rec = await idbGet('files', att.id);
-  if (!rec) throw new Error('ファイルが見つかりません');
+  const rec = await getEncryptedFile(att.id);
   return new Blob([await aesDec(dek, rec.iv, rec.ct)], { type: att.type });
 }
 
-/** どこからも参照されていないファイルを削除（復元ポイントで参照中のものは残す） */
-async function cleanupFiles() {
-  try {
-    const keep = new Set();
-    const addFrom = (data) => [...(data.entries || []), ...(data.trash || [])]
-      .forEach((e) => (e.attachments || []).forEach((a) => keep.add(a.id)));
-    addFrom(vault);
-    for (const s of await idbAll('snapshots')) addFrom(await decryptJson(dek, s.iv, s.ct));
-    const day = Date.now() - 86400000;
-    const tx = (await db()).transaction('files', 'readwrite');
-    tx.objectStore('files').openCursor().onsuccess = (ev) => {
-      const c = ev.target.result;
-      if (!c) return;
-      if (!keep.has(c.key) && (c.value.addedAt || 0) < day) c.delete();
-      c.continue();
-    };
-    await txDone(tx);
-  } catch (e) {
-    console.warn('cleanup skipped', e);   // 失敗時は何も消さない
-  }
+/* ---------- ログイン画面 ---------- */
+let registered = null;
+async function legacyLocal() {
+  try { return (await idbGet('meta', 'vault')) || null; } catch { return null; }
 }
 
-/* ---------- ロック画面 ---------- */
-async function vaultExists() {
-  return !!(await idbGet('meta', 'vault')) || !!localStorage.getItem(LEGACY_VAULT_KEY);
-}
-
-async function showLock() {
+async function showLock(message) {
   $('#app').hidden = true;
   $('#lockScreen').hidden = false;
   $('#lockErr').textContent = '';
-  $('#masterPw').value = '';
-  $('#masterPw2').value = '';
-  let first;
-  try { first = !(await vaultExists()); }
-  catch {
-    $('#lockMsg').textContent = 'データ保存領域を開けませんでした。プライベートブラウズを解除するか、ブラウザを変えてお試しください。';
+  ['#masterPw', '#masterPw2', '#pin', '#pin2'].forEach((s) => { $(s).value = ''; });
+  $('#lockMsg').textContent = '接続しています…';
+  $('#lockForm').hidden = true;
+  try {
+    registered = (await api('status')).registered;
+  } catch (e) {
+    $('#lockMsg').textContent = e.message;
+    $('#retryWrap').hidden = false;
     return;
   }
+  $('#retryWrap').hidden = true;
+  $('#lockForm').hidden = false;
+  const first = !registered;
   $('#masterPw2Wrap').hidden = !first;
+  $('#pin2Wrap').hidden = !first;
   $('#masterPw2').required = first;
+  $('#pin2').required = first;
   $('#restoreWrap').hidden = !first;
   $('#masterPw').autocomplete = first ? 'new-password' : 'current-password';
-  $('#lockMsg').textContent = first
-    ? '最初に管理者パスワードを設定してください。'
-    : '管理者パスワードを入力してください。';
-  $('#lockBtn').textContent = first ? '設定して開始' : 'ロック解除';
+  $('#lockMsg').textContent = message || (first
+    ? '最初にアカウントを作成します。ユーザー名・パスワード・暗証番号を決めてください。'
+    : 'ユーザー名・パスワード・暗証番号を入力してください。');
+  $('#lockBtn').textContent = first ? 'アカウントを作成して開始' : 'ログイン';
   $('#lockNote').textContent = first
-    ? '※ 管理者パスワードを忘れるとデータは復元できません。8文字以上で、忘れないものを設定してください。'
+    ? '※ パスワードを忘れるとデータは復元できません（サーバーにも保存されていないため）。暗証番号は4〜8桁の数字です。'
     : '';
-  $('#masterPw').focus();
+  $('#username').value = prefs.lastUser || '';
+  ($('#username').value ? $('#masterPw') : $('#username')).focus();
 }
 
-function failState() {
-  try { return JSON.parse(localStorage.getItem(FAIL_KEY) || '{"n":0,"until":0}'); } catch { return { n: 0, until: 0 }; }
+function readLoginForm(first) {
+  const username = $('#username').value.trim();
+  const pw = $('#masterPw').value;
+  const pin = $('#pin').value.trim();
+  if (!username) throw new Error('ユーザー名を入力してください。');
+  if (first) {
+    if (pw.length < 8) throw new Error('パスワードは8文字以上にしてください。');
+    if (pw !== $('#masterPw2').value) throw new Error('確認用パスワードが一致しません。');
+    if (!/^[0-9]{4,8}$/.test(pin)) throw new Error('暗証番号は4〜8桁の数字にしてください。');
+    if (pin !== $('#pin2').value.trim()) throw new Error('確認用の暗証番号が一致しません。');
+  } else if (!pw || !pin) {
+    throw new Error('パスワードと暗証番号を入力してください。');
+  }
+  return { username, pw, pin };
+}
+
+/** アカウント作成（空のデータで開始）。成功するとログイン状態になる */
+async function register({ username, pw, pin }) {
+  const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+  const { kek, auth } = await deriveLogin(pw, salt, KDF_ITER);
+  const raw = crypto.getRandomValues(new Uint8Array(32));
+  const w = await aesEnc(kek, raw);
+  dek = await importDek(raw);
+  raw.fill(0);
+  vault = normalize({});
+  const { iv, ct } = await encryptJson(dek, vault);
+  const r = await api('register', { username, pin, salt, iter: KDF_ITER, auth, wk: b64(w.ct), wkIv: b64(w.iv), iv, ct, n: 0 });
+  token = r.token;
+  header = r.header;
+  rev = r.vault.rev;
+  prefs.lastUser = username;
+  savePrefs();
+}
+
+async function login({ username, pw, pin }) {
+  const pre = await api('prelogin', { username });
+  const { kek, auth } = await deriveLogin(pw, pre.salt, pre.iter);
+  const r = await api('login', { username, auth, pin });
+  token = r.token;
+  const raw = new Uint8Array(await aesDec(kek, unb64(r.header.wkIv), unb64(r.header.wk)));
+  dek = await importDek(raw);
+  raw.fill(0);
+  header = r.header;
+  vault = normalize(await decryptJson(dek, r.vault.iv, r.vault.ct));
+  rev = r.vault.rev;
+  prefs.lastUser = username;
+  savePrefs();
 }
 
 async function onLockSubmit(e) {
   e.preventDefault();
-  const pw = $('#masterPw').value;
   const err = $('#lockErr');
   const btn = $('#lockBtn');
   err.textContent = '';
-
   if (!window.crypto || !crypto.subtle) {
     err.textContent = 'このブラウザ/接続では暗号化機能が使えません。HTTPS で開いてください。';
     return;
   }
-
-  const rec = await idbGet('meta', 'vault');
-  const legacy = !rec && localStorage.getItem(LEGACY_VAULT_KEY);
-
-  if (!rec && !legacy) {   // 初回設定
-    if (pw.length < 8) { err.textContent = '8文字以上にしてください。'; return; }
-    if (pw !== $('#masterPw2').value) { err.textContent = '確認用パスワードが一致しません。'; return; }
-    btn.disabled = true; btn.textContent = '設定中…';
-    try {
-      const raw = crypto.getRandomValues(new Uint8Array(32));
-      const hdr = await wrapDek(pw, raw);
-      dek = await importDek(raw);
-      raw.fill(0);
-      rev = 0;
-      await persist(normalize({}), hdr);
-      vault = normalize({});
-      enterApp();
-    } catch (ex) {
-      err.textContent = '保存に失敗しました: ' + ex.message;
-    } finally {
-      btn.disabled = false;
-    }
-    return;
-  }
-
-  const f = failState();
-  if (f.until > Date.now()) {
-    err.textContent = `入力ミスが続いたため ${Math.ceil((f.until - Date.now()) / 1000)} 秒待ってください。`;
-    return;
-  }
-  btn.disabled = true; btn.textContent = '確認中…';
+  const first = !registered;
+  let form;
+  try { form = readLoginForm(first); } catch (ex) { err.textContent = ex.message; return; }
+  btn.disabled = true;
+  btn.textContent = first ? '作成中…' : '確認中…';
   try {
-    if (rec) {
-      const raw = await unwrapDekRaw(rec, pw);
-      dek = await importDek(raw);
-      raw.fill(0);
-      vault = normalize(await decryptJson(dek, rec.iv, rec.ct));
-      header = { iter: rec.iter, salt: rec.salt, wkIv: rec.wkIv, wk: rec.wk };
-      rev = rec.rev;
-    } else {
-      await migrateLegacy(JSON.parse(legacy), pw);
-    }
-    localStorage.removeItem(FAIL_KEY);
-    enterApp();
+    if (first) await register(form); else await login(form);
+    await enterApp();
+    if (first) offerLegacyMigration();
   } catch (ex) {
-    if (ex && ex.name === 'OperationError') {   // 復号失敗＝パスワード違い
-      f.n += 1;
-      if (f.n >= 5) f.until = Date.now() + Math.min(300, 30 * 2 ** (f.n - 5)) * 1000;
-      localStorage.setItem(FAIL_KEY, JSON.stringify(f));
-      err.textContent = f.n >= 5
-        ? 'パスワードが違います。しばらく待ってから再入力してください。'
-        : `パスワードが違います。（${f.n}回目）`;
-      $('#masterPw').select();
-    } else {
-      err.textContent = '読み込みに失敗しました: ' + (ex && ex.message);
-    }
+    token = null; dek = null; vault = null;
+    let msg = ex.message || String(ex);
+    if (ex instanceof ApiError && ex.status === 403 && ex.data.left != null) msg += `（あと${ex.data.left}回失敗すると15分ロック）`;
+    if (ex instanceof ApiError && ex.status === 429 && ex.data.retryAfter) msg += `（約${Math.ceil(ex.data.retryAfter / 60)}分後に再度お試しください）`;
+    err.textContent = msg;
+    $('#pin').value = '';
+    $('#masterPw').select();
   } finally {
     btn.disabled = false;
-    btn.textContent = 'ロック解除';
+    btn.textContent = first ? 'アカウントを作成して開始' : 'ログイン';
   }
-}
-
-/** 旧版（localStorage）のデータを IndexedDB へ移行。確認できるまで旧データは消さない */
-async function migrateLegacy(blob, pw) {
-  const k = await deriveKek(pw, unb64(blob.salt), blob.iter || KDF_ITER);
-  const data = normalize(JSON.parse(dec.decode(await aesDec(k, unb64(blob.iv), unb64(blob.ct)))));
-  const raw = crypto.getRandomValues(new Uint8Array(32));
-  const hdr = await wrapDek(pw, raw);
-  dek = await importDek(raw);
-  raw.fill(0);
-  rev = 0;
-  await persist(data, hdr);
-  const check = await idbGet('meta', 'vault');
-  await decryptJson(dek, check.iv, check.ct);
-  vault = data;
-  localStorage.removeItem(LEGACY_VAULT_KEY);
 }
 
 async function enterApp() {
   $('#lockScreen').hidden = true;
   $('#app').hidden = false;
-  $('#masterPw').value = '';
-  $('#masterPw2').value = '';
+  ['#masterPw', '#masterPw2', '#pin', '#pin2'].forEach((s) => { $(s).value = ''; });
   lastActivity = Date.now();
   $('#sortSel').value = prefs.sort;
+  $('#userLabel').textContent = prefs.lastUser || '';
   renderChips();
   renderList();
   updateBackupBanner();
-  requestPersistentStorage();
-  // ゴミ箱の期限切れを整理し、不要ファイルを掃除
+  // ゴミ箱の期限切れを整理
   const limit = Date.now() - TRASH_DAYS * 86400000;
   if (vault.trash.some((t) => t.deletedAt < limit)) {
     await commit((v) => { v.trash = v.trash.filter((t) => t.deletedAt >= limit); });
   }
-  setTimeout(() => { if (dek) cleanupFiles(); }, 3000);
+  updateLegacyUi();
 }
 
-function lock() {
+function lock(message) {
+  if (token) { const t = token; token = null; fetch('api.php?a=logout', { method: 'POST', headers: { 'X-Auth-Token': t }, body: '{}' }).catch(() => {}); }
   dek = null; vault = null; header = null; currentId = null; openId = null;
   editAtts = []; pendingFiles = [];
   document.querySelectorAll('dialog[open]').forEach((d) => d.close());
@@ -488,7 +488,69 @@ function lock() {
   $('#list').replaceChildren();
   liveUrls.forEach((u) => URL.revokeObjectURL(u));
   liveUrls.clear();
-  showLock();
+  showLock(typeof message === 'string' ? message : undefined);
+}
+
+/* ---------- 以前（端末内保存）のデータの引き継ぎ ---------- */
+async function updateLegacyUi() {
+  const rec = await legacyLocal();
+  $('#legacyWrap').hidden = !rec;
+  if (rec) $('#legacyInfo').textContent = `この端末には、以前の版で保存したデータ（${rec.n ?? '?'}件・${fmtDate(rec.savedAt)} 保存）が残っています。`;
+}
+
+async function offerLegacyMigration() {
+  const rec = await legacyLocal();
+  if (!rec || !rec.n) return;
+  if (confirm(`この端末に、以前の版で保存したデータ（${rec.n}件）があります。\n新しいアカウントに引き継ぎますか？\n（以前の管理者パスワードが必要です）`)) {
+    await onLegacyMerge();
+  }
+}
+
+/** 端末内に残っている以前のデータを、サーバーのデータへ統合 */
+async function onLegacyMerge() {
+  const rec = await legacyLocal();
+  if (!rec) return;
+  const pw = await askPassword('以前の版で使っていた管理者パスワードを入力してください。');
+  if (pw == null) return;
+  busy('以前のデータを読み込んでいます…');
+  try {
+    let oldDek;
+    try {
+      const raw = await unwrapDekRaw(rec, pw);
+      oldDek = await importDek(raw);
+      raw.fill(0);
+    } catch { throw new Error('以前の管理者パスワードが違います。'); }
+    const data = normalize(await decryptJson(oldDek, rec.iv, rec.ct));
+    busy('サーバーへ引き継いでいます…');
+    // 同じID、または同じ「サービス名＋ログインID」のものは重複として飛ばす
+    const k = (e) => `${(e.service || '').trim().toLowerCase()}\u0000${(e.loginId || '').trim().toLowerCase()}`;
+    const haveId = new Set(vault.entries.map((e) => e.id));
+    const haveKey = new Set(vault.entries.map(k));
+    const toTake = data.entries.filter((e) => !haveId.has(e.id) && !haveKey.has(k(e)));
+    for (const a of toTake.flatMap((e) => e.attachments || [])) {
+      const f = await idbGet('files', a.id);
+      if (!f) continue;
+      const plain = await aesDec(oldDek, f.iv, f.ct);
+      const { iv, ct } = await aesEnc(dek, plain);
+      await uploadEncrypted(a.id, iv, ct);
+    }
+    const ok = await commit((v) => { v.entries.push(...toTake.filter((e) => !v.entries.some((x) => x.id === e.id))); });
+    busyEnd();
+    if (!ok) return;
+    showListAfterImport(`以前のデータから ${toTake.length}件を引き継ぎました（重複 ${data.entries.length - toTake.length}件は省略）`);
+  } catch (e) {
+    busyEnd();
+    alert(e.message || e);
+  }
+}
+
+async function onLegacyDelete() {
+  if (!confirm('この端末に残っている以前のデータを削除します。\nサーバーへの引き継ぎが済んでいることを確認してください。よろしいですか？')) return;
+  await idb('meta', 'readwrite', (os) => os.delete('vault')).catch(() => {});
+  await idbClear('files');
+  await idbClear('snapshots');
+  updateLegacyUi();
+  toast('以前のデータを削除しました');
 }
 
 /* ---------- バックアップ通知 ---------- */
@@ -922,31 +984,24 @@ async function openSettings() {
 }
 
 async function renderSettingsLists() {
-  // データ保護の状態
-  const lines = [];
-  try {
-    const persisted = navigator.storage && navigator.storage.persisted ? await navigator.storage.persisted() : false;
-    lines.push(h('div', { class: 'status-row' }, h('span', null, '保存の保護'),
-      h('span', { class: persisted ? 'ok' : 'warn' }, persisted ? '✓ 永続化済み' : '△ 未許可')));
-    if (!persisted) lines.push(h('p', { class: 'muted small' },
-      'ブラウザが容量不足時にデータを消す可能性があります。ホーム画面に追加（インストール）すると保護されやすくなります。定期的なバックアップをおすすめします。'));
-    if (navigator.storage && navigator.storage.estimate) {
-      const est = await navigator.storage.estimate();
-      lines.push(h('div', { class: 'status-row' }, h('span', null, '使用容量'),
-        h('span', null, `${fmtSize(est.usage || 0)} / ${fmtSize(est.quota || 0)}`)));
-    }
-  } catch { /* 非対応 */ }
-  lines.push(h('div', { class: 'status-row' }, h('span', null, '最終バックアップ'),
-    h('span', { class: prefs.lastBackupAt ? '' : 'warn' }, prefs.lastBackupAt ? fmtDate(prefs.lastBackupAt) : '未実施')));
+  // 保存の状態
+  const lines = [
+    h('div', { class: 'status-row' }, h('span', null, 'ログイン中'), h('span', null, prefs.lastUser || '-')),
+    h('div', { class: 'status-row' }, h('span', null, '保存先'), h('span', { class: 'ok' }, '✓ サーバー（暗号化済み）')),
+    h('div', { class: 'status-row' }, h('span', null, '最終バックアップ'),
+      h('span', { class: prefs.lastBackupAt ? '' : 'warn' }, prefs.lastBackupAt ? fmtDate(prefs.lastBackupAt) : '未実施')),
+    h('p', { class: 'muted small' }, 'データはこの端末で暗号化してからサーバーに保存しています。サーバーの管理者でも中身は読めません。サーバーの障害に備えて、バックアップも定期的に取ってください。'),
+  ];
   $('#storageStatus').replaceChildren(...lines);
 
-  // 復元ポイント
-  const snaps = (await idbAll('snapshots')).sort((a, b) => b.sid - a.sid);
+  // 復元ポイント（サーバー側に保存）
+  let snaps = [];
+  try { snaps = (await api('snapshots')).items; } catch (e) { snaps = []; }
   $('#snapList').replaceChildren(
     snaps.length ? '' : h('p', { class: 'muted small' }, 'まだありません。保存するたびに直前の状態が自動で記録されます。'),
-    ...snaps.slice(0, 20).map((s) => h('div', { class: 'list-row' },
-      h('span', null, fmtDate(s.savedAt), h('span', { class: 'muted small' }, `　${s.n ?? '?'}件`)),
-      h('button', { class: 'btn sm', type: 'button', onclick: () => restoreSnapshot(s) }, 'この時点に戻す'))));
+    ...snaps.slice(0, 20).map((sn) => h('div', { class: 'list-row' },
+      h('span', null, fmtDate(sn.savedAt), h('span', { class: 'muted small' }, `　${sn.n ?? '?'}件`)),
+      h('button', { class: 'btn sm', type: 'button', onclick: () => restoreSnapshot(sn) }, 'この時点に戻す'))));
 
   // ゴミ箱
   const trash = vault.trash.slice().sort((a, b) => b.deletedAt - a.deletedAt);
@@ -963,8 +1018,10 @@ async function renderSettingsLists() {
 async function restoreSnapshot(s) {
   if (!confirm(`${fmtDate(s.savedAt)} の状態に戻しますか？\n（今の状態も復元ポイントとして残るので、元に戻すこともできます）`)) return;
   let data;
-  try { data = normalize(await decryptJson(dek, s.iv, s.ct)); }
-  catch { alert('この復元ポイントは読み込めませんでした。'); return; }
+  try {
+    const rec = await api('snapshot', null, { query: `&sid=${s.sid}` });
+    data = normalize(await decryptJson(dek, rec.iv, rec.ct));
+  } catch { alert('この復元ポイントは読み込めませんでした。'); return; }
   if (!(await commit(() => data))) return;
   openId = null;
   renderChips(); renderList(); renderSettingsLists();
@@ -997,32 +1054,95 @@ async function onChangeMaster(ev) {
   const oldPw = $('#cpOld').value, n1 = $('#cpNew').value, n2 = $('#cpNew2').value;
   if (n1.length < 8) { err.textContent = '新しいパスワードは8文字以上にしてください。'; return; }
   if (n1 !== n2) { err.textContent = '確認用パスワードが一致しません。'; return; }
-  let raw;
-  try { raw = await unwrapDekRaw(header, oldPw); }
-  catch { err.textContent = '現在のパスワードが違います。'; return; }
-  const newHdr = await wrapDek(n1, raw);
-  raw.fill(0);
-  try { await persist(vault, newHdr); }
-  catch (e) { reportSaveError(e); return; }
-  ev.target.reset();
-  toast('管理者パスワードを変更しました。今後のバックアップは新しいパスワードで開きます。', 4000);
+  busy('パスワードを変更しています…');
+  try {
+    const old = await deriveLogin(oldPw, header.salt, header.iter);
+    let raw;
+    try { raw = new Uint8Array(await aesDec(old.kek, unb64(header.wkIv), unb64(header.wk))); }
+    catch { throw new Error('現在のパスワードが違います。'); }
+    const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+    const neu = await deriveLogin(n1, salt, KDF_ITER);
+    const w = await aesEnc(neu.kek, raw);
+    raw.fill(0);
+    const r = await api('password', { authOld: old.auth, salt, iter: KDF_ITER, authNew: neu.auth, wk: b64(w.ct), wkIv: b64(w.iv) });
+    header = r.header;
+    ev.target.reset();
+    busyEnd();
+    toast('パスワードを変更しました。ほかの端末でも新しいパスワードでログインしてください。', 4500);
+  } catch (e) {
+    busyEnd();
+    err.textContent = e.message || String(e);
+  }
+}
+
+/** 本人確認：現在のパスワードから認証鍵を作る */
+async function authFromPassword(pw) {
+  return (await deriveLogin(pw, header.salt, header.iter)).auth;
+}
+
+async function onChangePin(ev) {
+  ev.preventDefault();
+  const err = $('#pinErr');
+  err.textContent = '';
+  const pw = $('#cpinPw').value, p1 = $('#cpinNew').value.trim(), p2 = $('#cpinNew2').value.trim();
+  if (!/^[0-9]{4,8}$/.test(p1)) { err.textContent = '暗証番号は4〜8桁の数字にしてください。'; return; }
+  if (p1 !== p2) { err.textContent = '確認用の暗証番号が一致しません。'; return; }
+  busy('暗証番号を変更しています…');
+  try {
+    await api('pin', { auth: await authFromPassword(pw), pin: p1 });
+    ev.target.reset();
+    busyEnd();
+    toast('暗証番号を変更しました', 3500);
+  } catch (e) {
+    busyEnd();
+    err.textContent = e.status === 403 ? 'パスワードが違います。' : (e.message || String(e));
+  }
+}
+
+async function onChangeUser(ev) {
+  ev.preventDefault();
+  const err = $('#cuErr');
+  err.textContent = '';
+  const name = $('#cuName').value.trim(), pw = $('#cuPw').value;
+  if (!name) { err.textContent = '新しいユーザー名を入力してください。'; return; }
+  busy('ユーザー名を変更しています…');
+  try {
+    await api('username', { auth: await authFromPassword(pw), username: name });
+    prefs.lastUser = name; savePrefs();
+    $('#userLabel').textContent = name;
+    ev.target.reset();
+    busyEnd();
+    renderSettingsLists();
+    toast('ユーザー名を変更しました', 3500);
+  } catch (e) {
+    busyEnd();
+    err.textContent = e.status === 403 ? 'パスワードが違います。' : (e.message || String(e));
+  }
 }
 
 /* ---------- バックアップ ---------- */
 async function buildBackup() {
-  await persist(vault);   // 最新状態を確定
-  const rec = await idbGet('meta', 'vault');
-  const ids = new Set();
-  [...vault.entries, ...vault.trash].forEach((e) => (e.attachments || []).forEach((a) => ids.add(a.id)));
-  const files = {};
-  for (const id of ids) {
-    const f = await idbGet('files', id);
-    if (f) files[id] = { iv: b64(f.iv), ct: b64(f.ct) };
+  busy('バックアップを作成しています…');
+  try {
+    const { iv, ct } = await encryptJson(dek, vault);
+    const vaultRec = { v: 2, iter: header.iter, salt: header.salt, wkIv: header.wkIv, wk: header.wk, iv, ct, n: vault.entries.length, savedAt: Date.now() };
+    const ids = new Set();
+    [...vault.entries, ...vault.trash].forEach((e) => (e.attachments || []).forEach((a) => ids.add(a.id)));
+    const files = {};
+    let missing = 0;
+    for (const id of ids) {
+      try {
+        const f = await getEncryptedFile(id);
+        files[id] = { iv: b64(f.iv), ct: b64(f.ct) };
+      } catch { missing++; }
+    }
+    const json = JSON.stringify({ app: 'account-manager', format: 2, exportedAt: Date.now(), vault: vaultRec, files });
+    const name = `account-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    if (missing) alert(`添付ファイル ${missing}件を取得できなかったため、バックアップに含まれていません。`);
+    return { blob: new Blob([json], { type: 'application/json' }), name, nFiles: Object.keys(files).length };
+  } finally {
+    busyEnd();
   }
-  const { rev: _r, ...vaultRec } = rec;
-  const json = JSON.stringify({ app: 'account-manager', format: 2, exportedAt: Date.now(), vault: vaultRec, files });
-  const name = `account-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  return { blob: new Blob([json], { type: 'application/json' }), name, nFiles: Object.keys(files).length };
 }
 
 function markBackedUp() {
@@ -1109,7 +1229,7 @@ async function pickBackup(file, message) {
     return { bk, pw, ...opened };
   } catch (e) {
     busyEnd();
-    if (e && e.name === 'OperationError') throw new Error('パスワードが違います。バックアップを作った端末の管理者パスワードを入力してください。');
+    if (e && e.name === 'OperationError') throw new Error('パスワードが違います。バックアップを作ったときのパスワードを入力してください。');
     throw e;
   }
 }
@@ -1140,14 +1260,14 @@ async function openBackup(bk, pw) {
   return { data: normalize(await decryptJson(dekB, bk.vault.iv, bk.vault.ct)), dekB };
 }
 
-/** バックアップのファイルを現在のデータ鍵で暗号化し直して保存 */
+/** バックアップのファイルを現在のデータ鍵で暗号化し直してサーバーへ保存 */
 async function importFiles(bk, dekB, atts) {
   for (const a of atts) {
     const f = bk.files[a.id];
-    if (!f || (await idbGet('files', a.id))) continue;
+    if (!f) continue;
     const plain = await aesDec(dekB, unb64(f.iv), unb64(f.ct));
     const { iv, ct } = await aesEnc(dek, plain);
-    await idbPut('files', { iv, ct, addedAt: Date.now() }, a.id);
+    await uploadEncrypted(a.id, iv, ct);
   }
 }
 
@@ -1191,12 +1311,12 @@ async function onReplace(ev) {
   ev.target.value = '';
   if (!file) return;
   try {
-    const r = await pickBackup(file, 'バックアップ作成時の管理者パスワードを入力してください。（このデバイスの管理者パスワードは変わりません）');
+    const r = await pickBackup(file, 'バックアップ作成時のパスワードを入力してください。（今のログイン用パスワードは変わりません）');
     if (!r) return;
     busyEnd();
     const { bk, data, dekB } = r;
     const when = bk.exportedAt ? fmtDate(bk.exportedAt) : '不明';
-    if (!confirm(`このデバイスのデータを、バックアップ（${when} 作成・${data.entries.length}件）の内容で置き換えます。\n\n今のデータ（${vault.entries.length}件）は復元ポイントに残るので、あとで戻せます。よろしいですか？`)) return;
+    if (!confirm(`データを、バックアップ（${when} 作成・${data.entries.length}件）の内容で置き換えます。すべての端末に反映されます。\n\n今のデータ（${vault.entries.length}件）は復元ポイントに残るので、あとで戻せます。よろしいですか？`)) return;
     busy('置き換えています…');
     if (dekB) await importFiles(bk, dekB, [...data.entries, ...data.trash].flatMap((e) => e.attachments || []));
     const ok = await commit(() => data);
@@ -1253,49 +1373,56 @@ async function onPlainImport(ev) {
   toast(`取り込み完了：${fresh.length}件を追加しました。元ファイルは削除してください。`, 5000);
 }
 
-/** 初回画面から：バックアップで丸ごと復元（新しい端末への移行用） */
+/** 初回画面から：アカウントを作成して、バックアップの内容で始める */
 async function onRestoreFirst(ev) {
   const file = ev.target.files[0];
   ev.target.value = '';
   if (!file) return;
   const err = $('#lockErr');
   err.textContent = '';
+  let form;
+  try { form = readLoginForm(true); }
+  catch (e) { err.textContent = '先に上の欄（ユーザー名・パスワード・暗証番号）を入力してください。' + e.message; return; }
   try {
-    const r = await pickBackup(file, 'バックアップ作成時の管理者パスワードを入力してください。復元後はこのパスワードでロック解除します。');
+    const r = await pickBackup(file, 'バックアップ作成時の管理者パスワードを入力してください。');
     if (!r) return;
-    busy('復元しています…');
-    const { bk, pw, data, dekB } = r;
-    const raw = crypto.getRandomValues(new Uint8Array(32));
-    const hdr = await wrapDek(pw, raw);
-    dek = await importDek(raw);
-    raw.fill(0);
+    busy('アカウントを作成しています…');
+    await register(form);
+    busy('バックアップの内容を保存しています…');
+    const { bk, data, dekB } = r;
     if (dekB) await importFiles(bk, dekB, [...data.entries, ...data.trash].flatMap((e) => e.attachments || []));
-    rev = 0;
-    await persist(data, hdr);
+    await persist(data);
     vault = data;
     prefs.lastBackupAt = bk.exportedAt || Date.now();
     savePrefs();
     busyEnd();
     await enterApp();
-    toast(`復元しました（${data.entries.length}件）`, 4000);
+    toast(`アカウントを作成し、バックアップから復元しました（${data.entries.length}件）`, 4500);
   } catch (e) {
     busyEnd();
-    dek = null; vault = null;
+    if (token) { lock(); }
     err.textContent = (e && e.message) ? e.message : '復元に失敗しました: ' + e;
   }
 }
 
 async function onWipe() {
-  if (!confirm('すべてのアカウント・添付ファイル・復元ポイントと管理者パスワードを削除します。\n先にバックアップを取ることを強くおすすめします。よろしいですか？')) return;
+  if (!confirm('サーバー上のすべてのアカウント情報・添付ファイル・復元ポイントと、ログイン用のアカウントを削除します。\nすべての端末で使えなくなります。先にバックアップを取ることを強くおすすめします。よろしいですか？')) return;
   if (prompt('確認のため「削除」と入力してください') !== '削除') return;
-  (await db()).close();
-  dbPromise = null;
-  await reqP(indexedDB.deleteDatabase(DB_NAME)).catch(() => {});
-  localStorage.removeItem(LEGACY_VAULT_KEY);
-  localStorage.removeItem(FAIL_KEY);
-  prefs.lastBackupAt = 0; prefs.lastChangeAt = 0; savePrefs();
-  lock();
-  toast('すべてのデータを削除しました');
+  const pw = await askPassword('本人確認のため、パスワードを入力してください。');
+  if (pw == null) return;
+  busy('削除しています…');
+  try {
+    await api('wipe', { auth: await authFromPassword(pw) });
+    await idbClear('fcache');
+    prefs.lastBackupAt = 0; prefs.lastChangeAt = 0; savePrefs();
+    busyEnd();
+    token = null;
+    lock();
+    toast('すべてのデータを削除しました');
+  } catch (e) {
+    busyEnd();
+    alert(e.status === 403 ? 'パスワードが違います。' : (e.message || e));
+  }
 }
 
 /* ---------- 自動ロック ---------- */
@@ -1398,6 +1525,11 @@ function init() {
   $('#bannerBackupBtn').addEventListener('click', onExport);
   $('#autoLockSel').addEventListener('change', () => { prefs.autoLockMin = Number($('#autoLockSel').value); savePrefs(); toast('自動ロックを変更しました'); });
   $('#changePwForm').addEventListener('submit', onChangeMaster);
+  $('#changePinForm').addEventListener('submit', onChangePin);
+  $('#changeUserForm').addEventListener('submit', onChangeUser);
+  $('#legacyMergeBtn').addEventListener('click', onLegacyMerge);
+  $('#legacyDeleteBtn').addEventListener('click', onLegacyDelete);
+  $('#retryBtn').addEventListener('click', () => showLock());
   $('#exportBtn').addEventListener('click', onExport);
   $('#shareBtn').addEventListener('click', onShareBackup);
   $('#importBtn').addEventListener('click', () => $('#importFile').click());
