@@ -565,6 +565,14 @@
     .fee-in { font-family: var(--mono); font-size: 18px; letter-spacing: .04em; }
     .etc-fee { margin: 0 0 6px 56px; }
     .etc-fee label.fl { margin-top: 8px; }
+    .nc-btn { width: 100%; margin-top: 8px; min-height: 40px; }
+    .nc-form-row { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+    .nc-form { display: flex; gap: 8px; align-items: stretch; margin-top: 6px; }
+    .nc-form select.input { flex: 1; min-width: 0; }
+    .nc-form .btn { flex: none; min-height: 44px; }
+    .mail-from { margin: 0 0 10px; padding: 8px 10px; border: 1px solid var(--ok); border-left-width: 3px; border-radius: 8px; font-size: 13px; }
+    .mail-from .row { display: flex; gap: 8px; margin-top: 8px; }
+    .mail-from .btn { flex: 1; min-height: 38px; font-size: 12.5px; padding: 4px 8px; }
     .etc-row { display: grid; grid-template-columns: 48px 1fr; align-items: center; gap: 8px; margin-top: 6px; }
     .etc-lb { font-weight: 800; font-size: 14px; padding-left: 8px; border-left: 3px solid var(--ok); }
     .etc-row .seg button { min-height: 40px; flex-direction: row; font-size: 13px; }
@@ -815,6 +823,8 @@
         <ul>
           <li>通話済・留守電・コールのみ・SMS・Mailの結果をタップで記録します（時刻つき）。通話できた方（本人・配偶者など）も選べます。</li>
           <li>「直前電話」「直前Mail」をオンにすると、その案件のカードに赤い印が出ます。上の赤いバナーは、その案件が<b>次の訪問</b>になったときだけ出ます。「通話済」「Mail送信」を記録すると完了、案件が「完了」になると印は消えます。</li>
+          <li>「直前Mail」をオンにすると、その下に「メールのひな形を開く」ボタンが出ます。トップに戻らずに、メールの定型文を開けます。メールを作ったら「Mail送信を記録して案件に戻る」を押すと、記録して案件の画面に戻ります。{時間1}{時間2}には、その案件の開始・終了の時刻が入ります。</li>
+          <li>「フォーム報告」をオンにすると、設定の「連携アプリ」に登録したURLから開くフォームを選んで、「フォームを開く」で開けます。報告を終えたら「フォーム報告済」を押すと完了です（赤い印が消えます）。</li>
           <li>本文やメモの中の電話番号は、タップすると電話アプリが開きます。</li>
         </ul>
       </details>
@@ -1065,6 +1075,7 @@
     callonly:  { label: 'コールのみ', short: 'コールのみ', tone: 'warn', chip: 'warn',  icon: 'ring' },
     sms:       { label: 'SMS送信',  short: 'SMS',   tone: 'info',    chip: 'info',   icon: 'sms' },
     mail:      { label: 'Mail送信', short: 'Mail',  tone: 'info',    chip: 'info',   icon: 'mail' },
+    form:      { label: 'フォーム報告済', short: 'フォーム', tone: 'info', chip: 'info', icon: 'link' },
   };
   const WHO = [['self', 'ご本人様'], ['spouse', '配偶者様'], ['family', 'ご家族様'], ['other', 'その他（別の方）']];
   const whoText = (c) => { const w = c.who || []; return w.length ? w.map(k => (k === 'other' && c.whoNote ? c.whoNote : (WHO.find(x => x[0] === k) || [0, k])[1])).join('・') : ''; };
@@ -1089,14 +1100,15 @@
   const parkFeeOf = (j) => feeNum(j.parking && j.parking.fee);
   const parseYenInput = (str) => { const n = parseInt(String(str).normalize('NFKC').replace(/[^0-9]/g, ''), 10); return n > 0 ? n : null; };
   const expensesOfDay = (jobs) => jobs.reduce((a, j) => { a.etc += etcFeeOf(j); a.park += parkFeeOf(j); return a; }, { etc: 0, park: 0 });
-  const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms', 'mail'];
-  const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent', mail: 'accent' };
+  const CONTACT_BUTTONS = ['talked', 'voicemail', 'callonly', 'sms', 'mail', 'form'];
+  const LOG_COLOR = { talked: 'ok', voicemail: 'purple', callonly: 'gold-text', sms: 'accent', mail: 'accent', form: 'accent' };
   // 直前連絡の完了判定：電話は「通話済」、メールは「Mail送信」が履歴にあれば完了
   const callDone = (j) => j.contact.log.some(l => l.status === 'talked');
   const mailDone = (j) => j.contact.log.some(l => l.status === 'mail');
+  const formDone = (j) => j.contact.log.some(l => l.status === 'form');
   // 作業が「完了」の案件は、直前連絡の注意（バナー・バッジ・カードの印）を出さない
-  const flaggedAny = (j) => !!(j.needCall || j.needMail) && j.work !== 'done';
-  const pendingFlags = (j) => (j.work === 'done' ? [] : [j.needCall && !callDone(j) ? 'call' : null, j.needMail && !mailDone(j) ? 'mail' : null].filter(Boolean));
+  const flaggedAny = (j) => !!(j.needCall || j.needMail || j.needForm) && j.work !== 'done';
+  const pendingFlags = (j) => (j.work === 'done' ? [] : [j.needCall && !callDone(j) ? 'call' : null, j.needMail && !mailDone(j) ? 'mail' : null, j.needForm && !formDone(j) ? 'form' : null].filter(Boolean));
   const PARKING = {
     unknown: { label: '未確認', tone: 'neutral', chip: '' },
     yes:     { label: 'あり',   tone: 'ok',      chip: 'ok' },
@@ -1262,7 +1274,7 @@
     // Summary
     const jobs = day.jobs;
     const total = jobs.length;
-    const contacted = jobs.filter(j => j.contact.status !== 'none').length;
+    const contacted = jobs.filter(j => j.contact.log.some(l => l.status !== 'form')).length;
     const parking = jobs.filter(j => j.parking.status !== 'unknown').length;
     const done = jobs.filter(j => j.work === 'done').length;
     $('#sumTotal').innerHTML = `${total}<small>件</small>`;
@@ -1348,9 +1360,9 @@
     const pf = nxt ? pendingFlags(nxt) : [];
     const ub = $('#urgentBanner');
     if (pf.length) {
-      const parts = [pf.includes('call') ? '電話' : '', pf.includes('mail') ? 'Mail' : ''].filter(Boolean).join('・');
+      const parts = [pf.includes('call') ? '電話' : '', pf.includes('mail') ? 'Mail' : '', pf.includes('form') ? 'フォーム報告' : ''].filter(Boolean).join('・');
       ub.classList.remove('hidden'); ub.classList.remove('done');
-      ub.innerHTML = `${icon(pf.includes('call') ? 'phone' : 'mail')}<span>次の訪問は直前連絡が必要：${parts}<small>タップで次の訪問の案件を開く</small></span>`;
+      ub.innerHTML = `${icon(pf.includes('call') ? 'phone' : (pf.includes('mail') ? 'mail' : 'link'))}<span>次の訪問は直前連絡が必要：${parts}<small>タップで次の訪問の案件を開く</small></span>`;
     } else ub.classList.add('hidden');
     const du = $('#dateUrgent');
     du.classList.toggle('hidden', !pf.length);
@@ -1373,6 +1385,7 @@
     const out = [];
     if (j.needCall) { const d = callDone(j); if (!(pendingOnly && d)) out.push(`<span class="urgent-tag${d ? ' done' : ''}">${icon(d ? 'check' : 'phone')}${d ? '直前電話 済' : '直前電話が必要'}</span>`); }
     if (j.needMail) { const d = mailDone(j); if (!(pendingOnly && d)) out.push(`<span class="urgent-tag${d ? ' done' : ''}">${icon(d ? 'check' : 'mail')}${d ? '直前Mail 済' : '直前Mailが必要'}</span>`); }
+    if (j.needForm) { const d = formDone(j); if (!(pendingOnly && d)) out.push(`<span class="urgent-tag${d ? ' done' : ''}">${icon(d ? 'check' : 'link')}${d ? 'フォーム報告 済' : 'フォーム報告が必要'}</span>`); }
     return out.join('');
   }
 
@@ -1440,6 +1453,19 @@
     return list.map(sp => `<a href="tel:${sp.tel}">${icon('phone')}${esc(sp.norm)}</a>`).join('');
   }
 
+  // フォーム報告：設定の「連携アプリ（定型リンク）」に登録したURLから選んで開く
+  function formLinkOf(j) {
+    const links = settings.links || [];
+    return links.find(l => l.id === j.formLinkId) || links.find(l => l.id === settings.formLinkId) || links[0] || null;
+  }
+  function formPickerHtml(j) {
+    const links = settings.links || [];
+    if (!links.length) return `<div class="nc-form"><p class="help" style="margin:6px 0 0;">フォームのURLを、設定の「連携アプリ」に登録してください。</p><button class="btn sm secondary" id="dFormSettings" type="button">設定を開く</button></div>`;
+    const cur = formLinkOf(j);
+    return `<div class="nc-form"><select class="input" id="dFormLink" aria-label="開くフォーム">${links.map(l => `<option value="${esc(l.id)}" ${cur && cur.id === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select>
+      <button class="btn sm" id="dFormOpen" type="button">${icon('ext')}フォームを開く</button></div>`;
+  }
+
   function renderDetail() {
     const j = findJob(openId);
     if (!j) { closeSheets(); return; }
@@ -1495,7 +1521,15 @@
             <label class="switch"><input type="checkbox" id="dNeedMail" ${j.needMail ? 'checked' : ''}><span></span></label>
           </div>
         </div>
-        <p class="help">オンにすると、トップ画面に赤い印が出ます。</p>
+        ${j.needMail ? `<button class="btn sm nc-btn" id="dMailOpen" type="button">${icon('mail')}メールのひな形を開く</button>` : ''}
+        <div class="nc-grid nc-form-row">
+          <div class="switch-row">
+            <div class="tx"><b>フォーム報告</b><small>「フォーム報告済」で完了</small></div>
+            <label class="switch"><input type="checkbox" id="dNeedForm" ${j.needForm ? 'checked' : ''}><span></span></label>
+          </div>
+        </div>
+        ${j.needForm ? formPickerHtml(j) : ''}
+        <p class="help">オンにすると、案件カードに赤い印が出ます（次の訪問のときは、上にも出ます）。</p>
       </div>
 
       <div class="card">
@@ -1614,6 +1648,17 @@
     const saveParkNote = debounce(() => { j.parking.note = parkNote.value; saveDay(); render(); flash('parking'); $('#phoneChips').innerHTML = phoneChipsHtml(j); }, 400);
     const saveMemo = debounce(() => { j.memo = memo.value; saveDay(); render(); flash('memo'); $('#phoneChips').innerHTML = phoneChipsHtml(j); }, 400);
     $('#dNeedMail').addEventListener('change', (e) => { j.needMail = e.target.checked; saveDay(); render(); toast(j.needMail ? '直前Mailが必要としてマークしました（トップ画面に表示されます）' : '直前Mailのマークを外しました'); });
+    $('#dNeedForm').addEventListener('change', (e) => { j.needForm = e.target.checked; saveDay(); render(); renderDetail(); toast(j.needForm ? 'フォーム報告が必要としてマークしました' : 'フォーム報告のマークを外しました'); });
+    const fl = $('#dFormLink');
+    if (fl) fl.addEventListener('change', () => { j.formLinkId = fl.value; settings.formLinkId = fl.value; saveSettings(); saveDay(); });
+    const fo = $('#dFormOpen');
+    if (fo) fo.addEventListener('click', () => {
+      const l = formLinkOf(j); if (!l) return;
+      j.formLinkId = l.id; saveDay();
+      openUrl(fillTemplate(l.url, j));
+    });
+    const fs = $('#dFormSettings'); if (fs) fs.addEventListener('click', () => openSettings());
+    const mo = $('#dMailOpen'); if (mo) mo.addEventListener('click', () => openMailForJob(j));
     $('#dNeedCall').addEventListener('change', (e) => { j.needCall = e.target.checked; saveDay(); render(); toast(j.needCall ? '直前電話が必要としてマークしました（トップ画面に表示されます）' : '直前電話のマークを外しました'); });
     parkNote.addEventListener('input', saveParkNote);
     memo.addEventListener('input', saveMemo);
@@ -1889,11 +1934,14 @@
     document.body.style.overflow = 'hidden';
   }
   function closeSheets() {
+    const wasMail = !!($('#mailSheet') && $('#mailSheet').classList.contains('show'));
     document.querySelectorAll('.sheet.show').forEach(s => s.classList.remove('show'));
     scrim.classList.remove('show');
     document.body.style.overflow = '';
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     openId = null;
+    // 案件の詳細から開いたメールの画面を閉じたら、その案件に戻る（TOPに戻らない）
+    if (wasMail && mailReturnId) { const id = mailReturnId; mailReturnId = null; if (findJob(id)) setTimeout(() => openDetail(id), 0); }
   }
   scrim.addEventListener('click', closeSheets);
   document.querySelectorAll('[data-close]').forEach(b => { b.innerHTML = icon('close'); b.addEventListener('click', closeSheets); });
@@ -2682,6 +2730,15 @@
     return t || null;
   }
 
+  let mailReturnId = null; // 案件の詳細から開いたとき、閉じたらその案件に戻す
+  function openMailForJob(j) {
+    mailReturnId = j.id;
+    mst.jobPreset = {};
+    if (!j.allDay && j.start) mst.jobPreset['時間1'] = hm(j.start);
+    if (!j.allDay && j.end) mst.jobPreset['時間2'] = hm(j.end);
+    mst.path = []; mst.view = 'browse'; mst.editing = false;
+    openMail();
+  }
   function openMail() {
     $('#mailDates').innerHTML = mailDateOptions().map(o => `<option value="${esc(o)}">`).join('');
     renderMail();
@@ -2692,6 +2749,7 @@
     const vals = {};
     mailTokensOf(t).forEach(k => {
       if (k in mst.values) vals[k] = mst.values[k];
+      else if (mst.jobPreset && k in mst.jobPreset) vals[k] = mst.jobPreset[k];
       else if (k === '日付') vals[k] = mailDateLabel(parseYmd(current));
       else vals[k] = MAIL_NO_REMEMBER.includes(k) ? '' : (mail.vars[k] || '');
     });
@@ -2708,7 +2766,12 @@
     const crumbs = [{ name: 'TOP' }];
     { let l = mail.tree; for (const id of mst.path) { const f = l.find(x => x.id === id); crumbs.push({ name: f.name }); l = f.children; } }
 
-    let html = `<div class="m-path"><span class="lb">PATH</span>${crumbs.map((c, i) =>
+    let html = '';
+    if (mailReturnId && findJob(mailReturnId)) {
+      const mj = findJob(mailReturnId);
+      html += `<div class="mail-from"><b>「${esc(mj.title || '案件')}」への連絡</b><div class="row"><button class="btn sm" type="button" data-act="mailLogBack">Mail送信を記録して案件に戻る</button><button class="btn sm secondary" type="button" data-act="mailJustBack">記録せず戻る</button></div></div>`;
+    }
+    html += `<div class="m-path"><span class="lb">PATH</span>${crumbs.map((c, i) =>
       `<button type="button" class="crumb" data-crumb="${i}">${esc(c.name)}</button>`).join('<span class="sep">›</span>')}</div>`;
     if (mst.editing) html += '<p class="help" style="margin:0 0 10px;">編集モード：↑↓で並び替え、✎で名前・内容の変更、ゴミ箱で削除します。</p>';
 
@@ -2865,6 +2928,13 @@
   }
 
   $('#mBody').addEventListener('click', async (e) => {
+    const ja = e.target.closest('[data-act="mailLogBack"], [data-act="mailJustBack"]');
+    if (ja) {
+      const id = mailReturnId, mj = id && findJob(id);
+      if (mj && ja.dataset.act === 'mailLogBack') { mj.contact.log.push({ status: 'mail', at: new Date().toISOString() }); mj.contact.status = 'mail'; saveDay(); render(); toast('Mail送信を記録しました'); }
+      closeSheets();
+      return;
+    }
     const crumb = e.target.closest('[data-crumb]');
     if (crumb) { mst.path = mst.path.slice(0, Number(crumb.dataset.crumb)); renderMail(); return; }
 
@@ -2999,7 +3069,7 @@
 
   $('#btnSync').addEventListener('click', sync);
   $('#btnSettings').addEventListener('click', openSettings);
-  $('#tabMail').addEventListener('click', openMail);
+  $('#tabMail').addEventListener('click', () => { mailReturnId = null; mst.jobPreset = null; openMail(); });
   $('#mailTimes').innerHTML = mailTimeOptions().map(o => `<option value="${o}">`).join('');
   $('#mEditToggle').innerHTML = icon('edit');
   $('#btnPrev').addEventListener('click', () => goTo(addDays(current, -1)));

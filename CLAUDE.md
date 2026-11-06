@@ -56,6 +56,8 @@
 - 送信は `mailto:`（宛先・CC・件名・本文）で端末のメールアプリを開く。WebView側は既存の外部リンク処理で起動する。
 - 詳細画面の「予定の内容」の住所の文字は大きめ（20px・太字）。
 - 時間は大きく強調する（案件カード17px・詳細の見出し26px・「次の訪問」20px、等幅・太字・金色 #FFCC33）。一番下のボタンは「前の日／今日へ／次の日」。
+- メールのひな形は案件の詳細から直接開ける（2026-11-06、ユーザー指示）。「直前Mail」がオンの案件には「メールのひな形を開く」ボタン（`#dMailOpen` / `openMailForJob`）を出し、TOPに戻らずにMailシートを開く。`{時間1}` `{時間2}` は案件の開始・終了時刻で初期入力する（`mst.jobPreset`）。Mailシートの上に「Mail送信を記録して案件に戻る」「記録せず案件に戻る」を出し、シートを閉じると案件の詳細へ戻る（`mailReturnId`）。上部メニューの「Mail」から開いたときは従来どおり。
+- 案件ごとの「フォーム報告」（`job.needForm` / `job.formLinkId`）：直前電話・直前Mailと同じON/OFFスイッチ。オンにすると、設定の「連携アプリ」（`settings.links`）に登録したURLを選ぶプルダウンと「フォームを開く」ボタンを出す（`formPickerHtml` / `formLinkOf`。URLは `fillTemplate` で住所等を差し込む。最後に選んだリンクを `settings.formLinkId` に覚える）。完了は連絡履歴の「フォーム報告済」（`formDone`）。開いただけでは完了にならない。赤い印・次の訪問のバナー・「作業完了なら出さない」は電話／Mailと同じ扱い（`flaggedAny` / `pendingFlags`）。
 
 ## 売上（Today's Jobs）
 - 案件ごとの売上は任意入力。`job.sales = {kind:'daily'|'spot', amount}`。一日の合計は「日当＋スポット」（`salesOfDay`）で、税抜き／消費税／税込みを表示する（`taxCalc`）。
