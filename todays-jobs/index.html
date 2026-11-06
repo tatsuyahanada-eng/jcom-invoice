@@ -1480,6 +1480,13 @@
 
     $('#dBody').innerHTML = `
       ${j.missing ? `<div class="notice" style="margin:0 0 10px;">${icon('alert', 'width="18" height="18"')}<div class="grow">この予定はGoogleカレンダー側で削除または変更されています。不要なら編集から削除してください。</div></div>` : ''}
+      <div class="card">
+        <h3>${icon('work')}作業ステータス</h3>
+        <div class="seg c3" data-group="work">
+          ${Object.entries(WORK).map(([k, v]) => `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.work === k}">${v.label}</button>`).join('')}
+        </div>
+      </div>
+
       <div class="actions">
         <a class="action ${j.phone ? '' : 'disabled'}" href="${j.phone ? telHref(j.phone) : '#'}">${icon('phone')}電話</a>
         <a class="action ${addr ? '' : 'disabled'}" href="${navUrl || '#'}" target="_blank" rel="noopener">${icon('nav')}ナビ開始</a>
@@ -1530,13 +1537,6 @@
         </div>
         ${j.needForm ? formPickerHtml(j) : ''}
         <p class="help">オンにすると、案件カードに赤い印が出ます（次の訪問のときは、上にも出ます）。</p>
-      </div>
-
-      <div class="card">
-        <h3>${icon('work')}作業ステータス</h3>
-        <div class="seg c3" data-group="work">
-          ${Object.entries(WORK).map(([k, v]) => `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.work === k}">${v.label}</button>`).join('')}
-        </div>
       </div>
 
       <div class="card">
