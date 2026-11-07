@@ -1,15 +1,15 @@
 # J:COMチェッカーとの照合レポート
 
-- J:COM：「モバイル動作確認端末チェッカー」https://www.jcom.co.jp/service/mobile/device/sim/detail/device.html （1305件、取得 2026-10-07）
+- J:COM：「モバイル動作確認端末チェッカー」https://www.jcom.co.jp/service/mobile/device/sim/detail/device.html （1307件、取得 2026-11-07）
 - 本ツール：data.js（各キャリア公式で補正済み）。**本ツールのデータは上書きしていません**
 
 ## 集計
 
 | J:COM区分 | 一致 | 基準の違い | 相違 | 本ツール未登録 |
 |---|---|---|---|---|
-| SIMフリー | 303 | 0 | 0 | 0 |
+| SIMフリー | 303 | 0 | 0 | 1 |
 | docomo | 241 | 0 | 1 | 0 |
-| au | 190 | 91 | 0 | 0 |
+| au | 191 | 91 | 0 | 0 |
 | SoftBank | 205 | 0 | 1 | 0 |
 | UQ | 104 | 0 | 0 | 0 |
 | Y!mobile | 66 | 0 | 6 | 0 |
@@ -34,7 +34,7 @@ iPhone 12 Pro（2020年10月）、iPhone 12 Pro Max（2020年11月）、iPhone 1
 
 ## J:COMにあり本ツール未登録
 
-
+- **SIMフリー**（1）：Find X9 Ultra
 
 ## 本ツールにありJ:COMに無い（キャリア版 102件）
 

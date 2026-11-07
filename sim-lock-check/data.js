@@ -1,5 +1,5 @@
 /* データ更新日（照合・取り込みを行った日） */
-const DATA_UPDATED = "2026-10-07";
+const DATA_UPDATED = "2026-11-07";
 
 /* =========================================================
    SIMロックチェックツール データ定義
@@ -1100,6 +1100,10 @@ const DEVICES = [
       { c: "sb", rel: "2026年6月", ship: "free" },
       { c: "free", code: "XQ-GE44", rel: "2026年6月", ship: "free" }
     ] },
+  { id: "xperia-10-viii", name: "Xperia 10 VIII", maker: "xperia", kana: "エクスペリア テン マークエイト",
+    variants: [
+      { c: "au", rel: "2026年", ship: "free" }
+    ], note: "J:COMチェッカーに追加された機種（au版）。発売時期はおおよそ" },
   { id: "xperia-10-vii", name: "Xperia 10 VII", maker: "xperia", kana: "エクスペリア テン マークセブン",
     variants: [
       { c: "docomo", code: "SO-52F", rel: "2025年10月", ship: "free" },
@@ -2468,6 +2472,10 @@ const DEVICES = [
       { c: "rakuten", rel: "2026年", ship: "free" },
       { c: "free", rel: "2026年", ship: "free" }
     ] },
+  { id: "oppo-find-x9-ultra", name: "OPPO Find X9 Ultra", maker: "oppo", mfr: "oppo", kana: "オッポ ファインド",
+    variants: [
+      { c: "free", rel: "2026年", ship: "free" }
+    ], note: "J:COMチェッカーに追加された機種（SIMフリー）。発売時期はおおよそ" },
   { id: "oppo-find-n6", name: "OPPO Find N6", maker: "oppo", kana: "オッポ",
     variants: [
       { c: "free", rel: "2026年", ship: "free" }

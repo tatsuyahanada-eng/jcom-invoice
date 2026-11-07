@@ -2537,6 +2537,23 @@
 "maker": "OPPO",
 "type": "スマホ",
 "esim": "eSIM",
+"name": "Find X9 Ultra",
+"sim": "マルチSIM / eSIM",
+"os": "Android 16",
+"unlock": "不要",
+"func": [
+"○",
+"○",
+"○",
+"○"
+],
+"note": "・ご利用になるには、SIMスロット1をご利用ください。・2回線以上の同時利用については動作確認しておりません。"
+},
+{
+"cat": "SIMフリー",
+"maker": "OPPO",
+"type": "スマホ",
+"esim": "eSIM",
 "name": "OPPO Find N6",
 "sim": "マルチSIM / eSIM",
 "os": "Android 16",
@@ -12901,6 +12918,23 @@
 "○"
 ],
 "note": ""
+},
+{
+"cat": "au",
+"maker": "Sony Corporation",
+"type": "スマホ",
+"esim": "eSIM",
+"name": "Xperia 10 VIII",
+"sim": "マルチSIM / eSIM",
+"os": "Android 16",
+"unlock": "不要",
+"func": [
+"○",
+"○",
+"○",
+"○"
+],
+"note": "・2回線以上の同時利用については動作確認しておりません。"
 },
 {
 "cat": "au",

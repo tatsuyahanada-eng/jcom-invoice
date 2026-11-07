@@ -298,8 +298,12 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .dataver { font-size: 10.5px; color: var(--faint); white-space: nowrap; }
   html:not(.pc) .reloadbtn { padding: 3px 8px; font-size: 11px; }
-  html:not(.pc) .dataver { margin-right: auto; font-size: 10px; }
-  html:not(.pc) .dataver .dl { display: none; }
+  html:not(.pc) .dataver { margin-right: auto; font-size: 9.5px; letter-spacing: -.02em; min-width: 0; }
+  html:not(.pc) .userbar { gap: 4px; }
+  .rl-short { display: none; }
+  html:not(.pc) .rl-full { display: none; }
+  html:not(.pc) .rl-short { display: inline; }
+  html:not(.pc) .reloadbtn { padding: 3px 7px; }
   html:not(.pc) .userbar { justify-content: space-between; }
   .jref { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: -4px 0 12px; padding: 8px 12px; border-radius: 8px; font-size: 12.5px; border: 1px dashed var(--line-strong); background: var(--well); color: var(--muted); }
   .jref .jl { font-weight: 800; letter-spacing: .04em; color: var(--ink); }
@@ -765,7 +769,7 @@
     <button class="nav" data-tab="mail" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"></rect><path d="M3 7l9 6 9-6"></path></svg></span><span class="t">メール</span><kbd>F3</kbd></button>
     <button class="nav" data-tab="guide" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7v.01"></path></svg></span><span class="t">確認の基本</span><kbd>F4</kbd></button>
     <button class="nav" data-tab="qr" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3M21 14v7h-7"></path></svg></span><span class="t">QR</span><kbd>F5</kbd></button>
-    <div class="sys">DB &nbsp;: <i id="sysCount">—</i> models<br>REF : 2026.09<br>NET : <i id="sysNet">ONLINE</i></div>
+    <div class="sys">DB &nbsp;: <i id="sysCount">—</i> models<br>REF : <i id="sysRef">—</i><br>NET : <i id="sysNet">ONLINE</i></div>
   </nav>
 
   <main class="main">
@@ -854,10 +858,11 @@
     document.documentElement.classList.toggle("auth-out", !s);
     document.documentElement.classList.toggle("is-admin", !!(s && s.r === "admin"));
     if (!bar) return;
-    const ver = typeof DATA_UPDATED !== "undefined" ? `<span class="dataver" title="データ更新日"><span class="dl">DATA </span>${DATA_UPDATED}</span>` : "";
+    const jd = typeof JCOM_REF_DATE !== "undefined" ? JCOM_REF_DATE : "";
+    const ver = typeof DATA_UPDATED !== "undefined" ? `<span class="dataver" title="アプリのデータ更新日 ${DATA_UPDATED}／J:COMチェッカー確認日 ${jd}"><span class="dl">J:COM </span>${jd || DATA_UPDATED}</span>` : "";
     const rb = `<button type="button" class="reloadbtn" id="reloadBtn" title="サーバーから最新のデータを読み込み直します"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>最新データに更新</button>`;
     const jb = s && s.r === "admin" ? `<button type="button" class="reloadbtn" id="jcGo" title="管理者専用：J:COMチェッカーの差分を確認します">J:COM差分確認</button>` : "";
-    bar.innerHTML = s ? `${ver}${jb}${rb}<span class="userchip"><span class="rolebadge ${s.r}">${AUTH_USERS[s.u].label}</span><b class="uname">${s.u}</b></span><button type="button" class="logout" id="logoutBtn">ログアウト</button>` : "";
+    bar.innerHTML = s ? `${ver}${jb}${rb}<span class="userchip"><span class="rolebadge ${s.r}"><span class="rl-full">${AUTH_USERS[s.u].label}</span><span class="rl-short">${s.r === "admin" ? "管理" : "一般"}</span></span><b class="uname">${s.u}</b></span><button type="button" class="logout" id="logoutBtn">ログアウト</button>` : "";
   }
   document.getElementById("loginForm").addEventListener("submit", e => {
     e.preventDefault();
@@ -1479,6 +1484,12 @@
       ["他社SIMを挿す", "解除コード入力画面や「SIM無効」が出たらロックあり"],
       ["販売キャリアに照会", "IMEIを伝えればショップ・電話・Webで確認できる"]
     ];
+    const updCard = `<div class="card"><h2>データの更新日</h2>
+        <ul class="notes">
+          <li>J:COMチェッカーの確認日：<b>${typeof JCOM_REF_DATE !== "undefined" ? esc(JCOM_REF_DATE) : "—"}</b>${typeof JCOM_CHANGES !== "undefined" ? `（J:COM掲載 ${JCOM_CHANGES.total}件）` : ""}</li>
+          <li>アプリの機種データの更新日：<b>${typeof DATA_UPDATED !== "undefined" ? esc(DATA_UPDATED) : "—"}</b>（登録 ${DEVICES.filter(d => !d.generic).length}機種）</li>
+          <li>ヘッダー右上の日付は、J:COMチェッカーを最後に確認した日です。</li>
+        </ul></div>`;
     const adminCard = isAdmin() ? `<div class="card entry"><h2>管理者情報 ─ データの出典と照合状況</h2>
         <ul class="notes">
           <li>登録：<b>${DEVICES.filter(d => !d.generic).length}機種</b>／キャリア版 <b>${DEVICES.filter(d => !d.generic).reduce((n, d) => n + d.variants.length, 0)}件</b></li>
@@ -1496,7 +1507,7 @@
           </div>
           <div id="jcOut" aria-live="polite"></div>
         </div></div>` : "";
-    $("#view-guide").innerHTML = `<div class="guide">${adminCard}
+    $("#view-guide").innerHTML = `<div class="guide">${adminCard}${updCard}
       <div class="card"><h2>STEP 0 ─ 確認の順番（上から試せば迷わない）</h2><ol class="flow">${steps.map(([t, s]) => `<li><b>${esc(t)}</b>${esc(s)}</li>`).join("")}</ol>
         <div class="callout info"><b>現場の最短ルート：</b>① <span class="mono">*#06#</span> でIMEIを控える → ② 設定画面で表示確認 → ③ 表示なし・不明なら他社回線SIMを挿す → ④ それでも不明ならIMEIで販売キャリアへ照会</div></div>
       <div class="card"><h2>キャリア別 ─ ロックなし販売の目安と照会先</h2>
@@ -1678,6 +1689,7 @@
 
   /* ---------- ステータスバー（時計・件数・回線状態） ---------- */
   $("#sysCount").textContent = DEVICES.filter(d => !d.generic).length;
+  $("#sysRef").textContent = (typeof JCOM_REF_DATE !== "undefined" ? JCOM_REF_DATE : "—").replace(/-/g, ".");
   const tick = () => { const n = new Date(); $("#stClock").textContent = n.toLocaleDateString("ja-JP") + "  " + n.toLocaleTimeString("ja-JP"); };
   tick(); setInterval(tick, 1000);
   const net = () => { $("#sysNet").textContent = navigator.onLine ? "ONLINE" : "OFFLINE"; $("#sysNet").style.color = navigator.onLine ? "" : "var(--amber)"; };

@@ -354,3 +354,7 @@ vaio-a12 | VAIO A12（VJA1211シリーズ） | other | バイオ PC パソコン
 vaio-s13 | VAIO S13（VJS132*シリーズ） | other | バイオ PC パソコン | f | 2017 | mfr=vaio ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
 vaio-s11 | VAIO S11（VJS112*シリーズ） | other | バイオ PC パソコン | f | 2017 | mfr=vaio ## J:COMチェッカー掲載機種から追加（発売年はおおよそ）
 digno-phone-uq | DIGNO Phone | kyocera | ディグノ フォン 京セラ | u | 2016 ## J:COMチェッカー掲載機種から追加
+
+# ---------- J:COMチェッカーの更新分（2026-11-07 追加） ----------
+xperia-10-viii | Xperia 10 VIII | xperia | エクスペリア テン マークエイト | a | 2026 ## J:COMチェッカーに追加された機種（au版）。発売時期はおおよそ
+oppo-find-x9-ultra | OPPO Find X9 Ultra | oppo | オッポ ファインド | f | 2026 | mfr=oppo ## J:COMチェッカーに追加された機種（SIMフリー）。発売時期はおおよそ

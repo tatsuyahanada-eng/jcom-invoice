@@ -1,7 +1,18 @@
 {
- "date": "2026-10-07",
- "total": 1305,
- "added": [],
+ "date": "2026-11-07",
+ "total": 1307,
+ "added": [
+  {
+   "cat": "SIMフリー",
+   "name": "Find X9 Ultra",
+   "unlock": "不要"
+  },
+  {
+   "cat": "au",
+   "name": "Xperia 10 VIII",
+   "unlock": "不要"
+  }
+ ],
  "removed": [],
  "changed": []
 }
