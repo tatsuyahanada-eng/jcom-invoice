@@ -55,6 +55,7 @@ public class MainActivity extends Activity {
     private static final String START_URL = "https://" + HOST + "/assets/www/index.html";
     private static final int REQ_CAL = 1002;
     private static final int REQ_PHOTO = 1003;
+    private static final int REQ_PICK = 1004;
     private String pendingPhotoCb;
     private String pendingPhotoName;
     private File pendingPhotoFile;
@@ -177,6 +178,12 @@ public class MainActivity extends Activity {
             runOnUiThread(() -> startPhoto(callbackId, name));
         }
 
+        /** 端末内の画像（領収書など）を選んで、指定したファイル名でPictures/TodaysJobsに取り込む（標準のファイル選択。権限は不要） */
+        @JavascriptInterface
+        public void pickPhoto(final String callbackId, final String name) {
+            runOnUiThread(() -> startPick(callbackId, name));
+        }
+
         /** 当日の写真（[{name, uri}]）をまとめてOneDriveなどへ送る。OneDriveアプリがあれば直接、なければ共有画面を出す */
         @JavascriptInterface
         public boolean sharePhotos(final String json) {
@@ -251,6 +258,19 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void startPick(String cb, String name) {
+        try {
+            Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+            i.setType("image/*");
+            i.addCategory(Intent.CATEGORY_OPENABLE);
+            pendingPhotoCb = cb;
+            pendingPhotoName = name;
+            startActivityForResult(Intent.createChooser(i, "取り込む画像を選択"), REQ_PICK);
+        } catch (Exception e) {
+            deliverResult(cb, null, "ファイルを選べませんでした");
+        }
+    }
+
     private Uri findPhoto(String name) {
         try (Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 new String[]{MediaStore.Images.Media._ID},
@@ -294,19 +314,35 @@ public class MainActivity extends Activity {
     @SuppressWarnings("deprecation")
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQ_PHOTO) return;
+        if (requestCode != REQ_PHOTO && requestCode != REQ_PICK) return;
         final String cb = pendingPhotoCb;
-        final File f = pendingPhotoFile;
+        File tmp = pendingPhotoFile;
         final String name = pendingPhotoName;
         pendingPhotoCb = null; pendingPhotoFile = null; pendingPhotoName = null;
         if (cb == null) return;
-        if (resultCode != RESULT_OK || f == null || !f.exists() || f.length() == 0) {
-            if (f != null) f.delete();
+        final Uri picked = (requestCode == REQ_PICK && resultCode == RESULT_OK && data != null) ? data.getData() : null;
+        if (requestCode == REQ_PICK) {
+            if (picked == null) { deliverResult(cb, null, "CANCELED"); return; }
+            tmp = null;
+        } else if (resultCode != RESULT_OK || tmp == null || !tmp.exists() || tmp.length() == 0) {
+            if (tmp != null) tmp.delete();
             deliverResult(cb, null, "CANCELED");
             return;
         }
+        final File captured = tmp;
         new Thread(() -> {
+            File f = captured;
             try {
+                if (picked != null) {
+                    File dir = new File(getCacheDir(), "photos");
+                    if (!dir.exists()) dir.mkdirs();
+                    f = File.createTempFile("pick", ".jpg", dir);
+                    try (InputStream in = getContentResolver().openInputStream(picked); OutputStream out = new FileOutputStream(f)) {
+                        byte[] buf = new byte[8192];
+                        int n;
+                        while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                    }
+                }
                 String base = photoBaseName(name);
                 String saved;
                 String where;
@@ -355,7 +391,7 @@ public class MainActivity extends Activity {
                 o.put("uri", uriStr);
                 deliverResult(cb, o.toString(), null);
             } catch (Exception e) {
-                f.delete();
+                if (f != null) f.delete();
                 deliverResult(cb, null, "写真を保存できませんでした");
             }
         }).start();
