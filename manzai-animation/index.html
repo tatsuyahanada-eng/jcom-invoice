@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漫才アニメーション（サンプル）</title>
+<style>
+  body { margin: 0; background: #111; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+  canvas { width: min(100vw, 1280px); height: auto; background: #000; display: block; }
+  .bar { display: flex; gap: 12px; align-items: center; padding: 10px; width: min(100vw, 1280px); box-sizing: border-box; }
+  input[type=range] { flex: 1; }
+  button { font-size: 16px; padding: 6px 16px; }
+  small { opacity: .7; padding: 0 10px 12px; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="1280" height="720"></canvas>
+<div class="bar">
+  <button id="play">▶ 再生</button>
+  <input id="seek" type="range" min="0" max="1" step="0.001" value="0">
+  <span id="time">0:00</span>
+</div>
+<small>音声ファイル <code>audio.m4a</code> を同じフォルダに置くと音付きで再生されます（リポジトリには含めていません）。</small>
+<audio id="audio" src="audio.m4a" preload="auto"></audio>
+<script src="timeline.js"></script>
+<script src="anim.js"></script>
+<script>
+  const A = window.ANIM, audio = document.getElementById('audio');
+  const seek = document.getElementById('seek'), btn = document.getElementById('play'), time = document.getElementById('time');
+  let t = 0, playing = false, last = 0, hasAudio = false;
+  audio.addEventListener('canplay', () => hasAudio = true);
+  const show = () => { A.renderFrame(t); seek.value = t / A.duration; time.textContent = Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0'); };
+  function tick(now) {
+    if (!playing) return;
+    t = hasAudio ? audio.currentTime : t + (now - last) / 1000; last = now;
+    if (t >= A.duration) { t = A.duration; playing = false; audio.pause(); btn.textContent = '▶ 再生'; }
+    show(); requestAnimationFrame(tick);
+  }
+  btn.onclick = () => {
+    playing = !playing; btn.textContent = playing ? '⏸ 停止' : '▶ 再生';
+    if (playing) { if (t >= A.duration) t = 0; if (hasAudio) { audio.currentTime = t; audio.play(); } last = performance.now(); requestAnimationFrame(tick); } else audio.pause();
+  };
+  seek.oninput = () => { t = seek.value * A.duration; if (hasAudio) audio.currentTime = t; show(); };
+  A.ready.then(show);
+</script>
+</body>
+</html>
