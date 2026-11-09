@@ -8,7 +8,7 @@
 import json, sys, wave
 import numpy as np
 
-FPS = 24
+FPS = 30
 # (開始, 終了, 話者, [字幕(複数なら文字数比で時間を分割)], 話者のポーズ, 相手のポーズ)
 L = [
  (2.64, 3.30, 'm', ['君、バツイチなんだって。']),
@@ -98,21 +98,23 @@ TL = dict(
   lines=lines,
   # ツッコミ（叩く）タイミング
   slaps=[dict(t=3.75, by='j'), dict(t=186.4, by='j'), dict(t=188.7, by='j'), dict(t=191.2, by='j', big=True)],
-  # エクササイズ：call=宣言 strip=脱ぎ始め go=器具へ走る ex=器具に乗る exEnd=降りる back=マイク前に戻る
-  fitness=[dict(call=89.16, strip=92.0, go=99.3, ex=100.9, exEnd=119.9, back=121.8),
-           dict(call=156.08, strip=158.0, go=158.0, ex=159.5, exEnd=180.6, back=182.7)],
-  telops=[dict(s=89.2, e=91.7, text='フィットネス入ります!!'),
+  # エクササイズ（秒は参考動画の実測）
+  #  call=宣言 puff=着替え go=器具へ走り出す on=器具に乗る glide=漕ぎ始め stop=漕ぎ終わり off=降りる back=マイク前に戻る
+  #  anchor/half=脚が最も開く瞬間の時刻と、その間隔（歩幅のリズム）
+  fitness=[dict(call=89.16, puff=93.0, go=99.4, on=101.3, glide=106.4, stop=119.3, off=119.9, back=121.7, anchor=113.83, half=0.344),
+           dict(call=156.08, go=157.9, on=159.3, glide=165.9, stop=179.9, off=180.5, back=182.8, anchor=178.67, half=0.33)],
+  telops=[dict(s=89.9, e=91.8, text='フィットネス入ります!!'),
           dict(s=117.7, e=119.8, text='効果は未知数!!', col='#ffe23d'),
           dict(s=137.1, e=138.6, text='甘ーーーい!!', col='#ffe23d', size=140),
-          dict(s=156.1, e=158.4, text='フィットネス入ります!!'),
+          dict(s=156.8, e=158.3, text='フィットネス入ります!!'),
           dict(s=178.9, e=180.6, text='効果は未知数!!', col='#ffe23d'),
           dict(s=186.45, e=187.6, text='なげえよ!', col='#ffe23d', size=110, y=455)],
   shots=[dict(t=t, shot=s) for t, s in [
     (0, 'wide'), (2.5, 'mid'), (7.08, 'm'), (11.8, 'mid'), (17.1, 'two'), (23.3, 'j'), (32.7, 'mid'), (40.9, 'm'),
     (45.9, 'two'), (51.4, 'j'), (52.5, 'mid'), (59.4, 'j'), (61.4, 'm'), (63.7, 'mid'), (79.3, 'j'), (82.2, 'mid'),
-    (89.1, 'm'), (92.0, 'wide'), (101.0, 'gym'), (108.1, 'gymcu'), (113.0, 'j'), (115.4, 'gym'), (119.7, 'wide'),
-    (122.9, 'mid'), (128.6, 'm'), (136.0, 'mid'), (144.3, 'j'), (151.0, 'mid'), (156.0, 'm'), (158.0, 'wide'),
-    (160.0, 'gym'), (168.1, 'gymcu'), (174.0, 'j'), (175.6, 'gymcu'), (178.5, 'gym'), (180.6, 'wide'), (183.5, 'mid')]],
+    (89.1, 'm'), (92.0, 'wide'), (101.2, 'gym'), (106.9, 'feet'), (108.1, 'gymcu'), (112.2, 'gym'), (115.5, 'j'), (117.6, 'gym'), (120.0, 'wide'),
+    (122.9, 'mid'), (128.6, 'm'), (136.0, 'mid'), (144.3, 'j'), (151.0, 'mid'), (156.0, 'm'), (157.8, 'wide'),
+    (159.3, 'gym'), (166.3, 'feet'), (167.6, 'gymcu'), (173.9, 'j'), (175.4, 'gymcu'), (178.5, 'gym'), (180.7, 'wide'), (183.6, 'two')]],
 )
 
 # 口パク用の音量カーブ（1フレームごと、0〜1）
@@ -120,8 +122,13 @@ wf = wave.open(sys.argv[1]); assert wf.getframerate() == 16000 and wf.getnchanne
 a = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float32) / 32768
 n = int(TL['duration'] * FPS) + 2; hop = 16000 // FPS
 rms = np.array([np.sqrt((a[i*hop:(i+1)*hop+hop//2] ** 2).mean()) if i*hop < len(a) else 0 for i in range(n)])
-envv = np.clip((rms - 0.075) / 0.14, 0, 1)
-TL['env'] = [round(float(v), 2) for v in envv]
+raw = np.clip((rms - 0.075) / 0.14, 0, 1)
+fast = np.zeros(n)                      # 口の開き：立ち上がりは速く、閉じるのはなめらかに
+for i in range(1, n):
+    fast[i] = raw[i] * 0.65 + fast[i-1] * 0.35 if raw[i] > fast[i-1] else fast[i-1] * 0.62 + raw[i] * 0.38
+k = np.hanning(19); slow = np.convolve(raw, k / k.sum(), mode='same')   # 体の動き用のゆっくりした勢い
+TL['env'] = [round(float(v), 2) for v in fast]
+TL['envS'] = [round(float(v), 2) for v in slow]
 
 open('timeline.js', 'w', encoding='utf-8').write('// tools/build_timeline.py が生成\nwindow.TIMELINE = ' + json.dumps(TL, ensure_ascii=False, separators=(',', ':')).replace('},{', '},\n{') + ';\n')
 print(len(lines), 'lines')
