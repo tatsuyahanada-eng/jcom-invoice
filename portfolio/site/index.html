@@ -1,0 +1,315 @@
+<title>業務アプリ作品集</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: 作品ごとに「仕様書カード」を縦に並べる。左に題名と説明、右（スマホでは下）に画面イメージの横スクロール帯 */
+:root{
+  --bg:#F3F5F8; --panel:#FFFFFF; --ink:#13202E; --muted:#56657A; --line:#D8DFE8;
+  --accent:#D9531E; --accent-soft:#FBE7DD; --pwa:#1F5FBF; --pwa-soft:#E2ECFA; --apk:#2E7D4F; --apk-soft:#E1F1E7;
+  --shot-bg:#E6EBF1;
+  --f-display:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  --f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F151D; --panel:#17202B; --ink:#E8EDF3; --muted:#9AA8BA; --line:#2A3644;
+  --accent:#F27A45; --accent-soft:#3A2419; --pwa:#7FAEF2; --pwa-soft:#1C2C44; --apk:#6CC593; --apk-soft:#183326;
+  --shot-bg:#0B1016; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F151D; --panel:#17202B; --ink:#E8EDF3; --muted:#9AA8BA; --line:#2A3644;
+  --accent:#F27A45; --accent-soft:#3A2419; --pwa:#7FAEF2; --pwa-soft:#1C2C44; --apk:#6CC593; --apk-soft:#183326;
+  --shot-bg:#0B1016; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.75;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.3}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Hero */
+.hero{padding-block:56px 32px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--accent);font-weight:700}
+.hero h1{font-size:clamp(30px,5.4vw,52px);font-weight:900;margin-top:10px;letter-spacing:.01em}
+.hero p.lead{max-width:40em;color:var(--muted);margin:16px 0 0;font-size:16px}
+.facts{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:28px;font-size:14px}
+.facts div{display:flex;align-items:baseline;gap:8px}
+.facts b{font-family:var(--f-mono);font-size:26px;font-variant-numeric:tabular-nums}
+.strengths{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:32px}
+.strengths div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.strengths b{display:block;font-family:var(--f-display);font-size:15px}
+.strengths span{color:var(--muted);font-size:13px;line-height:1.6;display:block;margin-top:4px}
+
+/* Filter */
+.filter{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.filter .wrap{display:flex;gap:8px;padding-block:12px;overflow-x:auto}
+.filter button{font:inherit;font-size:14px;font-weight:500;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 16px;cursor:pointer;white-space:nowrap}
+.filter button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* Index */
+.index{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;padding-block:24px 8px}
+.index a{display:flex;gap:12px;align-items:center;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.index a:hover{border-color:var(--accent)}
+.index .code{font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--muted);min-width:5.5em}
+.index b{font-family:var(--f-display);font-size:14px;line-height:1.4}
+
+/* Work card */
+.works{display:flex;flex-direction:column;gap:28px;padding-block:24px 64px}
+.work{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;scroll-margin-top:72px}
+.work-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;padding:22px 24px 0}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.06em}
+.tag .kind{border-radius:4px;padding:2px 8px}
+.k-pwa .kind{background:var(--pwa-soft);color:var(--pwa)} .k-apk .kind{background:var(--apk-soft);color:var(--apk)}
+.tag .no{color:var(--muted)}
+.work h2{font-size:clamp(22px,3.4vw,30px);font-weight:900;margin-top:8px}
+.catch{font-size:16px;font-weight:500;color:var(--accent);margin:6px 0 0}
+.devices{display:flex;gap:6px;align-items:flex-start;justify-content:flex-end;flex-wrap:wrap}
+.devices span{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--muted);white-space:nowrap}
+
+.work-body{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:24px;padding:18px 24px 24px}
+.desc{display:flex;flex-direction:column;gap:18px;min-width:0}
+.ps{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;font-size:14px;margin:0}
+.ps dt{font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--muted);padding-top:3px;letter-spacing:.04em}
+.ps dd{margin:0}
+.hl{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.hl li{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.hl b{display:block;font-family:var(--f-display);font-size:15px}
+.hl span{font-size:13px;color:var(--muted);line-height:1.6;display:block}
+h3.sub{font-size:13px;font-family:var(--f-mono);letter-spacing:.08em;color:var(--muted);font-weight:700}
+.can{margin:6px 0 0;padding-left:1.2em;font-size:14px;line-height:1.7}
+.can li::marker{color:var(--accent)}
+.tech{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tech span{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:2px 7px}
+
+/* Screens */
+.screens{min-width:0;display:flex;flex-direction:column;gap:8px}
+.strip{display:flex;gap:12px;overflow-x:auto;padding:14px;background:var(--shot-bg);border-radius:10px;scroll-snap-type:x mandatory;align-items:flex-start}
+.shot{flex:0 0 auto;scroll-snap-align:start;margin:0;display:flex;flex-direction:column;gap:6px;cursor:zoom-in;background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left}
+.shot img{display:block;border-radius:8px;border:1px solid var(--line);background:var(--panel);max-width:none}
+.shot.p img{width:168px;height:auto;border-radius:14px}
+.shot.d img{width:380px;height:auto}
+.shot span{font-size:12px;color:var(--muted);max-width:380px}
+.shot.p span{max-width:168px}
+.note{font-size:12px;color:var(--muted)}
+
+/* Lightbox */
+dialog{border:0;padding:0;background:transparent;max-width:min(96vw,1200px);max-height:92vh}
+dialog::backdrop{background:rgba(8,12,18,.82)}
+dialog img{display:block;max-width:100%;max-height:84vh;border-radius:10px;margin:0 auto}
+dialog p{color:#fff;text-align:center;margin:10px 0 0;font-size:14px}
+dialog button{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));font:inherit;font-size:14px;background:#fff;color:#13202E;border:0;border-radius:999px;padding:6px 14px;cursor:pointer}
+
+footer{border-top:1px solid var(--line);padding-block:24px 40px;color:var(--muted);font-size:13px}
+
+@media (max-width:820px){
+  .work-body{grid-template-columns:minmax(0,1fr)}
+  .work-head{grid-template-columns:minmax(0,1fr);padding:18px 16px 0}
+  .devices{justify-content:flex-start}
+  .work-body{padding:16px}
+  .shot.d img{width:300px}
+  .shot.p img{width:150px} .shot.p span{max-width:150px}
+}
+@media (prefers-reduced-motion:no-preference){.index a,.filter button{transition:border-color .15s,background .15s}}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">PORTFOLIO · 2026</div>
+    <h1>業務アプリ作品集</h1>
+    <p class="lead">現場で働く人の「探す・連絡する・記録する・集計する」を短くするための Web アプリ（PWA）と Android アプリをつくっています。どれも実際の業務で使いながら改良を重ねてきたものです。</p>
+    <div class="facts">
+      <div><b>8</b>作品</div>
+      <div><b>5</b>PWA（スマホ・PC）</div>
+      <div><b>3</b>Android アプリ</div>
+    </div>
+    <div class="strengths">
+      <div><b>スマホでも PC でも</b><span>PWA ならホーム画面に追加してアプリのように使え、電波が弱くても表示できます。</span></div>
+      <div><b>レンタルサーバーで動く</b><span>PHP と MySQL の構成。設置手順書やインストーラも一緒にお渡しします。</span></div>
+      <div><b>権限とセキュリティ</b><span>ログインと権限はサーバー側で判定。パスワードはハッシュ化、保存データは暗号化。</span></div>
+      <div><b>Android アプリにも対応</b><span>APK の自動ビルドと、上書きできるアップデートの仕組みまで用意します。</span></div>
+    </div>
+  </div>
+</header>
+
+<nav class="filter" aria-label="種類で絞り込む">
+  <div class="wrap">
+    <button type="button" data-f="all" aria-pressed="true">すべて</button>
+    <button type="button" data-f="pwa" aria-pressed="false">PWA（スマホ・PC）</button>
+    <button type="button" data-f="apk" aria-pressed="false">Android アプリ</button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <div class="index" id="index"></div>
+  <div class="works" id="works"></div>
+</main>
+
+<footer>
+  <div class="wrap">
+    画面イメージはすべて架空のサンプルデータで撮影しています。Voice &amp; Copy Paste はネイティブアプリのため、実際の画面の構成と配色をもとに再現したイメージです。
+  </div>
+</footer>
+
+<dialog id="lb" aria-label="画面イメージの拡大">
+  <button type="button" id="lbClose">閉じる</button>
+  <img id="lbImg" alt="">
+  <p id="lbCap"></p>
+</dialog>
+
+<script>
+const WORKS = [
+{ id:'casebycase', kind:'pwa', no:'PWA-01', name:'Case By Case', catch:'質問に答えて進む、ツリー型の作業マニュアル',
+  devices:['スマホ','PC'],
+  problem:'作業手順が人の頭の中や紙に散らばり、新人や応援の人が正しい手順にすぐたどり着けない。',
+  solution:'大項目から枝分かれして、チャットのように最終手順まで案内。全員の入力を 1 つのマニュアルとして共有。',
+  highlights:[
+    ['選ぶだけで手順にたどり着く','「どんな症状か」を順に選ぶと、その場で必要な手順だけが表示されます。'],
+    ['みんなで育てるマニュアル','複数人が同時に書き足しても互いの入力を消しません。作成者・更新者も自動で記録。'],
+    ['AI に聞いて探せる','「ルーターが赤く光る」のような話し言葉で質問すると、該当する手順を探します。'],
+  ],
+  can:['手順のツリー作成・並び替え・画像の貼り付け','ID ごと・カテゴリごとの閲覧／編集権限','AI 検索と「AI に相談」で簡易手順をまとめる','約 30 秒ごとの自動更新で他の人の変更を反映','毎日の自動バックアップ','一定時間操作がないと自動でログアウト'],
+  tech:['JavaScript','PWA','PHP','MySQL / SQLite','Gemini API'],
+  shots:[['p','cbc-p-top','大項目を選ぶ'],['p','cbc-p-answer','最終手順の表示'],['d','cbc-d-answer','PC での表示']] },
+{ id:'bi', kind:'pwa', no:'PWA-02', name:'BI Dashboard', catch:'売上の登録から、入金照合・請求書・申告の準備までひとつに',
+  devices:['スマホ','PC'],
+  problem:'売上・入金・請求書・確定申告の準備が別々のツールに分かれ、月末や年度末に手間がかかる。',
+  solution:'売上を登録するだけで、集計・入金予定・請求書・申告の準備までつながるようにした。',
+  highlights:[
+    ['今月の調子がひと目で','前月・前年と「同じ日数」で比べるので、月の途中でも正しく比較できます。'],
+    ['入金漏れに気づける','締め日・支払日から入金予定を計算し、銀行明細の CSV と自動で突き合わせます。'],
+    ['請求書もその場で','顧客と期間を選ぶと明細を自動で作成。A4 の PDF で保存・印刷できます。'],
+  ],
+  can:['日・月・年のダッシュボードと前月比・前年比','税込／税抜の入力切り替え、月額案件の一括登録','土日祝を考慮した入金予定の自動計算','銀行明細 CSV の取り込みと自動照合','請求書の作成・発行履歴・再発行','源泉徴収票の作成と確定申告の準備（管理者専用）','デモデータとの切り替え、ダーク／ライト表示'],
+  tech:['JavaScript','PWA','PHP 8','MySQL / MariaDB'],
+  shots:[['p','bi-p-dash','月次の売上概要'],['p','bi-p-recon','締め日ごとの入金照合'],['d','bi-d-dash','PC のダッシュボード'],['d','bi-d-invoice','請求書の作成とプレビュー']] },
+{ id:'library', kind:'pwa', no:'PWA-03', name:'Library Portal', catch:'更新の歴史が「本棚」でひと目で分かる版管理ポータル',
+  devices:['スマホ','PC'],
+  problem:'共有している資料・プログラム・アプリが、いつ・何が・誰に更新されたのか追えない。',
+  solution:'更新を登録すると版数を自動で付け、本棚の見た目で更新の歴史を表現した。',
+  highlights:[
+    ['見た目に意味がある本棚','厚み＝更新回数、目盛り＝更新 1 件、色＝種類。眺めるだけで更新の多さが分かります。'],
+    ['版数は自動で採番','通常の更新は 1.1→1.2、微修正は 1.01→1.02。繰り上がりも自動です。'],
+    ['過去の版も取り出せる','更新ごとに添付したファイルが残るので、前の版にもすぐ戻れます。'],
+  ],
+  can:['本棚ビューと一覧ビューの切り替え','見開きで概要と年ごとの更新年表を表示','名称・内容・担当者での検索','画像・PDF・ZIP・Excel・Word の添付','管理者／閲覧のみの権限、複数アプリ共通のログイン'],
+  tech:['JavaScript','PWA','PHP 8','MySQL 8'],
+  shots:[['p','lib-p-shelf','本棚ビュー'],['p','lib-p-open','資料の詳細'],['d','lib-d-shelf','PC の本棚ビュー'],['d','lib-d-open','見開きと更新年表']] },
+{ id:'workbase', kind:'pwa', no:'PWA-04', name:'WorkBase Portal', catch:'現場作業に必要な情報と作業記録を 1 か所に',
+  devices:['スマホ','PC'],
+  problem:'手順・マニュアル・設定ファイル・書類・連絡先が別々の場所にあり、探す時間と取り違えが起きる。',
+  solution:'作業ごとに必要なものを 1 ページに集め、作業の結果も同じ場所に記録して後から探せるようにした。',
+  highlights:[
+    ['作業ページで全部そろう','手順・マニュアル（PDF・動画）・設定データ・書類の記入例・連絡先を 1 画面に。'],
+    ['大きなファイルも安全に配布','FTP で置いたファイルを画面から登録。名称・用途・バージョンを並べて取り違えを防ぎます。'],
+    ['誰が何を変えたか残る','作業・ファイル・ユーザーの変更を履歴として記録します。'],
+  ],
+  can:['作業の検索（作業名・型番・ファイル名）','事前準備と持ち物のチェックリスト','作業記録の登録と月ごとの一覧','エクスプローラー風のファイル管理（分割アップロード・途中再開）','ユーザー・権限の管理','Web インストーラ付きでレンタルサーバーに設置'],
+  tech:['JavaScript','PWA','PHP 8.1','MySQL / MariaDB'],
+  shots:[['p','wb-p-home','作業一覧'],['p','wb-p-work','作業ページ'],['d','wb-d-work','PC の作業ページ']] },
+{ id:'verticale', kind:'pwa', no:'PWA-05', name:'VertiCale', catch:'休み希望から出勤確定までを 1 画面で管理する縦型カレンダー',
+  devices:['スマホ','PC'],
+  problem:'稼働日の申請や確定のやり取りがチャットや紙に散らばり、状況が分かりにくい。',
+  solution:'日付を縦、時間帯を横に並べたカレンダーで、申請から確定までを 1 画面にまとめた。',
+  highlights:[
+    ['縦に流れるカレンダー','スマホで縦にスクロールするだけで 1 か月の予定と空き時間帯が見渡せます。'],
+    ['仮と確定を見分けられる','仮出勤は点線、確定は塗りつぶし。休み希望・稼働可も色で区別します。'],
+    ['話して予定を登録','音声で話した内容を入力画面に反映できます。'],
+  ],
+  can:['休み希望・稼働可・仮出勤・確定の登録','まとめて登録・まとめて確定','ToDo リスト','カレンダーファイル（.ics）の作成','PDF 出力（A4 縦／横）','合言葉で端末間を同期、バックアップ'],
+  tech:['JavaScript','PWA','PHP','Web Speech API'],
+  shots:[['p','vert-p-cal','月のカレンダー'],['p','vert-p-todo','ToDo リスト'],['d','vert-d-cal','PC での表示']] },
+{ id:'todaysjobs', kind:'apk', no:'APK-01', name:"Today's Jobs", catch:'カレンダーの当日予定を取り込み、訪問業務を効率よく',
+  devices:['スマホ'],
+  problem:'1 日に何件も訪問する日に、事前連絡・駐車場・訪問順を紙やメモで管理していた。',
+  solution:'スマホのカレンダーから当日の予定を読み込み、連絡・駐車場・作業の状況を 1 画面で管理。',
+  highlights:[
+    ['今日やることが一覧に','訪問予定・連絡済・駐車場確認・完了の件数が一番上で分かります。'],
+    ['連絡の記録がワンタップ','通話済・留守電・SMS を時刻つきで記録。電話番号は本文から自動で見つけます。'],
+    ['カレンダーは変更しない','読み取り専用なので、アプリで編集しても元の予定はそのままです。'],
+  ],
+  can:['長押しドラッグで訪問順を入れ替え、訪問順のルート案内','「直前連絡が必要」の目立つマーク','駐車場の有無・注意事項メモ・写真の取り込み','Google マップ／Yahoo! マップでナビ','差し込み項目つきのメール定型文','よく使うアプリへのリンクボタン'],
+  tech:['JavaScript','Android（Java）','WebView','GitHub Actions'],
+  shots:[['p','tj-p-cards','当日の案件一覧'],['p','tj-p-detail','案件の詳細と連絡記録'],['p','tj-p-mail','メール定型文']] },
+{ id:'ftp', kind:'apk', no:'APK-02', name:'APP UP FTP Manager', catch:'スマホ 1 台で、解凍・整理・FTP アップロードまで',
+  devices:['スマホ','PC'],
+  problem:'作った Web アプリの ZIP を解凍してサーバーへ上げるのに、PC が必要だった。',
+  solution:'スマホだけで「解凍 → 整理 → アップロード」まで完結するアプリにした。PC のブラウザでも同じ画面で使える。',
+  highlights:[
+    ['色で迷わない 2 画面','手元（青）とサーバー（赤）を色分け。送る方向をボタンの色でも示します。'],
+    ['日本語のファイル名も安心','ZIP・LZH・RAR・7z などを解凍。Windows で作った書庫も文字化けしません。'],
+    ['接続情報は暗号化','サーバーの情報はマスターパスワードで暗号化して保存。通信は FTPS が標準です。'],
+  ],
+  can:['フォルダ作成・名前変更・コピー・貼り付け・フォルダごと転送','複数サーバーの登録と切り替え','同じ名前のファイルの扱いを選択（上書き・新しければ上書き・別名・スキップ）','転送履歴とアップロード済みの表示','自動ロック、危険な書庫の検出'],
+  tech:['JavaScript','Capacitor','Android（Java）','FTP / FTPS'],
+  shots:[['p','ftp-p-lock','マスターパスワードの設定'],['p','ftp-p-local','手元のファイル（青）'],['p','ftp-p-server','サーバー側（赤）'],['d','ftp-d-local','PC ブラウザ版']] },
+{ id:'vocp', kind:'apk', no:'APK-03', name:'Voice & Copy Paste', catch:'話すだけで文字に。差し込み定型文もワンタップでコピー',
+  devices:['スマホ'],
+  problem:'報告や連絡の文章を、毎回スマホで手入力するのが手間。',
+  solution:'音声の文字起こしと、日付・時間・氏名を差し込める定型文を 1 つのアプリにまとめた。',
+  highlights:[
+    ['2 つの文字起こし方','押している間だけ、または止めるまで連続。無音で途切れても自動で再開します。'],
+    ['定型文に差し込んでコピー','日付・時間はプルダウンで選ぶだけ。できた文章をそのままコピーできます。'],
+    ['キー不要ですぐ使える','端末標準の音声認識を使うので、外部サービスの登録はいりません。'],
+  ],
+  can:['文字起こし結果のコピー・テキスト保存・編集','定型文のフォルダ分けと編集','起動時のアップデート確認と上書きインストール'],
+  tech:['Kotlin','Jetpack Compose','SpeechRecognizer','GitHub Actions'],
+  shots:[['p','vocp-p-voice','音声入力（イメージ）'],['p','vocp-p-template','定型文（イメージ）']] },
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const kindLabel = k => k === 'pwa' ? 'PWA' : 'ANDROID';
+
+document.getElementById('index').innerHTML = WORKS.map(w =>
+  `<a href="#${w.id}" data-kind="${w.kind}"><span class="code">${w.no}</span><b>${esc(w.name)}</b></a>`).join('');
+
+document.getElementById('works').innerHTML = WORKS.map(w => `
+<article class="work k-${w.kind}" id="${w.id}" data-kind="${w.kind}">
+  <div class="work-head">
+    <div>
+      <div class="tag"><span class="kind">${kindLabel(w.kind)}</span><span class="no">${w.no}</span></div>
+      <h2>${esc(w.name)}</h2>
+      <p class="catch">${esc(w.catch)}</p>
+    </div>
+    <div class="devices">${w.devices.map(d => `<span>${d}</span>`).join('')}</div>
+  </div>
+  <div class="work-body">
+    <div class="desc">
+      <dl class="ps"><dt>課題</dt><dd>${esc(w.problem)}</dd><dt>解決</dt><dd>${esc(w.solution)}</dd></dl>
+      <div><h3 class="sub">特徴</h3>
+        <ul class="hl">${w.highlights.map(([t, s]) => `<li><b>${esc(t)}</b><span>${esc(s)}</span></li>`).join('')}</ul></div>
+      <div><h3 class="sub">できること</h3>
+        <ul class="can">${w.can.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>
+      <div><h3 class="sub">使った技術</h3>
+        <div class="tech">${w.tech.map(t => `<span>${esc(t)}</span>`).join('')}</div></div>
+    </div>
+    <div class="screens">
+      <h3 class="sub">画面イメージ</h3>
+      <div class="strip">${w.shots.map(([t, f, c]) =>
+        `<button type="button" class="shot ${t}" data-src="img/${f}.webp" data-cap="${esc(w.name)}｜${esc(c)}"><img src="img/${f}.webp" alt="${esc(w.name)}：${esc(c)}" loading="lazy"><span>${esc(c)}</span></button>`).join('')}</div>
+      <p class="note">${w.shots.some(s => s[0] === 'd') ? '横にスクロールすると PC の画面も見られます。' : ''}画像を押すと拡大します。</p>
+    </div>
+  </div>
+</article>`).join('');
+
+/* 種類で絞り込む */
+document.querySelectorAll('.filter button').forEach(b => b.addEventListener('click', () => {
+  const f = b.dataset.f;
+  document.querySelectorAll('.filter button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.querySelectorAll('[data-kind]').forEach(el => { el.hidden = f !== 'all' && el.dataset.kind !== f; });
+}));
+
+/* 拡大表示 */
+const lb = document.getElementById('lb');
+document.getElementById('works').addEventListener('click', e => {
+  const s = e.target.closest('.shot'); if (!s) return;
+  document.getElementById('lbImg').src = s.dataset.src;
+  document.getElementById('lbImg').alt = s.dataset.cap;
+  document.getElementById('lbCap').textContent = s.dataset.cap;
+  if (lb.showModal) lb.showModal(); else lb.setAttribute('open', '');
+});
+document.getElementById('lbClose').addEventListener('click', () => lb.close());
+lb.addEventListener('click', e => { if (e.target === lb) lb.close(); });
+</script>
