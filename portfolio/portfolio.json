@@ -1,6 +1,6 @@
 {
   "title": "開発ポートフォリオ（サンプル版）",
-  "note": "個人情報・社名・取引先名・サーバー情報・初期パスワードは含めていません。画面データは架空のサンプルを使用します。 Voice & Copy Paste の画面はソースの画面構成・配色をもとに再現したイメージです。",
+  "note": "個人情報・社名・取引先名・サーバー情報・初期パスワードは含めていません。画面データは架空のサンプルを使用します。 Voice & Copy Paste と NetScope の画面はソースの画面構成・配色をもとに再現したイメージです。",
   "categories": [
     {
       "id": "pwa",
@@ -478,6 +478,64 @@
           "file": "site/img/vocp-p-template.webp",
           "device": "スマホ",
           "caption": "定型文（イメージ）"
+        }
+      ]
+    },
+    {
+      "id": "netscope",
+      "code": "APK-04",
+      "name": "NetScope",
+      "category": "android",
+      "devices": [
+        "スマホ"
+      ],
+      "catch": "スマホ 1 台で、社内ネットワークの「どこが悪いか」を調べる",
+      "problem": "「ネットが遅い・つながらない」と呼ばれても、現場にノート PC や専用の測定器がないと原因の切り分けに時間がかかる。",
+      "solution": "機器の一覧、導通・経路、Wi-Fi の電波、通信量の調査を 1 つの Android アプリにまとめた。",
+      "highlights": [
+        {
+          "title": "何がどこにあるか分かる",
+          "text": "同じネットワーク上の機器を一括で探し、名前・応答時間・開いているポートを一覧にします。"
+        },
+        {
+          "title": "電波の重なりが見える",
+          "text": "周辺の Wi-Fi をチャンネルごとの波形で描き、混雑や古い暗号化（WEP）を色で知らせます。"
+        },
+        {
+          "title": "調べた結果をそのまま報告に",
+          "text": "Ping や経路の結果は時刻つきで自動記録。メモ・機器の写真と一緒に PDF にまとめられます。"
+        }
+      ],
+      "features": [
+        "Ping（パケットロス・ジッター）・Traceroute・DNS の疎通チェック",
+        "Whois でドメインや IP の登録情報を確認",
+        "通信速度の測定と、アプリ別の通信量",
+        "有線 LAN の簡易ケーブル診断",
+        "LAN の設定変化（不正な DHCP など）の監視と通知",
+        "カメラで機器ラベルの SSID・キーを読み取ってコピー",
+        "配色を選べるターミナル風の画面"
+      ],
+      "tech": [
+        "Kotlin",
+        "Jetpack Compose",
+        "ML Kit（文字認識）",
+        "GitHub Actions"
+      ],
+      "screenshots": [
+        {
+          "file": "site/img/net-p-scan.webp",
+          "device": "スマホ",
+          "caption": "機器の一覧（イメージ）"
+        },
+        {
+          "file": "site/img/net-p-diag.webp",
+          "device": "スマホ",
+          "caption": "導通・経路の診断（イメージ）"
+        },
+        {
+          "file": "site/img/net-p-wifi.webp",
+          "device": "スマホ",
+          "caption": "Wi-Fi の電波波形（イメージ）"
         }
       ]
     }

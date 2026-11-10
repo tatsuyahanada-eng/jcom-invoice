@@ -139,9 +139,9 @@ footer{border-top:1px solid var(--line);padding-block:24px 40px;color:var(--mute
         <div class="ja"><h1>業務アプリ作品集</h1></div>
       </div>
       <div class="spec" aria-label="作品数">
-        <div><span>WORKS</span><span>08</span></div>
+        <div><span>WORKS</span><span>09</span></div>
         <div><span>PWA（スマホ・PC）</span><b>05</b></div>
-        <div><span>ANDROID アプリ</span><b>03</b></div>
+        <div><span>ANDROID アプリ</span><b>04</b></div>
       </div>
     </div>
     <p class="lead">現場で働く人の「探す・連絡する・記録する・集計する」を短くするための Web アプリ（PWA）と Android アプリをつくっています。どれも実際の業務で使いながら改良を重ねてきたものです。</p>
@@ -169,7 +169,7 @@ footer{border-top:1px solid var(--line);padding-block:24px 40px;color:var(--mute
 
 <footer>
   <div class="wrap">
-    画面イメージはすべて架空のサンプルデータで撮影しています。Voice &amp; Copy Paste はネイティブアプリのため、実際の画面の構成と配色をもとに再現したイメージです。
+    画面イメージはすべて架空のサンプルデータで撮影しています。Voice &amp; Copy Paste と NetScope はネイティブアプリのため、実際の画面の構成と配色をもとに再現したイメージです。
   </div>
 </footer>
 
@@ -277,6 +277,18 @@ const WORKS = [
   can:['文字起こし結果のコピー・テキスト保存・編集','定型文のフォルダ分けと編集','起動時のアップデート確認と上書きインストール'],
   tech:['Kotlin','Jetpack Compose','SpeechRecognizer','GitHub Actions'],
   shots:[['p','vocp-p-voice','音声入力（イメージ）'],['p','vocp-p-template','定型文（イメージ）']] },
+{ id:'netscope', kind:'apk', no:'APK-04', name:'NetScope', catch:'スマホ 1 台で、社内ネットワークの「どこが悪いか」を調べる',
+  devices:['スマホ'],
+  problem:'「ネットが遅い・つながらない」と呼ばれても、現場にノート PC や専用の測定器がないと原因の切り分けに時間がかかる。',
+  solution:'機器の一覧、導通・経路、Wi-Fi の電波、通信量の調査を 1 つの Android アプリにまとめた。',
+  highlights:[
+    ['何がどこにあるか分かる','同じネットワーク上の機器を一括で探し、名前・応答時間・開いているポートを一覧にします。'],
+    ['電波の重なりが見える','周辺の Wi-Fi をチャンネルごとの波形で描き、混雑や古い暗号化（WEP）を色で知らせます。'],
+    ['調べた結果をそのまま報告に','Ping や経路の結果は時刻つきで自動記録。メモ・機器の写真と一緒に PDF にまとめられます。'],
+  ],
+  can:['Ping（パケットロス・ジッター）・Traceroute・DNS の疎通チェック','Whois でドメインや IP の登録情報を確認','通信速度の測定と、アプリ別の通信量','有線 LAN の簡易ケーブル診断','LAN の設定変化（不正な DHCP など）の監視と通知','カメラで機器ラベルの SSID・キーを読み取ってコピー','配色を選べるターミナル風の画面'],
+  tech:['Kotlin','Jetpack Compose','ML Kit（文字認識）','GitHub Actions'],
+  shots:[['p','net-p-scan','機器の一覧（イメージ）'],['p','net-p-diag','導通・経路の診断（イメージ）'],['p','net-p-wifi','Wi-Fi の電波波形（イメージ）']] },
 ];
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
