@@ -48,6 +48,25 @@ td.free{color:#2B8A3E;font-weight:700}
 .box h2{margin:1px 0 3px}
 .box ul{margin:0;padding-left:1.1em;font-size:8pt}
 .box li{margin:1px 0}
+/* 2枚目：記入シート */
+.page2{break-before:page}
+.sheet{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.8pt}
+.sheet th,.sheet td{border:1px solid var(--line);padding:3px 5px;vertical-align:middle;text-align:left}
+.sheet thead th{background:var(--ink);color:#fff;font-size:7.8pt;text-align:center}
+.sheet .grp th{background:#E9EEF4;color:var(--ink);font-weight:700;font-size:8pt;text-align:left;padding:3px 6px;border-left:4px solid var(--g,var(--ink))}
+.sheet td.item{font-weight:500}
+.sheet td.item small{display:block;font-weight:400;color:var(--muted);font-size:6.8pt;line-height:1.3}
+.sheet td.mk{text-align:center;font-weight:700;padding:3px 2px}
+.req{color:#C92A2A}.opt{color:var(--muted);font-weight:400}.na{color:#B8C2CC;font-weight:400}
+.sheet td.fill{height:25px;background:#fff}
+.sheet td.fill .ck{font-size:7.6pt;color:var(--ink);white-space:nowrap}
+.sheet td.memo{font-size:6.8pt;color:var(--muted);line-height:1.3}
+.legend{display:flex;gap:14px;font-size:7.2pt;margin:6px 2px 4px;flex-wrap:wrap}
+.warn{margin-top:6px;border:1.5px solid #C92A2A;border-radius:7px;padding:5px 9px;background:#FFF5F5;font-size:7.6pt}
+.warn b{color:#C92A2A}
+.warn ul{margin:2px 0 0;padding-left:1.1em}
+.sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;font-size:7.6pt}
+.sign div{border-bottom:1px solid var(--ink);padding:10px 2px 2px;color:var(--muted)}
 footer{margin-top:7px;border-top:1px solid var(--line);padding-top:4px;font-size:6.5pt;color:var(--muted);line-height:1.4}
 </style></head><body>
 
@@ -154,4 +173,73 @@ footer{margin-top:7px;border-top:1px solid var(--line);padding-top:4px;font-size
   合計の計算：サーバー12か月契約の年額＋ドメインの年額（1年目は取得料金、2年目以降は更新料金）。3年総額はサーバー36か月一括＋ドメイン3年分。キャンペーン価格は含みません。料金は改定されることがあるため、契約前に各社公式サイトでご確認ください。<br>
   出典：rs.sakura.ad.jp/plan/standard/ ・ rs.sakura.ad.jp/function/mysql/ ・ domain.sakura.ad.jp/specification/ ・ domain.sakura.ad.jp/jpdomain/cojp/ ・ lolipop.jp/pricing/ ・ lolipop.jp/service/specs/domain-free/ ・ muumuu-domain.com/domain/price ・ xserver.ne.jp/price/ ・ xserver.ne.jp/functions/ ・ xdomain.ne.jp/domain/price.php
 </footer>
+
+<section class="page2">
+<header>
+  <div>
+    <div class="eyebrow">APPLICATION SHEET — SERVER &amp; DOMAIN</div>
+    <h1>レンタルサーバー・ドメイン 申込み情報 記入シート</h1>
+  </div>
+  <div class="asof">お申込みの前にご記入ください<br>2 / 2</div>
+</header>
+
+<div class="legend">
+  <span><b class="req">●</b> 必須</span><span><b>△</b> 場合により必要</span><span><b style="color:#8A96A3">—</b> 不要</span>
+  <span>個人事業主の方は「個人」の列をご覧ください。</span>
+</div>
+
+<table class="sheet">
+  <colgroup><col style="width:27%"><col style="width:6%"><col style="width:6%"><col style="width:37%"><col style="width:24%"></colgroup>
+  <thead><tr><th>項目</th><th>法人</th><th>個人</th><th>記入欄</th><th>注意点</th></tr></thead>
+  <tbody>
+    <tr class="grp" style="--g:#C2255C"><th colspan="5">A. 契約者の情報</th></tr>
+    <tr><td class="item">契約の種類</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"><span class="ck">□ 法人　□ 個人事業主　□ 個人</span></td><td class="memo"></td></tr>
+    <tr><td class="item">法人名（正式名称）・フリガナ</td><td class="mk req">●</td><td class="mk na">—</td><td class="fill"></td><td class="memo">登記どおりに。「株式会社」の前後も正確に</td></tr>
+    <tr><td class="item">法人名の英語表記</td><td class="mk">△</td><td class="mk na">—</td><td class="fill"></td><td class="memo">.co.jp／.jp の登録情報で使います</td></tr>
+    <tr><td class="item">部署名・担当者名・フリガナ</td><td class="mk req">●</td><td class="mk na">—</td><td class="fill"></td><td class="memo">管理を引き継げる立場の方を</td></tr>
+    <tr><td class="item">氏名・フリガナ<small>個人事業主は屋号も</small></td><td class="mk na">—</td><td class="mk req">●</td><td class="fill"></td><td class="memo"></td></tr>
+    <tr><td class="item">郵便番号・住所</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"></td><td class="memo">法人は本店所在地</td></tr>
+    <tr><td class="item">電話番号（日中につながる番号）</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"></td><td class="memo"></td></tr>
+    <tr><td class="item">携帯電話番号（SMS 認証用）</td><td class="mk">△</td><td class="mk">△</td><td class="fill"></td><td class="memo">申込み時に確認コードが SMS で届くことがあります</td></tr>
+    <tr><td class="item">連絡用メールアドレス</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"></td><td class="memo">今使えるアドレスを。これから作るドメインのアドレスは使えません</td></tr>
+
+    <tr class="grp" style="--g:#1C5FC9"><th colspan="5">B. ログイン情報</th></tr>
+    <tr><td class="item">会員 ID／ログイン用メールアドレス</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"></td><td class="memo">申込み後に発行される場合は後で記入</td></tr>
+    <tr><td class="item">パスワード</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"><span class="ck">□ 設定済み　保管場所：</span></td><td class="memo">この用紙には書かず、パスワード管理アプリでの保管をおすすめします</td></tr>
+    <tr><td class="item">二段階認証の受け取り方法</td><td class="mk">△</td><td class="mk">△</td><td class="fill"><span class="ck">□ SMS　□ 認証アプリ　□ メール</span></td><td class="memo">担当者の異動・退職後も会社で受け取れる方法に</td></tr>
+
+    <tr class="grp" style="--g:#D9480F"><th colspan="5">C. レンタルサーバー</th></tr>
+    <tr><td class="item">契約するサービス・プラン</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"><span class="ck">□ さくら スタンダード　□ ロリポップ！ ハイスピード</span><br><span class="ck">□ エックスサーバー スタンダード　□ その他</span></td><td class="memo">1枚目の比較表を参照</td></tr>
+    <tr><td class="item">契約期間・自動更新</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"><span class="ck">□ 12か月　□ 36か月　　自動更新 □ する</span></td><td class="memo">ドメイン無料特典は12か月以上が条件</td></tr>
+    <tr><td class="item">サーバー ID（初期ドメイン）の希望</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"></td><td class="memo">半角英数字。後から変えられないことが多い</td></tr>
+
+    <tr class="grp" style="--g:#2B8A3E"><th colspan="5">D. ドメイン</th></tr>
+    <tr><td class="item">希望するドメイン名（第1〜第3候補）</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"><span class="ck">①　　　　　　②　　　　　　③</span></td><td class="memo">すでに使われていないか申込み画面で確認</td></tr>
+    <tr><td class="item">ドメインの種類</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"><span class="ck">□ .co.jp　□ .jp　□ .com　□ その他（　　　）</span></td><td class="memo"></td></tr>
+    <tr><td class="item">.co.jp の取得条件</td><td class="mk req">●</td><td class="mk na">—</td><td class="fill"><span class="ck">□ 日本で登記済みの会社　□ 自社で .co.jp を未取得</span></td><td class="memo">1社につき1つまで</td></tr>
+    <tr><td class="item">登録者情報の公開代行</td><td class="mk">△</td><td class="mk req">●</td><td class="fill"><span class="ck">□ 利用する</span></td><td class="memo">.com などで個人の住所・電話番号を公開しないため</td></tr>
+
+    <tr class="grp" style="--g:#5F3DC4"><th colspan="5">E. お支払い</th></tr>
+    <tr><td class="item">お支払い方法</td><td class="mk req">●</td><td class="mk req">●</td><td class="fill"><span class="ck">□ クレジットカード　□ 振込・請求書払い　□ その他</span></td><td class="memo">選べる方法はサービスにより異なります</td></tr>
+    <tr><td class="item">クレジットカード<small>カード払いの場合のみ</small></td><td class="mk">△</td><td class="mk">△</td><td class="fill"><span class="ck">□ 用意した　名義：□ 法人カード　□ 個人カード</span></td><td class="memo">番号・有効期限・セキュリティコードは書かず、申込み画面で本人が入力</td></tr>
+    <tr><td class="item">請求書・領収書の宛名</td><td class="mk req">●</td><td class="mk">△</td><td class="fill"></td><td class="memo"></td></tr>
+
+    <tr class="grp" style="--g:#495057"><th colspan="5">F. メールアドレスと作業の分担</th></tr>
+    <tr><td class="item">作成するメールアドレス</td><td class="mk">△</td><td class="mk">△</td><td class="fill"><span class="ck">info@　　　　　sales@　　　　　</span></td><td class="memo">あとから追加できます</td></tr>
+    <tr><td class="item">設定作業の依頼範囲</td><td class="mk">△</td><td class="mk">△</td><td class="fill"><span class="ck">□ 申込みから依頼　□ 申込みは自社、設定を依頼</span></td><td class="memo"></td></tr>
+  </tbody>
+</table>
+
+<div class="warn">
+  <b>取り扱いのお願い</b>
+  <ul>
+    <li>クレジットカードの番号・有効期限・セキュリティコードは、この用紙やメール・チャットに書かないでください。</li>
+    <li>契約は必ず<b>貴社（契約者）の名義</b>で行います。制作者の名義では契約しません。</li>
+    <li>作業を依頼する場合は、管理画面のユーザー追加機能などで権限を共有し、パスワードそのものの受け渡しは避けます。</li>
+    <li>記入済みの用紙は個人情報を含むため、施錠できる場所で保管し、写真で送らないでください。</li>
+  </ul>
+</div>
+
+<div class="sign"><div>記入日：　　　年　　月　　日</div><div>記入者：</div><div>確認者：</div></div>
+</section>
 </body></html>
