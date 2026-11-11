@@ -3,40 +3,52 @@
 <title>レンタルサーバー・ドメイン費用比較</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* A4 縦 1 枚。上に結論、中央に2つの比較表、下にドメインとメールの注意点 */
-:root{--ink:#14202C;--muted:#5A6878;--line:#CDD6E0;--soft:#F1F4F8;--accent:#1F5FBF;--accent-soft:#E3ECFA;--warn:#B4531A;
+/* A4 縦 1 枚。上に「選んだら年いくら」の3枚のカード、下に内訳とドメイン・メールの注意点 */
+:root{--ink:#14202C;--muted:#5A6878;--line:#D3DBE4;--soft:#F3F6F9;
+ --sa:#C2255C;--sa-soft:#FCE8EF;--lo:#D9480F;--lo-soft:#FFF0E6;--xs:#1C5FC9;--xs-soft:#E6EEFB;
  --f:"Noto Sans JP","IPAPGothic",sans-serif;--mono:"JetBrains Mono",monospace}
 @page{size:A4;margin:9mm 10mm}
 *{box-sizing:border-box}
-body{margin:0;font-family:var(--f);color:var(--ink);font-size:8pt;line-height:1.38;background:#fff}
-header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid var(--ink);padding-bottom:5px}
-.eyebrow{font-family:var(--mono);font-size:7pt;letter-spacing:.12em;color:var(--accent);font-weight:700}
-h1{font-size:13.5pt;font-weight:900;margin:2px 0 0;letter-spacing:.02em}
-.asof{text-align:right;font-size:7.5pt;color:var(--muted)}
-.lead{margin:6px 0 4px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.lead div{background:var(--soft);border-radius:5px;padding:5px 8px}
-.lead b{display:block;font-size:8.4pt}
-.lead span{color:var(--muted);font-size:7.2pt}
-h2{font-size:9.2pt;margin:7px 0 3px;display:flex;align-items:center;gap:6px}
-h2::before{content:"";width:4px;height:12px;background:var(--accent);border-radius:1px}
-table{width:100%;border-collapse:collapse;font-size:7.5pt}
-th,td{border:1px solid var(--line);padding:2px 5px;vertical-align:top;text-align:left}
-thead th{background:var(--ink);color:#fff;font-weight:700;font-size:8pt}
-tbody th{background:var(--soft);font-weight:500;white-space:nowrap;width:17%}
-td.n{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
-.num{font-variant-numeric:tabular-nums}
-.big{font-weight:700;font-size:8.2pt}
-.rec{background:var(--accent-soft)}
-.tag{display:inline-block;font-size:6.8pt;border:1px solid currentColor;border-radius:3px;padding:0 3px;line-height:1.3;margin-left:2px}
-.chk{color:var(--warn)}
-small,.sm{font-size:7pt;color:var(--muted)}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.box{border:1px solid var(--line);border-radius:6px;padding:5px 8px}
-.box ul{margin:2px 0 0;padding-left:1.1em;font-size:7.6pt}
+body{margin:0;font-family:var(--f);color:var(--ink);font-size:8.5pt;line-height:1.45;background:#fff}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:8px 12px;border-radius:8px;background:var(--ink);color:#fff}
+.eyebrow{font-family:var(--mono);font-size:6.8pt;letter-spacing:.14em;color:#8FB4F0;font-weight:700}
+h1{font-size:12.6pt;white-space:nowrap;font-weight:900;margin:2px 0 0;letter-spacing:.02em}
+.asof{text-align:right;font-size:7.2pt;color:#C6D2DF;flex:none}
+.intro{margin:7px 2px 5px;font-size:8.2pt}
+h2{font-size:10pt;margin:11px 0 5px;display:flex;align-items:center;gap:6px}
+h2::before{content:"";width:4px;height:12px;background:var(--ink);border-radius:1px}
+h2 small{font-weight:400}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.card{border:1.5px solid var(--c);border-radius:8px;overflow:hidden;background:#fff}
+.card .top{background:var(--c);color:#fff;padding:5px 9px}
+.card .top b{font-size:10pt;display:block}
+.card .top span{font-size:7.2pt;opacity:.92}
+.card .body{padding:6px 9px 7px}
+.label{font-size:7pt;color:var(--muted)}
+.price{font-size:22pt;font-weight:900;color:var(--c);line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.price small{font-size:8pt;font-weight:700;color:var(--ink);margin-left:2px}
+.lines{margin-top:5px;border-top:1px dashed var(--line);padding-top:4px;display:grid;gap:2px}
+.lines div{display:flex;justify-content:space-between;gap:6px}
+.lines b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.fit{margin-top:6px;background:var(--cs);border-radius:5px;padding:4px 7px;font-size:7.8pt}
+.sa{--c:var(--sa);--cs:var(--sa-soft)} .lo{--c:var(--lo);--cs:var(--lo-soft)} .xs{--c:var(--xs);--cs:var(--xs-soft)}
+table{width:100%;border-collapse:collapse;font-size:8pt;table-layout:fixed}
+th,td{border:1px solid var(--line);padding:3.5px 5px;text-align:center;vertical-align:middle}
+thead th{color:#fff;font-weight:700;font-size:7.8pt}
+thead th.h0{background:var(--ink);text-align:left}
+thead th.sa{background:var(--sa)} thead th.lo{background:var(--lo)} thead th.xs{background:var(--xs)}
+tbody th{background:var(--soft);font-weight:500;text-align:left;white-space:nowrap}
+thead th.h0{width:20%}
+td{font-variant-numeric:tabular-nums}
+td.free{color:#2B8A3E;font-weight:700}
+.b{font-weight:700}
+.note{font-size:6.9pt;color:var(--muted);margin:3px 0 0}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.box{border:1px solid var(--line);border-radius:7px;padding:5px 9px;background:var(--soft)}
+.box h2{margin:1px 0 3px}
+.box ul{margin:0;padding-left:1.1em;font-size:8pt}
 .box li{margin:1px 0}
-.ex{background:var(--soft);border-radius:6px;padding:5px 8px;margin-top:6px}
-.ex tbody td,.ex tbody th{background:#fff}
-footer{margin-top:6px;border-top:1px solid var(--line);padding-top:4px;font-size:6.6pt;color:var(--muted);line-height:1.4}
+footer{margin-top:7px;border-top:1px solid var(--line);padding-top:4px;font-size:6.5pt;color:var(--muted);line-height:1.4}
 </style></head><body>
 
 <header>
@@ -44,81 +56,102 @@ footer{margin-top:6px;border-top:1px solid var(--line);padding-top:4px;font-size
     <div class="eyebrow">PROPOSAL MATERIAL — SERVER &amp; DOMAIN</div>
     <h1>業務アプリ（PWA）導入のためのサーバー・ドメイン費用比較</h1>
   </div>
-  <div class="asof" style="flex:none">料金は税込・2026年11月11日時点<br>キャンペーン価格は含みません</div>
+  <div class="asof">金額はすべて税込<br>2026年11月11日時点・各社公式サイトより</div>
 </header>
 
-<div class="lead">
-  <div><b>サーバーは月500〜1,500円程度</b><span>業務アプリに必要な HTTPS（無料SSL）・PHP・MySQL は4社とも標準で使えます。</span></div>
-  <div><b>ドメインは年1,000〜11,000円程度</b><span>会社のアドレスは .co.jp が定番。取得時と更新時で料金が違う点に注意します。</span></div>
-  <div><b>メールアドレスも同じ契約で</b><span>独自ドメインを設定すると info@会社名.co.jp などのアドレスを追加料金なしで作れます。</span></div>
+<p class="intro">業務アプリを動かすには「サーバー」と「ドメイン（会社の住所にあたる名前）」が必要です。3社とも、業務アプリに必要な <b>HTTPS（無料SSL）・PHP・MySQL</b> と、<b>info@会社名.co.jp などのメールアドレス（作成数無制限）</b>が料金に含まれます。</p>
+
+<h2>1. 選んだら年間いくら？ <small>（サーバー12か月契約＋会社用ドメイン .co.jp の場合）</small></h2>
+<div class="cards">
+  <div class="card sa">
+    <div class="top"><b>さくらのレンタルサーバ</b><span>スタンダード ＋ さくらのドメイン</span></div>
+    <div class="body">
+      <div class="label">1年目の合計</div>
+      <div class="price">17,600<small>円</small></div>
+      <div class="lines">
+        <div><span>2年目以降（毎年）</span><b>14,300円</b></div>
+        <div><span>.com にした場合（毎年）</span><b>10,037円</b></div>
+        <div><span>3年一括・.co.jp（3年総額）</span><b>44,400円</b></div>
+      </div>
+      <div class="fit">年間の費用を最も安くしたい会社に</div>
+    </div>
+  </div>
+  <div class="card lo">
+    <div class="top"><b>ロリポップ！</b><span>ハイスピード ＋ ムームードメイン</span></div>
+    <div class="body">
+      <div class="label">1年目の合計</div>
+      <div class="price">16,918<small>円〜</small></div>
+      <div class="lines">
+        <div><span>2年目以降（毎年）</span><b>16,918円〜</b></div>
+        <div><span>.com／.jp にした場合（毎年）</span><b>12,540円</b></div>
+        <div><span>3年一括・.co.jp（3年総額）</span><b>36,894円〜</b></div>
+      </div>
+      <div class="fit">.com／.jp ならドメイン代0円。3年契約で最安</div>
+    </div>
+  </div>
+  <div class="card xs">
+    <div class="top"><b>エックスサーバー</b><span>スタンダード ＋ Xserverドメイン</span></div>
+    <div class="body">
+      <div class="label">1年目の合計</div>
+      <div class="price">17,336<small>円</small></div>
+      <div class="lines">
+        <div><span>2年目以降（毎年）</span><b>17,336円</b></div>
+        <div><span>.com にした場合（毎年）</span><b>13,200円</b></div>
+        <div><span>3年一括・.co.jp（3年総額）</span><b>48,048円</b></div>
+      </div>
+      <div class="fit">表示の速さ・容量・サポートを重視する会社に</div>
+    </div>
+  </div>
 </div>
+<p class="note">「〜」：ムームードメインは表示価格のほかに、月ごとに変わる「サービス維持調整費」が加算されるため、実際の支払額はこれより高くなります。</p>
 
-<h2>1. レンタルサーバーの料金と仕様（業務アプリ向けの入門プラン）</h2>
+<h2>2. サーバー料金と仕様の内訳</h2>
 <table>
-  <thead><tr><th>項目</th><th>さくらのレンタルサーバ<br><span class="sm" style="color:#C9D3DE">スタンダード</span></th><th>ロリポップ！<br><span class="sm" style="color:#C9D3DE">ハイスピード</span></th><th>エックスサーバー<br><span class="sm" style="color:#C9D3DE">スタンダード</span></th><th>ConoHa WING<br><span class="sm" style="color:#C9D3DE">ベーシック</span></th></tr></thead>
+  <thead><tr><th class="h0">項目</th><th class="sa">さくら スタンダード</th><th class="lo">ロリポップ！ ハイスピード</th><th class="xs">エックスサーバー スタンダード</th></tr></thead>
   <tbody>
-    <tr><th>初期費用</th><td class="n">0円</td><td class="n">0円</td><td class="n">0円</td><td class="n">0円</td></tr>
-    <tr><th>月額（毎月払い）</th><td class="n">660円</td><td class="n">1,430円</td><td class="n">1,320円<span class="tag chk">3か月契約・要確認</span></td><td class="n">1,452円<span class="tag chk">要確認</span></td></tr>
-    <tr><th>月額（12か月契約）</th><td class="n">550円</td><td class="n">1,045円</td><td class="n">1,100円<span class="tag chk">要確認</span></td><td class="n" rowspan="2" style="vertical-align:middle">968円〜<br><span class="sm">長期契約で変動</span><span class="tag chk">要確認</span></td></tr>
-    <tr><th>月額（36か月契約）</th><td class="n big">500円</td><td class="n big">660円</td><td class="n big">990円</td></tr>
-    <tr><th>年額の目安（12か月契約）</th><td class="n big">6,600円</td><td class="n big">12,540円</td><td class="n big">13,200円</td><td class="n">—</td></tr>
-    <tr><th>容量（SSD）</th><td class="n">300GB</td><td class="n">700GB</td><td class="n">500GB</td><td class="n">500GB</td></tr>
-    <tr><th>データベース（MySQL）</th><td class="n">50個</td><td class="n">無制限</td><td class="n">無制限</td><td class="n">無制限</td></tr>
-    <tr><th>独自ドメインのメール</th><td class="n">無制限</td><td class="n">無制限</td><td class="n">無制限</td><td class="n">公式で要確認</td></tr>
-    <tr><th>無料SSL（HTTPS）</th><td class="n">○</td><td class="n">○</td><td class="n">○</td><td class="n">○</td></tr>
-    <tr><th>ドメイン無料特典</th><td>なし</td><td>2個（12か月以上＋自動更新）</td><td>2個（.com など。.co.jp は対象外）</td><td>2個（WINGパック契約中）</td></tr>
-    <tr class="rec"><th style="background:var(--accent-soft)">向いている会社</th><td>費用を最小にしたい</td><td>ドメイン込みで手間を減らしたい</td><td>速さとサポートを重視</td><td>管理画面の分かりやすさ重視</td></tr>
+    <tr><th>初期費用</th><td>0円</td><td>0円</td><td>0円</td></tr>
+    <tr><th>毎月払い・短期契約</th><td>月 660円（毎月払い）</td><td>月 1,430円（1か月契約）</td><td>月 1,320円（3か月契約）</td></tr>
+    <tr><th>12か月契約</th><td class="b">年 6,600円（月 550円）</td><td class="b">年 12,540円（月 1,045円）</td><td class="b">年 13,200円（月 1,100円）</td></tr>
+    <tr><th>36か月契約（3年一括）</th><td>18,000円（月 500円）</td><td>23,760円（月 660円）</td><td>35,640円（月 990円）</td></tr>
+    <tr><th>容量（SSD）</th><td>300GB</td><td>700GB</td><td>500GB</td></tr>
+    <tr><th>データベース（MySQL）</th><td>50個</td><td>無制限</td><td>無制限</td></tr>
+    <tr><th>独自ドメインのメール</th><td>無制限</td><td>無制限</td><td>無制限</td></tr>
+    <tr><th>ドメイン無料特典</th><td>なし</td><td>.com・.jp など最大2個<br><span class="note">12か月以上＋自動更新が条件</span></td><td>.com など（12か月で1個、24か月以上で2個）<br><span class="note">.jp・.co.jp は対象外</span></td></tr>
   </tbody>
 </table>
-<p class="sm" style="margin:3px 0 0">ロリポップ！の「スタンダード」は月605円〜（36か月）でドメイン無料特典なし。エックスサーバーで .co.jp を無料にするには「ビジネス」プラン（月3,960円〜）が必要です。</p>
 
-<h2>2. ドメインの年間料金（各社のドメインサービス）</h2>
+<h2>3. ドメインの年間料金</h2>
 <table>
-  <thead><tr><th>ドメイン</th><th>さくらのドメイン</th><th>ムームードメイン<br><span class="sm" style="color:#C9D3DE">ロリポップ！と連携</span></th><th>Xserverドメイン</th><th>ConoHa ドメイン</th></tr></thead>
+  <thead><tr><th class="h0">ドメイン</th><th class="sa">さくらのドメイン</th><th class="lo">ムームードメイン</th><th class="xs">Xserverドメイン</th></tr></thead>
   <tbody>
-    <tr><th>.co.jp（法人向け）</th><td class="n">取得 11,000円<br>更新 7,700円</td><td class="n">取得 4,378円<br>更新 4,378円</td><td class="n">取得 4,136円<br>更新 4,136円</td><td class="n">取得・更新 4,070円<span class="tag chk">要確認</span></td></tr>
-    <tr><th>.jp</th><td class="n">取得・更新 3,982円</td><td class="n">取得 990円<br>更新 3,344円</td><td class="n">取得 980円<br>更新 3,102円</td><td class="n">取得・更新 3,058円<span class="tag chk">要確認</span></td></tr>
-    <tr><th>.com</th><td class="n">取得・更新 3,437円</td><td class="n">取得 750円<br>更新 1,728円</td><td class="n">取得 1,721円<br>更新 1,750円</td><td class="n">取得・更新 2,068円<span class="tag chk">要確認</span></td></tr>
+    <tr><th>.co.jp（会社向け）</th><td>取得 11,000円／更新 7,700円</td><td>取得・更新 4,378円〜</td><td>取得・更新 4,136円</td></tr>
+    <tr><th>.jp</th><td>取得・更新 3,982円</td><td class="free">サーバー特典で 0円</td><td>取得 980円／更新 3,102円</td></tr>
+    <tr><th>.com</th><td>取得・更新 3,437円</td><td class="free">サーバー特典で 0円</td><td class="free">サーバー特典で 0円</td></tr>
   </tbody>
 </table>
-<p class="sm" style="margin:3px 0 0">ムームードメインは表示価格とは別に「サービス維持調整費」が加算されます。Xserverドメインには初回取得 0円の条件付き特典があります。</p>
 
-<div class="cols" style="margin-top:7px">
+<div class="cols">
   <div class="box">
-    <h2 style="margin:2px 0 3px">3. ドメイン取得のポイント</h2>
+    <h2>4. ドメイン取得のポイント</h2>
     <ul>
-      <li><b>.co.jp</b>：日本で登記した会社だけが取得でき、1社につき1つ。設立予定の会社は登記の6か月前から仮登録できます。</li>
-      <li><b>.jp</b>：日本国内に住所がある個人・団体が取得できます。<b>.com</b> は誰でも取得できます。</li>
-      <li>名義は担当者個人ではなく<b>会社名義</b>で。退職などで管理できなくなるのを防ぎます。</li>
-      <li><b>自動更新</b>を必ず設定します。.jp・.co.jp は期限が切れると更新できず、同じドメインを取り戻せないことがあります。</li>
-      <li>取得時の安い料金は初年度だけのことが多く、2年目以降は<b>更新料金</b>で考えます。</li>
+      <li><b>.co.jp</b>：日本で登記した会社だけが取得でき、1社につき1つ。会社の信頼感が最も高い名前です。</li>
+      <li><b>.jp</b>は日本に住所がある個人・団体、<b>.com</b>は誰でも取得できます。</li>
+      <li>名義は担当者個人ではなく<b>会社名義</b>にします。</li>
+      <li><b>自動更新を必ず設定</b>します。.jp・.co.jp は期限が切れると同じ名前を取り戻せないことがあります。</li>
     </ul>
   </div>
   <div class="box">
-    <h2 style="margin:2px 0 3px">4. メールアドレス取得のポイント</h2>
+    <h2>5. メールアドレス取得のポイント</h2>
     <ul>
-      <li>独自ドメインをサーバーに設定すると、<b>info@・sales@・個人名@</b> などを作れます。作成数は表の各社とも実質無制限です（ConoHa は要確認）。</li>
-      <li>メールの料金は<b>サーバー料金に含まれます</b>。Outlook・スマホのメールアプリ・ブラウザ（Webメール）で読めます。</li>
-      <li>迷惑メール扱いを防ぐ設定（SPF・DKIM・DMARC）を最初に行います。設置時に当方で対応できます。</li>
-      <li>社員が多くメールを重視する場合は、Google Workspace などのメール専用サービスを組み合わせる方法もあります（1人あたり月額の別料金）。</li>
+      <li>ドメインをサーバーに設定すると、<b>info@・sales@・個人名@</b>を何個でも作れます。<b>追加料金はかかりません</b>。</li>
+      <li>Outlook・スマホのメールアプリ・ブラウザで読めます。</li>
+      <li>迷惑メール扱いを防ぐ設定（SPF・DKIM・DMARC）は、設置時にこちらで行います。</li>
     </ul>
   </div>
-</div>
-
-<div class="ex">
-  <h2 style="margin:0 0 3px">5. 年間費用の例：さくらのレンタルサーバ スタンダード（12か月契約）＋ .co.jp</h2>
-  <table>
-    <thead><tr><th style="width:22%">内訳</th><th>1年目</th><th>2年目以降（毎年）</th></tr></thead>
-    <tbody>
-      <tr><th>サーバー</th><td class="n">6,600円</td><td class="n">6,600円</td></tr>
-      <tr><th>.co.jp ドメイン</th><td class="n">11,000円（取得）</td><td class="n">7,700円（更新）</td></tr>
-      <tr><th>合計（メールアドレス込み）</th><td class="n big">17,600円</td><td class="n big">14,300円</td></tr>
-    </tbody>
-  </table>
 </div>
 
 <footer>
-  料金は各社公式サイトの掲載内容（2026年11月11日確認）をもとにした税込の目安です。キャンペーンや改定で変わるため、契約前に必ず公式サイトでご確認ください。「要確認」は公式ページを直接確認できず、検索結果に表示された公式ページの記載や比較記事の情報で補った値です。<br>
-  出典：rs.sakura.ad.jp/plan/standard/ ・ rs.sakura.ad.jp/function/mysql/ ・ domain.sakura.ad.jp/specification/ ・ domain.sakura.ad.jp/jpdomain/cojp/ ・ lolipop.jp/pricing/ ・ muumuu-domain.com/domain/price ・ xserver.ne.jp/functions/ ・ xdomain.ne.jp/domain/price.php ・ conoha.jp/pricing/ ・ conoha.jp/wing/domain/
+  合計の計算：サーバー12か月契約の年額＋ドメインの年額（1年目は取得料金、2年目以降は更新料金）。3年総額はサーバー36か月一括＋ドメイン3年分。キャンペーン価格は含みません。料金は改定されることがあるため、契約前に各社公式サイトでご確認ください。<br>
+  出典：rs.sakura.ad.jp/plan/standard/ ・ rs.sakura.ad.jp/function/mysql/ ・ domain.sakura.ad.jp/specification/ ・ domain.sakura.ad.jp/jpdomain/cojp/ ・ lolipop.jp/pricing/ ・ lolipop.jp/service/specs/domain-free/ ・ muumuu-domain.com/domain/price ・ xserver.ne.jp/price/ ・ xserver.ne.jp/functions/ ・ xdomain.ne.jp/domain/price.php
 </footer>
 </body></html>
