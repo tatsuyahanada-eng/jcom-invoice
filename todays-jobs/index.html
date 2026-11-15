@@ -569,6 +569,23 @@
     .etc-fee { margin: 0 0 6px 56px; }
     .etc-fee label.fl { margin-top: 8px; }
     .nc-btn { width: 100%; margin-top: 8px; min-height: 40px; }
+    .rp-row { padding: 8px 0; }
+    .rp-row + .rp-row { border-top: 1px dashed var(--line); }
+    .rp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .rp-head b { font-size: 15px; }
+    .rp-head .st { margin-left: auto; font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+    .rp-head .st svg { width: 14px; height: 14px; }
+    .rp-head .st.ok { color: var(--ok); font-weight: 700; }
+    .rp-row .seg button { min-height: 38px; font-size: 13px; padding: 4px 2px; }
+    .rp-act { display: flex; gap: 8px; margin-top: 8px; align-items: stretch; }
+    .rp-act > * { min-width: 0; }
+    .rp-act .grow { flex: 1; }
+    .rp-act .btn { min-height: 40px; font-size: 13px; padding: 6px 10px; }
+    .rp-act .btn svg { width: 18px; height: 18px; }
+    .rp-act select.input, .rp-act input.input { flex: 1; min-height: 40px; }
+    .rp-act a.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+    .rp-act a.btn.disabled { opacity: .45; }
+    .rp-done[aria-pressed="true"] { border-color: var(--ok); color: var(--ok); }
     .nc-form-row { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
     .nc-form { display: flex; gap: 8px; align-items: stretch; margin-top: 6px; }
     .nc-form select.input { flex: 1; min-width: 0; }
@@ -828,6 +845,7 @@
           <li>「直前電話」「直前Mail」をオンにすると、その案件のカードに赤い印が出ます。上の赤いバナーは、その案件が<b>次の訪問</b>になったときだけ出ます。「通話済」「Mail送信」を記録すると完了、案件が「完了」になると印は消えます。</li>
           <li>「直前Mail」をオンにすると、その下に「メールのひな形を開く」ボタンが出ます。トップに戻らずに、メールの定型文を開けます。メールを作ったら「Mail送信を記録して案件に戻る」を押すと、記録して案件の画面に戻ります。{時間1}{時間2}には、その案件の開始・終了の時刻が入ります。</li>
           <li>「フォーム報告」をオンにすると、設定の「連携アプリ」に登録したURLから開くフォームを選んで、「フォームを開く」で開けます。報告を終えたら「フォーム報告済」を押すと完了です（赤い印が消えます）。</li>
+          <li>「開始・終了の連絡」では、案件ごとに開始と終了をそれぞれ「なし／電話／Mail／フォーム」から選べます。電話は電話先を入れて発信（前回の番号を覚えます）、Mailは定型文、フォームは「連携アプリ」のURLを開きます。連絡したら「連絡をした」を押すと時刻つきで記録され、カードに「開始電話 済」などが出ます。終了の連絡が残ったまま「完了」にすると、お知らせが出ます。</li>
           <li>本文やメモの中の電話番号は、タップすると電話アプリが開きます。</li>
         </ul>
       </details>
@@ -1426,7 +1444,7 @@
           <div class="job-sub">
             ${j.location ? `<div class="job-addr">${icon('pin')}<span>${esc(j.location)}</span></div>` : ''}
             ${memoText ? `<div class="job-memo">${esc(memoText)}</div>` : ''}
-            <div class="chips">${workChip}${contactChip}${parkChip}${saleChip}${etcChip}${extraChip}${calChip}${missingChip}${manualChip}</div>
+            <div class="chips">${workChip}${reportChipsHtml(j)}${contactChip}${parkChip}${saleChip}${etcChip}${extraChip}${calChip}${missingChip}${manualChip}</div>
           </div>
         </div>
         <div class="job-grip" aria-hidden="true">${icon('grip')}</div>
@@ -1455,6 +1473,53 @@
   function phoneChipsHtml(j) {
     const list = findPhones(j.phone, j.title, j.location, j.description, j.memo, j.parking && j.parking.note);
     return list.map(sp => `<a href="tel:${sp.tel}">${icon('phone')}${esc(sp.norm)}</a>`).join('');
+  }
+
+  // 開始・終了の連絡（案件ごとに、電話／Mail／フォームのどれで連絡するかを指定）
+  const REPORT_KIND = { start: '開始', end: '終了' };
+  const REPORT_WAY = { none: 'なし', call: '電話', mail: 'Mail', form: 'フォーム' };
+  function jobReportOf(j) {
+    const r = Object.assign({ start: 'none', end: 'none', startAt: null, endAt: null, tel: '', startLink: '', endLink: '' }, j.report || {});
+    if (!REPORT_WAY[r.start]) r.start = 'none';
+    if (!REPORT_WAY[r.end]) r.end = 'none';
+    return r;
+  }
+  const reportPending = (j) => { const r = jobReportOf(j); return ['start', 'end'].filter(k => r[k] !== 'none' && !r[k + 'At']); };
+  function reportChipsHtml(j) {
+    const r = jobReportOf(j);
+    return ['start', 'end'].filter(k => r[k] !== 'none').map(k => {
+      const d = r[k + 'At'];
+      return `<span class="chip ${d ? 'ok' : 'warn'}">${icon(d ? 'check' : (r[k] === 'call' ? 'phone' : r[k] === 'mail' ? 'mail' : 'link'))}${REPORT_KIND[k]}${REPORT_WAY[r[k]]}${d ? ' 済' : ''}</span>`;
+    }).join('');
+  }
+  function reportLinkOf(j, k) {
+    const links = settings.links || [], r = jobReportOf(j);
+    return links.find(l => l.id === r[k + 'Link']) || formLinkOf(j);
+  }
+  function reportRowHtml(j, k) {
+    const r = jobReportOf(j), way = r[k], done = r[k + 'At'];
+    let act = '';
+    if (way === 'call') {
+      const tel = r.tel || settings.reportTel || '';
+      act = `<input class="input" data-rp-tel="${k}" type="tel" inputmode="tel" placeholder="電話先（例: 03-1234-5678）" value="${esc(tel)}">
+        <a class="btn sm ${tel ? '' : 'disabled'}" data-rp-call="${k}" href="${tel ? telHref(tel) : '#'}">${icon('phone')}電話</a>`;
+    } else if (way === 'mail') {
+      act = `<button class="btn sm grow" type="button" data-rp-mail="${k}">${icon('mail')}メールのひな形を開く</button>`;
+    } else if (way === 'form') {
+      const links = settings.links || [];
+      if (!links.length) act = `<span class="help grow" style="margin:0;">フォームのURLを、設定の「連携アプリ」に登録してください。</span><button class="btn sm secondary" type="button" data-rp-settings="1">設定</button>`;
+      else {
+        const cur = reportLinkOf(j, k);
+        act = `<select class="input" data-rp-link="${k}" aria-label="${REPORT_KIND[k]}連絡のフォーム">${links.map(l => `<option value="${esc(l.id)}" ${cur && cur.id === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select>
+          <button class="btn sm" type="button" data-rp-form="${k}">${icon('ext')}開く</button>`;
+      }
+    }
+    return `<div class="rp-row">
+      <div class="rp-head"><b>${REPORT_KIND[k]}の連絡</b><span class="st ${done ? 'ok' : ''}">${way === 'none' ? '' : (done ? `${icon('check')}連絡済 ${hm(done)}` : '未連絡')}</span></div>
+      <div class="seg c4" data-group="rp-${k}">${Object.entries(REPORT_WAY).map(([v, l]) => `<button type="button" data-val="${v}" aria-pressed="${way === v}">${l}</button>`).join('')}</div>
+      ${way !== 'none' ? `<div class="rp-act">${act}</div>
+      <div class="rp-act"><button class="btn sm secondary grow rp-done" type="button" data-rp-done="${k}" aria-pressed="${!!done}">${done ? `${icon('check')}${REPORT_KIND[k]}の連絡済（${hm(done)}）・タップで取り消し` : `${REPORT_KIND[k]}の連絡をした（記録する）`}</button></div>` : ''}
+    </div>`;
   }
 
   // フォーム報告：設定の「連携アプリ（定型リンク）」に登録したURLから選んで開く
@@ -1489,6 +1554,13 @@
         <div class="seg c3" data-group="work">
           ${Object.entries(WORK).map(([k, v]) => `<button type="button" data-val="${k}" data-tone="${v.tone}" aria-pressed="${j.work === k}">${v.label}</button>`).join('')}
         </div>
+      </div>
+
+      <div class="card" id="reportCard">
+        <h3>${icon('phone')}開始・終了の連絡</h3>
+        ${reportRowHtml(j, 'start')}
+        ${reportRowHtml(j, 'end')}
+        <p class="help" style="margin-top:4px;">案件ごとに、開始・終了をどの方法で連絡するかを選べます。連絡したら「連絡をした」を押すと、時刻つきで記録されます。</p>
       </div>
 
       <div class="actions">
@@ -1673,13 +1745,32 @@
     memo.addEventListener('input', saveMemo);
   }
 
+  $('#dBody').addEventListener('input', (e) => {
+    const t = e.target.closest('[data-rp-tel]'); if (!t) return;
+    const j = findJob(openId); if (!j) return;
+    const v = t.value.trim();
+    j.report = jobReportOf(j); j.report.tel = v;
+    if (v) { settings.reportTel = v; saveSettings(); }
+    saveDay();
+    document.querySelectorAll('#dBody [data-rp-call]').forEach(a => { a.href = v ? telHref(v) : '#'; a.classList.toggle('disabled', !v); });
+  });
+  $('#dBody').addEventListener('change', (e) => {
+    const t = e.target.closest('[data-rp-link]'); if (!t) return;
+    const j = findJob(openId); if (!j) return;
+    j.report = jobReportOf(j); j.report[t.dataset.rpLink + 'Link'] = t.value; saveDay();
+  });
   $('#dBody').addEventListener('click', async (e) => {
     const j = findJob(openId); if (!j) return;
     const segBtn = e.target.closest('.seg button');
     if (segBtn) {
       const group = segBtn.parentElement.dataset.group;
       const val = segBtn.dataset.val;
-      if (group === 'work') j.work = val;
+      if (group === 'work') {
+        const was = j.work; j.work = val;
+        const pend = reportPending(j), r = jobReportOf(j);
+        if (val === 'done' && was !== 'done' && pend.length) setTimeout(() => toast(`${pend.map(k => REPORT_KIND[k] + 'の連絡（' + REPORT_WAY[r[k]] + '）').join('・')}がまだです`), 400);
+      }
+      if (group === 'rp-start' || group === 'rp-end') { const k = group.slice(3); j.report = jobReportOf(j); j.report[k] = val; }
       if (group === 'parking') j.parking.status = val;
       if (group === 'etc-go' || group === 'etc-back') { j.etc = etcOf(j); j.etc[group === 'etc-go' ? 'go' : 'back'] = val; }
       if (group === 'saleKind') j.sales = Object.assign({ amount: null }, j.sales, { kind: val });
@@ -1692,6 +1783,26 @@
       saveDay(); render(); renderDetail();
       return;
     }
+    const rpDone = e.target.closest('[data-rp-done]');
+    if (rpDone) {
+      const k = rpDone.dataset.rpDone; j.report = jobReportOf(j);
+      j.report[k + 'At'] = j.report[k + 'At'] ? null : new Date().toISOString();
+      saveDay(); render(); renderDetail();
+      toast(j.report[k + 'At'] ? `${REPORT_KIND[k]}の連絡を記録しました` : `${REPORT_KIND[k]}の連絡の記録を取り消しました`);
+      return;
+    }
+    const rpMail = e.target.closest('[data-rp-mail]');
+    if (rpMail) { openMailForJob(j, rpMail.dataset.rpMail); return; }
+    const rpForm = e.target.closest('[data-rp-form]');
+    if (rpForm) {
+      const k = rpForm.dataset.rpForm, l = reportLinkOf(j, k); if (!l) return;
+      j.report = jobReportOf(j); j.report[k + 'Link'] = l.id; saveDay();
+      openUrl(fillTemplate(l.url, j));
+      return;
+    }
+    if (e.target.closest('[data-rp-settings]')) { openSettings(); return; }
+    const rpCall = e.target.closest('[data-rp-call]');
+    if (rpCall && rpCall.classList.contains('disabled')) { e.preventDefault(); toast('電話先の番号を入れてください'); return; }
     const mapBtn = e.target.closest('[data-map]');
     if (mapBtn) {
       const xi = mapBtn.dataset.xi;
@@ -2740,8 +2851,9 @@
   }
 
   let mailReturnId = null; // 案件の詳細から開いたとき、閉じたらその案件に戻す
-  function openMailForJob(j) {
+  function openMailForJob(j, reportKind) {
     mailReturnId = j.id;
+    mst.reportKind = reportKind || null;
     mst.jobPreset = {};
     if (!j.allDay && j.start) mst.jobPreset['時間1'] = hm(j.start);
     if (!j.allDay && j.end) mst.jobPreset['時間2'] = hm(j.end);
@@ -2778,7 +2890,7 @@
     let html = '';
     if (mailReturnId && findJob(mailReturnId)) {
       const mj = findJob(mailReturnId);
-      html += `<div class="mail-from"><b>「${esc(mj.title || '案件')}」への連絡</b><div class="row"><button class="btn sm" type="button" data-act="mailLogBack">Mail送信を記録して案件に戻る</button><button class="btn sm secondary" type="button" data-act="mailJustBack">記録せず戻る</button></div></div>`;
+      html += `<div class="mail-from"><b>「${esc(mj.title || '案件')}」への連絡</b><div class="row"><button class="btn sm" type="button" data-act="mailLogBack">${mst.reportKind ? `${REPORT_KIND[mst.reportKind]}の連絡を記録して案件に戻る` : 'Mail送信を記録して案件に戻る'}</button><button class="btn sm secondary" type="button" data-act="mailJustBack">記録せず戻る</button></div></div>`;
     }
     html += `<div class="m-path"><span class="lb">PATH</span>${crumbs.map((c, i) =>
       `<button type="button" class="crumb" data-crumb="${i}">${esc(c.name)}</button>`).join('<span class="sep">›</span>')}</div>`;
@@ -2940,7 +3052,8 @@
     const ja = e.target.closest('[data-act="mailLogBack"], [data-act="mailJustBack"]');
     if (ja) {
       const id = mailReturnId, mj = id && findJob(id);
-      if (mj && ja.dataset.act === 'mailLogBack') { mj.contact.log.push({ status: 'mail', at: new Date().toISOString() }); mj.contact.status = 'mail'; saveDay(); render(); toast('Mail送信を記録しました'); }
+      if (mj && ja.dataset.act === 'mailLogBack' && mst.reportKind) { const k = mst.reportKind; mj.report = jobReportOf(mj); mj.report[k + 'At'] = new Date().toISOString(); saveDay(); render(); toast(`${REPORT_KIND[k]}の連絡を記録しました`); }
+      else if (mj && ja.dataset.act === 'mailLogBack') { mj.contact.log.push({ status: 'mail', at: new Date().toISOString() }); mj.contact.status = 'mail'; saveDay(); render(); toast('Mail送信を記録しました'); }
       closeSheets();
       return;
     }
@@ -3078,7 +3191,7 @@
 
   $('#btnSync').addEventListener('click', sync);
   $('#btnSettings').addEventListener('click', openSettings);
-  $('#tabMail').addEventListener('click', () => { mailReturnId = null; mst.jobPreset = null; openMail(); });
+  $('#tabMail').addEventListener('click', () => { mailReturnId = null; mst.jobPreset = null; mst.reportKind = null; openMail(); });
   $('#mailTimes').innerHTML = mailTimeOptions().map(o => `<option value="${o}">`).join('');
   $('#mEditToggle').innerHTML = icon('edit');
   $('#btnPrev').addEventListener('click', () => goTo(addDays(current, -1)));
