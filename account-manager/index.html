@@ -41,7 +41,7 @@
           <span>パスワード（確認）</span>
           <input type="password" id="masterPw2" autocomplete="new-password">
         </label>
-        <div class="lock-step"><span class="step-no">2</span>暗証番号（4〜8桁の数字）</div>
+        <div class="lock-step"><span class="step-no">2</span>暗証番号（数字）</div>
         <label class="field">
           <span>暗証番号</span>
           <input type="password" id="pin" required inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">
@@ -79,6 +79,7 @@
     </header>
 
     <div class="toolbar">
+      <div id="secBanner" class="banner sec" hidden></div>
       <div id="backupBanner" class="banner" hidden>
         <span id="backupBannerText"></span>
         <button class="btn sm primary" id="bannerBackupBtn">今すぐバックアップ</button>
@@ -189,7 +190,7 @@
       <div id="storageStatus" class="status"></div>
 
       <h3>バックアップ</h3>
-      <p class="muted small">添付ファイルも含めて、管理者パスワードで暗号化したまま1つのファイルに保存します。端末の故障・紛失に備えて、iCloud Drive や Google ドライブなど端末の外にも保管してください。</p>
+      <p class="muted small">添付ファイルも含めて、パスワードと暗証番号で暗号化したまま1つのファイルに保存します。端末の故障・紛失に備えて、iCloud Drive や Google ドライブなど端末の外にも保管してください。</p>
       <div class="btn-row">
         <button class="btn primary" id="exportBtn">ダウンロード保存</button>
         <button class="btn" id="shareBtn">共有して保存</button>
@@ -213,7 +214,7 @@
           <input type="file" id="importFile" accept=".json,application/json" hidden>
         </div>
       </div>
-      <p class="muted small">※ 読み込むときは、そのバックアップを作ったときのパスワードを入力します。</p>
+      <p class="muted small">※ 読み込むときは、そのバックアップを作ったときのパスワードと暗証番号を入力します。</p>
 
       <div id="legacyWrap" hidden>
         <h3>以前の版のデータ（この端末）</h3>
@@ -240,7 +241,8 @@
       <h3>パスワードの変更</h3>
       <form id="changePwForm" autocomplete="off">
         <input type="password" id="cpOld" placeholder="現在のパスワード" required autocomplete="current-password">
-        <input type="password" id="cpNew" placeholder="新しいパスワード（8文字以上）" required autocomplete="new-password">
+        <input type="password" id="cpPin" placeholder="現在の暗証番号" required inputmode="numeric" maxlength="8" autocomplete="off">
+        <input type="password" id="cpNew" placeholder="新しいパスワード（10文字以上）" required autocomplete="new-password">
         <input type="password" id="cpNew2" placeholder="新しいパスワード（確認）" required autocomplete="new-password">
         <p class="error" id="cpErr"></p>
         <button class="btn primary" type="submit">変更する</button>
@@ -249,7 +251,8 @@
       <h3>暗証番号の変更</h3>
       <form id="changePinForm" autocomplete="off">
         <input type="password" id="cpinPw" placeholder="現在のパスワード" required autocomplete="current-password">
-        <input type="password" id="cpinNew" placeholder="新しい暗証番号（4〜8桁の数字）" required inputmode="numeric" maxlength="8" autocomplete="off">
+        <input type="password" id="cpinOld" placeholder="現在の暗証番号" required inputmode="numeric" maxlength="8" autocomplete="off">
+        <input type="password" id="cpinNew" placeholder="新しい暗証番号（6〜8桁の数字）" required inputmode="numeric" maxlength="8" autocomplete="off">
         <input type="password" id="cpinNew2" placeholder="新しい暗証番号（確認）" required inputmode="numeric" maxlength="8" autocomplete="off">
         <p class="error" id="pinErr"></p>
         <button class="btn primary" type="submit">変更する</button>
@@ -259,6 +262,7 @@
       <form id="changeUserForm" autocomplete="off">
         <input type="text" id="cuName" placeholder="新しいユーザー名" required autocapitalize="off" spellcheck="false">
         <input type="password" id="cuPw" placeholder="現在のパスワード" required autocomplete="current-password">
+        <input type="password" id="cuPin" placeholder="現在の暗証番号" required inputmode="numeric" maxlength="8" autocomplete="off">
         <p class="error" id="cuErr"></p>
         <button class="btn primary" type="submit">変更する</button>
       </form>

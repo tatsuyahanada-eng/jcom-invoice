@@ -7,8 +7,8 @@
  * - データはサーバー（api.php）に保存し、どの端末からでも同じ内容を表示
  * - ただし保存するのは、この端末で暗号化したものだけ（サーバーは中身を読めない）
  *   データ鍵(AES-256-GCM)を、パスワードから PBKDF2 で作った鍵で包んでサーバーに保管
- * - ログインは「ユーザー名＋パスワード」と「暗証番号」の二重チェック
- *   パスワード自体は送らず、パスワードから作った認証鍵だけをサーバーに送る
+ * - ログインは「ユーザー名＋パスワード」と「暗証番号」の二重ロック
+ *   暗号鍵と認証鍵は、パスワードと暗証番号の両方から作る。どちらもサーバーには送らない
  *
  * 【消えないための対策】
  * - 保存ごとに直前の状態をサーバー上の「復元ポイント」に最大50件保持
@@ -227,6 +227,12 @@ class ApiError extends Error {
 }
 class ConflictError extends Error {}
 let token = null;      // ログイン中のセッション（メモリ上のみ）
+let weakCreds = false; // 現在のパスワード/暗証番号が今の基準より弱い
+let kdfScheme = 2;     // 2: パスワード＋暗証番号の両方から鍵を作る（1 は旧方式）
+const MIN_PW = 10;
+const PIN_RE = /^[0-9]{6,8}$/;
+/** 鍵の材料。暗証番号も混ぜることで、サーバーのデータが盗まれても総当たりを大幅に難しくする */
+const kdfSecret = (pw, pin, scheme = 2) => (scheme >= 2 ? `${pw}\u0000${pin}` : pw);
 
 async function api(action, body, { raw = false, binary = null, query = '' } = {}) {
   let res;
@@ -373,7 +379,7 @@ async function showLock(message) {
     : 'ユーザー名・パスワード・暗証番号を入力してください。');
   $('#lockBtn').textContent = first ? 'アカウントを作成して開始' : 'ログイン';
   $('#lockNote').textContent = first
-    ? '※ パスワードを忘れるとデータは復元できません（サーバーにも保存されていないため）。暗証番号は4〜8桁の数字です。'
+    ? `※ パスワードは${MIN_PW}文字以上、暗証番号は6〜8桁の数字です。どちらもサーバーには保存されないため、忘れるとデータは復元できません。他のサービスで使っているパスワードは避けてください。`
     : '';
   $('#username').value = prefs.lastUser || '';
   ($('#username').value ? $('#masterPw') : $('#username')).focus();
@@ -385,9 +391,9 @@ function readLoginForm(first) {
   const pin = $('#pin').value.trim();
   if (!username) throw new Error('ユーザー名を入力してください。');
   if (first) {
-    if (pw.length < 8) throw new Error('パスワードは8文字以上にしてください。');
+    if (pw.length < MIN_PW) throw new Error(`パスワードは${MIN_PW}文字以上にしてください。`);
     if (pw !== $('#masterPw2').value) throw new Error('確認用パスワードが一致しません。');
-    if (!/^[0-9]{4,8}$/.test(pin)) throw new Error('暗証番号は4〜8桁の数字にしてください。');
+    if (!PIN_RE.test(pin)) throw new Error('暗証番号は6〜8桁の数字にしてください。');
     if (pin !== $('#pin2').value.trim()) throw new Error('確認用の暗証番号が一致しません。');
   } else if (!pw || !pin) {
     throw new Error('パスワードと暗証番号を入力してください。');
@@ -398,30 +404,45 @@ function readLoginForm(first) {
 /** アカウント作成（空のデータで開始）。成功するとログイン状態になる */
 async function register({ username, pw, pin }) {
   const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
-  const { kek, auth } = await deriveLogin(pw, salt, KDF_ITER);
+  const { kek, auth } = await deriveLogin(kdfSecret(pw, pin), salt, KDF_ITER);
   const raw = crypto.getRandomValues(new Uint8Array(32));
   const w = await aesEnc(kek, raw);
   dek = await importDek(raw);
   raw.fill(0);
   vault = normalize({});
   const { iv, ct } = await encryptJson(dek, vault);
-  const r = await api('register', { username, pin, salt, iter: KDF_ITER, auth, wk: b64(w.ct), wkIv: b64(w.iv), iv, ct, n: 0 });
+  const r = await api('register', { username, salt, iter: KDF_ITER, auth, wk: b64(w.ct), wkIv: b64(w.iv), iv, ct, n: 0 });
   token = r.token;
   header = r.header;
   rev = r.vault.rev;
+  kdfScheme = 2;
+  weakCreds = false;
   prefs.lastUser = username;
   savePrefs();
 }
 
 async function login({ username, pw, pin }) {
   const pre = await api('prelogin', { username });
-  const { kek, auth } = await deriveLogin(pw, pre.salt, pre.iter);
-  const r = await api('login', { username, auth, pin });
+  const scheme = pre.scheme || 1;
+  const { kek, auth } = await deriveLogin(kdfSecret(pw, pin, scheme), pre.salt, pre.iter);
+  const r = await api('login', { username, auth, pin: scheme >= 2 ? '' : pin });
   token = r.token;
   const raw = new Uint8Array(await aesDec(kek, unb64(r.header.wkIv), unb64(r.header.wk)));
   dek = await importDek(raw);
-  raw.fill(0);
   header = r.header;
+  kdfScheme = scheme;
+  if (scheme < 2) {
+    // 旧方式のアカウントを、暗証番号も鍵に含める方式へ自動で切り替える
+    try {
+      const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+      const neu = await deriveLogin(kdfSecret(pw, pin), salt, KDF_ITER);
+      const w = await aesEnc(neu.kek, raw);
+      header = (await api('password', { authOld: auth, salt, iter: KDF_ITER, authNew: neu.auth, wk: b64(w.ct), wkIv: b64(w.iv) })).header;
+      kdfScheme = 2;
+    } catch (e) { console.warn('upgrade skipped', e); }
+  }
+  raw.fill(0);
+  weakCreds = pw.length < MIN_PW || !PIN_RE.test(pin);
   vault = normalize(await decryptJson(dek, r.vault.iv, r.vault.ct));
   rev = r.vault.rev;
   prefs.lastUser = username;
@@ -476,6 +497,7 @@ async function enterApp() {
     await commit((v) => { v.trash = v.trash.filter((t) => t.deletedAt >= limit); });
   }
   updateLegacyUi();
+  checkDataFolder();
 }
 
 function lock(message) {
@@ -486,9 +508,29 @@ function lock(message) {
   $('#search').value = '';
   $('#searchClear').hidden = true;
   $('#list').replaceChildren();
+  $('#secBanner').hidden = true;
   liveUrls.forEach((u) => URL.revokeObjectURL(u));
   liveUrls.clear();
   showLock(typeof message === 'string' ? message : undefined);
+}
+
+/* ---------- セキュリティの自己点検 ---------- */
+let dataExposed = false;
+/** サーバーのデータフォルダが外から見えないか確認（見える設定なら警告） */
+async function checkDataFolder() {
+  try {
+    const r = await fetch('data/index.html', { cache: 'no-store', credentials: 'omit' });
+    dataExposed = r.ok;
+  } catch { dataExposed = false; }
+  updateSecurityBanner();
+}
+function updateSecurityBanner() {
+  const el = $('#secBanner');
+  const msgs = [];
+  if (weakCreds) msgs.push(`パスワード（${MIN_PW}文字以上）または暗証番号（6桁以上）が現在の基準より短くなっています。設定から変更してください。`);
+  if (dataExposed) msgs.push('サーバーの data フォルダが外部から開ける設定になっています。中身は暗号化されていますが、.htaccess がアップロードされているか確認してください。');
+  el.hidden = !vault || msgs.length === 0;
+  el.replaceChildren(...msgs.map((m) => h('div', null, '⚠ ' + m)));
 }
 
 /* ---------- 以前（端末内保存）のデータの引き継ぎ ---------- */
@@ -1047,55 +1089,63 @@ async function purgeTrash(id) {
   toast('削除しました');
 }
 
+/** パスワード・暗証番号の変更：データ鍵を新しい鍵で包み直してサーバーに保存 */
+async function changeCredentials(oldPw, oldPin, newPw, newPin) {
+  const old = await deriveLogin(kdfSecret(oldPw, oldPin, kdfScheme), header.salt, header.iter);
+  let raw;
+  try { raw = new Uint8Array(await aesDec(old.kek, unb64(header.wkIv), unb64(header.wk))); }
+  catch { throw new Error('現在のパスワードまたは暗証番号が違います。'); }
+  const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+  const neu = await deriveLogin(kdfSecret(newPw, newPin), salt, KDF_ITER);
+  const w = await aesEnc(neu.kek, raw);
+  raw.fill(0);
+  const r = await api('password', { authOld: old.auth, salt, iter: KDF_ITER, authNew: neu.auth, wk: b64(w.ct), wkIv: b64(w.iv) });
+  header = r.header;
+  kdfScheme = 2;
+  weakCreds = newPw.length < MIN_PW || !PIN_RE.test(newPin);
+  updateSecurityBanner();
+}
+
 async function onChangeMaster(ev) {
   ev.preventDefault();
   const err = $('#cpErr');
   err.textContent = '';
-  const oldPw = $('#cpOld').value, n1 = $('#cpNew').value, n2 = $('#cpNew2').value;
-  if (n1.length < 8) { err.textContent = '新しいパスワードは8文字以上にしてください。'; return; }
+  const oldPw = $('#cpOld').value, pin = $('#cpPin').value.trim(), n1 = $('#cpNew').value, n2 = $('#cpNew2').value;
+  if (n1.length < MIN_PW) { err.textContent = `新しいパスワードは${MIN_PW}文字以上にしてください。`; return; }
   if (n1 !== n2) { err.textContent = '確認用パスワードが一致しません。'; return; }
   busy('パスワードを変更しています…');
   try {
-    const old = await deriveLogin(oldPw, header.salt, header.iter);
-    let raw;
-    try { raw = new Uint8Array(await aesDec(old.kek, unb64(header.wkIv), unb64(header.wk))); }
-    catch { throw new Error('現在のパスワードが違います。'); }
-    const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
-    const neu = await deriveLogin(n1, salt, KDF_ITER);
-    const w = await aesEnc(neu.kek, raw);
-    raw.fill(0);
-    const r = await api('password', { authOld: old.auth, salt, iter: KDF_ITER, authNew: neu.auth, wk: b64(w.ct), wkIv: b64(w.iv) });
-    header = r.header;
+    await changeCredentials(oldPw, pin, n1, pin);
     ev.target.reset();
     busyEnd();
-    toast('パスワードを変更しました。ほかの端末でも新しいパスワードでログインしてください。', 4500);
+    toast('パスワードを変更しました。ほかの端末はログアウトされます。新しいパスワードでログインしてください。', 5000);
   } catch (e) {
     busyEnd();
-    err.textContent = e.message || String(e);
+    err.textContent = e.status === 403 ? '現在のパスワードまたは暗証番号が違います。' : (e.message || String(e));
   }
 }
 
-/** 本人確認：現在のパスワードから認証鍵を作る */
-async function authFromPassword(pw) {
-  return (await deriveLogin(pw, header.salt, header.iter)).auth;
+/** 本人確認：現在のパスワードと暗証番号から認証鍵を作る */
+async function authFromSecret(pw, pin) {
+  return (await deriveLogin(kdfSecret(pw, pin, kdfScheme), header.salt, header.iter)).auth;
 }
 
 async function onChangePin(ev) {
   ev.preventDefault();
   const err = $('#pinErr');
   err.textContent = '';
-  const pw = $('#cpinPw').value, p1 = $('#cpinNew').value.trim(), p2 = $('#cpinNew2').value.trim();
-  if (!/^[0-9]{4,8}$/.test(p1)) { err.textContent = '暗証番号は4〜8桁の数字にしてください。'; return; }
+  const pw = $('#cpinPw').value, oldPin = $('#cpinOld').value.trim(), p1 = $('#cpinNew').value.trim(), p2 = $('#cpinNew2').value.trim();
+  if (!PIN_RE.test(p1)) { err.textContent = '暗証番号は6〜8桁の数字にしてください。'; return; }
   if (p1 !== p2) { err.textContent = '確認用の暗証番号が一致しません。'; return; }
   busy('暗証番号を変更しています…');
   try {
-    await api('pin', { auth: await authFromPassword(pw), pin: p1 });
+    await changeCredentials(pw, oldPin, pw, p1);
     ev.target.reset();
     busyEnd();
-    toast('暗証番号を変更しました', 3500);
+    toast('暗証番号を変更しました。ほかの端末はログアウトされます。', 4500);
   } catch (e) {
     busyEnd();
-    err.textContent = e.status === 403 ? 'パスワードが違います。' : (e.message || String(e));
+    err.textContent = e.status === 403 ? '現在のパスワードまたは暗証番号が違います。' : (e.message || String(e));
   }
 }
 
@@ -1103,11 +1153,11 @@ async function onChangeUser(ev) {
   ev.preventDefault();
   const err = $('#cuErr');
   err.textContent = '';
-  const name = $('#cuName').value.trim(), pw = $('#cuPw').value;
+  const name = $('#cuName').value.trim(), pw = $('#cuPw').value, pin = $('#cuPin').value.trim();
   if (!name) { err.textContent = '新しいユーザー名を入力してください。'; return; }
   busy('ユーザー名を変更しています…');
   try {
-    await api('username', { auth: await authFromPassword(pw), username: name });
+    await api('username', { auth: await authFromSecret(pw, pin), username: name });
     prefs.lastUser = name; savePrefs();
     $('#userLabel').textContent = name;
     ev.target.reset();
@@ -1116,7 +1166,7 @@ async function onChangeUser(ev) {
     toast('ユーザー名を変更しました', 3500);
   } catch (e) {
     busyEnd();
-    err.textContent = e.status === 403 ? 'パスワードが違います。' : (e.message || String(e));
+    err.textContent = e.status === 403 ? 'パスワードまたは暗証番号が違います。' : (e.message || String(e));
   }
 }
 
@@ -1125,7 +1175,7 @@ async function buildBackup() {
   busy('バックアップを作成しています…');
   try {
     const { iv, ct } = await encryptJson(dek, vault);
-    const vaultRec = { v: 2, iter: header.iter, salt: header.salt, wkIv: header.wkIv, wk: header.wk, iv, ct, n: vault.entries.length, savedAt: Date.now() };
+    const vaultRec = { v: 2, kdf: kdfScheme, iter: header.iter, salt: header.salt, wkIv: header.wkIv, wk: header.wk, iv, ct, n: vault.entries.length, savedAt: Date.now() };
     const ids = new Set();
     [...vault.entries, ...vault.trash].forEach((e) => (e.attachments || []).forEach((a) => ids.add(a.id)));
     const files = {};
@@ -1180,17 +1230,23 @@ async function onShareBackup() {
   }
 }
 
-function askPassword(message) {
+/** パスワード入力。withPin を付けると暗証番号も聞き、{ pw, pin } を返す */
+function askPassword(message, withPin = false) {
   return new Promise((resolve) => {
-    const input = h('input', { type: 'password', autocomplete: 'off' });
+    const input = h('input', { type: 'password', autocomplete: 'off', placeholder: 'パスワード' });
+    const pinIn = h('input', { type: 'password', autocomplete: 'off', inputmode: 'numeric', maxlength: '8', placeholder: '暗証番号' });
     const dlg = h('dialog', { class: 'sheet' },
       h('form', { method: 'dialog' },
-        h('div', { class: 'sheet-head' }, h('h2', null, 'パスワード入力')),
-        h('div', { class: 'sheet-body' }, h('p', { class: 'muted small' }, message), input),
+        h('div', { class: 'sheet-head' }, h('h2', null, withPin ? 'パスワードと暗証番号' : 'パスワード入力')),
+        h('div', { class: 'sheet-body' }, h('p', { class: 'muted small' }, message), input, withPin && pinIn),
         h('div', { class: 'sheet-foot' },
           h('button', { class: 'btn', value: 'cancel', formnovalidate: '' }, 'キャンセル'),
           h('button', { class: 'btn primary', value: 'ok' }, 'OK'))));
-    dlg.addEventListener('close', () => { resolve(dlg.returnValue === 'ok' ? input.value : null); dlg.remove(); });
+    dlg.addEventListener('close', () => {
+      const ok = dlg.returnValue === 'ok';
+      resolve(!ok ? null : withPin ? { pw: input.value, pin: pinIn.value.trim() } : input.value);
+      dlg.remove();
+    });
     document.body.append(dlg);
     dlg.showModal();
   });
@@ -1221,15 +1277,18 @@ async function pickBackup(file, message) {
   let bk;
   try { bk = await readBackupFile(file); }
   catch { throw new Error('バックアップファイルの形式が正しくありません。アプリの「バックアップ」で保存した .json ファイルを選んでください。'); }
-  const pw = await askPassword(message);
-  if (pw == null) return null;
+  // 新しい形式のバックアップは、作成時のパスワードと暗証番号の両方で開く
+  const needPin = !bk.legacy && (bk.vault.kdf || 1) >= 2;
+  const ans = await askPassword(needPin ? message.replace('パスワード', 'パスワードと暗証番号') : message, needPin);
+  if (ans == null) return null;
+  const secret = needPin ? kdfSecret(ans.pw, ans.pin) : ans;
   busy('バックアップを開いています…');
   try {
-    const opened = await openBackup(bk, pw);
-    return { bk, pw, ...opened };
+    const opened = await openBackup(bk, secret);
+    return { bk, ...opened };
   } catch (e) {
     busyEnd();
-    if (e && e.name === 'OperationError') throw new Error('パスワードが違います。バックアップを作ったときのパスワードを入力してください。');
+    if (e && e.name === 'OperationError') throw new Error(needPin ? 'パスワードまたは暗証番号が違います。バックアップを作ったときのものを入力してください。' : 'パスワードが違います。バックアップを作ったときのパスワードを入力してください。');
     throw e;
   }
 }
@@ -1408,11 +1467,11 @@ async function onRestoreFirst(ev) {
 async function onWipe() {
   if (!confirm('サーバー上のすべてのアカウント情報・添付ファイル・復元ポイントと、ログイン用のアカウントを削除します。\nすべての端末で使えなくなります。先にバックアップを取ることを強くおすすめします。よろしいですか？')) return;
   if (prompt('確認のため「削除」と入力してください') !== '削除') return;
-  const pw = await askPassword('本人確認のため、パスワードを入力してください。');
-  if (pw == null) return;
+  const ans = await askPassword('本人確認のため、パスワードと暗証番号を入力してください。', true);
+  if (ans == null) return;
   busy('削除しています…');
   try {
-    await api('wipe', { auth: await authFromPassword(pw) });
+    await api('wipe', { auth: await authFromSecret(ans.pw, ans.pin) });
     await idbClear('fcache');
     prefs.lastBackupAt = 0; prefs.lastChangeAt = 0; savePrefs();
     busyEnd();
@@ -1421,7 +1480,7 @@ async function onWipe() {
     toast('すべてのデータを削除しました');
   } catch (e) {
     busyEnd();
-    alert(e.status === 403 ? 'パスワードが違います。' : (e.message || e));
+    alert(e.status === 403 ? 'パスワードまたは暗証番号が違います。' : (e.message || e));
   }
 }
 

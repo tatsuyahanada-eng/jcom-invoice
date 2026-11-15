@@ -3,13 +3,16 @@
  * Account Manager — サーバー側 API
  *
  * - データはブラウザ側で暗号化済みのものだけを保存（サーバーは中身を読めない）
- * - ログイン：ユーザー名 ＋ パスワード（から作った認証鍵）＋ 暗証番号 の二重チェック
+ * - ログイン：ユーザー名 ＋「パスワードと暗証番号の両方から作った認証鍵」で確認
+ *   （パスワードも暗証番号もサーバーには送られず、保存もされない）
+ * - データファイルは .php 形式で保存し、万一 .htaccess が効かないサーバーでも直接ダウンロードできない
  * - 連続失敗でアカウントを一時ロック
  * - 保存のたびに直前の状態を復元ポイントとして保持
  *
  * 必要：PHP 7.4 以上（レンタルサーバーの標準PHPで可）
  */
 declare(strict_types=1);
+ini_set('display_errors', '0');   // エラー内容（サーバーのパスなど）を外に出さない
 
 const MAX_SNAPSHOTS   = 50;
 const SESSION_IDLE    = 2 * 3600;       // 操作が無いとセッション失効（秒）
@@ -35,10 +38,14 @@ function out(int $code, array $body = []): void {
 function fail(int $code, string $msg, array $extra = []): void { out($code, ['error' => $msg] + $extra); }
 function path(string $name): string { global $DATA_DIR; return $DATA_DIR . '/' . $name; }
 
+/** データファイルの先頭に置く行。URLで直接開かれても中身を返さず終了する */
+const GUARD = "<?php http_response_code(404); exit; ?>\n";
+
 function readJson(string $file, $default = null) {
     if (!is_file($file)) return $default;
-    $s = file_get_contents($file);
-    $j = json_decode((string)$s, true);
+    $s = (string)file_get_contents($file);
+    if (strncmp($s, GUARD, strlen(GUARD)) === 0) $s = substr($s, strlen(GUARD));
+    $j = json_decode($s, true);
     return $j === null ? $default : $j;
 }
 /** 一時ファイルに書いてから置き換え（途中で止まっても壊れない） */
@@ -47,7 +54,7 @@ function writeAtomic(string $file, string $data): void {
     if (file_put_contents($tmp, $data, LOCK_EX) === false) fail(500, '保存に失敗しました（書き込み権限を確認してください）');
     if (!rename($tmp, $file)) { @unlink($tmp); fail(500, '保存に失敗しました'); }
 }
-function writeJson(string $file, $data): void { writeAtomic($file, json_encode($data, JSON_UNESCAPED_UNICODE)); }
+function writeJson(string $file, $data): void { writeAtomic($file, GUARD . json_encode($data, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG)); }
 
 function body(): array {
     $raw = file_get_contents('php://input');
@@ -70,6 +77,13 @@ function ensureDataDir(): void {
     $ht = "$DATA_DIR/.htaccess";
     if (!is_file($ht)) file_put_contents($ht, "Require all denied\nDeny from all\n");
     if (!is_file("$DATA_DIR/index.html")) file_put_contents("$DATA_DIR/index.html", '');
+    // 旧形式（.json）のファイルを、直接ダウンロードできない形式へ移行
+    $old = array_merge(glob("$DATA_DIR/*.json") ?: [], glob("$DATA_DIR/snapshots/*.json") ?: []);
+    foreach ($old as $f) {
+        $j = json_decode((string)file_get_contents($f), true);
+        if ($j !== null && !is_file("$f.php")) writeJson("$f.php", $j);
+        if (is_file("$f.php")) @unlink($f);
+    }
     if (!is_file("$DATA_DIR/secret.php")) {
         file_put_contents("$DATA_DIR/secret.php", "<?php return '" . bin2hex(random_bytes(32)) . "';\n");
     }
@@ -85,7 +99,7 @@ function withLock(callable $fn) {
 
 /* ---------- セッション ---------- */
 function sessions(): array {
-    $all = readJson(path('sessions.json'), []);
+    $all = readJson(path('sessions.json.php'), []);
     $now = time();
     return array_filter($all, fn($s) => ($s['seen'] ?? 0) > $now - SESSION_IDLE);
 }
@@ -93,7 +107,7 @@ function newSession(): string {
     $token = bin2hex(random_bytes(32));
     $all = sessions();
     $all[hash('sha256', $token)] = ['seen' => time()];
-    writeJson(path('sessions.json'), $all);
+    writeJson(path('sessions.json.php'), $all);
     return $token;
 }
 function requireAuth(): void {
@@ -104,7 +118,7 @@ function requireAuth(): void {
         $all = sessions();
         if (!isset($all[$id])) fail(401, 'セッションの有効期限が切れました。もう一度ログインしてください');
         $all[$id]['seen'] = time();
-        writeJson(path('sessions.json'), $all);
+        writeJson(path('sessions.json.php'), $all);
     });
 }
 function dropSession(): void {
@@ -113,14 +127,14 @@ function dropSession(): void {
     withLock(function () use ($token) {
         $all = sessions();
         unset($all[hash('sha256', $token)]);
-        writeJson(path('sessions.json'), $all);
+        writeJson(path('sessions.json.php'), $all);
     });
 }
 
 /* ---------- アカウント ---------- */
-function user(): ?array { return readJson(path('user.json')); }
+function user(): ?array { return readJson(path('user.json.php')); }
 function headerOf(array $u): array {
-    return ['salt' => $u['salt'], 'iter' => $u['iter'], 'wk' => $u['wk'], 'wkIv' => $u['wkIv']];
+    return ['salt' => $u['salt'], 'iter' => $u['iter'], 'wk' => $u['wk'], 'wkIv' => $u['wkIv'], 'scheme' => (int)($u['scheme'] ?? 1)];
 }
 /** 認証鍵（ブラウザ側でパスワードから導出）と暗証番号を確認。失敗回数を記録 */
 function checkCredentials(array $u, string $auth, string $pin, bool $needPin = true): array {
@@ -129,33 +143,34 @@ function checkCredentials(array $u, string $auth, string $pin, bool $needPin = t
         fail(429, 'ログインに続けて失敗したため一時的にロックしています', ['retryAfter' => $u['lockUntil'] - $now]);
     }
     $ok = password_verify($auth, $u['authHash']);
-    $okPin = !$needPin || password_verify($pin, $u['pinHash']);
+    // 方式2ではパスワードと暗証番号の両方から認証鍵を作るため、暗証番号はサーバーに届かない
+    $legacy = (int)($u['scheme'] ?? 1) < 2;
+    $okPin = !$needPin || !$legacy || password_verify($pin, $u['pinHash'] ?? '');
     if (!$ok || !$okPin) {
         $u['fails'] = ($u['fails'] ?? 0) + 1;
         if ($u['fails'] >= MAX_FAILS) { $u['lockUntil'] = $now + LOCK_SECONDS; $u['fails'] = 0; }
-        writeJson(path('user.json'), $u);
+        writeJson(path('user.json.php'), $u);
         usleep(random_int(400000, 900000));   // 総当たり対策
         if (!empty($u['lockUntil']) && $u['lockUntil'] > $now) fail(429, 'ログインに続けて失敗したため15分間ロックしました', ['retryAfter' => LOCK_SECONDS]);
         fail(403, 'ユーザー名・パスワード・暗証番号のいずれかが違います', ['left' => MAX_FAILS - $u['fails']]);
     }
     if (!empty($u['fails']) || !empty($u['lockUntil'])) {
         $u['fails'] = 0; $u['lockUntil'] = 0;
-        writeJson(path('user.json'), $u);
+        writeJson(path('user.json.php'), $u);
     }
     return $u;
 }
-function validPin(string $pin): bool { return preg_match('/^[0-9]{4,8}$/', $pin) === 1; }
 
 /* ---------- 保存データ ---------- */
-function vaultRec(): ?array { return readJson(path('vault.json')); }
+function vaultRec(): ?array { return readJson(path('vault.json.php')); }
 function snapshotList(): array {
-    $list = glob(path('snapshots') . '/*.json') ?: [];
+    $list = glob(path('snapshots') . '/*.json.php') ?: [];
     sort($list);
     return $list;
 }
 function addSnapshot(array $rec): void {
     $sid = sprintf('%013d%04d', (int)(microtime(true) * 1000), random_int(0, 9999));
-    writeJson(path("snapshots/$sid.json"), $rec);
+    writeJson(path("snapshots/$sid.json.php"), $rec);
     $list = snapshotList();
     while (count($list) > MAX_SNAPSHOTS) @unlink(array_shift($list));
 }
@@ -175,21 +190,18 @@ case 'register': {
     withLock(function () use ($b) {
         if (user() !== null) fail(409, 'アカウントはすでに登録されています');
         $name = trim(str($b, 'username', 64));
-        $pin = str($b, 'pin', 16);
         if ($name === '') fail(400, 'ユーザー名を入力してください');
-        if (!validPin($pin)) fail(400, '暗証番号は4〜8桁の数字にしてください');
         foreach (['salt', 'auth', 'wk', 'wkIv', 'iv'] as $k) if (!isB64(str($b, $k))) fail(400, "不正な値: $k");
         $ct = str($b, 'ct', MAX_VAULT_BYTES);
         if (!isB64($ct)) fail(400, '不正な値: ct');
         $iter = (int)($b['iter'] ?? 0);
         if ($iter < 100000) fail(400, '不正な値: iter');
-        writeJson(path('user.json'), [
+        writeJson(path('user.json.php'), [
             'username' => $name, 'salt' => $b['salt'], 'iter' => $iter,
-            'authHash' => password_hash($b['auth'], PASSWORD_DEFAULT),
-            'pinHash' => password_hash($pin, PASSWORD_DEFAULT),
+            'authHash' => password_hash($b['auth'], PASSWORD_DEFAULT), 'scheme' => 2,
             'wk' => $b['wk'], 'wkIv' => $b['wkIv'], 'fails' => 0, 'lockUntil' => 0, 'createdAt' => time(),
         ]);
-        writeJson(path('vault.json'), ['iv' => $b['iv'], 'ct' => $ct, 'rev' => 1, 'n' => (int)($b['n'] ?? 0), 'savedAt' => (int)(microtime(true) * 1000)]);
+        writeJson(path('vault.json.php'), ['iv' => $b['iv'], 'ct' => $ct, 'rev' => 1, 'n' => (int)($b['n'] ?? 0), 'savedAt' => (int)(microtime(true) * 1000)]);
     });
     $u = user();
     out(200, ['token' => withLock(fn() => newSession()), 'header' => headerOf($u), 'vault' => vaultRec()]);
@@ -200,9 +212,9 @@ case 'prelogin': {
     $b = body();
     $name = trim(str($b, 'username', 64));
     $u = user();
-    if ($u && hash_equals($u['username'], $name)) out(200, ['salt' => $u['salt'], 'iter' => $u['iter']]);
+    if ($u && hash_equals($u['username'], $name)) out(200, ['salt' => $u['salt'], 'iter' => $u['iter'], 'scheme' => (int)($u['scheme'] ?? 1)]);
     $fake = base64_encode(substr(hash_hmac('sha256', 'salt:' . $name, secret(), true), 0, 16));
-    out(200, ['salt' => $fake, 'iter' => KDF_ITER]);
+    out(200, ['salt' => $fake, 'iter' => KDF_ITER, 'scheme' => 2]);
 }
 
 case 'login': {
@@ -243,7 +255,7 @@ case 'vault_put': {
         if ($cur && (int)$cur['rev'] !== $base) fail(409, '別の端末で更新されています', ['rev' => (int)$cur['rev']]);
         if ($cur) addSnapshot($cur);
         $rec = ['iv' => $iv, 'ct' => $ct, 'rev' => ($cur ? (int)$cur['rev'] : 0) + 1, 'n' => (int)($b['n'] ?? 0), 'savedAt' => (int)(microtime(true) * 1000)];
-        writeJson(path('vault.json'), $rec);
+        writeJson(path('vault.json.php'), $rec);
         return ['rev' => $rec['rev'], 'savedAt' => $rec['savedAt']];
     });
     out(200, $res);
@@ -254,7 +266,7 @@ case 'snapshots':
     $items = [];
     foreach (array_reverse(snapshotList()) as $f) {
         $r = readJson($f);
-        if ($r) $items[] = ['sid' => basename($f, '.json'), 'savedAt' => $r['savedAt'] ?? 0, 'n' => $r['n'] ?? null];
+        if ($r) $items[] = ['sid' => basename($f, '.json.php'), 'savedAt' => $r['savedAt'] ?? 0, 'n' => $r['n'] ?? null];
     }
     out(200, ['items' => $items]);
 
@@ -262,7 +274,7 @@ case 'snapshot': {
     requireAuth();
     $sid = (string)($_GET['sid'] ?? '');
     if (!preg_match('/^[0-9]{17}$/', $sid)) fail(400, '不正な値: sid');
-    $r = readJson(path("snapshots/$sid.json"));
+    $r = readJson(path("snapshots/$sid.json.php"));
     if (!$r) fail(404, '見つかりません');
     out(200, $r);
 }
@@ -291,7 +303,7 @@ case 'file_get': {
 }
 
 case 'password': {
-    // 管理者パスワードの変更：データ鍵を新しいパスワードで包み直す
+    // パスワード・暗証番号の変更（と旧方式からの移行）：データ鍵を新しい鍵で包み直す
     requireAuth();
     $b = body();
     withLock(function () use ($b) {
@@ -300,22 +312,14 @@ case 'password': {
         $u['salt'] = $b['salt']; $u['iter'] = max(100000, (int)$b['iter']);
         $u['authHash'] = password_hash($b['authNew'], PASSWORD_DEFAULT);
         $u['wk'] = $b['wk']; $u['wkIv'] = $b['wkIv'];
-        writeJson(path('user.json'), $u);
+        $u['scheme'] = 2; unset($u['pinHash']);
+        writeJson(path('user.json.php'), $u);
+        // 変更した端末以外はログアウトさせる
+        $id = hash('sha256', (string)($_SERVER['HTTP_X_AUTH_TOKEN'] ?? ''));
+        $all = sessions();
+        writeJson(path('sessions.json.php'), isset($all[$id]) ? [$id => $all[$id]] : []);
     });
     out(200, ['ok' => true, 'header' => headerOf(user())]);
-}
-
-case 'pin': {
-    requireAuth();
-    $b = body();
-    withLock(function () use ($b) {
-        $u = checkCredentials(user(), str($b, 'auth', 200), '', false);
-        $pin = str($b, 'pin', 16);
-        if (!validPin($pin)) fail(400, '暗証番号は4〜8桁の数字にしてください');
-        $u['pinHash'] = password_hash($pin, PASSWORD_DEFAULT);
-        writeJson(path('user.json'), $u);
-    });
-    out(200, ['ok' => true]);
 }
 
 case 'username': {
@@ -327,7 +331,7 @@ case 'username': {
         if ($name === '') fail(400, 'ユーザー名を入力してください');
         // ユーザー名は暗号鍵の材料ではないので、変更しても再暗号化は不要
         $u['username'] = $name;
-        writeJson(path('user.json'), $u);
+        writeJson(path('user.json.php'), $u);
     });
     out(200, ['ok' => true]);
 }
@@ -338,7 +342,7 @@ case 'wipe': {
     withLock(function () use ($b) {
         checkCredentials(user(), str($b, 'auth', 200), '', false);
         foreach (array_merge(glob(path('files') . '/*') ?: [], glob(path('snapshots') . '/*') ?: []) as $f) @unlink($f);
-        foreach (['user.json', 'vault.json', 'sessions.json'] as $f) @unlink(path($f));
+        foreach (['user.json.php', 'vault.json.php', 'sessions.json.php'] as $f) @unlink(path($f));
     });
     out(200, ['ok' => true]);
 }
