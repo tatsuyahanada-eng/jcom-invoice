@@ -569,6 +569,18 @@
     .etc-fee { margin: 0 0 6px 56px; }
     .etc-fee label.fl { margin-top: 8px; }
     .nc-btn { width: 100%; margin-top: 8px; min-height: 40px; }
+    .rp-card { padding-top: 10px; padding-bottom: 10px; }
+    .rp-toggle { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: 0; color: inherit; padding: 4px 0; font: inherit; text-align: left; cursor: pointer; }
+    .rp-toggle > svg { width: 18px; height: 18px; color: var(--ok); flex: none; }
+    .rp-toggle b { font-size: 14px; white-space: nowrap; }
+    .rp-sum { margin-left: auto; font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 8px; justify-content: flex-end; min-width: 0; }
+    .rp-sum .ok { color: var(--ok); font-weight: 700; }
+    .rp-sum .warn { color: #FFCC33; font-weight: 700; }
+    .rp-sum .muted { color: var(--muted); }
+    .rp-chev { flex: none; display: inline-flex; transition: transform .2s; }
+    .rp-chev svg { width: 18px; height: 18px; }
+    .rp-card.open .rp-chev { transform: rotate(180deg); }
+    .rp-body { margin-top: 6px; border-top: 1px solid var(--line); }
     .rp-row { padding: 8px 0; }
     .rp-row + .rp-row { border-top: 1px dashed var(--line); }
     .rp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
@@ -845,7 +857,8 @@
           <li>「直前電話」「直前Mail」をオンにすると、その案件のカードに赤い印が出ます。上の赤いバナーは、その案件が<b>次の訪問</b>になったときだけ出ます。「通話済」「Mail送信」を記録すると完了、案件が「完了」になると印は消えます。</li>
           <li>「直前Mail」をオンにすると、その下に「メールのひな形を開く」ボタンが出ます。トップに戻らずに、メールの定型文を開けます。メールを作ったら「Mail送信を記録して案件に戻る」を押すと、記録して案件の画面に戻ります。{時間1}{時間2}には、その案件の開始・終了の時刻が入ります。</li>
           <li>「フォーム報告」をオンにすると、設定の「連携アプリ」に登録したURLから開くフォームを選んで、「フォームを開く」で開けます。報告を終えたら「フォーム報告済」を押すと完了です（赤い印が消えます）。</li>
-          <li>「開始・終了の連絡」では、案件ごとに開始と終了をそれぞれ「なし／電話／Mail／フォーム」から選べます。電話は電話先を入れて発信（前回の番号を覚えます）、Mailは定型文、フォームは「連携アプリ」のURLを開きます。連絡したら「連絡をした」を押すと時刻つきで記録され、カードに「開始電話 済」などが出ます。終了の連絡が残ったまま「完了」にすると、お知らせが出ます。</li>
+          <li>「開始・終了の連絡」では、案件ごとに開始と終了をそれぞれ「なし／電話／Mail／フォーム」から選べます。電話は電話先を入れて発信（前回の番号を覚えます）、Mailは定型文、フォームは「連携アプリ」のURLを開きます。連絡したら「連絡をした」を押すと時刻つきで記録され、カードに「開始電話 済」などが出ます。終了の連絡が残ったまま「完了」にすると、お知らせが出ます。この枠は住所の下にあり、見出しをタップすると開閉します（閉じていても、選んだ方法と済みかどうかが見出しに出ます）。</li>
+          <li>フォーム報告が必要な案件（「フォーム報告」がオン、または終了の連絡がフォーム）で「完了」を押すと、「フォーム報告はお済みですか？」と確認が出ます。「済んだ」を選ぶとフォーム報告済として記録して完了に、「まだ」なら完了になりません。</li>
           <li>本文やメモの中の電話番号は、タップすると電話アプリが開きます。</li>
         </ul>
       </details>
@@ -1464,6 +1477,7 @@
   }
 
   function openDetail(id) {
+    if (openId !== id) rpOpen = false;
     openId = id;
     renderDetail();
     openSheet('#detailSheet');
@@ -1484,6 +1498,14 @@
     if (!REPORT_WAY[r.end]) r.end = 'none';
     return r;
   }
+  let rpOpen = false; // 「開始・終了の連絡」の枠を開いているか（詳細を開くたびに閉じた状態から）
+  function reportSummary(j) {
+    const r = jobReportOf(j);
+    if (r.start === 'none' && r.end === 'none') return '<span class="muted">指定なし</span>';
+    return ['start', 'end'].filter(k => r[k] !== 'none').map(k => `<span class="${r[k + 'At'] ? 'ok' : 'warn'}">${REPORT_KIND[k]}:${REPORT_WAY[r[k]]}${r[k + 'At'] ? '✓' : ''}</span>`).join(' ');
+  }
+  // 完了にする前に確認する「フォーム報告」（フォーム報告がオン、または終了の連絡がフォームで、まだ済んでいない）
+  const formReportPending = (j) => { const r = jobReportOf(j); return (j.needForm && !formDone(j)) || (r.end === 'form' && !r.endAt); };
   const reportPending = (j) => { const r = jobReportOf(j); return ['start', 'end'].filter(k => r[k] !== 'none' && !r[k + 'At']); };
   function reportChipsHtml(j) {
     const r = jobReportOf(j);
@@ -1556,19 +1578,6 @@
         </div>
       </div>
 
-      <div class="card" id="reportCard">
-        <h3>${icon('phone')}開始・終了の連絡</h3>
-        ${reportRowHtml(j, 'start')}
-        ${reportRowHtml(j, 'end')}
-        <p class="help" style="margin-top:4px;">案件ごとに、開始・終了をどの方法で連絡するかを選べます。連絡したら「連絡をした」を押すと、時刻つきで記録されます。</p>
-      </div>
-
-      <div class="actions">
-        <a class="action ${j.phone ? '' : 'disabled'}" href="${j.phone ? telHref(j.phone) : '#'}">${icon('phone')}電話</a>
-        <a class="action ${addr ? '' : 'disabled'}" href="${navUrl || '#'}" target="_blank" rel="noopener">${icon('nav')}ナビ開始</a>
-        <button class="action ${addr ? '' : 'disabled'}" data-act="copyAddr" type="button">${icon('copy')}住所コピー</button>
-      </div>
-
       <div class="card kv-addr">
         <div class="k">住所</div>
         <div class="v">${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</div>
@@ -1591,6 +1600,16 @@
           </div>`).join('')}
           <button class="xadd" type="button" data-act="addX">＋ 住所を追加</button>
         </div>
+      </div>
+
+      <div class="card rp-card${rpOpen ? ' open' : ''}" id="reportCard">
+        <button class="rp-toggle" type="button" data-rp-toggle="1" aria-expanded="${rpOpen}">
+          ${icon('phone')}<b>開始・終了の連絡</b><span class="rp-sum">${reportSummary(j)}</span><span class="rp-chev">${icon('down')}</span>
+        </button>
+        ${rpOpen ? `<div class="rp-body">
+        ${reportRowHtml(j, 'start')}
+        ${reportRowHtml(j, 'end')}
+        </div>` : ''}
       </div>
 
       <div class="card needcall">
@@ -1761,10 +1780,23 @@
   });
   $('#dBody').addEventListener('click', async (e) => {
     const j = findJob(openId); if (!j) return;
+    if (e.target.closest('[data-rp-toggle]')) { rpOpen = !rpOpen; renderDetail(); return; }
     const segBtn = e.target.closest('.seg button');
     if (segBtn) {
       const group = segBtn.parentElement.dataset.group;
       const val = segBtn.dataset.val;
+      if (group === 'work' && val === 'done' && j.work !== 'done' && formReportPending(j)) {
+        const ok = await askDialog({
+          title: 'フォーム報告の確認',
+          body: `<p>「${esc(j.title || '案件')}」は、フォーム報告が必要な案件です。</p><p><b>フォーム報告はお済みですか？</b></p>`,
+          buttons: [{ label: '済んだ（完了にする）', value: true, kind: 'primary' }, { label: 'まだ（完了にしない）', value: false, kind: 'ghost' }],
+        });
+        if (ok !== true) { toast('完了にしませんでした'); return; }
+        const now = new Date().toISOString();
+        if (j.needForm && !formDone(j)) { j.contact.log.push({ status: 'form', at: now }); j.contact.status = 'form'; }
+        const r = jobReportOf(j);
+        if (r.end === 'form' && !r.endAt) { j.report = r; j.report.endAt = now; }
+      }
       if (group === 'work') {
         const was = j.work; j.work = val;
         const pend = reportPending(j), r = jobReportOf(j);
