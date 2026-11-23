@@ -382,6 +382,10 @@
     .card.kv-addr { padding: 10px 12px; }
     .kv-addr .k { color: var(--muted); font-size: 12px; font-weight: 700; margin-bottom: 2px; }
     .kv-addr .v { font-size: 20px; font-weight: 700; line-height: 1.45; word-break: break-word; }
+    .kv-addr .addr-copy { cursor: pointer; border-radius: 8px; margin: 0 -6px; padding: 2px 6px; transition: background .15s; -webkit-tap-highlight-color: transparent; }
+    .kv-addr .addr-copy:active, .kv-addr .addr-copy.copied { background: rgba(255, 204, 51, .14); }
+    .kv-addr .addr-copy .cp { display: inline-flex; align-items: center; gap: 3px; margin-left: 8px; font-size: 11px; font-weight: 500; color: var(--muted); vertical-align: middle; white-space: nowrap; }
+    .kv-addr .addr-copy .cp svg { width: 13px; height: 13px; }
     .applinks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .linkbtn { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(18, 33, 54, .6); font-size: 13px; font-weight: 700; color: var(--text); text-align: left; word-break: break-all; }
     .linkbtn svg { width: 18px; height: 18px; flex: none; color: var(--cyan); }
@@ -859,6 +863,7 @@
           <li>「フォーム報告」をオンにすると、設定の「連携アプリ」に登録したURLから開くフォームを選んで、「フォームを開く」で開けます。報告を終えたら「フォーム報告済」を押すと完了です（赤い印が消えます）。</li>
           <li>「開始・終了の連絡」では、案件ごとに開始と終了をそれぞれ「なし／電話／Mail／フォーム」から選べます。電話は電話先を入れて発信（前回の番号を覚えます）、Mailは定型文、フォームは「連携アプリ」のURLを開きます。連絡したら「連絡をした」を押すと時刻つきで記録され、カードに「開始電話 済」などが出ます。終了の連絡が残ったまま「完了」にすると、お知らせが出ます。この枠は住所の下にあり、見出しをタップすると開閉します（閉じていても、選んだ方法と済みかどうかが見出しに出ます）。</li>
           <li>フォーム報告が必要な案件（「フォーム報告」がオン、または終了の連絡がフォーム）で「完了」を押すと、「フォーム報告はお済みですか？」と確認が出ます。「済んだ」を選ぶとフォーム報告済として記録して完了に、「まだ」なら完了になりません。</li>
+          <li>詳細画面の住所の文字をタップすると、住所をコピーできます（「住所コピー」ボタンと同じ）。</li>
           <li>本文やメモの中の電話番号は、タップすると電話アプリが開きます。</li>
         </ul>
       </details>
@@ -1580,7 +1585,7 @@
 
       <div class="card kv-addr">
         <div class="k">住所</div>
-        <div class="v">${addr ? esc(addr) : '<span style="color:var(--muted)">未設定</span>'}</div>
+        ${addr ? `<div class="v addr-copy" data-act="copyAddr" role="button" tabindex="0" title="タップで住所をコピー">${esc(addr)}<span class="cp">${icon('copy')}タップでコピー</span></div>` : '<div class="v"><span style="color:var(--muted)">未設定</span></div>'}
         ${addr ? `
         <div class="maprow">
           <div class="mapgrp">
@@ -1867,7 +1872,11 @@
       saveDay(); render(); renderDetail();
     }
     if (act.dataset.act === 'copyAddr' && j.location) {
-      copyText(j.location).then(ok => toast(ok ? '住所をコピーしました' : 'コピーできませんでした'));
+      copyText(j.location).then(ok => {
+        toast(ok ? `住所をコピーしました：${j.location}` : 'コピーできませんでした');
+        if (ok && navigator.vibrate) navigator.vibrate(15);
+        if (ok && act.classList.contains('addr-copy')) { act.classList.add('copied'); setTimeout(() => act.classList.remove('copied'), 600); }
+      });
     }
   });
 
